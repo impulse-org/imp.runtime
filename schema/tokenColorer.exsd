@@ -1,0 +1,123 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.uide">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.uide" id="tokenColorer" name="Universal IDE Token Colorer"/>
+      </appInfo>
+      <documentation>
+         This extension point allows providers to provide coloring hints for syntax-driven coloring of a document. The provider specifies what languages it can provide colorings for. The provider has to implement the ITokenColorer interface. It will be presented with a token, and should return its suggested text color and font.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <complexType>
+         <sequence>
+            <element ref="tokenColorer" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="tokenColorer">
+      <annotation>
+         <documentation>
+            The org.eclips.uide.editor.tokenColorer allowes contributors to provide coloring advise for a given set of tokens.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class name for the outliner that implements the IOutliner interface.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.editor.ITokenColorer"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="language" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The programming language for which this outliner can generate an outline.
+Examples: &quot;C&quot;, &quot;php&quot;, &quot;Java&quot;, &quot;Lisp&quot;, etc
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         [Enter the first release in which this extension point appears.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;extension
+         point=&quot;org.eclipse.uide.outliner&quot;&gt;
+      &lt;outliner
+            class=&quot;org.eclipse.uide.DefaultOutliner&quot;
+            language=&quot;*&quot;
+            name=&quot;Default Outliner&quot;
+            id=&quot;org.eclipse.uide.outliner.default&quot;/&gt;
+   &lt;/extension&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         See org.eclipse.uide.DefaultOutliner.
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Licensed Materials - Property of IBM,
+ (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved
+      </documentation>
+   </annotation>
+
+</schema>

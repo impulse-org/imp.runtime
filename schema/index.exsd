@@ -1,0 +1,131 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.uide">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.uide" id="index" name="Universal IDE Index of shared artifacts"/>
+      </appInfo>
+      <documentation>
+         The org.eclipse.uide.index extension point allows contributors to define and share artifacts through a central index. What is kept in the index, and how to access it, is left up to the implementors of the programming language.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <annotation>
+         <documentation>
+            Provide an implementation of an index of shared artifact of programs written for a given language. The actual contents is diverse and depends on the lanuage used.
+         </documentation>
+      </annotation>
+      <complexType>
+         <sequence>
+            <element ref="index" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="index">
+      <annotation>
+         <documentation>
+            &lt;p&gt;
+Index -- an alphabetical listing of names and topics along with locations where they are discussed -- Wordnet Search
+&lt;br&gt;
+
+&lt;p&gt;
+Defines a shared index for a given programming language. Depending on the nature of the programming language, the index contains widely varying items, such as classes and interfaces (in the case of Java) and macros (in the case of C). 
+&lt;p&gt;
+Support for persistence is provided, but the information discovery for the index is very much language specific and is unsupported. 
+Furthermore, the actual contents specification is also left up to the language contributor.
+&lt;p&gt;
+The extension point serves mostly as a central registration location for language-specific indices.
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="language" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The programming language this index is meant for. See the org.eclipse.uide.languageDescription extension point.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class the contributor has to extend. Users of the index are expected to downcast the 
+generic &lt;tt&gt;org.eclipse.uide.Index&lt;/tt&gt; class to their specific implementation
+to provide content-specific indexing and searching.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.core.Index"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         [Enter extension point usage example here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         Contributor should implement the &lt;tt&gt;org.eclipse.uide.Index&lt;/tt&gt; class.
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         org.eclipse.uide.Index
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         
+      </documentation>
+   </annotation>
+
+</schema>

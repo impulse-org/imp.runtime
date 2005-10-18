@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.uide">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.uide" id="parser" name="Universal IDE Parser"/>
+      </appInfo>
+      <documentation>
+         The org.eclipse.uide.parser extension point allows providers to provide a language parser. The provider specifies what languages it can parse. The provider has to implement the IParser interface. It will be presented with Document and has to turn it into an IModel.
+      </documentation>
+   </annotation>
+
+   <element name="extension">
+      <complexType>
+         <sequence>
+            <element ref="parser" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="parser">
+      <complexType>
+         <attribute name="id" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A unique id for this parser. 
+
+Example: &quot;com.acme.parsing.cpp.fastParser&quot;
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string" use="required">
+            <annotation>
+               <documentation>
+                  A symbolic name for this parser used for resolving ambiguities in the case their are more than one parsers contributed for a given content type. This text is shown to a user.
+
+Example: &quot;The Fast-but-fuzzy ACME C++ parser&quot;.
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="class" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The class name for the parser that implements the IParser interface.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.parser.IParser"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="language" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The programming language this parser can parse.
+
+Examples: &quot;C&quot;, &quot;php&quot;, &quot;Java&quot;, &quot;Lisp&quot;, etc
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;extension
+         point=&quot;org.eclipse.uide.parser&quot;&gt;
+      &lt;parser
+            class=&quot;org.eclipse.uide.DefaultParser&quot;
+            language=&quot;*&quot;
+            name=&quot;Default Parser&quot;
+            id=&quot;org.eclipse.uide.parser.default&quot;/&gt;
+   &lt;/extension&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         See org.eclipse.uide.DefaultParser.
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Licensed Materials - Property of IBM,
+ (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved
+      </documentation>
+   </annotation>
+
+</schema>

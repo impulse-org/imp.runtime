@@ -17,8 +17,8 @@ import org.eclipse.core.runtime.IConfigurationElement;
  */
 public class Language {
     protected IConfigurationElement element;
-    protected String extensions[];
-    protected String synonyms[];
+    private String extensions[];
+    private String synonyms[];
     /** 
      * Creates a language
      * @param element the extension point contribution this language belongs to

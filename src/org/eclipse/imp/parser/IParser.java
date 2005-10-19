@@ -23,7 +23,7 @@ public interface IParser extends ILanguageService {
      */
     public Object parser(int error_repair_count, Monitor monitor);
 
-    public abstract PrsStream getParseStream();
+    public PrsStream getParseStream();
 
     /**
      * @return the token kind for the EOF token

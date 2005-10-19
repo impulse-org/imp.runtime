@@ -18,7 +18,7 @@
             extensions="txt"
             contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
             class="org.eclipse.uide.editor.UniversalEditor"
-            id="org.eclipse.uide.universalEditor">
+            id="org.eclipse.ui.DefaultTextEditor">
       </editor>
    </extension>
    <extension

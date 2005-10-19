@@ -22,6 +22,7 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
+import org.eclipse.uide.runtime.RuntimePlugin;
 
 import com.ibm.lpg.IToken;
 
@@ -47,7 +48,7 @@ public class PresentationController implements IModelListener {
         annotations = new ArrayList();
     }
     public void setLanguage(Language language) {
-        colorer = (ITokenColorer) ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", "tokenColorer");
+        colorer = (ITokenColorer) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "tokenColorer");
 //		parser = (IParser) ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", "parser");
     }
  
@@ -130,8 +131,8 @@ public class PresentationController implements IModelListener {
 	            if (!monitor.isCanceled())
 	                workItems.removeAllElements();
 	        }
+	        generateErrorAnnotations(controller);
         }
-        generateErrorAnnotations(controller);
     }
     
     Stack workItems = new Stack();

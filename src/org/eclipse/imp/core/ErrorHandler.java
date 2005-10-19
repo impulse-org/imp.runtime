@@ -2,6 +2,7 @@ package org.eclipse.uide.core;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.uide.runtime.RuntimePlugin;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -57,11 +58,11 @@ public class ErrorHandler {
     }
 
     public static void logError(String msg, Throwable e) {
-        Plugin.plugin.getLog().log(new Status(Status.ERROR, PLUGIN, Status.OK, msg, e));
+        RuntimePlugin.getDefault().getLog().log(new Status(Status.ERROR, PLUGIN, Status.OK, msg, e));
      }
 
     public static void logMessage(String msg, Throwable e) {
-        Plugin.plugin.getLog().log(new Status(Status.INFO, PLUGIN, Status.OK, msg, e));
+        RuntimePlugin.getDefault().getLog().log(new Status(Status.INFO, PLUGIN, Status.OK, msg, e));
      }
 
 }

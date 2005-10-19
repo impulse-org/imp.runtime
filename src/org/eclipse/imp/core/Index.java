@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.uide.runtime.RuntimePlugin;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -81,7 +82,7 @@ public class Index implements ILanguageService {
      */
     private File getPersistentIndexFile() {
         try {
-            IPath path = Plugin.getDefault().getStateLocation();
+            IPath path = RuntimePlugin.getDefault().getStateLocation();
 	        File file = new File(path.toFile(), language+".index");
 	        if (!file.exists()) {
 	            file.createNewFile();

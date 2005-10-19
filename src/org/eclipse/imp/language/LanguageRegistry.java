@@ -67,9 +67,9 @@ public class LanguageRegistry {
 	IEditorRegistry editorRegistry= Workbench.getInstance().getEditorRegistry();
 
 	for(int n= 0; n < languages.length; n++) {
-	    String[] fileNameExtensions= languages[n].extensions;
+	    String[] fileNameExtensions= languages[n].getExtensions();
 	    for(int i= 0; i < fileNameExtensions.length; i++) {
-		editorRegistry.setDefaultEditor(fileNameExtensions[i], UniversalEditor.EDITOR_ID);
+		editorRegistry.setDefaultEditor("*." + fileNameExtensions[i], UniversalEditor.EDITOR_ID);
 	    }
 	}
     }

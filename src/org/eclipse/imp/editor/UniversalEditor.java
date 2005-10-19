@@ -46,6 +46,7 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.Ast;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
+import org.eclipse.uide.runtime.RuntimePlugin;
 
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
@@ -110,7 +111,7 @@ public class UniversalEditor extends TextEditor {
     }
 
     private Object createExtensionPoint(String extensionPoint) {
-	return ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", extensionPoint);
+	return ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, extensionPoint);
     }
 
     /**

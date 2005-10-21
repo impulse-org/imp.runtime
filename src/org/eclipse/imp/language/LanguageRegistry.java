@@ -8,7 +8,7 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorRegistry;
-import org.eclipse.ui.internal.Workbench;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.uide.editor.UniversalEditor;
 import org.osgi.framework.Bundle;
@@ -64,7 +64,7 @@ public class LanguageRegistry {
 	if (languages == null)
 	    findLanguages();
 
-	IEditorRegistry editorRegistry= Workbench.getInstance().getEditorRegistry();
+	IEditorRegistry editorRegistry= PlatformUI.getWorkbench().getEditorRegistry();
 
 	for(int n= 0; n < languages.length; n++) {
 	    String[] fileNameExtensions= languages[n].getExtensions();

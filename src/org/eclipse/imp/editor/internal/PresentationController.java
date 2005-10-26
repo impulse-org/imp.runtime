@@ -82,19 +82,23 @@ public class PresentationController implements IModelListener {
 		}
 	}
 
-    public void changeTextPresentation(IParseController controller, IProgressMonitor monitor, Region damage) {
+    public void changeTextPresentation(IParseController controller, IProgressMonitor monitor, Region damage)
+    {
         if (controller == null) {
             return;
         }
-        int startIndex = controller.getTokenIndexAtCharacter(damage.getOffset());
-		int endIndex = controller.getTokenIndexAtCharacter(damage.getOffset()+damage.getLength());
-//        startIndex = Math.max(1,startIndex-1);
-//        endIndex = Math.min(controller.getParser().getParseStream().getSize()-2,endIndex+1);
+        int startIndex = controller.getTokenIndexAtCharacter(damage.getOffset()),
+            endIndex = controller.getTokenIndexAtCharacter(damage.getOffset()+damage.getLength());
         final TextPresentation presentation = new TextPresentation();
         for (int n = startIndex; !monitor.isCanceled() && n <= endIndex; n++) {
 			IToken token = controller.getParser().getParseStream().getTokenAt(n);
-			if (token != null && token.getKind() != controller.getParser().getEOFTokenKind())
+			if (token.getKind() != controller.getParser().getEOFTokenKind())
+			{
 			    changeTokenPresentation(controller, presentation, token);
+			    IToken adjuncts[] = controller.getParser().getParseStream().getFollowingAdjuncts(n);
+		        for (int i = 0; i < adjuncts.length; i++)
+				    changeTokenPresentation(controller, presentation, adjuncts[i]);
+			}
 		}
 		if (!monitor.isCanceled()) {
 			Display.getDefault().asyncExec(new Runnable() {

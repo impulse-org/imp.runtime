@@ -48,6 +48,9 @@ import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
 
+import com.ibm.lpg.IToken;
+import com.ibm.lpg.PrsStream;
+
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
  * 
@@ -202,8 +205,14 @@ public class UniversalEditor extends TextEditor {
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 	    try {
 
-		if (presentationController != null)
-		    presentationController.damage(damage.getOffset(), damage.getLength());
+		if (presentationController != null) {
+			PrsStream parseStream = parserScheduler.parseController.getParser().getParseStream();
+			int damagedToken= parserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+			IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
+			int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken) : adjuncts[adjuncts.length-1].getEndOffset();
+			int length = endOffset - damage.getOffset();
+		    presentationController.damage(damage.getOffset(), (length > damage.getLength() ? length : damage.getLength()));
+		}
 		if (parserScheduler != null) {
 		    parserScheduler.cancel();
 		    parserScheduler.schedule();
@@ -287,7 +296,10 @@ public class UniversalEditor extends TextEditor {
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
 		parseController.parse(document.get(), false, monitor);
-		notifyAstListeners(parseController, monitor);
+		if (!monitor.isCanceled())
+			notifyAstListeners(parseController, monitor);
+//		else
+//			System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Error running parser for " + language, e);
 	    }

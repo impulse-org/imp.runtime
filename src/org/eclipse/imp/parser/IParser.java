@@ -21,7 +21,7 @@ public interface IParser extends ILanguageService {
      * @param monitor stop scanning/parsing when monitor.isCanceled() is true.
      * @return
      */
-    public Object parser(int error_repair_count, Monitor monitor);
+    public Object parser(Monitor monitor, int error_repair_count);
 
     public PrsStream getParseStream();
 

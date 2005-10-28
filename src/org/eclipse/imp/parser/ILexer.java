@@ -12,5 +12,5 @@ public interface ILexer {
 
 	public void initialize(char[] contents, String filename);
 
-	public void lexer(PrsStream prsStream, Monitor monitor);
+	public void lexer(Monitor monitor, PrsStream prsStream);
 }

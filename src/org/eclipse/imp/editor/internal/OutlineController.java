@@ -23,6 +23,7 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.Ast;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
+import org.eclipse.uide.runtime.RuntimePlugin;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -50,7 +51,7 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     }
 
     public void setLanguage(Language language) {
-	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", "outliner");
+	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "outliner");
     }
 
     public void createControl(Composite parent) {

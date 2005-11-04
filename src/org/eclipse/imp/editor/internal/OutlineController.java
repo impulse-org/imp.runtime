@@ -60,11 +60,12 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 	    public void widgetSelected(SelectionEvent e) {
 		try {
 		    TreeItem item= tree.getSelection()[0];
-		    Ast node= (Ast) item.getData();
-		    if (node != null) {
+		    // RMF 11/4/2005 - Disabled, since not every parser yields a UIDE AST
+//		    Ast node= (Ast) item.getData();
+//		    if (node != null) {
 			//						int start = node.getStartOffset();
 			//						int end = node.getEndOffset();
-		    }
+//		    }
 		} catch (Throwable ee) {
 		    ErrorHandler.reportError("Universal Editor Error", ee);
 		}

@@ -56,7 +56,7 @@ public class LanguageRegistry {
 		}
 	    }
 	}
-	ErrorHandler.reportError("Could not determine content language for " + extension);
+	ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
 	return null;
     }
 

@@ -15,7 +15,6 @@ import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
 
 import com.ibm.lpg.IToken;
-import com.ibm.lpg.PrsStream;
 
 /**
  * @author CLaffra

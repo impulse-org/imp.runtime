@@ -11,7 +11,7 @@ import org.eclipse.uide.parser.IParseController;
 
 
 /**
- * This interface is to be implemented by contributors to the org.eclipse.uide.hoverHelp extension point.
+ * This interface is to be implemented by contributors to the org.eclipse.uide.runtime.contentProposer extension point.
  * The Universal IDE Editor will locate a suitable parser for the language being edited.
  * The result of the parser, an Ast describing the syntactical elements in the input, is cached
  * and used when the mouse is hovered over elements in the editor.

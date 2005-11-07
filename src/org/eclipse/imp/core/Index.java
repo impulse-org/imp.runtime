@@ -25,7 +25,7 @@ public class Index implements ILanguageService {
 	protected String language;
 
     /* (non-Javadoc)
-	 * @see org.eclipse.uide.core.ILanguageService#setLanguage(java.lang.String)
+	 * @see org.eclipse.uide.runtime.ILanguageService#setLanguage(java.lang.String)
 	 */
 	public void setLanguage(String language) {
 	    this.language = language;

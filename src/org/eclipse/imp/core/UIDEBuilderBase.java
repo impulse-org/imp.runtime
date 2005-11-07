@@ -3,8 +3,6 @@
  */
 package org.eclipse.uide.core;
 
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -16,7 +14,6 @@ import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.uide.runtime.UIDEPluginBase;
 

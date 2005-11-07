@@ -12,7 +12,7 @@ import org.eclipse.core.runtime.IConfigurationElement;
 /**
  * @author Claffra
  *
- * API representation for org.eclipse.uide.core.languageDescription contributor.
+ * API representation for org.eclipse.uide.runtime.languageDescription contributor.
  * Used by org.eclipse.uide.core.LanguageRegistry to discover and manage a language registry.
  */
 public class Language {

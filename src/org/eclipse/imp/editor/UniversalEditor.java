@@ -15,7 +15,17 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.IAutoEditStrategy;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.IUndoManager;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -43,7 +53,6 @@ import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.internal.editor.OutlineController;
 import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.util.ExtensionPointFactory;
-import org.eclipse.uide.parser.Ast;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
@@ -59,7 +68,7 @@ import com.ibm.lpg.PrsStream;
  * @author Chris Laffra
  */
 public class UniversalEditor extends TextEditor {
-    public static final String EDITOR_ID= "org.eclipse.uide.universalEditor";
+    public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".universalEditor";
 
     protected Language language;
     protected ParserScheduler parserScheduler;
@@ -237,7 +246,7 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public void setLanguage(Language language) {
-	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", "contentProposer");
+	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "contentProposer");
 	}
 
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
@@ -340,8 +349,7 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public void setLanguage(Language language) {
-	    hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", "hoverHelper");
+	    hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "hoverHelper");
 	}
-
     }
 }

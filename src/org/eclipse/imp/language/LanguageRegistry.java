@@ -11,6 +11,7 @@ import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.uide.editor.UniversalEditor;
+import org.eclipse.uide.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
 /*
@@ -25,7 +26,6 @@ import org.osgi.framework.Bundle;
  */
 public class LanguageRegistry {
     private static Language languages[];
-    private static final String PLUGIN= "org.eclipse.uide.runtime";
     private static final String EXTENSION= "languageDescription";
 
     /**
@@ -79,9 +79,9 @@ public class LanguageRegistry {
      */
     static void findLanguages() {
 	try {
-	    IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(PLUGIN, EXTENSION);
+	    IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.UIDE_RUNTIME, EXTENSION);
 	    if (extensionPoint == null) {
-		ErrorHandler.reportError("Nonexisting extension point called \"" + PLUGIN + "." + EXTENSION);
+		ErrorHandler.reportError("Nonexisting extension point called \"" + RuntimePlugin.UIDE_RUNTIME + "." + EXTENSION);
 	    }
 	    ArrayList list= new ArrayList();
 	    IConfigurationElement[] elements= extensionPoint.getConfigurationElements();

@@ -49,7 +49,7 @@ public class RuntimePlugin extends AbstractUIPlugin implements IStartup {
      * @return the image descriptor
      */
     public static ImageDescriptor getImageDescriptor(String path) {
-	return AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.uide.runtime", path);
+	return AbstractUIPlugin.imageDescriptorFromPlugin(UIDE_RUNTIME, path);
     }
 
     public void earlyStartup() {

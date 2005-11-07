@@ -15,7 +15,7 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * @author Claffra
  *
- * The interface to be implemented by contributors of the org.eclipse.uide.code.languageDescription extension point.
+ * The interface to be implemented by contributors of the org.eclipse.uide.runtime.languageDescription extension point.
  */
 public abstract class LanguageValidator {
     

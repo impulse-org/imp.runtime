@@ -16,7 +16,7 @@ package org.eclipse.uide.core;
 public interface ILanguageService {
     /**
      * Sets the language for this service. Examples would be "Java", "C", "Pascal".
-     * The language name has to be registered through the <tt>org.eclipse.uide.core.languageDescription</tt> extension point.
+     * The language name has to be registered through the <tt>org.eclipse.uide.runtime.languageDescription</tt> extension point.
      * 
      * @param language the canonical name of the language this service is meant for
      */

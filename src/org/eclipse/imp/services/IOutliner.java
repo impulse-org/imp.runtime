@@ -11,7 +11,7 @@ import org.eclipse.uide.parser.IParseController;
 
 
 /**
- * This interface is to be implemented by contributors to the org.eclipse.uide.outliner extension point.
+ * This interface is to be implemented by contributors to the org.eclipse.uide.runtime.outliner extension point.
  * The Universal IDE Editor will locate a suitable parser for the language being edited.
  * The result of the parser, an Ast describing the syntactical elements in the input, is cached
  * and used to show an outline view of the elements in the editor.

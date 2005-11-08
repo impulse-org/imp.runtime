@@ -30,10 +30,10 @@ public class DefaultHoverHelper implements IHoverHelper {
 	    IToken token= controller.getTokenAtCharacter(offset);
 	    PrsStream parser= controller.getParser().getParseStream();
 	    IASTNodeLocator nodeLocator= controller.getNodeLocator();
-	    Ast node= nodeLocator.findNode(ast, offset);
-	    if (token == null)
-		return null;
-	    //			Ast node = token.getAst();
+	    Ast node= (Ast) nodeLocator.findNode(ast, offset);
+
+            if (token == null) return null;
+
 	    String answer= "This is the default hover helper. Add your own using the UIDE wizard"
 		    + "\nSee class 'org.eclipse.uide.defaults.DefaultContentProposer'." + "\nNow, what can I say about: "
 		    + token.getValue(controller.getLexer().getLexStream().getInputChars()) + "?" + "\nIt is a token of kind "

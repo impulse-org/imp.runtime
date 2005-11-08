@@ -1,24 +1,26 @@
 package org.eclipse.uide.parser;
 
 public class AstLocator implements IASTNodeLocator {
-    public Ast findNode(Ast ast, int offset) {
-        if (ast.token != null) {
-            if (offset >= ast.token.getStartOffset() && offset <= ast.token.getEndOffset())
+    public Object findNode(Object ast, int offset) {
+        Ast root= (Ast) ast;
+
+        if (root.token != null) {
+            if (offset >= root.token.getStartOffset() && offset <= root.token.getEndOffset())
                 return ast;
             else
                 return null;
         }
-        if (ast.children == null)
+        if (root.children == null)
             return null;
-        for(int i= 0; i < ast.children.size(); i++) {
-            Ast maybe= findNode(ast.children.get(i), offset);
+        for(int i= 0; i < root.children.size(); i++) {
+            Ast maybe= (Ast) findNode(root.children.get(i), offset);
             if (maybe != null)
                 return maybe;
         }
         return null;
     }
 
-    public Ast findNode(Ast ast, int startOffset, int endOffset) {
+    public Object findNode(Object ast, int startOffset, int endOffset) {
         throw new UnsupportedOperationException();
     }
 }

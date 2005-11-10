@@ -16,7 +16,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.ide,
  lpg
 Eclipse-AutoStart: true
-Bundle-ClassPath: uide-runtime.jar
 Export-Package: org.eclipse.uide.core,
  org.eclipse.uide.defaults,
  org.eclipse.uide.editor,

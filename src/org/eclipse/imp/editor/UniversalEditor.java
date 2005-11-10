@@ -33,6 +33,7 @@ import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.text.formatter.IContentFormatter;
+import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
@@ -76,6 +77,7 @@ public class UniversalEditor extends TextEditor {
     protected OutlineController outlineController;
     protected PresentationController presentationController;
     protected CompletionProcessor completionProcessor;
+    protected IHyperlinkDetector fHyperLinkDetector;
 
     public UniversalEditor() {
 	setSourceViewerConfiguration(new Configuration());
@@ -98,8 +100,13 @@ public class UniversalEditor extends TextEditor {
 
     public void createPartControl(Composite parent) {
 	language= LanguageRegistry.findLanguage(getEditorInput());
-	super.createPartControl(parent);
-	if (language != null) {
+
+        if (language != null)
+            fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
+
+        super.createPartControl(parent);
+
+        if (language != null) {
 	    try {
 		outlineController= new OutlineController(this);
 		presentationController= new PresentationController(getSourceViewer());
@@ -110,7 +117,7 @@ public class UniversalEditor extends TextEditor {
 		completionProcessor.setLanguage(language);
 		hoverHelpController.setLanguage(language);
 
-		parserScheduler= new ParserScheduler("Universal Editor Parser");
+                parserScheduler= new ParserScheduler("Universal Editor Parser");
 		parserScheduler.addModelListener(outlineController);
 		parserScheduler.addModelListener(presentationController);
 		parserScheduler.addModelListener(completionProcessor);
@@ -127,11 +134,10 @@ public class UniversalEditor extends TextEditor {
     }
 
     /**
-         * Add a Model listener to this editor. Anytime the underlying AST is recomputed, the listener is notified.
-         * 
-         * @param listener
-         *                the listener to notify of Model changes
-         */
+     * Add a Model listener to this editor. Anytime the underlying AST is recomputed, the listener is notified.
+     * 
+     * @param listener the listener to notify of Model changes
+     */
     public void addModelListener(IModelListener listener) {
 	parserScheduler.addModelListener(listener);
     }
@@ -176,6 +182,8 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+            if (fHyperLinkDetector != null)
+                return new IHyperlinkDetector[] { fHyperLinkDetector };
 	    return super.getHyperlinkDetectors(sourceViewer);
 	}
 

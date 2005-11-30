@@ -162,7 +162,10 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
-	    return (IAnnotationHover) createExtensionPoint("annotationHover");
+	    if (language != null)
+		return (IAnnotationHover) createExtensionPoint("annotationHover");
+	    else
+		return super.getAnnotationHover(sourceViewer);
 	}
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {

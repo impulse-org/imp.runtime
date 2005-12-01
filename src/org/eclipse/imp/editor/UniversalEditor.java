@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -44,6 +45,7 @@ import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -78,9 +80,12 @@ public class UniversalEditor extends TextEditor {
     protected PresentationController presentationController;
     protected CompletionProcessor completionProcessor;
     protected IHyperlinkDetector fHyperLinkDetector;
+    protected IAutoEditStrategy fAutoEditStrategy;
 
     public UniversalEditor() {
 	setSourceViewerConfiguration(new Configuration());
+	configureInsertMode(SMART_INSERT, true);
+	setInsertMode(SMART_INSERT);
     }
 
     public Object getAdapter(Class required) {
@@ -129,6 +134,11 @@ public class UniversalEditor extends TextEditor {
 	}
     }
 
+    protected void doSetInput(IEditorInput input) throws CoreException {
+        super.doSetInput(input);
+        setInsertMode(SMART_INSERT);
+    }
+
     private Object createExtensionPoint(String extensionPoint) {
 	return ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, extensionPoint);
     }
@@ -169,7 +179,12 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-	    return super.getAutoEditStrategies(sourceViewer, contentType);
+	    fAutoEditStrategy= (IAutoEditStrategy) createExtensionPoint("autoEditStrategy");
+
+	    if (fAutoEditStrategy == null)
+		fAutoEditStrategy= super.getAutoEditStrategies(sourceViewer, contentType)[0];
+
+	    return new IAutoEditStrategy[] { fAutoEditStrategy };
 	}
 
 	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {

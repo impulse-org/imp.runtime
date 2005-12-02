@@ -8,7 +8,6 @@ package org.eclipse.uide.editor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -34,7 +33,6 @@ import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.text.formatter.IContentFormatter;
-import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
@@ -59,7 +57,6 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
-
 import com.ibm.lpg.IToken;
 import com.ibm.lpg.PrsStream;
 
@@ -69,16 +66,17 @@ import com.ibm.lpg.PrsStream;
  * Credits go to Martin Kersten and Bob Foster for guiding the good parts of this design. Sole responsiblity for the bad parts rest with Chris Laffra.
  * 
  * @author Chris Laffra
+ * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor {
     public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".universalEditor";
 
-    protected Language language;
-    protected ParserScheduler parserScheduler;
-    protected HoverHelpController hoverHelpController;
-    protected OutlineController outlineController;
-    protected PresentationController presentationController;
-    protected CompletionProcessor completionProcessor;
+    protected Language fLanguage;
+    protected ParserScheduler fParserScheduler;
+    protected HoverHelpController fHoverHelpController;
+    protected OutlineController fOutlineController;
+    protected PresentationController fPresentationController;
+    protected CompletionProcessor fCompletionProcessor;
     protected IHyperlinkDetector fHyperLinkDetector;
     protected IAutoEditStrategy fAutoEditStrategy;
 
@@ -90,7 +88,7 @@ public class UniversalEditor extends TextEditor {
 
     public Object getAdapter(Class required) {
 	if (IContentOutlinePage.class.equals(required)) {
-	    return outlineController;
+	    return fOutlineController;
 	}
 	return super.getAdapter(required);
     }
@@ -104,30 +102,30 @@ public class UniversalEditor extends TextEditor {
     }
 
     public void createPartControl(Composite parent) {
-	language= LanguageRegistry.findLanguage(getEditorInput());
+	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
-        if (language != null)
+        if (fLanguage != null)
             fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
 
         super.createPartControl(parent);
 
-        if (language != null) {
+        if (fLanguage != null) {
 	    try {
-		outlineController= new OutlineController(this);
-		presentationController= new PresentationController(getSourceViewer());
-		presentationController.damage(0, getSourceViewer().getDocument().getLength());
+		fOutlineController= new OutlineController(this);
+		fPresentationController= new PresentationController(getSourceViewer());
+		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 
-		outlineController.setLanguage(language);
-		presentationController.setLanguage(language);
-		completionProcessor.setLanguage(language);
-		hoverHelpController.setLanguage(language);
+		fOutlineController.setLanguage(fLanguage);
+		fPresentationController.setLanguage(fLanguage);
+		fCompletionProcessor.setLanguage(fLanguage);
+		fHoverHelpController.setLanguage(fLanguage);
 
-                parserScheduler= new ParserScheduler("Universal Editor Parser");
-		parserScheduler.addModelListener(outlineController);
-		parserScheduler.addModelListener(presentationController);
-		parserScheduler.addModelListener(completionProcessor);
-		parserScheduler.addModelListener(hoverHelpController);
-		parserScheduler.run(new NullProgressMonitor());
+                fParserScheduler= new ParserScheduler("Universal Editor Parser");
+		fParserScheduler.addModelListener(fOutlineController);
+		fParserScheduler.addModelListener(fPresentationController);
+		fParserScheduler.addModelListener(fCompletionProcessor);
+		fParserScheduler.addModelListener(fHoverHelpController);
+		fParserScheduler.run(new NullProgressMonitor());
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Could not create part", e);
 	    }
@@ -140,7 +138,7 @@ public class UniversalEditor extends TextEditor {
     }
 
     private Object createExtensionPoint(String extensionPoint) {
-	return ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, extensionPoint);
+	return ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, extensionPoint);
     }
 
     /**
@@ -149,7 +147,7 @@ public class UniversalEditor extends TextEditor {
      * @param listener the listener to notify of Model changes
      */
     public void addModelListener(IModelListener listener) {
-	parserScheduler.addModelListener(listener);
+	fParserScheduler.addModelListener(listener);
     }
 
     class Configuration extends SourceViewerConfiguration {
@@ -161,25 +159,26 @@ public class UniversalEditor extends TextEditor {
 
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 	    ContentAssistant ca= new ContentAssistant();
-	    completionProcessor= new CompletionProcessor();
-	    ca.setContentAssistProcessor(completionProcessor, IDocument.DEFAULT_CONTENT_TYPE);
+	    fCompletionProcessor= new CompletionProcessor();
+	    ca.setContentAssistProcessor(fCompletionProcessor, IDocument.DEFAULT_CONTENT_TYPE);
 	    ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
 	    return ca;
 	}
 
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
-	    return hoverHelpController= new HoverHelpController();
+	    return fHoverHelpController= new HoverHelpController();
 	}
 
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
-	    if (language != null)
+	    if (fLanguage != null)
 		return (IAnnotationHover) createExtensionPoint("annotationHover");
 	    else
 		return super.getAnnotationHover(sourceViewer);
 	}
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-	    fAutoEditStrategy= (IAutoEditStrategy) createExtensionPoint("autoEditStrategy");
+	    if (fLanguage != null)
+		fAutoEditStrategy= (IAutoEditStrategy) createExtensionPoint("autoEditStrategy");
 
 	    if (fAutoEditStrategy == null)
 		fAutoEditStrategy= super.getAutoEditStrategies(sourceViewer, contentType)[0];
@@ -240,17 +239,17 @@ public class UniversalEditor extends TextEditor {
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 	    try {
 
-		if (presentationController != null) {
-			PrsStream parseStream = parserScheduler.parseController.getParser().getParseStream();
-			int damagedToken= parserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+		if (fPresentationController != null) {
+			PrsStream parseStream = fParserScheduler.parseController.getParser().getParseStream();
+			int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
 			IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
 			int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken) : adjuncts[adjuncts.length-1].getEndOffset();
 			int length = endOffset - damage.getOffset();
-		    presentationController.damage(damage.getOffset(), (length > damage.getLength() ? length : damage.getLength()));
+		    fPresentationController.damage(damage.getOffset(), (length > damage.getLength() ? length : damage.getLength()));
 		}
-		if (parserScheduler != null) {
-		    parserScheduler.cancel();
-		    parserScheduler.schedule();
+		if (fParserScheduler != null) {
+		    fParserScheduler.cancel();
+		    fParserScheduler.schedule();
 		}
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Could not repair damage ", e);
@@ -312,9 +311,9 @@ public class UniversalEditor extends TextEditor {
     }
 
     /*
-         * Parsing may take a long time, and is not done inside the UI thread. Therefore, we create a job that is executed in a background thread by the
-         * platform's job service.
-         */
+     * Parsing may take a long time, and is not done inside the UI thread. Therefore, we create a job that is executed in a background thread by the
+     * platform's job service.
+     */
     class ParserScheduler extends Job {
 	protected IParseController parseController;
 	protected List astListeners= new ArrayList();
@@ -336,7 +335,7 @@ public class UniversalEditor extends TextEditor {
 //		else
 //			System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
-		ErrorHandler.reportError("Error running parser for " + language, e);
+		ErrorHandler.reportError("Error running parser for " + fLanguage, e);
 	    }
 	    return Status.OK_STATUS;
 	}
@@ -350,7 +349,7 @@ public class UniversalEditor extends TextEditor {
 		for(int n= astListeners.size() - 1; n >= 0; n--)
 		    ((IModelListener) astListeners.get(n)).update(parseController, monitor);
 	}
-    };
+    }
 
     class HoverHelpController implements ITextHover, IModelListener {
 	private IParseController controller;

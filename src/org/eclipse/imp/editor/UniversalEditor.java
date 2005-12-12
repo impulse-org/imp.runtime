@@ -104,6 +104,8 @@ public class UniversalEditor extends TextEditor {
     public void createPartControl(Composite parent) {
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
+	// Create the hyperlink language service before calling super, since that will
+	// try to configure the hyperlink detector via the SourceViewerConfiguration.
         if (fLanguage != null)
             fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
 

@@ -45,8 +45,8 @@
 		<javac destdir="${temp.folder}/${plugin.jar.name}.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" debug="${javacDebugInfo}" includeAntRuntime="no" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<compilerarg line="${compilerArg}"/>
 			<classpath>
-				<pathelement path="${eclipse.build.path}"/>
 				<pathelement location="../lpg/lib/lpg.jar"/>
+				<pathelement path="${eclipse.build.path}"/>
 			</classpath>
 			<src path="src/"/>
 		</javac>
@@ -57,6 +57,10 @@
 		<mkdir dir="${temp.folder}/${plugin.jar.name}.bin/schema"/>
 		<copy todir="${temp.folder}/${plugin.jar.name}.bin/schema" failonerror="true" overwrite="false">
 			<fileset dir="schema/"/>
+		</copy>
+		<mkdir dir="${temp.folder}/${plugin.jar.name}.bin/icons"/>
+		<copy todir="${temp.folder}/${plugin.jar.name}.bin/icons" failonerror="true" overwrite="false">
+			<fileset dir="icons/"/>
 		</copy>
 		<copy file="plugin.xml" todir="${temp.folder}/${plugin.jar.name}.bin" failonerror="true"/>
 		<mkdir dir="${build.result.folder}"/>

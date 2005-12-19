@@ -11,7 +11,6 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Tree;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -58,12 +57,12 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 	tree.addSelectionListener(new SelectionAdapter() {
 	    public void widgetSelected(SelectionEvent e) {
 		try {
-		    TreeItem item= tree.getSelection()[0];
 		    // RMF 11/4/2005 - Disabled, since not every parser yields a UIDE AST
+//		    TreeItem item= tree.getSelection()[0];
 //		    Ast node= (Ast) item.getData();
 //		    if (node != null) {
-			//						int start = node.getStartOffset();
-			//						int end = node.getEndOffset();
+			// int start = node.getStartOffset();
+			// int end = node.getEndOffset();
 //		    }
 		} catch (Throwable ee) {
 		    ErrorHandler.reportError("Universal Editor Error", ee);

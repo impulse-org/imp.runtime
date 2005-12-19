@@ -3,7 +3,6 @@ package org.eclipse.uide.internal.editor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
-
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
@@ -23,7 +22,6 @@ import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
 import org.eclipse.uide.runtime.RuntimePlugin;
-
 import com.ibm.lpg.IToken;
 
 /*
@@ -37,7 +35,7 @@ import com.ibm.lpg.IToken;
  * TODO add documentation
  */
 public class PresentationController implements IModelListener {
-    private ArrayList squigglies;
+//  private ArrayList squigglies;
     private ISourceViewer sourceViewer;
 //  private IParser parser;
     private ITokenColorer colorer; 

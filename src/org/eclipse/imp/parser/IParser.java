@@ -1,8 +1,6 @@
 package org.eclipse.uide.parser;
 
 import org.eclipse.uide.core.ILanguageService;
-
-import com.ibm.lpg.LexStream;
 import com.ibm.lpg.Monitor;
 import com.ibm.lpg.PrsStream;
 

@@ -278,7 +278,7 @@ public class UniversalEditor extends TextEditor {
 
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 	    try {
-		if (parseController != null) {
+		if (parseController != null && contentProposer != null) {
 		    return contentProposer.getContentProposals(parseController, offset);
 		}
 	    } catch (Throwable e) {

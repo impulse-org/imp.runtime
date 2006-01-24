@@ -3,7 +3,11 @@
  */
 package org.eclipse.uide.core;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -39,23 +43,65 @@ public abstract class UIDEBuilderBase extends IncrementalProjectBuilder {
 
     protected abstract String getInfoMarkerID();
 
-    protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
-        try {
-            if (kind == IncrementalProjectBuilder.FULL_BUILD) {
-        	fullBuild(monitor);
-            } else {
-        	IResourceDelta delta= getDelta(getProject());
+    private final ResourceVisitor fResourceVisitor= new ResourceVisitor();
 
-        	if (delta == null) {
-        	    fullBuild(monitor);
-        	} else {
-        	    incrementalBuild(delta, monitor);
-        	}
+    private final DeltaVisitor fDeltaVisitor= new DeltaVisitor();
+
+    protected DependencyInfo fDependencyInfo;
+
+    private final Collection/*<IFile>*/ fSourcesToCompile= new ArrayList();
+
+    private final class DeltaVisitor implements IResourceDeltaVisitor {
+        public boolean visit(IResourceDelta delta) throws CoreException {
+            return processResource(delta.getResource());
+        }
+    }
+
+    private class ResourceVisitor implements IResourceVisitor {
+        public boolean visit(IResource res) throws CoreException {
+            return processResource(res);
+        }
+    }
+
+    private boolean processResource(IResource resource) {
+        if (resource instanceof IFile) {
+            IFile file= (IFile) resource;
+
+            if (isSourceFile(file) && file.exists()) {
+                fSourcesToCompile.add(file);
             }
+            return false;
+        } else if (isOutputFolder(resource))
+            return false;
+        return true;
+    }
+
+    protected DependencyInfo createDependencyInfo(IProject project) {
+        return new DependencyInfo(project);
+    }
+
+    protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
+        if (fDependencyInfo == null)
+            fDependencyInfo= createDependencyInfo(getProject());
+
+        try {
+            fSourcesToCompile.clear();
+            collectSourcesToCompile();
+            clearDependencyInfoForChangedFiles();
+            compileNecessarySources();
+            fDependencyInfo.dump();
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Build failed: " + e.getMessage());
         }
         return new IProject[0];
+    }
+
+    protected void compileNecessarySources() {
+        for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= (IFile) iter.next();
+
+            compile(srcFile);
+        }
     }
 
     protected void clearMarkersOn(IFile file) {
@@ -65,34 +111,58 @@ public abstract class UIDEBuilderBase extends IncrementalProjectBuilder {
 	}
     }
 
-    private boolean processResource(IResource resource) {
-	if (resource instanceof IFile) {
-	    IFile file= (IFile) resource;
+    private void dumpSourceList(Collection/*<IFile>*/ sourcesToCompile) {
+        for(Iterator iter= sourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= (IFile) iter.next();
 
-	    if (isSourceFile(file) && file.exists()) {
-		clearMarkersOn(file);
-		compile(file);
-	    }
-	    return false;
-	} else if (isOutputFolder(resource))
-	    return false;
-	return true;
+            System.out.println("  " + srcFile.getFullPath());
+        }
     }
 
-    private void fullBuild(IProgressMonitor monitor) throws CoreException {
-        getProject().accept(new IResourceVisitor() {
-            public boolean visit(IResource resource) throws CoreException {
-        	return processResource(resource);
-            }
-        });
+    private void clearDependencyInfoForChangedFiles() {
+        for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= (IFile) iter.next();
+
+            fDependencyInfo.clearDependenciesOf(srcFile.getFullPath().toString());
+        }
     }
 
-    private void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
-        delta.accept(new IResourceDeltaVisitor() {
-            public boolean visit(IResourceDelta delta) {
-        	return processResource(delta.getResource());
+    private void collectSourcesToCompile() throws CoreException {
+        IResourceDelta delta= getDelta(getProject());
+
+        if (delta != null) {
+            UIDEPluginBase.getInstance().maybeWriteInfoMsg("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
+            delta.accept(fDeltaVisitor);
+            UIDEPluginBase.getInstance().maybeWriteInfoMsg("Delta scan completed for project '" + getProject().getName() + "'...");
+        } else {
+            UIDEPluginBase.getInstance().maybeWriteInfoMsg("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
+            getProject().accept(fResourceVisitor);
+            UIDEPluginBase.getInstance().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
+        }
+        collectChangeDependents();
+    }
+
+    private void collectChangeDependents() {
+        Collection changeDependents= new ArrayList();
+
+        System.out.println("Changed files:");
+        dumpSourceList(fSourcesToCompile);
+        for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= (IFile) iter.next();
+            Set/*<String path>*/ fileDependents= fDependencyInfo.getDependentsOf(srcFile.getFullPath().toString());
+
+            if (fileDependents != null) {
+                for(Iterator iterator= fileDependents.iterator(); iterator.hasNext(); ) {
+                    String depPath= (String) iterator.next();
+                    IFile depFile= getProject().getFile(depPath);
+
+                    changeDependents.add(depFile);
+                }
             }
-        });
+        }
+        fSourcesToCompile.addAll(changeDependents);
+        System.out.println("Changed files + dependents:");
+        dumpSourceList(fSourcesToCompile);
     }
 
     protected void doRefresh(final IResource resource) {

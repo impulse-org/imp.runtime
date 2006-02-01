@@ -45,6 +45,8 @@ public class LanguageRegistry {
 	    FileEditorInput fileEditorInput= (FileEditorInput) editorInput;
 	    IFile file= fileEditorInput.getFile();
 	    extension= file.getFileExtension();
+	    if (extension == null)
+		return null;
 	    for(int n= 0; n < languages.length; n++) {
 		if (languages[n].hasExtension(extension)) {
 		    LanguageValidator validator= languages[n].getValidator();

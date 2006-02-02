@@ -4,7 +4,7 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.parser.IParseController;
 
-import com.ibm.lpg.IToken;
+import lpg.lpgjavaruntime.IToken;
 
 /*
  * Licensed Materials - Property of IBM,

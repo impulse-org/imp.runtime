@@ -57,8 +57,8 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
-import com.ibm.lpg.IToken;
-import com.ibm.lpg.PrsStream;
+import lpg.lpgjavaruntime.IToken;
+import lpg.lpgjavaruntime.PrsStream;
 
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.

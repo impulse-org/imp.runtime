@@ -22,7 +22,7 @@ import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
 import org.eclipse.uide.runtime.RuntimePlugin;
-import com.ibm.lpg.IToken;
+import lpg.lpgjavaruntime.IToken;
 
 /*
  * Licensed Materials - Property of IBM,

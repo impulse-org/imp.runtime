@@ -5,7 +5,7 @@ import java.util.List;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.uide.core.ILanguageService;
 
-import com.ibm.lpg.IToken;
+import lpg.lpgjavaruntime.IToken;
 
 public interface IParseController extends ILanguageService
 {

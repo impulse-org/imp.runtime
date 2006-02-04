@@ -8,7 +8,11 @@ import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorRegistry;
+import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.internal.registry.EditorDescriptor;
+import org.eclipse.ui.internal.registry.EditorRegistry;
+import org.eclipse.ui.internal.registry.FileEditorMapping;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.uide.editor.UniversalEditor;
 import org.eclipse.uide.runtime.RuntimePlugin;
@@ -66,13 +70,37 @@ public class LanguageRegistry {
 	if (languages == null)
 	    findLanguages();
 
-	IEditorRegistry editorRegistry= PlatformUI.getWorkbench().getEditorRegistry();
+	// Parts of the following code suggested by comments on the following bug:
+	//    https://bugs.eclipse.org/bugs/show_bug.cgi?id=27980
+	// It uses internal platform classes, given that there is no API for
+	// dynamically registering editors as of 3.1.
 
-	for(int n= 0; n < languages.length; n++) {
-	    String[] fileNameExtensions= languages[n].getExtensions();
-	    for(int i= 0; i < fileNameExtensions.length; i++) {
-		editorRegistry.setDefaultEditor("*." + fileNameExtensions[i], UniversalEditor.EDITOR_ID);
+	if (false) {
+	    EditorRegistry editorRegistry= (EditorRegistry) PlatformUI.getWorkbench().getEditorRegistry();
+	    IFileEditorMapping[] currentMap= editorRegistry.getFileEditorMappings();
+	    // HACK RMF 2/2/2005 - The following is totally bogus; we don't need to create an
+	    // "external program" descriptor for our editor, but there are no ctors/factory
+	    // methods available to do what we want...
+	    EditorDescriptor universalEditor= EditorDescriptor.createForProgram(UniversalEditor.EDITOR_ID);
+
+	    universalEditor.setOpenMode(EditorDescriptor.OPEN_INTERNAL);
+
+	    FileEditorMapping[] newMap = new FileEditorMapping[currentMap.length + languages.length];
+	    for(int i= 0 ; i < currentMap.length; i++) {
+		newMap[i]= (FileEditorMapping) currentMap[i];
 	    }
+
+	    for(int n= 0; n < languages.length; n++) {
+		String[] fileNameExtensions= languages[n].getExtensions();
+		for(int i= 0; i < fileNameExtensions.length; i++) {
+		    FileEditorMapping newType = new FileEditorMapping(fileNameExtensions[i]);
+
+		    newType.setDefaultEditor(universalEditor);
+		    newMap[currentMap.length + n]= newType;
+		}
+	    }
+	    editorRegistry.setFileEditorMappings(newMap);
+	    editorRegistry.saveAssociations();
 	}
     }
 

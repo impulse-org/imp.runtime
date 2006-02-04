@@ -1,0 +1,22 @@
+package org.eclipse.uide.internal.editor;
+
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
+import org.eclipse.uide.editor.IFoldingUpdater;
+import org.eclipse.uide.parser.IModelListener;
+import org.eclipse.uide.parser.IParseController;
+
+public class FoldingController implements IModelListener {
+    private final ProjectionAnnotationModel fAnnotationModel;
+    private final IFoldingUpdater fFoldingUpdater;
+
+    public FoldingController(ProjectionAnnotationModel annotationModel, IFoldingUpdater foldingUpdater) {
+	super();
+	this.fAnnotationModel= annotationModel;
+	this.fFoldingUpdater= foldingUpdater;
+    }
+
+    public void update(IParseController parseController, IProgressMonitor monitor) {
+	fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
+    }
+}

@@ -41,7 +41,12 @@ import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.jface.text.source.IVerticalRuler;
+import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
+import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
+import org.eclipse.jface.text.source.projection.ProjectionSupport;
+import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -51,6 +56,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.internal.editor.FoldingController;
 import org.eclipse.uide.internal.editor.OutlineController;
 import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.util.ExtensionPointFactory;
@@ -80,6 +86,10 @@ public class UniversalEditor extends TextEditor {
     protected IHyperlinkDetector fHyperLinkDetector;
     protected IAutoEditStrategy fAutoEditStrategy;
 
+    private IFoldingUpdater fFoldingUpdater;
+
+    private ProjectionAnnotationModel fAnnotationModel;
+
     public UniversalEditor() {
 	setSourceViewerConfiguration(new Configuration());
 	configureInsertMode(SMART_INSERT, true);
@@ -106,8 +116,10 @@ public class UniversalEditor extends TextEditor {
 
 	// Create the hyperlink language service before calling super, since that will
 	// try to configure the hyperlink detector via the SourceViewerConfiguration.
-        if (fLanguage != null)
+        if (fLanguage != null) {
             fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
+            fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
+        }
 
         super.createPartControl(parent);
 
@@ -116,13 +128,23 @@ public class UniversalEditor extends TextEditor {
 		fOutlineController= new OutlineController(this);
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
+                fParserScheduler= new ParserScheduler("Universal Editor Parser");
+
+                if (false && fFoldingUpdater != null) {
+		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
+		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
+
+		    projectionSupport.install();
+		    viewer.doOperation(ProjectionViewer.TOGGLE);
+		    fAnnotationModel= viewer.getProjectionAnnotationModel();
+		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
+		}
 
 		fOutlineController.setLanguage(fLanguage);
 		fPresentationController.setLanguage(fLanguage);
 		fCompletionProcessor.setLanguage(fLanguage);
 		fHoverHelpController.setLanguage(fLanguage);
 
-                fParserScheduler= new ParserScheduler("Universal Editor Parser");
 		fParserScheduler.addModelListener(fOutlineController);
 		fParserScheduler.addModelListener(fPresentationController);
 		fParserScheduler.addModelListener(fCompletionProcessor);
@@ -132,6 +154,20 @@ public class UniversalEditor extends TextEditor {
 		ErrorHandler.reportError("Could not create part", e);
 	    }
 	}
+    }
+
+    protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
+	if (fFoldingUpdater == null)
+	    return super.createSourceViewer(parent, ruler, styles);
+
+	fAnnotationAccess= createAnnotationAccess();
+	fOverviewRuler= createOverviewRuler(getSharedColors());
+
+	ISourceViewer viewer= new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+	// ensure decoration support has been created and configured.
+	getSourceViewerDecorationSupport(viewer);
+
+	return viewer;
     }
 
     protected void doSetInput(IEditorInput input) throws CoreException {

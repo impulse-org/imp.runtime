@@ -11,6 +11,7 @@
    <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
    <extension-point id="hyperLink" name="Universal IDE Hyperlink Detector" schema="schema/hyperLink.exsd"/>
    <extension-point id="autoEditStrategy" name="Auto-Edit Strategy" schema="schema/autoEditStrategy.exsd"/>
+   <extension-point id="foldingUpdater" name="Universal IDE Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    
    <extension
          point="org.eclipse.ui.editors">

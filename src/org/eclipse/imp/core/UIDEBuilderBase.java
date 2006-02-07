@@ -131,13 +131,13 @@ public abstract class UIDEBuilderBase extends IncrementalProjectBuilder {
         IResourceDelta delta= getDelta(getProject());
 
         if (delta != null) {
-            UIDEPluginBase.getInstance().maybeWriteInfoMsg("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
+            getPlugin().maybeWriteInfoMsg("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
             delta.accept(fDeltaVisitor);
-            UIDEPluginBase.getInstance().maybeWriteInfoMsg("Delta scan completed for project '" + getProject().getName() + "'...");
+            getPlugin().maybeWriteInfoMsg("Delta scan completed for project '" + getProject().getName() + "'...");
         } else {
-            UIDEPluginBase.getInstance().maybeWriteInfoMsg("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
+            getPlugin().maybeWriteInfoMsg("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
             getProject().accept(fResourceVisitor);
-            UIDEPluginBase.getInstance().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
+            getPlugin().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
         }
         collectChangeDependents();
     }

@@ -5,9 +5,17 @@ package org.eclipse.uide.editor;
  * (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved
  */
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+
+import lpg.lpgjavaruntime.IToken;
+import lpg.lpgjavaruntime.PrsStream;
+
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -15,17 +23,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.text.IAutoEditStrategy;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextDoubleClickStrategy;
-import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.ITypedRegion;
-import org.eclipse.jface.text.IUndoManager;
-import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -39,19 +37,34 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
+import org.eclipse.ui.texteditor.IEditorStatusLine;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
+import org.eclipse.ui.texteditor.MarkerAnnotation;
+import org.eclipse.ui.texteditor.TextEditorAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
@@ -63,8 +76,6 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
-import lpg.lpgjavaruntime.IToken;
-import lpg.lpgjavaruntime.PrsStream;
 
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
@@ -78,17 +89,100 @@ public class UniversalEditor extends TextEditor {
     public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".universalEditor";
 
     protected Language fLanguage;
+
     protected ParserScheduler fParserScheduler;
+
     protected HoverHelpController fHoverHelpController;
+
     protected OutlineController fOutlineController;
+
     protected PresentationController fPresentationController;
+
     protected CompletionProcessor fCompletionProcessor;
+
     protected IHyperlinkDetector fHyperLinkDetector;
+
     protected IAutoEditStrategy fAutoEditStrategy;
 
     private IFoldingUpdater fFoldingUpdater;
 
     private ProjectionAnnotationModel fAnnotationModel;
+
+    private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= "org.eclipse.uide.editor.messages";//$NON-NLS-1$
+
+    private static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
+
+    /**
+     * Essentially a clone of the class of the same name from JDT/UI, for
+     * navigating from one annotation to the next/previous in a source file.
+     * @author rfuhrer
+     */
+    private static class GotoAnnotationAction extends TextEditorAction {
+	public static final String JAVA_UI_ID_PLUGIN= "org.eclipse.jdt.ui";
+
+	public static final String PREFIX= JAVA_UI_ID_PLUGIN + '.';
+
+	private static final String nextAnnotationContextID= PREFIX + "goto_next_error_action";
+
+	private static final String prevAnnotationContextID= PREFIX + "goto_previous_error_action";
+
+	private boolean fForward;
+
+	public GotoAnnotationAction(String prefix, boolean forward) {
+	    super(fgBundleForConstructedKeys, prefix, null);
+	    fForward= forward;
+	    if (forward)
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, nextAnnotationContextID);
+	    else
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, prevAnnotationContextID);
+	}
+
+	public void run() {
+	    UniversalEditor e= (UniversalEditor) getTextEditor();
+
+	    e.gotoAnnotation(fForward);
+	}
+
+	public void setEditor(ITextEditor editor) {
+	    if (editor instanceof UniversalEditor)
+		super.setEditor(editor);
+	    update();
+	}
+
+	public void update() {
+	    setEnabled(getTextEditor() instanceof UniversalEditor);
+	}
+    }
+
+    public static class TextEditorActionContributor extends BasicTextEditorActionContributor {
+	private GotoAnnotationAction fNextAnnotation;
+
+	private GotoAnnotationAction fPreviousAnnotation;
+
+	public TextEditorActionContributor() {
+	    super();
+	    fPreviousAnnotation= new GotoAnnotationAction("PreviousAnnotation.", false); //$NON-NLS-1$
+	    fNextAnnotation= new GotoAnnotationAction("NextAnnotation.", true); //$NON-NLS-1$
+	}
+
+	public void init(IActionBars bars, IWorkbenchPage page) {
+	    super.init(bars, page);
+	    bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_NEXT_ANNOTATION, fNextAnnotation);
+	    bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION, fPreviousAnnotation);
+	    bars.setGlobalActionHandler(ActionFactory.NEXT.getId(), fNextAnnotation);
+	    bars.setGlobalActionHandler(ActionFactory.PREVIOUS.getId(), fPreviousAnnotation);
+	}
+	public void setActiveEditor(IEditorPart part) {
+	    super.setActiveEditor(part);
+
+	    ITextEditor textEditor= null;
+
+	    if (part instanceof ITextEditor)
+		textEditor= (ITextEditor) part;
+	    fPreviousAnnotation.setEditor(textEditor);
+	    fNextAnnotation.setEditor(textEditor);
+	}
+    }
 
     public UniversalEditor() {
 	setSourceViewerConfiguration(new Configuration());
@@ -105,10 +199,184 @@ public class UniversalEditor extends TextEditor {
 
     protected void createActions() {
 	super.createActions();
-	Action action= new ContentAssistAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "ContentAssistProposal.", this);
+	Action action= new ContentAssistAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"),
+		"ContentAssistProposal.", this);
 	action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 	setAction("ContentAssistProposal", action);
 	markAsStateDependentAction("ContentAssistProposal", true);
+    }
+
+    /**
+     * Sets the given message as error message to this editor's status line.
+     *
+     * @param msg message to be set
+     */
+    protected void setStatusLineErrorMessage(String msg) {
+	IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
+	if (statusLine != null)
+	    statusLine.setMessage(true, msg, null);
+    }
+
+    /**
+     * Sets the given message as message to this editor's status line.
+     *
+     * @param msg message to be set
+     * @since 3.0
+     */
+    protected void setStatusLineMessage(String msg) {
+	IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
+	if (statusLine != null)
+	    statusLine.setMessage(false, msg, null);
+    }
+
+    /**
+     * Jumps to the next enabled annotation according to the given direction.
+     * An annotation type is enabled if it is configured to be in the
+     * Next/Previous tool bar drop down menu and if it is checked.
+     *
+     * @param forward <code>true</code> if search direction is forward, <code>false</code> if backward
+     */
+    public void gotoAnnotation(boolean forward) {
+	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
+	Position position= new Position(0, 0);
+
+	if (false /* delayed - see bug 18316 */) {
+	    getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+	    selectAndReveal(position.getOffset(), position.getLength());
+	} else /* no delay - see bug 18316 */{
+	    Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+
+	    setStatusLineErrorMessage(null);
+	    setStatusLineMessage(null);
+	    if (annotation != null) {
+		updateAnnotationViews(annotation);
+		selectAndReveal(position.getOffset(), position.getLength());
+		setStatusLineMessage(annotation.getText());
+	    }
+	}
+    }
+
+    /**
+     * Returns the annotation closest to the given range respecting the given
+     * direction. If an annotation is found, the annotations current position
+     * is copied into the provided annotation position.
+     *
+     * @param offset the region offset
+     * @param length the region length
+     * @param forward <code>true</code> for forwards, <code>false</code> for backward
+     * @param annotationPosition the position of the found annotation
+     * @return the found annotation
+     */
+    private Annotation getNextAnnotation(final int offset, final int length, boolean forward, Position annotationPosition) {
+	Annotation nextAnnotation= null;
+	Position nextAnnotationPosition= null;
+	Annotation containingAnnotation= null;
+	Position containingAnnotationPosition= null;
+	boolean currentAnnotation= false;
+
+	IDocument document= getDocumentProvider().getDocument(getEditorInput());
+	int endOfDocument= document.getLength();
+	int distance= Integer.MAX_VALUE;
+
+	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
+	for(Iterator e= model.getAnnotationIterator(); e.hasNext();) {
+	    Annotation a= (Annotation) e.next();
+	    //	    if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay() || !isNavigationTarget(a))
+	    //		continue;
+	    if (!(a instanceof MarkerAnnotation))
+		continue;
+
+	    Position p= model.getPosition(a);
+	    if (p == null)
+		continue;
+
+	    if (forward && p.offset == offset || !forward && p.offset + p.getLength() == offset + length) {// || p.includes(offset)) {
+		if (containingAnnotation == null
+			|| (forward && p.length >= containingAnnotationPosition.length || !forward
+				&& p.length >= containingAnnotationPosition.length)) {
+		    containingAnnotation= a;
+		    containingAnnotationPosition= p;
+		    currentAnnotation= p.length == length;
+		}
+	    } else {
+		int currentDistance= 0;
+
+		if (forward) {
+		    currentDistance= p.getOffset() - offset;
+		    if (currentDistance < 0)
+			currentDistance= endOfDocument + currentDistance;
+
+		    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
+			distance= currentDistance;
+			nextAnnotation= a;
+			nextAnnotationPosition= p;
+		    }
+		} else {
+		    currentDistance= offset + length - (p.getOffset() + p.length);
+		    if (currentDistance < 0)
+			currentDistance= endOfDocument + currentDistance;
+
+		    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
+			distance= currentDistance;
+			nextAnnotation= a;
+			nextAnnotationPosition= p;
+		    }
+		}
+	    }
+	}
+	if (containingAnnotationPosition != null && (!currentAnnotation || nextAnnotation == null)) {
+	    annotationPosition.setOffset(containingAnnotationPosition.getOffset());
+	    annotationPosition.setLength(containingAnnotationPosition.getLength());
+	    return containingAnnotation;
+	}
+	if (nextAnnotationPosition != null) {
+	    annotationPosition.setOffset(nextAnnotationPosition.getOffset());
+	    annotationPosition.setLength(nextAnnotationPosition.getLength());
+	}
+
+	return nextAnnotation;
+    }
+
+    /**
+     * Updates the annotation views that show the given annotation.
+     *
+     * @param annotation the annotation
+     */
+    private void updateAnnotationViews(Annotation annotation) {
+	IMarker marker= null;
+	if (annotation instanceof MarkerAnnotation)
+	    marker= ((MarkerAnnotation) annotation).getMarker();
+	else
+	//        if (annotation instanceof IJavaAnnotation) {
+	//	    Iterator e= ((IJavaAnnotation) annotation).getOverlaidIterator();
+	//	    if (e != null) {
+	//		while (e.hasNext()) {
+	//		    Object o= e.next();
+	//		    if (o instanceof MarkerAnnotation) {
+	//			marker= ((MarkerAnnotation) o).getMarker();
+	//			break;
+	//		    }
+	//		}
+	//	    }
+	//	}
+
+	if (marker != null /*&& !marker.equals(fLastMarkerTarget)*/) {
+	    try {
+		boolean isProblem= marker.isSubtypeOf(IMarker.PROBLEM);
+		IWorkbenchPage page= getSite().getPage();
+		IViewPart view= page.findView(isProblem ? IPageLayout.ID_PROBLEM_VIEW : IPageLayout.ID_TASK_LIST); //$NON-NLS-1$  //$NON-NLS-2$
+		if (view != null) {
+		    Method method= view.getClass().getMethod(
+			    "setSelection", new Class[] { IStructuredSelection.class, boolean.class }); //$NON-NLS-1$
+		    method.invoke(view, new Object[] { new StructuredSelection(marker), Boolean.TRUE });
+		}
+	    } catch (CoreException x) {
+	    } catch (NoSuchMethodException x) {
+	    } catch (IllegalAccessException x) {
+	    } catch (InvocationTargetException x) {
+	    }
+	    // ignore exceptions, don't update any of the lists, just set status line
+	}
     }
 
     public void createPartControl(Composite parent) {
@@ -116,21 +384,21 @@ public class UniversalEditor extends TextEditor {
 
 	// Create the hyperlink language service before calling super, since that will
 	// try to configure the hyperlink detector via the SourceViewerConfiguration.
-        if (fLanguage != null) {
-            fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
-            fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
-        }
+	if (fLanguage != null) {
+	    fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
+	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
+	}
 
-        super.createPartControl(parent);
+	super.createPartControl(parent);
 
-        if (fLanguage != null) {
+	if (fLanguage != null) {
 	    try {
 		fOutlineController= new OutlineController(this);
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
-                fParserScheduler= new ParserScheduler("Universal Editor Parser");
+		fParserScheduler= new ParserScheduler("Universal Editor Parser");
 
-                if (false && fFoldingUpdater != null) {
+		if (false && fFoldingUpdater != null) {
 		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
 		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
@@ -171,8 +439,8 @@ public class UniversalEditor extends TextEditor {
     }
 
     protected void doSetInput(IEditorInput input) throws CoreException {
-        super.doSetInput(input);
-        setInsertMode(SMART_INSERT);
+	super.doSetInput(input);
+	setInsertMode(SMART_INSERT);
     }
 
     private Object createExtensionPoint(String extensionPoint) {
@@ -237,8 +505,8 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-            if (fHyperLinkDetector != null)
-                return new IHyperlinkDetector[] { fHyperLinkDetector };
+	    if (fHyperLinkDetector != null)
+		return new IHyperlinkDetector[] { fHyperLinkDetector };
 	    return super.getHyperlinkDetectors(sourceViewer);
 	}
 
@@ -278,12 +546,14 @@ public class UniversalEditor extends TextEditor {
 	    try {
 
 		if (fPresentationController != null) {
-			PrsStream parseStream = fParserScheduler.parseController.getParser().getParseStream();
-			int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
-			IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
-			int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken) : adjuncts[adjuncts.length-1].getEndOffset();
-			int length = endOffset - damage.getOffset();
-		    fPresentationController.damage(damage.getOffset(), (length > damage.getLength() ? length : damage.getLength()));
+		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
+		    int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+		    IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
+		    int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
+			    : adjuncts[adjuncts.length - 1].getEndOffset();
+		    int length= endOffset - damage.getOffset();
+		    fPresentationController.damage(damage.getOffset(), (length > damage.getLength() ? length : damage
+			    .getLength()));
 		}
 		if (fParserScheduler != null) {
 		    fParserScheduler.cancel();
@@ -301,15 +571,18 @@ public class UniversalEditor extends TextEditor {
 
     class CompletionProcessor implements IContentAssistProcessor, IModelListener {
 	private final IContextInformation[] NO_CONTEXTS= new IContextInformation[0];
+
 	private ICompletionProposal[] NO_COMPLETIONS= new ICompletionProposal[0];
+
 	private IParseController parseController;
+
 	private IContentProposer contentProposer;
 
-	public CompletionProcessor() {
-	}
+	public CompletionProcessor() {}
 
 	public void setLanguage(Language language) {
-	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "contentProposer");
+	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language,
+		    RuntimePlugin.UIDE_RUNTIME, "contentProposer");
 	}
 
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
@@ -354,6 +627,7 @@ public class UniversalEditor extends TextEditor {
      */
     class ParserScheduler extends Job {
 	protected IParseController parseController;
+
 	protected List astListeners= new ArrayList();
 
 	ParserScheduler(String name) {
@@ -369,9 +643,9 @@ public class UniversalEditor extends TextEditor {
 		// Just make sure the document contents gets parsed once (and only once).
 		parseController.parse(document.get(), false, monitor);
 		if (!monitor.isCanceled())
-			notifyAstListeners(parseController, monitor);
-//		else
-//			System.out.println("Bypassed AST listeners (cancelled).");
+		    notifyAstListeners(parseController, monitor);
+		//		else
+		//			System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Error running parser for " + fLanguage, e);
 	    }
@@ -391,6 +665,7 @@ public class UniversalEditor extends TextEditor {
 
     class HoverHelpController implements ITextHover, IModelListener {
 	private IParseController controller;
+
 	private IHoverHelper hoverHelper;
 
 	public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
@@ -412,7 +687,8 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public void setLanguage(Language language) {
-	    hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "hoverHelper");
+	    hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME,
+		    "hoverHelper");
 	}
     }
 }

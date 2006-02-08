@@ -19,7 +19,7 @@
             name="Universal IDE Editor"
             icon="icons/uide-editor.gif"
             extensions="txt"
-            contributorClass="org.eclipse.ui.texteditor.BasicTextEditorActionContributor"
+            contributorClass="org.eclipse.uide.editor.UniversalEditor$TextEditorActionContributor"
             class="org.eclipse.uide.editor.UniversalEditor"
             id="org.eclipse.ui.DefaultTextEditor">
       </editor>

@@ -64,7 +64,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.jface.text.hyperlink.IHyperlinkDetector"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.editor.ISourceHyperlinkDetector"/>
                </appInfo>
             </annotation>
          </attribute>

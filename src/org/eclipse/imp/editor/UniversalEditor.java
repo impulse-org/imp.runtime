@@ -72,6 +72,7 @@ import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.internal.editor.FoldingController;
 import org.eclipse.uide.internal.editor.OutlineController;
 import org.eclipse.uide.internal.editor.PresentationController;
+import org.eclipse.uide.internal.editor.SourceHyperlinkController;
 import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
@@ -100,7 +101,9 @@ public class UniversalEditor extends TextEditor {
 
     protected CompletionProcessor fCompletionProcessor;
 
-    protected IHyperlinkDetector fHyperLinkDetector;
+    protected SourceHyperlinkController fHyperLinkController;
+
+    protected ISourceHyperlinkDetector fHyperLinkDetector;
 
     protected IAutoEditStrategy fAutoEditStrategy;
 
@@ -385,7 +388,9 @@ public class UniversalEditor extends TextEditor {
 	// Create the hyperlink language service before calling super, since that will
 	// try to configure the hyperlink detector via the SourceViewerConfiguration.
 	if (fLanguage != null) {
-	    fHyperLinkDetector= (IHyperlinkDetector) createExtensionPoint("hyperlink");
+	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
+	    if (fHyperLinkDetector != null)
+		fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
 	}
 
@@ -417,6 +422,7 @@ public class UniversalEditor extends TextEditor {
 		fParserScheduler.addModelListener(fPresentationController);
 		fParserScheduler.addModelListener(fCompletionProcessor);
 		fParserScheduler.addModelListener(fHoverHelpController);
+		fParserScheduler.addModelListener(fHyperLinkController);
 		fParserScheduler.run(new NullProgressMonitor());
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Could not create part", e);
@@ -505,8 +511,8 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-	    if (fHyperLinkDetector != null)
-		return new IHyperlinkDetector[] { fHyperLinkDetector };
+	    if (fHyperLinkController != null)
+		return new IHyperlinkDetector[] { fHyperLinkController };
 	    return super.getHyperlinkDetectors(sourceViewer);
 	}
 

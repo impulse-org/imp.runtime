@@ -1,5 +1,6 @@
 package org.eclipse.uide.editor;
 
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.parser.IParseController;
 
@@ -7,7 +8,6 @@ import org.eclipse.uide.parser.IParseController;
  * Licensed Materials - Property of IBM,
  * (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved
  */
-
 
 /**
  * This interface is to be implemented by contributors to the org.eclipse.uide.runtime.hoverHelp extension point.
@@ -19,7 +19,7 @@ import org.eclipse.uide.parser.IParseController;
  * @see org.eclipse.uide.defaults.DefaultHoverHelper
  */
 public interface IHoverHelper extends ILanguageService {
-    
+
     /**
      * Provide language-specific hover help for the token at the given offset.
      * 
@@ -27,5 +27,5 @@ public interface IHoverHelper extends ILanguageService {
      * @param offset		the offset in the original input stream
      * @return a human-readable text string describing what the element at the given offset
      */
-	public String getHoverHelpAt(IParseController parseController, int offset);
+    public String getHoverHelpAt(IParseController parseController, ISourceViewer viewer, int offset);
 }

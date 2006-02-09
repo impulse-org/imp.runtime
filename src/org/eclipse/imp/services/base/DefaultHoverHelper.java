@@ -1,5 +1,6 @@
 package org.eclipse.uide.defaults;
 
+import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.editor.IHoverHelper;
 import org.eclipse.uide.parser.Ast;
@@ -22,7 +23,7 @@ public class DefaultHoverHelper implements IHoverHelper {
 	ErrorHandler.reportError("No Hoverhelper defined for \"" + language + "\"");
     }
 
-    public String getHoverHelpAt(IParseController controller, int offset) {
+    public String getHoverHelpAt(IParseController controller, ISourceViewer srcViewer, int offset) {
 	if (!(controller.getCurrentAst() instanceof Ast))
 	    return "";
 	try {

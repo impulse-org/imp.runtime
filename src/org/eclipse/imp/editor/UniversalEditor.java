@@ -681,7 +681,7 @@ public class UniversalEditor extends TextEditor {
 	public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
 	    try {
 		if (controller != null && hoverHelper != null)
-		    return hoverHelper.getHoverHelpAt(controller, hoverRegion.getOffset());
+		    return hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, hoverRegion.getOffset());
 	    } catch (Throwable e) {
 		ErrorHandler.reportError("Universal Editor Error", e);
 	    }

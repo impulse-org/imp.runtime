@@ -422,7 +422,8 @@ public class UniversalEditor extends TextEditor {
 		fParserScheduler.addModelListener(fPresentationController);
 		fParserScheduler.addModelListener(fCompletionProcessor);
 		fParserScheduler.addModelListener(fHoverHelpController);
-		fParserScheduler.addModelListener(fHyperLinkController);
+		if (fHyperLinkController != null)
+		    fParserScheduler.addModelListener(fHyperLinkController);
 		fParserScheduler.run(new NullProgressMonitor());
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Could not create part", e);

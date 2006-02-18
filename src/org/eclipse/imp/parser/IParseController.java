@@ -2,6 +2,7 @@ package org.eclipse.uide.parser;
 
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.uide.core.ILanguageService;
 
@@ -9,6 +10,8 @@ import lpg.lpgjavaruntime.IToken;
 
 public interface IParseController extends ILanguageService
 {
+    void initialize(String projRelFilePath, IProject project);
+
     IParser getParser();
 
     ILexer getLexer();

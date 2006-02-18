@@ -52,6 +52,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
@@ -645,14 +646,17 @@ public class UniversalEditor extends TextEditor {
 
 	protected IStatus run(IProgressMonitor monitor) {
 	    try {
-		IDocument document= getDocumentProvider().getDocument(getEditorInput());
+                IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
+		IDocument document= getDocumentProvider().getDocument(fileEditorInput);
+                String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
+                parseController.initialize(filePath, fileEditorInput.getFile().getProject());
 		parseController.parse(document.get(), false, monitor);
 		if (!monitor.isCanceled())
 		    notifyAstListeners(parseController, monitor);
-		//		else
-		//			System.out.println("Bypassed AST listeners (cancelled).");
+		// else
+		//	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Error running parser for " + fLanguage, e);
 	    }

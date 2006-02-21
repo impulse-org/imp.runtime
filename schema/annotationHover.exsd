@@ -43,11 +43,16 @@
    </element>
 
    <element name="annotationHover">
+      <annotation>
+         <documentation>
+            Defines an &quot;annotation hover&quot; language service for source file editing that is responsible for producing textual information to be shown in a pop-up hover helper when the mouse hovers over a textual annotation.
+         </documentation>
+      </annotation>
       <complexType>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  
+                  The fully-qualified name of a class implementing IAnnotationHover
                </documentation>
                <appInfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.jface.text.source.IAnnotationHover"/>
@@ -71,7 +76,7 @@
          <attribute name="language" type="string" use="required">
             <annotation>
                <documentation>
-                  
+                  The name of the language to which this service applies. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
                </documentation>
             </annotation>
          </attribute>

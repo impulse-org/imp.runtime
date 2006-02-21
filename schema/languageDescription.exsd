@@ -42,14 +42,14 @@
    <element name="language">
       <annotation>
          <documentation>
-            Defines a programming language
+            Defines a programming language name and associates with it a set of file-name extensions and other meta-data.
          </documentation>
       </annotation>
       <complexType>
          <attribute name="language" type="string" use="required">
             <annotation>
                <documentation>
-                  The canonical name for this programming language. Examples: 
+                  The canonical name for this programming language, used in part to identify language service implementations intended to support this language. Examples:
 &lt;ul&gt;
 &lt;li&gt;Java
 &lt;li&gt;FORTRAN
@@ -66,7 +66,7 @@
          <attribute name="description" type="string" use="required">
             <annotation>
                <documentation>
-                  The description of the language. Examples:
+                  The human-readable description of the language. Examples:
 &lt;ul&gt;
 &lt;li&gt;If the language is &quot;Python&quot;, the description might be &quot;The script language designed by Guido van Rossum&quot;
 &lt;li&gt;If the language is &quot;ActiveJava&quot;, the description might be &quot;An extension of Java with Actors&quot;
@@ -91,7 +91,7 @@ Descriptions are not directly used by the Universal IDE, but can be used by huma
          <attribute name="extensions" type="string" use="required">
             <annotation>
                <documentation>
-                  A comma-separated list describing the file extensions for this language. For C++, the extensions could be &quot;hpp,cpp,hxx,cxx&quot;. For a parser generator, it could be &quot;g&quot;. For ant scripts, it would be &quot;xml&quot;.
+                  A comma-separated list identifying the file name extensions for source files in this language. For C++, the extensions could be &quot;hpp,cpp,hxx,cxx&quot;. For a parser generator, it could be &quot;g&quot;. For ant scripts, it would be &quot;xml&quot;.
 
 In the latter two cases, the input could be ambiguous; multiple languages use the extension &quot;g&quot; and &quot;xml&quot;. See the validator attribute to define a user-defined validation class to verify the contents of the file actually corresponds to the programming language being defined.
 &lt;p&gt;
@@ -101,7 +101,7 @@ In the latter two cases, the input could be ambiguous; multiple languages use th
          <attribute name="derivedFrom" type="string">
             <annotation>
                <documentation>
-                  The language this language is derived from. Examples:
+                  The language this language is derived from, if any. Examples:
 &lt;ul&gt;
 &lt;li&gt;&quot;XJava&quot; (Java with embedded XML syntax) would be derived from &quot;Java&quot;
 &lt;li&gt;&quot;LotusScript&quot; is derived from &quot;JavaScript&quot;
@@ -128,10 +128,10 @@ a simple text editor.
          <attribute name="validator" type="string">
             <annotation>
                <documentation>
-                  The class that can determine whether a given input file actually contains text corresponding to the expected programming language. Examples:
+                  The class that can determine whether a given input file actually contains text in the given programming language. Useful for languages such as XML that have many dialects (e.g. Ant build scripts, Eclipse plugin descriptors, or DTD&apos;s). Examples:
 &lt;ul&gt;
 &lt;li&gt;A validator for a &quot;.xml&quot; file to ensure it actually contains an Ant script
-&lt;li&gt;A validator for a &quot;.g&quot; file to verify it contains a JikesPG grammar, and not Yacc or Antlr grammar.
+&lt;li&gt;A validator for a &quot;.g&quot; file to verify it contains a JikesPG grammar, and not a Yacc or Antlr grammar.
 &lt;/ul&gt;
 Users are to extend the LanguageValidator class. The validate method will be called with a project and file to verify compliance to the expected programming language. Some validators may want to check and see if the project has a given nature enabled. Others will want to open the file and the read the first line to check for a given unique signature.
 &lt;p&gt;

@@ -6,7 +6,7 @@
          <meta.schema plugin="org.eclipse.uide" id="parser" name="Universal IDE Parser"/>
       </appInfo>
       <documentation>
-         The org.eclipse.uide.parser extension point allows providers to provide a language parser. The provider specifies what languages it can parse. The provider has to implement the IParser interface. It will be presented with Document and has to turn it into an IModel.
+         The org.eclipse.uide.parser extension point allows providers to provide a language parser and lexer. The provider specifies what languages it can parse. The provider must implement the IParseController interface. It will be presented with an IDocument and is responsible for producing an AST (abstract syntax tree) of some sort.
       </documentation>
    </annotation>
 
@@ -53,7 +53,7 @@ Example: &quot;com.acme.parsing.cpp.fastParser&quot;
          <attribute name="name" type="string" use="required">
             <annotation>
                <documentation>
-                  A symbolic name for this parser used for resolving ambiguities in the case their are more than one parsers contributed for a given content type. This text is shown to a user.
+                  A symbolic name for this parser used for resolving ambiguities in the case there is more than one parser for a given content type. This text is shown to a user.
 
 Example: &quot;The Fast-but-fuzzy ACME C++ parser&quot;.
                </documentation>
@@ -62,10 +62,10 @@ Example: &quot;The Fast-but-fuzzy ACME C++ parser&quot;.
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  The class name for the parser that implements the IParser interface.
+                  The class name for the parser that implements the IParseController interface.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.parser.IParser"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.parser.IParseController"/>
                </appInfo>
             </annotation>
          </attribute>

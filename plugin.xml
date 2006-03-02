@@ -30,4 +30,17 @@
          name="UIDE Runtime Startup"
          point="org.eclipse.ui.startup">
    </extension>
+   <extension
+         point="org.eclipse.ui.editorActions">
+      <editorContribution
+          targetID="org.eclipse.ui.DefaultTextEditor"
+          id="uide.rulerActions">
+         <action
+             label="Not Used"
+             class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
+             style="push"
+             actionID="RulerDoubleClick"
+             id="uide.doubleClickBreakpointAction"/>
+      </editorContribution>
+   </extension>
 </plugin>

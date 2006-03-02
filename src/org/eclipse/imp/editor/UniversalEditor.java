@@ -22,6 +22,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -197,6 +198,9 @@ public class UniversalEditor extends TextEditor {
     public Object getAdapter(Class required) {
 	if (IContentOutlinePage.class.equals(required)) {
 	    return fOutlineController;
+	}
+	if (IToggleBreakpointsTarget.class.equals(required)) {
+	    return new ToggleBreakpointsAdapter();
 	}
 	return super.getAdapter(required);
     }

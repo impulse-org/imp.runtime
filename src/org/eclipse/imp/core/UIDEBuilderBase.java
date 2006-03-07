@@ -100,6 +100,7 @@ public abstract class UIDEBuilderBase extends IncrementalProjectBuilder {
         for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
             IFile srcFile= (IFile) iter.next();
 
+            clearMarkersOn(srcFile);
             compile(srcFile);
         }
     }

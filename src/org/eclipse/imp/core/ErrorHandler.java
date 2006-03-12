@@ -2,6 +2,8 @@ package org.eclipse.uide.core;
 
 import org.eclipse.core.runtime.Status;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.uide.runtime.RuntimePlugin;
 
 /*
@@ -46,15 +48,21 @@ public class ErrorHandler {
     	reportError(message, showDialog, DUMP);
     }
 
-    public static void reportError(String message, boolean showDialog, boolean noDump) {
+    public static void reportError(final String message, boolean showDialog, boolean noDump) {
         if (PRINT)
             System.err.println(message);
         if (!noDump)
             new Error(message).printStackTrace();
         if (LOG)
             logError(message, new Error(message));
-		if (showDialog)
-			MessageDialog.openError(null, "Universal IDE Error", message);
+		if (showDialog) {
+                    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+                        public void run() {
+                            MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(),
+                                    "Universal IDE Error", message);
+                        }
+                    });
+                }
     }
 
     public static void logError(String msg, Throwable e) {

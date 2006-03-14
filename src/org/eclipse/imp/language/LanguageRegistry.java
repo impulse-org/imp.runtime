@@ -7,7 +7,6 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorRegistry;
 import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
@@ -26,10 +25,11 @@ import org.osgi.framework.Bundle;
 /**
  * @author Claffra
  * 
- * Registry for Universal IDE language contributors.
+ * Registry for SAFARI language contributors.
  */
 public class LanguageRegistry {
-    private static Language languages[];
+    private static Language sLanguages[];
+
     private static final String EXTENSION= "languageDescription";
 
     /**
@@ -42,23 +42,26 @@ public class LanguageRegistry {
      * @return null if no language is contributed with the given extension/content
      */
     public static Language findLanguage(IEditorInput editorInput) {
-	if (languages == null)
+	if (sLanguages == null)
 	    findLanguages();
 	String extension= "???";
-	if (editorInput instanceof FileEditorInput) {
+
+        if (editorInput instanceof FileEditorInput) {
 	    FileEditorInput fileEditorInput= (FileEditorInput) editorInput;
 	    IFile file= fileEditorInput.getFile();
-	    extension= file.getFileExtension();
+
+            extension= file.getFileExtension();
 	    if (extension == null)
 		return null;
-	    for(int n= 0; n < languages.length; n++) {
-		if (languages[n].hasExtension(extension)) {
-		    LanguageValidator validator= languages[n].getValidator();
-		    if (validator != null) {
+	    for(int n= 0; n < sLanguages.length; n++) {
+		if (sLanguages[n].hasExtension(extension)) {
+		    LanguageValidator validator= sLanguages[n].getValidator();
+
+                    if (validator != null) {
 			if (validator.validate(file))
-			    return languages[n];
+			    return sLanguages[n];
 		    } else
-			return languages[n];
+			return sLanguages[n];
 		}
 	    }
 	}
@@ -67,7 +70,7 @@ public class LanguageRegistry {
     }
 
     public static void registerLanguages() {
-	if (languages == null)
+	if (sLanguages == null)
 	    findLanguages();
 
 	// Parts of the following code suggested by comments on the following bug:
@@ -85,13 +88,13 @@ public class LanguageRegistry {
 
 	    universalEditor.setOpenMode(EditorDescriptor.OPEN_INTERNAL);
 
-	    FileEditorMapping[] newMap = new FileEditorMapping[currentMap.length + languages.length];
+	    FileEditorMapping[] newMap = new FileEditorMapping[currentMap.length + sLanguages.length];
 	    for(int i= 0 ; i < currentMap.length; i++) {
 		newMap[i]= (FileEditorMapping) currentMap[i];
 	    }
 
-	    for(int n= 0; n < languages.length; n++) {
-		String[] fileNameExtensions= languages[n].getExtensions();
+	    for(int n= 0; n < sLanguages.length; n++) {
+		String[] fileNameExtensions= sLanguages[n].getFilenameExtensions();
 		for(int i= 0; i < fileNameExtensions.length; i++) {
 		    FileEditorMapping newType = new FileEditorMapping(fileNameExtensions[i]);
 
@@ -110,25 +113,31 @@ public class LanguageRegistry {
     static void findLanguages() {
 	try {
 	    IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.UIDE_RUNTIME, EXTENSION);
-	    if (extensionPoint == null) {
-		ErrorHandler.reportError("Nonexisting extension point called \"" + RuntimePlugin.UIDE_RUNTIME + "." + EXTENSION);
+
+            if (extensionPoint == null) {
+		ErrorHandler.reportError("Nonexistent extension point called \"" + RuntimePlugin.UIDE_RUNTIME + "." + EXTENSION);
+                return;
 	    }
-	    ArrayList list= new ArrayList();
+
+            ArrayList langList= new ArrayList();
 	    IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
-	    if (elements != null) {
+
+            if (elements != null) {
 		for(int n= 0; n < elements.length; n++) {
 		    IConfigurationElement element= elements[n];
 		    Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
-		    if (bundle != null) {
+
+                    if (bundle != null) {
 			Language language= new Language(element);
-			list.add(language);
+
+                        langList.add(language);
 		    }
 		}
 	    } else
 		System.err.println("Warning: no languages defined.");
-	    languages= (Language[]) list.toArray(new Language[list.size()]);
+            sLanguages= (Language[]) langList.toArray(new Language[langList.size()]);
 	} catch (Throwable e) {
-	    ErrorHandler.reportError("Universal IDE LanguageRegistry Error", e);
+	    ErrorHandler.reportError("SAFARI LanguageRegistry error", e);
 	}
     }
 }

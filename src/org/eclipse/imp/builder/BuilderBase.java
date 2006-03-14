@@ -19,11 +19,11 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.uide.runtime.UIDEPluginBase;
+import org.eclipse.uide.runtime.SAFARIPluginBase;
 
-public abstract class UIDEBuilderBase extends IncrementalProjectBuilder {
+public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
 
-    protected abstract UIDEPluginBase getPlugin();
+    protected abstract SAFARIPluginBase getPlugin();
 
     /**
      * @return true iff the given file is a source file that this builder should compile.

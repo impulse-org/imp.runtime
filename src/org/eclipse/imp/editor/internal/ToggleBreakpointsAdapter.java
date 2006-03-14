@@ -10,7 +10,11 @@ import java.util.Map;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRunnable;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
@@ -22,8 +26,14 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 
+import com.ibm.watson.smapi.LineElem;
+import com.ibm.watson.smapi.LineMapBuilder;
+
 public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
-    public ToggleBreakpointsAdapter() {
+    
+	private static Map /* IJavaLineBreakPoint -> IMarker */ x10MarkerMap = new HashMap(); 
+	
+	public ToggleBreakpointsAdapter() {
 	super();
     }
 
@@ -49,64 +59,94 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
 	    ITextSelection textSel= (ITextSelection) selection;
 	    IEditorPart editorPart= (IEditorPart) part.getAdapter(IEditorPart.class);
 	    IFileEditorInput fileInput= (IFileEditorInput) editorPart.getEditorInput();
-	    IFile x10File= fileInput.getFile();
+	    final IFile x10File= fileInput.getFile();
 	    IProject project= x10File.getProject();
-	    String x10FileName= x10File.getName();
-	    IFile javaFile= javaFileForRootSourceFile(x10File, project);
+	    final String x10FileName= x10File.getName();
+	    final IFile javaFile= javaFileForRootSourceFile(x10File, project);
 
 	    if (!javaFile.exists())
-		return; // Can't do anything; this file didn't produce a Java file
+	    	return; // Can't do anything; this file didn't produce a Java file
 
-	    String typeName= x10FileName.substring(0, x10FileName.lastIndexOf('.'));
-	    Map lineMap= getLineMap(x10File);
-	    Integer x10LineNumber= new Integer(textSel.getStartLine() + 1);
-	    int javaLineNum;
+	    final String typeName= x10FileName.substring(0, x10FileName.lastIndexOf('.'));
+	    LineMapBuilder lmb = new LineMapBuilder(x10File.getRawLocation().removeFileExtension().toString());
+	    Map lineMap= lmb.getLineMap();
+	    final Integer x10LineNumber= new Integer(textSel.getStartLine() + 1);
+	    final int javaLineNum;
 
-	    if (lineMap.containsKey(x10LineNumber)) // smapi.mapLine(javaFile, textSel.getStartLine());
-		javaLineNum= ((Integer) lineMap.get(x10LineNumber)).intValue();
-	    else
-		javaLineNum= 1;
+	    if (lineMap.containsKey(x10LineNumber)) {
+	    	javaLineNum= ((LineElem) lineMap.get(x10LineNumber)).getStart();
+	    } else {
+	    	javaLineNum= 1;
+	    	System.out.println("Warning: breakpoint ignored because no corresponding line in Java file!");
+	    	return;
+	    }
+	    
+	    System.out.println("******** The breakpoint is at line: " + x10LineNumber + " in x10 and " + javaLineNum + "in Java");
 
 	    //	    System.out.println("Breakpoint toggle request @ line " + javaLineNum + " of file "
 	    //		    + javaFile.getProjectRelativePath());
 
-	    IJavaLineBreakpoint existingBreakpoint= JDIDebugModel.lineBreakpointExists(javaFile, typeName, javaLineNum);
-
+	    
 	    // TODO Enable the breakpoint if there is already one that's disabled, rather than just blindly removing it.
 
-	    if (existingBreakpoint != null) {
-		DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(existingBreakpoint, true);
-		return;
-	    }
+	    final IJavaLineBreakpoint existingBreakpoint= JDIDebugModel.lineBreakpointExists(javaFile, typeName, x10LineNumber.intValue());
 
-	    // At this point, we know there is no existing breakpoint at this line #.
+	    IWorkspaceRunnable wr= new IWorkspaceRunnable() {
+			public void run(IProgressMonitor monitor) throws CoreException {
+				
+				if (existingBreakpoint != null) {
+					IMarker marker = (IMarker) x10MarkerMap.get(existingBreakpoint);
+			    	marker.delete();
+			    	x10MarkerMap.remove(existingBreakpoint);
+					DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(existingBreakpoint, true);
+			    	System.out.println("******* deleting marker");
+			    	
+			    	return;
+			    }
 
-	    Map bkptAttributes= new HashMap();
+			    // At this point, we know there is no existing breakpoint at this line #.
 
-	    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
+			    Map bkptAttributes= new HashMap();
+			    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
+			    final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, x10LineNumber.intValue(), -1, -1, 0, true, bkptAttributes);
 
-	    IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, javaLineNum, -1, -1, 0, true, bkptAttributes);
-
-	    // At this point, the Debug framework has been told there's a line breakpoint,
-	    // and there's a marker in the *Java* source, but not in the X10 source.
-	    // So create another marker that has basically all the same attributes as
-	    // the Java marker, but is on the X10 source file instead at the corresponding line #.
-	    IMarker javaMarker= bkpt.getMarker();
-	    IMarker x10Marker= x10File.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
-
-	    // Copy attributes from the Java breakpoint marker to the X10 marker
-	    Map javaMarkerAttrs= javaMarker.getAttributes();
-	    for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext(); ) {
-		String key= (String) iter.next();
-		Object value= javaMarkerAttrs.get(key);
-
-		// TODO filter the attributes to make sure that none that
-		// really belong to the Java file get placed on the X10 file.
-		x10Marker.setAttribute(key, value);
-	    }
-	    x10Marker.setAttribute(IMarker.LINE_NUMBER, x10LineNumber);
-//	    bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
-	    bkpt.setMarker(x10Marker);
+			    // At this point, the Debug framework has been told there's a line breakpoint,
+			    // and there's a marker in the *Java* source, but not in the X10 source.
+			    // So create another marker that has basically all the same attributes as
+			    // the Java marker, but is on the X10 source file instead at the corresponding line #.
+			    final IMarker javaMarker= bkpt.getMarker();
+			   
+			    
+				// create the marker
+				IMarker x10Marker= x10File.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
+				Map javaMarkerAttrs= javaMarker.getAttributes();
+			    for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext(); ) {
+			    	String key= (String) iter.next();
+			    	Object value= javaMarkerAttrs.get(key);
+			    	if (key.equals(IMarker.LINE_NUMBER)){
+			    		value = x10LineNumber;
+			    	}
+			    	if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
+			    		continue;
+			    	x10Marker.setAttribute(key, value);
+			    	System.out.println("Attribute added for marker " + key + "-> " + value);
+			    }
+			    x10Marker.setAttribute(IMarker.LINE_NUMBER, x10LineNumber);
+			    x10MarkerMap.put(bkpt, x10Marker);
+			    
+			   
+			    
+			    //bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
+			    //bkpt.setMarker(x10Marker);
+			   
+			}
+	    };
+	    try {
+    		ResourcesPlugin.getWorkspace().run(wr, null);
+    	} catch (CoreException e) {
+    		throw new DebugException(e.getStatus());
+    	}			
+	    	   
 	}
     }
 

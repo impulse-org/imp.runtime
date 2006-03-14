@@ -117,6 +117,13 @@ a simple text editor.
                </documentation>
             </annotation>
          </attribute>
+         <attribute name="icon" type="string">
+            <annotation>
+               <documentation>
+                  The icon that will appear in various views that display source file entities (e.g. the Package Explorer).
+               </documentation>
+            </annotation>
+         </attribute>
          <attribute name="url" type="string">
             <annotation>
                <documentation>

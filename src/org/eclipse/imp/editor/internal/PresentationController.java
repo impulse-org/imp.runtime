@@ -87,8 +87,8 @@ public class PresentationController implements IModelListener {
 	if (controller == null) {
 	    return;
 	}
-	int startIndex= controller.getTokenIndexAtCharacter(damage.getOffset()), endIndex= controller
-		.getTokenIndexAtCharacter(damage.getOffset() + damage.getLength());
+	int startIndex= controller.getTokenIndexAtCharacter(damage.getOffset());
+	int endIndex= controller.getTokenIndexAtCharacter(damage.getOffset() + damage.getLength());
 	final TextPresentation presentation= new TextPresentation();
 	for(int n= startIndex; !monitor.isCanceled() && n <= endIndex; n++) {
 	    IToken token= controller.getParser().getParseStream().getTokenAt(n);

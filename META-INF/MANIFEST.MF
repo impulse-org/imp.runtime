@@ -18,7 +18,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.debug.ui,
  org.eclipse.debug.core,
  org.eclipse.jdt.debug,
- com.ibm.watson.smapi
+ com.ibm.watson.smapi,
+ org.eclipse.jdt.core,
+ org.eclipse.jdt.ui
 Eclipse-AutoStart: true
 Export-Package: org.eclipse.uide.core,
  org.eclipse.uide.defaults,
@@ -26,4 +28,5 @@ Export-Package: org.eclipse.uide.core,
  org.eclipse.uide.internal.editor,
  org.eclipse.uide.internal.util,
  org.eclipse.uide.parser,
- org.eclipse.uide.runtime
+ org.eclipse.uide.runtime,
+ org.eclipse.uide.wizards

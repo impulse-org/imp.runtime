@@ -556,7 +556,6 @@ public class UniversalEditor extends TextEditor {
 
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 	    try {
-
 		if (fPresentationController != null) {
 		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
 		    int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
@@ -564,8 +563,9 @@ public class UniversalEditor extends TextEditor {
 		    int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
 			    : adjuncts[adjuncts.length - 1].getEndOffset();
 		    int length= endOffset - damage.getOffset();
-		    fPresentationController.damage(damage.getOffset(), (length > damage.getLength() ? length : damage
-			    .getLength()));
+
+		    fPresentationController.damage(damage.getOffset(),
+			    (length > damage.getLength() ? length : damage.getLength()));
 		}
 		if (fParserScheduler != null) {
 		    fParserScheduler.cancel();

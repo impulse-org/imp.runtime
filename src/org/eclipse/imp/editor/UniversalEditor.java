@@ -31,7 +31,9 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
+import org.eclipse.jface.text.formatter.ContentFormatter;
 import org.eclipse.jface.text.formatter.IContentFormatter;
+import org.eclipse.jface.text.formatter.IFormattingStrategy;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
@@ -60,6 +62,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.internal.texteditor.HippieCompletionEngine;
 import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
@@ -112,6 +115,8 @@ public class UniversalEditor extends TextEditor {
     private IFoldingUpdater fFoldingUpdater;
 
     private ProjectionAnnotationModel fAnnotationModel;
+
+    public IFormattingStrategy fFormattingStrategy;
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= "org.eclipse.uide.editor.messages";//$NON-NLS-1$
 
@@ -397,6 +402,7 @@ public class UniversalEditor extends TextEditor {
 	    if (fHyperLinkDetector != null)
 		fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
+	    fFormattingStrategy= (IFormattingStrategy) createExtensionPoint("formatter");
 	}
 
 	super.createPartControl(parent);
@@ -469,7 +475,12 @@ public class UniversalEditor extends TextEditor {
     }
 
     class Configuration extends SourceViewerConfiguration {
+	public int getTabWidth(ISourceViewer sourceViewer) {
+	    return 8; // TODO should be read from preferences somewhere...
+	}
+
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+	    // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
 	    PresentationReconciler reconciler= new PresentationReconciler();
 	    reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
 	    return reconciler;
@@ -481,10 +492,6 @@ public class UniversalEditor extends TextEditor {
 	    ca.setContentAssistProcessor(fCompletionProcessor, IDocument.DEFAULT_CONTENT_TYPE);
 	    ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
 	    return ca;
-	}
-
-	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
-	    return fHoverHelpController= new HoverHelpController();
 	}
 
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
@@ -505,7 +512,12 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
-	    return super.getContentFormatter(sourceViewer);
+	    // BUG For now, assumes only one content type (i.e. one kind of partition)
+	    ContentFormatter formatter= new ContentFormatter();
+
+//	    formatter.setDocumentPartitioning("foo");
+	    formatter.setFormattingStrategy(fFormattingStrategy, IDocument.DEFAULT_CONTENT_TYPE);
+	    return formatter;
 	}
 
 	public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
@@ -538,6 +550,10 @@ public class UniversalEditor extends TextEditor {
 	    return super.getInformationPresenter(sourceViewer);
 	}
 
+	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+	    return fHoverHelpController= new HoverHelpController();
+	}
+
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
 	    return super.getTextHover(sourceViewer, contentType, stateMask);
 	}
@@ -555,6 +571,8 @@ public class UniversalEditor extends TextEditor {
 	IDocument document;
 
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
+	    // BUG Should we really just ignore the presentation passed in???
+	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {
 		if (fPresentationController != null) {
 		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
@@ -590,6 +608,8 @@ public class UniversalEditor extends TextEditor {
 
 	private IContentProposer contentProposer;
 
+//	private HippieProposalProcessor hippieProcessor= new HippieProposalProcessor();
+
 	public CompletionProcessor() {}
 
 	public void setLanguage(Language language) {
@@ -602,6 +622,8 @@ public class UniversalEditor extends TextEditor {
 		if (parseController != null && contentProposer != null) {
 		    return contentProposer.getContentProposals(parseController, offset);
 		}
+		// TODO Once we move to 3.2, delegate to the HippieProposalProcessor
+//		return hippieProcessor.computeCompletionProposals(viewer, offset);
 	    } catch (Throwable e) {
 		ErrorHandler.reportError("Universal Editor Error", e);
 	    }
@@ -634,8 +656,9 @@ public class UniversalEditor extends TextEditor {
     }
 
     /*
-     * Parsing may take a long time, and is not done inside the UI thread. Therefore, we create a job that is executed in a background thread by the
-     * platform's job service.
+     * Parsing may take a long time, and is not done inside the UI thread.
+     * Therefore, we create a job that is executed in a background thread
+     * by the platform's job service.
      */
     class ParserScheduler extends Job {
 	protected IParseController parseController;

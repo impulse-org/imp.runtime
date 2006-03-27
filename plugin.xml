@@ -1,23 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin>
-   <extension-point id="contentProposer" name="Universal IDE Content Proposer" schema="schema/contentProposer.exsd"/>
-   <extension-point id="hoverHelper" name="Universal IDE Hover Helper" schema="schema/hoverHelper.exsd"/>
-   <extension-point id="outliner" name="Universal IDE Outliner" schema="schema/outliner.exsd"/>
-   <extension-point id="tokenColorer" name="Universal IDE Token Colorer" schema="schema/tokenColorer.exsd"/>
+   <extension-point id="contentProposer" name="SAFARI Content Proposer" schema="schema/contentProposer.exsd"/>
+   <extension-point id="hoverHelper" name="SAFARI Hover Helper" schema="schema/hoverHelper.exsd"/>
+   <extension-point id="outliner" name="SAFARI Outliner" schema="schema/outliner.exsd"/>
+   <extension-point id="tokenColorer" name="SAFARI Token Colorer" schema="schema/tokenColorer.exsd"/>
    <extension-point id="languageDescription" name="Description of a programming language" schema="schema/languageDescription.exsd"/>
    <extension-point id="index" name="Shared index of language-specific items, such as types" schema="schema/index.exsd"/>
    <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
    <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
-   <extension-point id="hyperLink" name="Universal IDE Hyperlink Detector" schema="schema/hyperLink.exsd"/>
+   <extension-point id="hyperLink" name="SAFARI Hyperlink Detector" schema="schema/hyperLink.exsd"/>
    <extension-point id="autoEditStrategy" name="Auto-Edit Strategy" schema="schema/autoEditStrategy.exsd"/>
-   <extension-point id="foldingUpdater" name="Universal IDE Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
+   <extension-point id="foldingUpdater" name="SAFARI Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="annotationHover" name="Annotation Hover" schema="schema/annotationHover.exsd"/>
+   <extension-point id="formatter" name="SAFARI Source Code Formatter" schema="schema/formatter.exsd"/>
    
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            name="Universal IDE Editor"
+            name="SAFARI Editor"
             icon="icons/uide-editor.gif"
             extensions="txt"
             contributorClass="org.eclipse.uide.editor.UniversalEditor$TextEditorActionContributor"

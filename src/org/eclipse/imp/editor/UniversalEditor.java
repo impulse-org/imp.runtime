@@ -23,8 +23,22 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
+import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.IAutoEditStrategy;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.IUndoManager;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -33,7 +47,6 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.text.formatter.ContentFormatter;
 import org.eclipse.jface.text.formatter.IContentFormatter;
-import org.eclipse.jface.text.formatter.IFormattingStrategy;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
@@ -52,29 +65,24 @@ import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.actions.ActionFactory;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.internal.texteditor.HippieCompletionEngine;
-import org.eclipse.ui.texteditor.BasicTextEditorActionContributor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
-import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
-import org.eclipse.ui.texteditor.TextEditorAction;
+import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.internal.editor.FoldingController;
+import org.eclipse.uide.internal.editor.FormattingController;
 import org.eclipse.uide.internal.editor.OutlineController;
 import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.editor.SourceHyperlinkController;
@@ -116,83 +124,13 @@ public class UniversalEditor extends TextEditor {
 
     private ProjectionAnnotationModel fAnnotationModel;
 
-    public IFormattingStrategy fFormattingStrategy;
+    public ISourceFormatter fFormattingStrategy;
+
+    private FormattingController fFormattingController;
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= "org.eclipse.uide.editor.messages";//$NON-NLS-1$
 
-    private static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
-
-    /**
-     * Essentially a clone of the class of the same name from JDT/UI, for
-     * navigating from one annotation to the next/previous in a source file.
-     * @author rfuhrer
-     */
-    private static class GotoAnnotationAction extends TextEditorAction {
-	public static final String JAVA_UI_ID_PLUGIN= "org.eclipse.jdt.ui";
-
-	public static final String PREFIX= JAVA_UI_ID_PLUGIN + '.';
-
-	private static final String nextAnnotationContextID= PREFIX + "goto_next_error_action";
-
-	private static final String prevAnnotationContextID= PREFIX + "goto_previous_error_action";
-
-	private boolean fForward;
-
-	public GotoAnnotationAction(String prefix, boolean forward) {
-	    super(fgBundleForConstructedKeys, prefix, null);
-	    fForward= forward;
-	    if (forward)
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, nextAnnotationContextID);
-	    else
-		PlatformUI.getWorkbench().getHelpSystem().setHelp(this, prevAnnotationContextID);
-	}
-
-	public void run() {
-	    UniversalEditor e= (UniversalEditor) getTextEditor();
-
-	    e.gotoAnnotation(fForward);
-	}
-
-	public void setEditor(ITextEditor editor) {
-	    if (editor instanceof UniversalEditor)
-		super.setEditor(editor);
-	    update();
-	}
-
-	public void update() {
-	    setEnabled(getTextEditor() instanceof UniversalEditor);
-	}
-    }
-
-    public static class TextEditorActionContributor extends BasicTextEditorActionContributor {
-	private GotoAnnotationAction fNextAnnotation;
-
-	private GotoAnnotationAction fPreviousAnnotation;
-
-	public TextEditorActionContributor() {
-	    super();
-	    fPreviousAnnotation= new GotoAnnotationAction("PreviousAnnotation.", false); //$NON-NLS-1$
-	    fNextAnnotation= new GotoAnnotationAction("NextAnnotation.", true); //$NON-NLS-1$
-	}
-
-	public void init(IActionBars bars, IWorkbenchPage page) {
-	    super.init(bars, page);
-	    bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_NEXT_ANNOTATION, fNextAnnotation);
-	    bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION, fPreviousAnnotation);
-	    bars.setGlobalActionHandler(ActionFactory.NEXT.getId(), fNextAnnotation);
-	    bars.setGlobalActionHandler(ActionFactory.PREVIOUS.getId(), fPreviousAnnotation);
-	}
-	public void setActiveEditor(IEditorPart part) {
-	    super.setActiveEditor(part);
-
-	    ITextEditor textEditor= null;
-
-	    if (part instanceof ITextEditor)
-		textEditor= (ITextEditor) part;
-	    fPreviousAnnotation.setEditor(textEditor);
-	    fNextAnnotation.setEditor(textEditor);
-	}
-    }
+    static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
 	setSourceViewerConfiguration(new Configuration());
@@ -212,11 +150,18 @@ public class UniversalEditor extends TextEditor {
 
     protected void createActions() {
 	super.createActions();
-	Action action= new ContentAssistAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"),
-		"ContentAssistProposal.", this);
+
+        Action action= new ContentAssistAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "ContentAssistProposal.", this);
 	action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 	setAction("ContentAssistProposal", action);
 	markAsStateDependentAction("ContentAssistProposal", true);
+
+        action= new TextOperationAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
+        action.setActionDefinitionId(IJavaEditorActionDefinitionIds.FORMAT);
+        setAction("Format", action); //$NON-NLS-1$
+        markAsStateDependentAction("Format", true); //$NON-NLS-1$
+        markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.FORMAT_ACTION);
     }
 
     /**
@@ -395,14 +340,15 @@ public class UniversalEditor extends TextEditor {
     public void createPartControl(Composite parent) {
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
-	// Create the hyperlink language service before calling super, since that will
-	// try to configure the hyperlink detector via the SourceViewerConfiguration.
+	// Create language service extensions now, for any services that could
+        // get invoked via super.createPartControl().
 	if (fLanguage != null) {
 	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
 	    if (fHyperLinkDetector != null)
 		fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
-	    fFormattingStrategy= (IFormattingStrategy) createExtensionPoint("formatter");
+	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
+            fFormattingController= new FormattingController(fFormattingStrategy);
 	}
 
 	super.createPartControl(parent);
@@ -413,8 +359,9 @@ public class UniversalEditor extends TextEditor {
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
+                fFormattingController.setParseController(fParserScheduler.parseController);
 
-		if (false && fFoldingUpdater != null) {
+                if (false && fFoldingUpdater != null) {
 		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
 		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
@@ -442,6 +389,9 @@ public class UniversalEditor extends TextEditor {
 	}
     }
 
+    /**
+     * Override creation of the normal source viewer with one that supports source folding.
+     */
     protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
 	if (fFoldingUpdater == null)
 	    return super.createSourceViewer(parent, ruler, styles);
@@ -461,8 +411,14 @@ public class UniversalEditor extends TextEditor {
 	setInsertMode(SMART_INSERT);
     }
 
-    private Object createExtensionPoint(String extensionPoint) {
-	return ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, extensionPoint);
+    /**
+     * Convenience method to create language extensions whose extension point is
+     * defined by this plugin.
+     * @param extensionPoint the extension point ID of the language service
+     * @return the extension implementation
+     */
+    private Object createExtensionPoint(String extensionPointID) {
+	return ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, extensionPointID);
     }
 
     /**
@@ -516,7 +472,7 @@ public class UniversalEditor extends TextEditor {
 	    ContentFormatter formatter= new ContentFormatter();
 
 //	    formatter.setDocumentPartitioning("foo");
-	    formatter.setFormattingStrategy(fFormattingStrategy, IDocument.DEFAULT_CONTENT_TYPE);
+	    formatter.setFormattingStrategy(fFormattingController, IDocument.DEFAULT_CONTENT_TYPE);
 	    return formatter;
 	}
 
@@ -655,11 +611,12 @@ public class UniversalEditor extends TextEditor {
 	}
     }
 
-    /*
+    /**
      * Parsing may take a long time, and is not done inside the UI thread.
      * Therefore, we create a job that is executed in a background thread
      * by the platform's job service.
      */
+    // TODO Perhaps this should be driven off of the "IReconcileStrategy" mechanism?
     class ParserScheduler extends Job {
 	protected IParseController parseController;
 

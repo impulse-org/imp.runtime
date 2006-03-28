@@ -21,7 +21,7 @@
             name="SAFARI Editor"
             icon="icons/uide-editor.gif"
             extensions="txt"
-            contributorClass="org.eclipse.uide.editor.UniversalEditor$TextEditorActionContributor"
+            contributorClass="org.eclipse.uide.editor.TextEditorActionContributor"
             class="org.eclipse.uide.editor.UniversalEditor"
             id="org.eclipse.ui.DefaultTextEditor">
       </editor>

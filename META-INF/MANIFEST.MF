@@ -29,4 +29,5 @@ Export-Package: org.eclipse.uide.core,
  org.eclipse.uide.internal.util,
  org.eclipse.uide.parser,
  org.eclipse.uide.runtime,
- org.eclipse.uide.wizards
+ org.eclipse.uide.wizards,
+ org.eclipse.uide.wizards.fields

@@ -71,7 +71,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.jface.text.formatter.IFormattingStrategy"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.editor.ISourceFormatter"/>
                </appInfo>
             </annotation>
          </attribute>

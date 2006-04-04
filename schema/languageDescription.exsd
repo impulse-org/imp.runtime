@@ -49,7 +49,7 @@
          <attribute name="language" type="string" use="required">
             <annotation>
                <documentation>
-                  The canonical name for this programming language, used in part to identify language service implementations intended to support this language. Examples:
+                  The case-insensitive canonical name for this programming language, used in part to identify language service implementations intended to support this language. Examples:
 &lt;ul&gt;
 &lt;li&gt;Java
 &lt;li&gt;FORTRAN
@@ -101,18 +101,16 @@ In the latter two cases, the input could be ambiguous; multiple languages use th
          <attribute name="derivedFrom" type="string">
             <annotation>
                <documentation>
-                  The language this language is derived from, if any. Examples:
+                  The canonical name of the language from which this language is derived, if any. Examples:
 &lt;ul&gt;
-&lt;li&gt;&quot;XJava&quot; (Java with embedded XML syntax) would be derived from &quot;Java&quot;
+&lt;li&gt;&quot;XJ&quot; (Java with embedded XML syntax) would be derived from &quot;Java&quot;
 &lt;li&gt;&quot;LotusScript&quot; is derived from &quot;JavaScript&quot;
 &lt;li&gt;&quot;PHP&quot; is derived from &quot;HTML&quot;
 &lt;li&gt;&quot;HTML&quot; is derived from &quot;XML&quot;
 &lt;/ul&gt;
 &lt;p&gt;
-Derivation is used for finding a proper editor for a given language.
-Let us assume a given PHP file is opened, but no PHP editor is available. 
-In that case, following the rules above, an HTML editor is tried, then an XML editor, and finally 
-a simple text editor.
+Derivation is used in determining inheritance relationships when locating language service implementations for a given language.
+For example, suppose a PHP source file is opened, but no PHP editor is available. Given the inheritance relationships above, SAFARI attempts to locate an HTML editor, and if none is found, an XML editor is located; failing that, a simple text editor is used.
 &lt;p&gt;
                </documentation>
             </annotation>
@@ -135,12 +133,12 @@ a simple text editor.
          <attribute name="validator" type="string">
             <annotation>
                <documentation>
-                  The class that can determine whether a given input file actually contains text in the given programming language. Useful for languages such as XML that have many dialects (e.g. Ant build scripts, Eclipse plugin descriptors, or DTD&apos;s). Examples:
+                  The fully-qualified name of a class that can determine whether a given input file actually contains text in the given programming language. Useful for languages such as XML that have many dialects (e.g. Ant build scripts, Eclipse plugin descriptors, or DTD&apos;s). Examples:
 &lt;ul&gt;
-&lt;li&gt;A validator for a &quot;.xml&quot; file to ensure it actually contains an Ant script
-&lt;li&gt;A validator for a &quot;.g&quot; file to verify it contains a JikesPG grammar, and not a Yacc or Antlr grammar.
+&lt;li&gt;A validator for the Ant script dialect of &quot;.xml&quot; files
+&lt;li&gt;A validator for JikesPG &quot;.g&quot; grammar files (&quot;.g&quot; extensions are used for the grammar files of several parser generators, including JikesPG, Yacc and Antlr).
 &lt;/ul&gt;
-Users are to extend the LanguageValidator class. The validate method will be called with a project and file to verify compliance to the expected programming language. Some validators may want to check and see if the project has a given nature enabled. Others will want to open the file and the read the first line to check for a given unique signature.
+The class must extend the LanguageValidator class. The validate method will be called with a project and a file to check whether the file&apos;s content is indeed in the expected programming language. Some validators may simply check that the project has the corresponding nature. Others may read a portion of the file&apos;s contents to check for some well-specified unique signature.
 &lt;p&gt;
                </documentation>
                <appInfo>

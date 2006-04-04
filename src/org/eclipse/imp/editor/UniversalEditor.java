@@ -468,6 +468,10 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
+	    // Disable the content formatter if no language-specific implementation exists.
+	    if (fFormattingStrategy == null)
+		return null;
+
 	    // BUG For now, assumes only one content type (i.e. one kind of partition)
 	    ContentFormatter formatter= new ContentFormatter();
 

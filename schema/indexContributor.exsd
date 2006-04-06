@@ -3,10 +3,10 @@
 <schema targetNamespace="org.eclipse.uide">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="index" name="Universal IDE Index of shared artifacts"/>
+         <meta.schema plugin="org.eclipse.uide" id="index" name="SAFARI Index of shared artifacts"/>
       </appInfo>
       <documentation>
-         The org.eclipse.uide.index extension point allows contributors to define and share artifacts through a central index. What is kept in the index, and how to access it, is left up to the implementors of the programming language.
+         The org.eclipse.uide.indexContributor extension point allows contributors to define and share artifacts through a central index. What is kept in the index, and how to access it, is left up to the implementors of the programming language.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence>
-            <element ref="index" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="indexContributor" minOccurs="1" maxOccurs="unbounded"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -44,7 +44,7 @@
       </complexType>
    </element>
 
-   <element name="index">
+   <element name="indexContributor">
       <annotation>
          <documentation>
             &lt;p&gt;
@@ -76,7 +76,7 @@ generic &lt;tt&gt;org.eclipse.uide.Index&lt;/tt&gt; class to their specific impl
 to provide content-specific indexing and searching.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.core.Index"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.indexing.IndexContributorBase"/>
                </appInfo>
             </annotation>
          </attribute>

@@ -6,7 +6,7 @@
    <extension-point id="outliner" name="SAFARI Outliner" schema="schema/outliner.exsd"/>
    <extension-point id="tokenColorer" name="SAFARI Token Colorer" schema="schema/tokenColorer.exsd"/>
    <extension-point id="languageDescription" name="Description of a programming language" schema="schema/languageDescription.exsd"/>
-   <extension-point id="index" name="Shared index of language-specific items, such as types" schema="schema/index.exsd"/>
+   <extension-point id="indexContributor" name="Shared index of language-specific items, such as types" schema="schema/indexContributor.exsd"/>
    <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
    <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
    <extension-point id="hyperLink" name="SAFARI Hyperlink Detector" schema="schema/hyperLink.exsd"/>

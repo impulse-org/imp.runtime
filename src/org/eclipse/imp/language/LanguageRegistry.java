@@ -69,6 +69,14 @@ public class LanguageRegistry {
 	return null;
     }
 
+    public static Language findLanguage(String languageName) {
+        for(int i= 0; i < sLanguages.length; i++) {
+            if (sLanguages[i].getName().equals(languageName))
+                return sLanguages[i];
+        }
+        return null;
+    }
+
     public static void registerLanguages() {
 	if (sLanguages == null)
 	    findLanguages();

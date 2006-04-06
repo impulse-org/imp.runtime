@@ -9,14 +9,25 @@ import org.osgi.framework.BundleContext;
 /**
  * The main plugin class to be used in the desktop.
  */
-public class RuntimePlugin extends AbstractUIPlugin implements IStartup {
+public class RuntimePlugin extends SAFARIPluginBase implements IStartup {
     public static final String UIDE_RUNTIME= "org.eclipse.uide.runtime"; // must match plugin ID in MANIFEST.MF
 
-    // The shared instance.
-    private static RuntimePlugin plugin;
+    // The singleton instance.
+    private static RuntimePlugin sPlugin;
 
     public RuntimePlugin() {
-	plugin= this;
+	sPlugin= this;
+    }
+
+    /**
+     * Returns the singleton instance.
+     */
+    public static RuntimePlugin getInstance() {
+	return sPlugin;
+    }
+
+    public String getID() {
+	return UIDE_RUNTIME;
     }
 
     /**
@@ -31,14 +42,7 @@ public class RuntimePlugin extends AbstractUIPlugin implements IStartup {
      */
     public void stop(BundleContext context) throws Exception {
 	super.stop(context);
-	plugin= null;
-    }
-
-    /**
-     * Returns the shared instance.
-     */
-    public static RuntimePlugin getDefault() {
-	return plugin;
+	sPlugin= null;
     }
 
     /**

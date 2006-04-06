@@ -17,12 +17,16 @@ import org.eclipse.core.resources.IResourceProxyVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.core.LanguageValidator;
 import org.eclipse.uide.internal.util.ExtensionPointFactory;
+import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.uide.utils.StreamUtils;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -37,6 +41,8 @@ public class Indexer {
 
     private IndexContributorBase fIndexer;
 
+    private IParseController fParser;
+
     /**
      * The set of index entries for the current project being indexed
      */
@@ -47,7 +53,8 @@ public class Indexer {
      */
     public Indexer(String languageName) {
         fLanguage= LanguageRegistry.findLanguage(languageName);
-        fIndexer= (IndexContributorBase) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "indexer");
+        fIndexer= (IndexContributorBase) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "indexContributor");
+        fParser= (IParseController) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "parser");
     }
 
     // Probably don't ever want to do this; the complete set of indexes is huge.
@@ -96,7 +103,12 @@ public class Indexer {
     }
 
     public void createAllIndexes() {
-        IProject[] projects= ResourcesPlugin.getWorkspace().getRoot().getProjects();
+	if (fParser == null) {
+	    RuntimePlugin.getInstance().writeErrorMsg("No parser for language " + fLanguage + "; indexing disabled.");
+	    return;
+	}
+
+	IProject[] projects= ResourcesPlugin.getWorkspace().getRoot().getProjects();
 
         for(int i= 0; i < projects.length; i++) {
             clearEntries(); // no turds from previous projects
@@ -107,6 +119,7 @@ public class Indexer {
 
     public void createProjectIndex(IProject project) {
         final LanguageValidator validator= fLanguage.getValidator();
+        final IProgressMonitor monitor= new NullProgressMonitor();
 
         try {
             project.accept(new IResourceProxyVisitor() {
@@ -118,9 +131,13 @@ public class Indexer {
                             IFile file= (IFile) proxy.requestResource();
 
                             if (validator == null || validator.validate(file)) {
-                                Object ast= null; // parse the given file
+                        	String contents= StreamUtils.readStreamContents(file.getContents(), file.getCharset());
+                                Object ast= fParser.parse(contents, false, monitor);
 
-                                fIndexer.contributeEntries(ast, Indexer.this);
+                                if (ast != null)
+                                    fIndexer.contributeEntries(ast, Indexer.this);
+                                else
+                                    RuntimePlugin.getInstance().writeErrorMsg("Unable to parse file " + file.getFullPath() + "; indexing suppressed.");
                             }
                         }
                     }
@@ -162,7 +179,7 @@ public class Indexer {
      */
     private File getPersistentIndexFile(IProject project) {
         try {
-            IPath path= RuntimePlugin.getDefault().getStateLocation().append(project.getName());
+            IPath path= RuntimePlugin.getInstance().getStateLocation().append(project.getName());
             File file= new File(path.toFile(), fLanguage + ".index");
 
             if (!file.exists()) {

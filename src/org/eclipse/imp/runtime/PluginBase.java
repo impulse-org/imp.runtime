@@ -35,6 +35,15 @@ public abstract class SAFARIPluginBase extends AbstractUIPlugin implements IPlug
         sLog.log(status);
     }
 
+    public void logException(String msg, Throwable t) {
+        Status status= new Status(Status.ERROR, getID(), 0, msg, t);
+
+        if (sLog == null)
+            sLog= getLog();
+
+        sLog.log(status);
+    }
+
     public void refreshPrefs() {
 	// default: do nothing, no preferences
     }

@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.uide">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="languageDescription" name="Universal IDE Programming Language Description"/>
+         <meta.schema plugin="org.eclipse.uide" id="languageDescription" name="SAFARI Programming Language Description"/>
       </appInfo>
       <documentation>
          The org.eclipse.uide.languageDescription extension points allows contributors to describe a programming language by providing attributes such as a name for the language, synonyms, a description, and a URL with more information on the programming language.

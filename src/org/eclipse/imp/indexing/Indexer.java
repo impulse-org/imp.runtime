@@ -1,0 +1,177 @@
+package org.eclipse.uide.indexing;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceProxy;
+import org.eclipse.core.resources.IResourceProxyVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.Language;
+import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.core.LanguageValidator;
+import org.eclipse.uide.internal.util.ExtensionPointFactory;
+import org.eclipse.uide.runtime.RuntimePlugin;
+
+/*
+ * Licensed Materials - Property of IBM,
+ * (c) Copyright IBM Corp. 2005  All Rights Reserved
+ */
+
+/**
+ * @author rfuhrer@watson.ibm.com
+ */
+public class Indexer {
+    private final Language fLanguage; // used to locate the index file
+
+    private IndexContributorBase fIndexer;
+
+    /**
+     * The set of index entries for the current project being indexed
+     */
+    private Set/*<IndexEntry>*/ fProjectEntries= new HashSet();
+
+    /**
+     * Creates an index for the shared elements in this language
+     */
+    public Indexer(String languageName) {
+        fLanguage= LanguageRegistry.findLanguage(languageName);
+        fIndexer= (IndexContributorBase) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "indexer");
+    }
+
+    // Probably don't ever want to do this; the complete set of indexes is huge.
+    // Instead, each project index should probably be loaded and then searched
+    // from within the top-level search loop.
+    public void loadAll() {
+        IProject[] projects= ResourcesPlugin.getWorkspace().getRoot().getProjects();
+
+        for(int i= 0; i < projects.length; i++) {
+            load(projects[i]);
+        }
+    }
+
+    /**
+     * Opens the index file for reading. The index file is stored in the plug-in's state location. If this is the first
+     * time the index is opened, it will be created. The inputstream has to be closed after usage.
+     * 
+     * @return an inputstream containing the index file
+     */
+    public void load(IProject project) {
+        try {
+            File file= getPersistentIndexFile(project);
+
+            readEntries(new BufferedReader(new FileReader(file)));
+        } catch (IOException e) {
+            ErrorHandler.reportError("Cannot open persistent index for " + fLanguage);
+        }
+    }
+
+    private void readEntries(BufferedReader reader) throws IOException {
+        String line;
+
+        while ((line= reader.readLine()) != null) {
+            IndexEntry entry= fIndexer.parseEntry(line);
+
+            addEntry(entry);
+        }
+    }
+
+    public void clearEntries() {
+        fProjectEntries.clear();
+    }
+
+    public void addEntry(IndexEntry entry) {
+        fProjectEntries.add(entry);
+    }
+
+    public void createAllIndexes() {
+        IProject[] projects= ResourcesPlugin.getWorkspace().getRoot().getProjects();
+
+        for(int i= 0; i < projects.length; i++) {
+            clearEntries(); // no turds from previous projects
+            createProjectIndex(projects[i]);
+            save(projects[i]);
+        }
+    }
+
+    public void createProjectIndex(IProject project) {
+        final LanguageValidator validator= fLanguage.getValidator();
+
+        try {
+            project.accept(new IResourceProxyVisitor() {
+                public boolean visit(IResourceProxy proxy) throws CoreException {
+                    if (proxy.getType() == IResource.FILE) {
+                        String name= proxy.getName();
+
+                        if (fLanguage.hasExtension(name.substring(name.lastIndexOf('.') + 1))) {
+                            IFile file= (IFile) proxy.requestResource();
+
+                            if (validator == null || validator.validate(file)) {
+                                Object ast= null; // parse the given file
+
+                                fIndexer.contributeEntries(ast, Indexer.this);
+                            }
+                        }
+                    }
+                    return false;
+                }
+            }, 0);
+        } catch (CoreException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Open the index file for saving. The output stream should be closed after usage.
+     * 
+     * @return an outputStream the user can write to.
+     */
+    public void save(IProject project) {
+        try {
+            File file= getPersistentIndexFile(project);
+            FileWriter writer= new FileWriter(file);
+
+            for(Iterator iter= fProjectEntries.iterator(); iter.hasNext(); ) {
+                IndexEntry entry= (IndexEntry) iter.next();
+
+                entry.saveToStream(writer);
+            }
+        } catch (IOException e) {
+            ErrorHandler.reportError("Cannot open persistent index for " + fLanguage + " and project " + project.getName(), e);
+        }
+    }
+
+    /**
+     * Returns the index file. The index file is stored in the plug-in's state location. If this is the first time the
+     * index is opened, it will be created.
+     * @param project the project whose index file should be loaded
+     * 
+     * @return the file where the persistent index is stored
+     * @return null when the file cannot be created
+     */
+    private File getPersistentIndexFile(IProject project) {
+        try {
+            IPath path= RuntimePlugin.getDefault().getStateLocation().append(project.getName());
+            File file= new File(path.toFile(), fLanguage + ".index");
+
+            if (!file.exists()) {
+                file.createNewFile();
+            }
+            return file;
+        } catch (IOException e) {
+            ErrorHandler.reportError("Cannot locate index file for " + fLanguage + " and project " + project.getName(), e);
+            return null;
+        }
+    }
+}

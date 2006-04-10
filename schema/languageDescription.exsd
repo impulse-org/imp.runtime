@@ -91,7 +91,7 @@ Descriptions are not directly used by the Universal IDE, but can be used by huma
          <attribute name="extensions" type="string" use="required">
             <annotation>
                <documentation>
-                  A comma-separated list identifying the file name extensions for source files in this language. For C++, the extensions could be &quot;hpp,cpp,hxx,cxx&quot;. For a parser generator, it could be &quot;g&quot;. For ant scripts, it would be &quot;xml&quot;.
+                  A comma-separated list identifying the file name extensions for source files in this language, excluding any leading &quot;.&quot;. For C++, the extensions could be &quot;hpp,cpp,hxx,cxx&quot;. For a parser generator, it could be &quot;g&quot;. For ant scripts, it would be &quot;xml&quot;.
 
 In the latter two cases, the input could be ambiguous; multiple languages use the extension &quot;g&quot; and &quot;xml&quot;. See the validator attribute to define a user-defined validation class to verify the contents of the file actually corresponds to the programming language being defined.
 &lt;p&gt;

@@ -139,7 +139,11 @@ public class LanguageRegistry {
 			Language language= new Language(element);
 
                         langList.add(language);
-		    }
+
+                        // Following is called just to get Language to parse the
+                        // file-name extension attribute, and do some validation.
+                        language.getFilenameExtensions();
+                    }
 		}
 	    } else
 		System.err.println("Warning: no languages defined.");

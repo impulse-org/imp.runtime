@@ -134,13 +134,23 @@ public class Language {
     protected String[] parseList(String list) {
         int length= list.length();
         int size= length > 0 ? 1 : 0;
+
         for(int n= 0; n < length; n++)
             if (list.charAt(n) == ',')
                 size++;
+
         String result[]= new String[size];
         StringTokenizer st= new StringTokenizer(list, ",");
-        for(int n= 0; st.hasMoreElements(); n++)
-            result[n]= st.nextToken().trim();
+
+        for(int n= 0; st.hasMoreElements(); n++) {
+            String exten= st.nextToken().trim();
+
+            if (exten.startsWith(".")) {
+        	ErrorHandler.logMessage("Ignoring leading '.' in file-name extension " + exten + " for language '" + getName() + "'.", null);
+        	exten= exten.substring(1);
+            }
+            result[n]= exten;
+        }
         return result;
     }
 

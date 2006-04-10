@@ -35,7 +35,7 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
      */
     protected abstract boolean isOutputFolder(IResource resource);
 
-    protected abstract void compile(IFile resource);
+    protected abstract void compile(IFile resource, IProgressMonitor monitor);
 
     protected abstract String getErrorMarkerID();
 
@@ -86,9 +86,9 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
 
         try {
             fSourcesToCompile.clear();
-            collectSourcesToCompile();
+            collectSourcesToCompile(monitor);
             clearDependencyInfoForChangedFiles();
-            compileNecessarySources();
+            compileNecessarySources(monitor);
             fDependencyInfo.dump();
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Build failed: " + e.getMessage());
@@ -96,12 +96,12 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
         return new IProject[0];
     }
 
-    protected void compileNecessarySources() {
+    protected void compileNecessarySources(IProgressMonitor monitor) {
         for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
             IFile srcFile= (IFile) iter.next();
 
             clearMarkersOn(srcFile);
-            compile(srcFile);
+            compile(srcFile, monitor);
         }
     }
 
@@ -128,7 +128,7 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
         }
     }
 
-    private void collectSourcesToCompile() throws CoreException {
+    private void collectSourcesToCompile(IProgressMonitor monitor) throws CoreException {
         IResourceDelta delta= getDelta(getProject());
 
         if (delta != null) {

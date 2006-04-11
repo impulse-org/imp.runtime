@@ -100,7 +100,7 @@ import org.eclipse.uide.runtime.RuntimePlugin;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor {
-    public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".universalEditor";
+    public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".safariEditor";
 
     protected Language fLanguage;
 

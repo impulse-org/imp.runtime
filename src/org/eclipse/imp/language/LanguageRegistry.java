@@ -1,11 +1,13 @@
 package org.eclipse.uide.core;
 
 import java.util.ArrayList;
-
+import java.util.Iterator;
+import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.PlatformUI;
@@ -50,6 +52,7 @@ public class LanguageRegistry {
 	    FileEditorInput fileEditorInput= (FileEditorInput) editorInput;
 	    IFile file= fileEditorInput.getFile();
 
+            ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
             extension= file.getFileExtension();
 	    if (extension == null)
 		return null;
@@ -81,38 +84,67 @@ public class LanguageRegistry {
 	if (sLanguages == null)
 	    findLanguages();
 
-	// Parts of the following code suggested by comments on the following bug:
-	//    https://bugs.eclipse.org/bugs/show_bug.cgi?id=27980
-	// It uses internal platform classes, given that there is no API for
-	// dynamically registering editors as of 3.1.
+	// The following uses internal platform classes, given that there is no
+	// API for dynamically registering editors as of 3.1. See Bugzilla bug
+	//   https://bugs.eclipse.org/bugs/show_bug.cgi?id=110602
+	EditorRegistry editorRegistry= (EditorRegistry) PlatformUI.getWorkbench().getEditorRegistry();
+	IFileEditorMapping[] currentMap= editorRegistry.getFileEditorMappings();
+	IEditorDescriptor universalEditor= findUniversalEditorDescriptor(editorRegistry);
 
-	if (false) {
-	    EditorRegistry editorRegistry= (EditorRegistry) PlatformUI.getWorkbench().getEditorRegistry();
-	    IFileEditorMapping[] currentMap= editorRegistry.getFileEditorMappings();
-	    // HACK RMF 2/2/2005 - The following is totally bogus; we don't need to create an
-	    // "external program" descriptor for our editor, but there are no ctors/factory
-	    // methods available to do what we want...
-	    EditorDescriptor universalEditor= EditorDescriptor.createForProgram(UniversalEditor.EDITOR_ID);
-
-	    universalEditor.setOpenMode(EditorDescriptor.OPEN_INTERNAL);
-
-	    FileEditorMapping[] newMap = new FileEditorMapping[currentMap.length + sLanguages.length];
-	    for(int i= 0 ; i < currentMap.length; i++) {
-		newMap[i]= (FileEditorMapping) currentMap[i];
-	    }
-
-	    for(int n= 0; n < sLanguages.length; n++) {
-		String[] fileNameExtensions= sLanguages[n].getFilenameExtensions();
-		for(int i= 0; i < fileNameExtensions.length; i++) {
-		    FileEditorMapping newType = new FileEditorMapping(fileNameExtensions[i]);
-
-		    newType.setDefaultEditor(universalEditor);
-		    newMap[currentMap.length + n]= newType;
-		}
-	    }
-	    editorRegistry.setFileEditorMappings(newMap);
-	    editorRegistry.saveAssociations();
+	if (universalEditor == null) {
+	    ErrorHandler.logError("registerLanguages(): unable to proceed without universal editor descriptor.", null);
+	    return;
 	}
+	System.out.println("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
+
+	List/*<String>*/ langExtens= collectAllLanguageFileNameExtensions();
+	List/*<FileEditorMapping>*/ newMap= new ArrayList();
+
+	// First, add only those mappings that don't already point to the universal editor
+	for(int i= 0; i < currentMap.length; i++) {
+	    final IEditorDescriptor defaultEditor= currentMap[i].getDefaultEditor();
+	    if (defaultEditor == null || !defaultEditor.getId().equals(UniversalEditor.EDITOR_ID))
+		newMap.add(currentMap[i]);
+	}
+
+	// Create editor mappings for all file-name extensions SAFARI has been configured to handle.
+	for(Iterator extenIter= langExtens.iterator(); extenIter.hasNext(); ) {
+	    String exten= (String) extenIter.next();
+	    FileEditorMapping newMapping= new FileEditorMapping(exten);
+
+	    newMapping.setDefaultEditor((EditorDescriptor) universalEditor);
+	    newMap.add(newMapping);
+	}
+	editorRegistry.setFileEditorMappings((FileEditorMapping[]) newMap.toArray(new FileEditorMapping[newMap.size()]));
+	editorRegistry.saveAssociations();
+    }
+
+    private static List/*<String>*/ collectAllLanguageFileNameExtensions() {
+	List/*<String>*/ allExtens= new ArrayList();
+	for(int i= 0; i < sLanguages.length; i++) {
+	    Language lang= sLanguages[i];
+	    String[] langExts= lang.getFilenameExtensions();
+	    for(int e= 0; e < langExts.length; e++)
+		allExtens.add(langExts[e]);
+	}
+	return allExtens;
+    }
+
+    private static IEditorDescriptor findUniversalEditorDescriptor(EditorRegistry editorRegistry) {
+	final IEditorDescriptor[] allEditors= editorRegistry.getSortedEditorsFromPlugins();
+	IEditorDescriptor universalEditor= null;
+
+	for(int i= 0; i < allEditors.length; i++) {
+	    IEditorDescriptor editor= allEditors[i];
+
+	    if (editor.getId().equals(UniversalEditor.EDITOR_ID)) {
+		universalEditor= editor;
+		break;
+	    }
+	}
+	if (universalEditor == null)
+	    ErrorHandler.logError("Unable to locate universal editor descriptor", null);
+	return universalEditor;
     }
 
     /**

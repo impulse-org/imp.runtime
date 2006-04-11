@@ -23,7 +23,7 @@
             extensions="txt"
             contributorClass="org.eclipse.uide.editor.TextEditorActionContributor"
             class="org.eclipse.uide.editor.UniversalEditor"
-            id="org.eclipse.ui.DefaultTextEditor">
+            id="org.eclipse.uide.runtime.safariEditor">
       </editor>
    </extension>
    <extension

@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: UIDE Runtime
 Bundle-SymbolicName: org.eclipse.uide.runtime; singleton:=true
-Bundle-Version: 1.0.18
+Bundle-Version: 1.0.19
 Bundle-Activator: org.eclipse.uide.runtime.RuntimePlugin
 Bundle-Vendor: rfuhrer@watson.ibm.com
 Bundle-Localization: plugin

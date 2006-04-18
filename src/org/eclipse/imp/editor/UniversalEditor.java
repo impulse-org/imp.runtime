@@ -656,7 +656,8 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
-	    if (parseController != null)
+	    // Suppress the notification if there's no AST (e.g. due to a parse error)
+	    if (parseController != null && parseController.getCurrentAst() != null)
 		for(int n= astListeners.size() - 1; n >= 0; n--)
 		    ((IModelListener) astListeners.get(n)).update(parseController, monitor);
 	}

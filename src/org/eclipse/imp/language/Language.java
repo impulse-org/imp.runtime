@@ -155,6 +155,6 @@ public class Language {
     }
 
     public String toString() {
-        return "Language[name=" + getName() + ",description=" + getDescription() + ",fFilenameExtensions=" + fConfigElement.getAttribute("fFilenameExtensions") + "]";
+        return "Language[name=" + getName() + ",description=" + getDescription() + ",filename extensions=" + fConfigElement.getAttribute("extensions") + "]";
     }
 }

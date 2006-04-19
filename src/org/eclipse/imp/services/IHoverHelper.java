@@ -16,7 +16,6 @@ import org.eclipse.uide.parser.IParseController;
  * and used when the mouse is hovered over elements in the editor.
  * 
  * @author Claffra
- * @see org.eclipse.uide.defaults.DefaultHoverHelper
  */
 public interface IHoverHelper extends ILanguageService {
 

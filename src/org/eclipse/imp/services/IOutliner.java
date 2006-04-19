@@ -17,7 +17,6 @@ import org.eclipse.uide.parser.IParseController;
  * and used to show an outline view of the elements in the editor.
  * 
  * @author Claffra
- * @see org.eclipse.uide.defaults.DefaultHoverHelper
  */
 public interface IOutliner extends ILanguageService {
     

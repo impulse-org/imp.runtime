@@ -11,10 +11,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import lpg.lpgjavaruntime.IToken;
 import lpg.lpgjavaruntime.PrsStream;
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -81,6 +79,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.defaults.DefaultAnnotationHover;
 import org.eclipse.uide.internal.editor.FoldingController;
 import org.eclipse.uide.internal.editor.FormattingController;
 import org.eclipse.uide.internal.editor.OutlineController;
@@ -90,6 +89,7 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.uide.utils.AnnotationUtils;
 
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
@@ -101,6 +101,8 @@ import org.eclipse.uide.runtime.RuntimePlugin;
  */
 public class UniversalEditor extends TextEditor {
     public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".safariEditor";
+
+    public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.uide.editor.parseAnnotation";
 
     protected Language fLanguage;
 
@@ -237,11 +239,13 @@ public class UniversalEditor extends TextEditor {
 	int distance= Integer.MAX_VALUE;
 
 	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
-	for(Iterator e= model.getAnnotationIterator(); e.hasNext();) {
+
+	for(Iterator e= model.getAnnotationIterator(); e.hasNext(); ) {
 	    Annotation a= (Annotation) e.next();
 	    //	    if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay() || !isNavigationTarget(a))
 	    //		continue;
-	    if (!(a instanceof MarkerAnnotation))
+	    // TODO RMF 4/19/2006 - Need more accurate logic here for filtering annotations
+	    if (!(a instanceof MarkerAnnotation) && !a.getType().equals(PARSE_ANNOTATION_TYPE))
 		continue;
 
 	    Position p= model.getPosition(a);
@@ -361,7 +365,7 @@ public class UniversalEditor extends TextEditor {
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
                 fFormattingController.setParseController(fParserScheduler.parseController);
 
-                if (false && fFoldingUpdater != null) {
+                if (fFoldingUpdater != null) {
 		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
 		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
@@ -451,10 +455,13 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+	    IAnnotationHover hover= null;
+
 	    if (fLanguage != null)
-		return (IAnnotationHover) createExtensionPoint("annotationHover");
-	    else
-		return super.getAnnotationHover(sourceViewer);
+		hover= (IAnnotationHover) createExtensionPoint("annotationHover");
+	    if (hover == null)
+		hover= new DefaultAnnotationHover();
+	    return hover;
 	}
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
@@ -615,6 +622,29 @@ public class UniversalEditor extends TextEditor {
 	}
     }
 
+    private class AnnotationCreator implements IMessageHandler {
+	public void handleMessage(int offset, int length, String message) {
+	    IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
+	    Annotation annotation= new Annotation(PARSE_ANNOTATION_TYPE, false, message);
+	    Position pos= new Position(offset, length);
+
+	    model.addAnnotation(annotation, pos);
+	}
+    }
+
+    private AnnotationCreator fAnnotationCreator= new AnnotationCreator();
+
+    private void removeParserAnnotations() {
+	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
+
+	for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
+	    Annotation a= (Annotation) i.next();
+
+	    if (a.getType().equals(PARSE_ANNOTATION_TYPE))
+		model.removeAnnotation(a);
+	}
+    }
+
     /**
      * Parsing may take a long time, and is not done inside the UI thread.
      * Therefore, we create a job that is executed in a background thread
@@ -639,10 +669,10 @@ public class UniversalEditor extends TextEditor {
                 String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
-                parseController.initialize(filePath, fileEditorInput.getFile().getProject());
+                removeParserAnnotations();
+                parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
 		parseController.parse(document.get(), false, monitor);
-		if (!monitor.isCanceled())
-		    notifyAstListeners(parseController, monitor);
+		notifyAstListeners(parseController, monitor);
 		// else
 		//	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
@@ -657,8 +687,8 @@ public class UniversalEditor extends TextEditor {
 
 	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
 	    // Suppress the notification if there's no AST (e.g. due to a parse error)
-	    if (parseController != null && parseController.getCurrentAst() != null)
-		for(int n= astListeners.size() - 1; n >= 0; n--)
+	    if (parseController != null /*&& parseController.getCurrentAst() != null*/)
+		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--)
 		    ((IModelListener) astListeners.get(n)).update(parseController, monitor);
 	}
     }
@@ -674,8 +704,15 @@ public class UniversalEditor extends TextEditor {
 
 	public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
 	    try {
+		final int offset= hoverRegion.getOffset();
+		String help= null;
+
 		if (controller != null && hoverHelper != null)
-		    return hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, hoverRegion.getOffset());
+		    help= hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, offset);
+		if (help == null)
+		    help= AnnotationUtils.formatAnnotationList(AnnotationUtils.getAnnotationsForOffset((ISourceViewer) textViewer, offset));
+
+		return help;
 	    } catch (Throwable e) {
 		ErrorHandler.reportError("Universal Editor Error", e);
 	    }

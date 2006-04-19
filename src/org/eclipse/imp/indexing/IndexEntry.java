@@ -43,8 +43,8 @@ public abstract class IndexEntry {
         String[] fields= s.split(":");
 
         fType= Integer.parseInt(fields[1]);
-        fName= fields[2];
-        fPath= fields[3];
+        fPath= fields[2];
+        fName= fields[3];
         fStart= Integer.parseInt(fields[4]);
         fEnd= Integer.parseInt(fields[5]);
         readExtraFields(fields);

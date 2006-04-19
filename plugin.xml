@@ -44,4 +44,38 @@
              id="uide.doubleClickBreakpointAction"/>
       </editorContribution>
    </extension>
+   <extension
+         point="org.eclipse.ui.editors.annotationTypes">
+      <type
+            markerSeverity="1"
+            name="org.eclipse.uide.editor.parseAnnotation"
+            super="org.eclipse.ui.workbench.texteditor.error"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.eclipse.uide.editor.parseAnnotation"
+            colorPreferenceKey="parseAnnotationColor"
+            colorPreferenceValue="255,128,147"
+            contributesToHeader="false"
+            highlightPreferenceKey="parseAnnotationHighlightKey"
+            highlightPreferenceValue="false"
+            includeOnPreferencePage="true"
+            isGoToNextNavigationTarget="true"
+            isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
+            isGoToPreviousNavigationTarget="true"
+            isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
+            label="SAFARI Parser Annotation"
+            overviewRulerPreferenceKey="parseAnnotationOverviewKey"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="2"
+            showInNextPrevDropdownToolbarAction="true"
+            symbolicIcon="error"
+            textPreferenceKey="parseAnnotationTextKey"
+            textPreferenceValue="true"
+            textStylePreferenceKey="parseAnnotationTextStyleKey"
+            textStylePreferenceValue="SQUIGGLES"
+            verticalRulerPreferenceKey="parseAnnotationVerticalKey"
+            verticalRulerPreferenceValue="false"/>
+   </extension>
 </plugin>

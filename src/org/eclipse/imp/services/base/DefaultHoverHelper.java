@@ -59,5 +59,4 @@ public class DefaultHoverHelper implements IHoverHelper {
 	    return "Oops: " + e;
 	}
     }
-
 }

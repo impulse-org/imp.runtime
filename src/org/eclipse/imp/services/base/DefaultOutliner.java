@@ -49,7 +49,7 @@ public class DefaultOutliner implements IOutliner {
 		    new TreeItem(tree, SWT.NONE).setText(MESSAGE);
 		    List errors= controller.getErrors();
 		    new TreeItem(tree, SWT.NONE).setText("Found " + errors.size() + " syntax error(s) in input: ");
-		    for(Iterator error= errors.iterator(); error.hasNext();) {
+		    for(Iterator error= errors.iterator(); error.hasNext(); ) {
 			ParseError pe= (ParseError) error.next();
 			new TreeItem(tree, SWT.NONE).setText("  " + pe.description);
 		    }
@@ -134,5 +134,4 @@ public class DefaultOutliner implements IOutliner {
 	subItem.setData(node);
 	return subItem;
     }
-
 }

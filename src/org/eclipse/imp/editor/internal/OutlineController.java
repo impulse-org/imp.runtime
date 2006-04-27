@@ -42,7 +42,7 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     private UIJob job;
 
-    private int DELAY= 500;
+    private int DELAY= 50; //500;
 
     public OutlineController(UniversalEditor editor) {
     //	this.editor= editor;
@@ -53,25 +53,25 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     }
 
     public void createControl(Composite parent) {
-	tree= new Tree(parent, SWT.NONE);
-	tree.addSelectionListener(new SelectionAdapter() {
-	    public void widgetSelected(SelectionEvent e) {
-		try {
-		    // RMF 11/4/2005 - Disabled, since not every parser yields a UIDE AST
-//		    TreeItem item= tree.getSelection()[0];
-//		    Ast node= (Ast) item.getData();
-//		    if (node != null) {
-			// int start = node.getStartOffset();
-			// int end = node.getEndOffset();
-//		    }
-		} catch (Throwable ee) {
-		    ErrorHandler.reportError("Universal Editor Error", ee);
-		}
-		super.widgetSelected(e);
-	    }
-	});
-	if (outliner != null)
-	    outliner.setTree(tree);
+    	tree= new Tree(parent, SWT.NONE);
+    	tree.addSelectionListener(new SelectionAdapter() {
+			    public void widgetSelected(SelectionEvent e) {
+			    	try {
+					    // RMF 11/4/2005 - Disabled, since not every parser yields a UIDE AST
+			//		    TreeItem item= tree.getSelection()[0];
+			//		    Ast node= (Ast) item.getData();
+			//		    if (node != null) {
+						// int start = node.getStartOffset();
+						// int end = node.getEndOffset();
+			//		    }
+					} catch (Throwable ee) {
+					    ErrorHandler.reportError("Universal Editor Error", ee);
+					}
+					super.widgetSelected(e);
+			    }
+    		});
+    	if (outliner != null)
+    		outliner.setTree(tree);
     }
 
     public void dispose() {}
@@ -96,10 +96,11 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     public void update(IParseController result, IProgressMonitor monitor) {
 	this.controller= result;
-	if (job != null)
+	if (job != null) {
 	    job.cancel();
-	else
-	    job= new UIJob("Outline View Controller") {
+	}
+	else {
+		job= new UIJob("Outline View Controller") {
 		public IStatus runInUIThread(IProgressMonitor monitor) {
 		    int offset= 0;
 		    try {
@@ -111,6 +112,8 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 		    return Status.OK_STATUS;
 		}
 	    };
+
+	} // else
 	job.schedule(DELAY);
     }
 }

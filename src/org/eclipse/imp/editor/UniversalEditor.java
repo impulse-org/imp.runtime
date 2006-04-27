@@ -345,14 +345,14 @@ public class UniversalEditor extends TextEditor {
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
 	// Create language service extensions now, for any services that could
-        // get invoked via super.createPartControl().
+    // get invoked via super.createPartControl().
 	if (fLanguage != null) {
 	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
 	    if (fHyperLinkDetector != null)
-		fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
+	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
 	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
-            fFormattingController= new FormattingController(fFormattingStrategy);
+        fFormattingController= new FormattingController(fFormattingStrategy);
 	}
 
 	super.createPartControl(parent);
@@ -363,17 +363,17 @@ public class UniversalEditor extends TextEditor {
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
-                fFormattingController.setParseController(fParserScheduler.parseController);
+        fFormattingController.setParseController(fParserScheduler.parseController);
 
-                if (fFoldingUpdater != null) {
-		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
-		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
+        if (fFoldingUpdater != null) {        
+        	ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
+        	ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
-		    projectionSupport.install();
-		    viewer.doOperation(ProjectionViewer.TOGGLE);
+        	projectionSupport.install();
+        	viewer.doOperation(ProjectionViewer.TOGGLE);
 		    fAnnotationModel= viewer.getProjectionAnnotationModel();
-		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
-		}
+        	fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
+        }	
 
 		fOutlineController.setLanguage(fLanguage);
 		fPresentationController.setLanguage(fLanguage);
@@ -384,6 +384,7 @@ public class UniversalEditor extends TextEditor {
 		fParserScheduler.addModelListener(fPresentationController);
 		fParserScheduler.addModelListener(fCompletionProcessor);
 		fParserScheduler.addModelListener(fHoverHelpController);
+		
 		if (fHyperLinkController != null)
 		    fParserScheduler.addModelListener(fHyperLinkController);
 		fParserScheduler.run(new NullProgressMonitor());
@@ -540,10 +541,26 @@ public class UniversalEditor extends TextEditor {
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
+	    int damagedToken = -1; //= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
 	    try {
 		if (fPresentationController != null) {
 		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
-		    int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+		    //int 
+		    damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+		    // SMS 26 Apr 2006:
+		    // (I'd rather see a simple message than a complete stack trace--less alarming for
+		    // an occurrence that may not be all that exceptional, and the stack trace is not
+		    // really informative, other than telling you that there was a problem here.)
+		    // BUT this doesn't seem to catch all exceptions that are thrown in this method
+		    // and I can't reliably reproduce the problem that this should catch.  I'm leaving
+		    // this here in case it still might work sometimes and as a reminder that some
+		    // alternative error handling might be appropriate here.
+		    if (damagedToken < 0) {
+		    	System.err.println("org.eclipse.uide.editor.UniversalEditor$PresentationRepairer.createPresentation:\n" +
+		    			"\tCould not repair damage (damaged token not valid)");
+		    	return;
+		    }
+		    
 		    IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
 		    int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
 			    : adjuncts[adjuncts.length - 1].getEndOffset();
@@ -664,19 +681,20 @@ public class UniversalEditor extends TextEditor {
 
 	protected IStatus run(IProgressMonitor monitor) {
 	    try {
-                IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
-		IDocument document= getDocumentProvider().getDocument(fileEditorInput);
-                String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
-		// Don't need to retrieve the AST; we don't need it.
-		// Just make sure the document contents gets parsed once (and only once).
-                removeParserAnnotations();
-                parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
-		parseController.parse(document.get(), false, monitor);
-		notifyAstListeners(parseController, monitor);
-		// else
-		//	System.out.println("Bypassed AST listeners (cancelled).");
+            IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
+            IDocument document= getDocumentProvider().getDocument(fileEditorInput);
+            String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
+            // Don't need to retrieve the AST; we don't need it.
+            // Just make sure the document contents gets parsed once (and only once).
+            removeParserAnnotations();
+            parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
+            parseController.parse(document.get(), false, monitor);
+            if (!monitor.isCanceled())
+            	notifyAstListeners(parseController, monitor);
+            // else
+            //	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
-		ErrorHandler.reportError("Error running parser for " + fLanguage, e);
+	    	ErrorHandler.reportError("Error running parser for " + fLanguage, e);
 	    }
 	    return Status.OK_STATUS;
 	}
@@ -687,9 +705,12 @@ public class UniversalEditor extends TextEditor {
 
 	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
 	    // Suppress the notification if there's no AST (e.g. due to a parse error)
-	    if (parseController != null /*&& parseController.getCurrentAst() != null*/)
-		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--)
-		    ((IModelListener) astListeners.get(n)).update(parseController, monitor);
+	    if (parseController != null && parseController.getCurrentAst() != null)
+		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
+		    //((IModelListener) astListeners.get(n)).update(parseController, monitor);
+			IModelListener listener = (IModelListener) astListeners.get(n);
+			listener.update(parseController, monitor);
+		}
 	}
     }
 

@@ -53,7 +53,7 @@ public class StreamUtils {
     
             return buffer.toString();
         } catch (IOException ex) {
-            // NeedWork
+            System.err.println("I/O Exception: " + ex.getMessage());
         } finally {
             if (reader != null) {
                 try {

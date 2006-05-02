@@ -24,25 +24,19 @@ import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.IUndoManager;
 import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
-import org.eclipse.jface.text.contentassist.ICompletionProposal;
-import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
-import org.eclipse.jface.text.contentassist.IContextInformation;
-import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.jface.text.formatter.ContentFormatter;
 import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
@@ -60,8 +54,10 @@ import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -89,7 +85,6 @@ import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.AnnotationUtils;
 
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
@@ -99,7 +94,7 @@ import org.eclipse.uide.utils.AnnotationUtils;
  * @author Chris Laffra
  * @author Robert M. Fuhrer
  */
-public class UniversalEditor extends TextEditor {
+public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
     public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".safariEditor";
 
     public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.uide.editor.parseAnnotation";
@@ -345,14 +340,14 @@ public class UniversalEditor extends TextEditor {
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
 	// Create language service extensions now, for any services that could
-    // get invoked via super.createPartControl().
+	// get invoked via super.createPartControl().
 	if (fLanguage != null) {
 	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
 	    if (fHyperLinkDetector != null)
 	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
 	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
-        fFormattingController= new FormattingController(fFormattingStrategy);
+	    fFormattingController= new FormattingController(fFormattingStrategy);
 	}
 
 	super.createPartControl(parent);
@@ -363,17 +358,17 @@ public class UniversalEditor extends TextEditor {
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
-        fFormattingController.setParseController(fParserScheduler.parseController);
+		fFormattingController.setParseController(fParserScheduler.parseController);
 
-        if (fFoldingUpdater != null) {        
-        	ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
-        	ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
+		if (fFoldingUpdater != null) {        
+		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
+		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
-        	projectionSupport.install();
-        	viewer.doOperation(ProjectionViewer.TOGGLE);
+		    projectionSupport.install();
+		    viewer.doOperation(ProjectionViewer.TOGGLE);
 		    fAnnotationModel= viewer.getProjectionAnnotationModel();
-        	fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
-        }	
+		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
+		}
 
 		fOutlineController.setLanguage(fLanguage);
 		fPresentationController.setLanguage(fLanguage);
@@ -536,17 +531,16 @@ public class UniversalEditor extends TextEditor {
     }
 
     class PresentationRepairer implements IPresentationRepairer {
-	IDocument document;
+	IDocument fDocument;
 
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
-	    int damagedToken = -1; //= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
 	    try {
 		if (fPresentationController != null) {
 		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
-		    //int 
-		    damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+		    int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
+
 		    // SMS 26 Apr 2006:
 		    // (I'd rather see a simple message than a complete stack trace--less alarming for
 		    // an occurrence that may not be all that exceptional, and the stack trace is not
@@ -556,7 +550,7 @@ public class UniversalEditor extends TextEditor {
 		    // this here in case it still might work sometimes and as a reminder that some
 		    // alternative error handling might be appropriate here.
 		    if (damagedToken < 0) {
-		    	System.err.println("org.eclipse.uide.editor.UniversalEditor$PresentationRepairer.createPresentation:\n" +
+		    	System.err.println("PresentationRepairer.createPresentation:\n" +
 		    			"\tCould not repair damage (damaged token not valid)");
 		    	return;
 		    }
@@ -579,63 +573,7 @@ public class UniversalEditor extends TextEditor {
 	}
 
 	public void setDocument(IDocument document) {
-	    this.document= document;
-	}
-    }
-
-    class CompletionProcessor implements IContentAssistProcessor, IModelListener {
-	private final IContextInformation[] NO_CONTEXTS= new IContextInformation[0];
-
-	private ICompletionProposal[] NO_COMPLETIONS= new ICompletionProposal[0];
-
-	private IParseController parseController;
-
-	private IContentProposer contentProposer;
-
-//	private HippieProposalProcessor hippieProcessor= new HippieProposalProcessor();
-
-	public CompletionProcessor() {}
-
-	public void setLanguage(Language language) {
-	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language,
-		    RuntimePlugin.UIDE_RUNTIME, "contentProposer");
-	}
-
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-	    try {
-		if (parseController != null && contentProposer != null) {
-		    return contentProposer.getContentProposals(parseController, offset);
-		}
-		// TODO Once we move to 3.2, delegate to the HippieProposalProcessor
-//		return hippieProcessor.computeCompletionProposals(viewer, offset);
-	    } catch (Throwable e) {
-		ErrorHandler.reportError("Universal Editor Error", e);
-	    }
-	    return NO_COMPLETIONS;
-	}
-
-	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
-	    return NO_CONTEXTS;
-	}
-
-	public char[] getCompletionProposalAutoActivationCharacters() {
-	    return null;
-	}
-
-	public char[] getContextInformationAutoActivationCharacters() {
-	    return null;
-	}
-
-	public IContextInformationValidator getContextInformationValidator() {
-	    return null;
-	}
-
-	public String getErrorMessage() {
-	    return null;
-	}
-
-	public void update(IParseController parseResult, IProgressMonitor monitor) {
-	    this.parseController= parseResult;
+	    fDocument= document;
 	}
     }
 
@@ -681,18 +619,19 @@ public class UniversalEditor extends TextEditor {
 
 	protected IStatus run(IProgressMonitor monitor) {
 	    try {
-            IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
-            IDocument document= getDocumentProvider().getDocument(fileEditorInput);
-            String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
-            // Don't need to retrieve the AST; we don't need it.
-            // Just make sure the document contents gets parsed once (and only once).
-            removeParserAnnotations();
-            parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
-            parseController.parse(document.get(), false, monitor);
-            if (!monitor.isCanceled())
-            	notifyAstListeners(parseController, monitor);
-            // else
-            //	System.out.println("Bypassed AST listeners (cancelled).");
+		IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
+		IDocument document= getDocumentProvider().getDocument(fileEditorInput);
+		String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
+
+		// Don't need to retrieve the AST; we don't need it.
+		// Just make sure the document contents gets parsed once (and only once).
+		removeParserAnnotations();
+		parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
+		parseController.parse(document.get(), false, monitor);
+		if (!monitor.isCanceled())
+		    notifyAstListeners(parseController, monitor);
+		// else
+		//	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
 	    	ErrorHandler.reportError("Error running parser for " + fLanguage, e);
 	    }
@@ -714,39 +653,31 @@ public class UniversalEditor extends TextEditor {
 	}
     }
 
-    class HoverHelpController implements ITextHover, IModelListener {
-	private IParseController controller;
+    public String getSelectionText() {
+	Point sel= getSelection();
+        IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
+        IDocument document= getDocumentProvider().getDocument(fileEditorInput);
 
-	private IHoverHelper hoverHelper;
-
-	public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
-	    return new Region(offset, 0);
+        try {
+	    return document.get(sel.x, sel.y);
+	} catch (BadLocationException e) {
+	    e.printStackTrace();
+	    return "";
 	}
+    }
 
-	public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
-	    try {
-		final int offset= hoverRegion.getOffset();
-		String help= null;
+    public Point getSelection() {
+	ISelection sel= this.getSelectionProvider().getSelection();
+	ITextSelection textSel= (ITextSelection) sel;
 
-		if (controller != null && hoverHelper != null)
-		    help= hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, offset);
-		if (help == null)
-		    help= AnnotationUtils.formatAnnotationList(AnnotationUtils.getAnnotationsForOffset((ISourceViewer) textViewer, offset));
+	return new Point(textSel.getOffset(), textSel.getLength());
+    }
 
-		return help;
-	    } catch (Throwable e) {
-		ErrorHandler.reportError("Universal Editor Error", e);
-	    }
-	    return null;
-	}
+    public boolean canPerformFind() {
+	return true;
+    }
 
-	public void update(IParseController controller, IProgressMonitor monitor) {
-	    this.controller= controller;
-	}
-
-	public void setLanguage(Language language) {
-	    hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME,
-		    "hoverHelper");
-	}
+    public IParseController getParseController() {
+	return fParserScheduler.parseController;
     }
 }

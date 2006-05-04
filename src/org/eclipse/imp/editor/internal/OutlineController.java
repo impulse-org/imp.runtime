@@ -18,10 +18,10 @@ import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.editor.IOutliner;
 import org.eclipse.uide.editor.UniversalEditor;
-import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.uide.utils.ExtensionPointFactory;
 
 /*
  * Licensed Materials - Property of IBM,

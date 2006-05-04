@@ -17,11 +17,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.editor.ITokenColorer;
-import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
 import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.uide.utils.ExtensionPointFactory;
 import lpg.lpgjavaruntime.IToken;
 
 /*

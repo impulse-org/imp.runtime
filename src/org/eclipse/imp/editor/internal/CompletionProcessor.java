@@ -11,10 +11,10 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
-import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.uide.utils.ExtensionPointFactory;
 
 class CompletionProcessor implements IContentAssistProcessor, IModelListener {
 	private final IContextInformation[] NO_CONTEXTS= new IContextInformation[0];

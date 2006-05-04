@@ -11,11 +11,11 @@ import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
-import org.eclipse.uide.internal.util.ExtensionPointFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.AnnotationUtils;
+import org.eclipse.uide.utils.ExtensionPointFactory;
 
 class HoverHelpController implements ITextHover, IModelListener {
     private IParseController controller;

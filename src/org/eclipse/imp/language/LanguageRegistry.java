@@ -73,8 +73,9 @@ public class LanguageRegistry {
     }
 
     public static Language findLanguage(String languageName) {
+	String lowerName= languageName.toLowerCase();
         for(int i= 0; i < sLanguages.length; i++) {
-            if (sLanguages[i].getName().equals(languageName))
+            if (sLanguages[i].getName().toLowerCase().equals(lowerName))
                 return sLanguages[i];
         }
         return null;

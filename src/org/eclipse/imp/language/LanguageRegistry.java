@@ -1,6 +1,8 @@
 package org.eclipse.uide.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
@@ -70,6 +72,10 @@ public class LanguageRegistry {
 	}
 	ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
 	return null;
+    }
+
+    public static List/*<Language>*/ getLanguages() {
+	return Collections.unmodifiableList(Arrays.asList(sLanguages));
     }
 
     public static Language findLanguage(String languageName) {

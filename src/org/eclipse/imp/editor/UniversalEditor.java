@@ -577,28 +577,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
     }
 
-    private class AnnotationCreator implements IMessageHandler {
-	public void handleMessage(int offset, int length, String message) {
-	    IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
-	    Annotation annotation= new Annotation(PARSE_ANNOTATION_TYPE, false, message);
-	    Position pos= new Position(offset, length);
-
-	    model.addAnnotation(annotation, pos);
-	}
-    }
-
-    private AnnotationCreator fAnnotationCreator= new AnnotationCreator();
-
-    private void removeParserAnnotations() {
-	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
-
-	for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
-	    Annotation a= (Annotation) i.next();
-
-	    if (a.getType().equals(PARSE_ANNOTATION_TYPE))
-		model.removeAnnotation(a);
-	}
-    }
+    private AnnotationCreator fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
 
     /**
      * Parsing may take a long time, and is not done inside the UI thread.
@@ -625,7 +604,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
-		removeParserAnnotations();
+		fAnnotationCreator.removeParserAnnotations();
 		parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
 		parseController.parse(document.get(), false, monitor);
 		if (!monitor.isCanceled())

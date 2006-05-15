@@ -12,8 +12,9 @@ import java.util.Set;
 import org.eclipse.core.resources.IProject;
 
 /**
- * Tracks dependencies among compilation units in a given project.
- * @author rfuhrer
+ * Tracks dependencies among compilation units in a given project.<br>
+ * TODO Should handle dependencies across projects.
+ * @author rfuhrer@watson.ibm.com
  */
 public class DependencyInfo {
     protected final Map/*<String unitPath, Set<String unitPath>>*/ fDependsUpon= new HashMap();
@@ -47,6 +48,7 @@ public class DependencyInfo {
     }
 
     /**
+     * Records a dependency between the two compilation units.
      * @param fromPath a compilation unit path; should be project-relative
      * @param uponPath a compilation unit path; should be project-relative
      */
@@ -60,12 +62,17 @@ public class DependencyInfo {
         bkwdEntry.add(fromPath);
     }
 
+    /**
+     * Clears the memory of all dependencies among all compilation units tracked by
+     * this DependencyInfo instance.
+     */
     public void clearAllDependencies() {
 	fDependsUpon.clear();
 	fIsDependedUponBy.clear();
     }
 
     /**
+     * Clears any dependencies related to the given compilation unit
      * @param unitPath should be project-relative
      */
     public void clearDependenciesOf(String unitPath) {

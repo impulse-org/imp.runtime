@@ -19,10 +19,13 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.uide.runtime.SAFARIPluginBase;
 
 public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
-
+    /**
+     * @return the plugin associated with this builder instance
+     */
     protected abstract SAFARIPluginBase getPlugin();
 
     /**
@@ -31,16 +34,45 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
     protected abstract boolean isSourceFile(IFile resource);
 
     /**
+     * @return true iff the given file is a source file that this builder should scan
+     * for dependencies, but not compile as a top-level compilation unit.<br>
+     * <code>isNonRootSourceFile()</code> and <code>isSourceFile()</code> should never
+     * return true for the same file.
+     */
+    protected abstract boolean isNonRootSourceFile(IFile resource);
+
+    /**
      * @return true iff the given resource is an output folder
      */
     protected abstract boolean isOutputFolder(IResource resource);
 
+    /**
+     * Does whatever is necessary to "compile" the given "source file".
+     * @param resource the "source file" to compile
+     * @param monitor used to indicate progress in the UI
+     */
     protected abstract void compile(IFile resource, IProgressMonitor monitor);
 
+    /**
+     * Collects compilation-unit dependencies for the given file, and records
+     * them via calls to <code>fDependency.addDependency()</code>.
+     */
+    protected abstract void collectDependencies(IFile file);
+
+    /**
+     * @return the ID of the marker type to be used to indicate compiler errors
+     */
     protected abstract String getErrorMarkerID();
 
+    /**
+     * @return the ID of the marker type to be used to indicate compiler warnings
+     */
     protected abstract String getWarningMarkerID();
 
+    /**
+     * @return the ID of the marker type to be used to indicate compiler information
+     * messages
+     */
     protected abstract String getInfoMarkerID();
 
     private final ResourceVisitor fResourceVisitor= new ResourceVisitor();
@@ -67,8 +99,9 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
         if (resource instanceof IFile) {
             IFile file= (IFile) resource;
 
-            if (isSourceFile(file) && file.exists()) {
-                fSourcesToCompile.add(file);
+            if (file.exists()) {
+        	if (isSourceFile(file) || isNonRootSourceFile(file))
+        	    fSourcesToCompile.add(file);
             }
             return false;
         } else if (isOutputFolder(resource))
@@ -81,7 +114,7 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
     }
 
     protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
-        if (fDependencyInfo == null)
+        if (fDependencyInfo == null || kind == FULL_BUILD || kind == CLEAN_BUILD)
             fDependencyInfo= createDependencyInfo(getProject());
 
         try {
@@ -101,10 +134,17 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
             IFile srcFile= (IFile) iter.next();
 
             clearMarkersOn(srcFile);
-            compile(srcFile, monitor);
+            if (isSourceFile(srcFile))
+        	compile(srcFile, monitor);
+            else if (isNonRootSourceFile(srcFile)) // predicate is implied, but clearer this way
+        	collectDependencies(srcFile);
         }
     }
 
+    /**
+     * Clears all problem markers (all markers whose type derives from IMarker.PROBLEM)
+     * from the given file. A utility method for the use of derived builder classes.
+     */
     protected void clearMarkersOn(IFile file) {
 	try {
 	    file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
@@ -120,6 +160,10 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
         }
     }
 
+    /**
+     * Clears the dependency information maintained for all files marked as
+     * having changed (i.e. in <code>fSourcesToCompile</code>).
+     */
     private void clearDependencyInfoForChangedFiles() {
         for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
             IFile srcFile= (IFile) iter.next();
@@ -128,6 +172,12 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
         }
     }
 
+    /**
+     * Visits the project delta, if any, or the entire project, and determines the set
+     * of files needed recompilation, and adds them to <code>fSourcesToCompile</code>.
+     * @param monitor
+     * @throws CoreException
+     */
     private void collectSourcesToCompile(IProgressMonitor monitor) throws CoreException {
         IResourceDelta delta= getDelta(getProject());
 
@@ -148,24 +198,32 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
 
         System.out.println("Changed files:");
         dumpSourceList(fSourcesToCompile);
-        for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
+        scanSourceList(fSourcesToCompile, changeDependents);
+        fSourcesToCompile.addAll(changeDependents);
+        System.out.println("Changed files + dependents:");
+        dumpSourceList(fSourcesToCompile);
+    }
+
+    private void scanSourceList(Collection srcList, Collection changeDependents) {
+	for(Iterator iter= srcList.iterator(); iter.hasNext(); ) {
             IFile srcFile= (IFile) iter.next();
             Set/*<String path>*/ fileDependents= fDependencyInfo.getDependentsOf(srcFile.getFullPath().toString());
 
             if (fileDependents != null) {
                 for(Iterator iterator= fileDependents.iterator(); iterator.hasNext(); ) {
                     String depPath= (String) iterator.next();
-                    IFile depFile= getProject().getFile(depPath);
+                    IFile depFile= getProject().getWorkspace().getRoot().getFile(new Path(depPath));
 
                     changeDependents.add(depFile);
                 }
             }
         }
-        fSourcesToCompile.addAll(changeDependents);
-        System.out.println("Changed files + dependents:");
-        dumpSourceList(fSourcesToCompile);
     }
 
+    /**
+     * Refreshes all resources in the entire project tree containing the given resource.
+     * Crude but effective.
+     */
     protected void doRefresh(final IResource resource) {
         new Thread() {
             public void run() {
@@ -178,6 +236,11 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
         }.start();
     }
 
+    /**
+     * @return the ID of the marker type for the given marker severity (one of
+     * <code>IMarker.SEVERITY_*</code>). If the severity is unknown/invalid,
+     * returns <code>getInfoMarkerID()</code>.
+     */
     protected String getMarkerIDFor(int severity) {
 	switch(severity) {
 	    case IMarker.SEVERITY_ERROR: return getErrorMarkerID();
@@ -187,6 +250,16 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
 	}
     }
 
+    /**
+     * Utility method to create a marker on the given resource using the given
+     * information.
+     * @param errorResource
+     * @param startLine the line with which the error is associated
+     * @param startChar the offset of the first character with which the error is associated
+     * @param endChar the offset of the last character with which the error is associated
+     * @param descrip a human-readable text message to appear in the "Problems View"
+     * @param severity the message severity, one of <code>IMarker.SEVERITY_*</code>
+     */
     protected void createMarker(IResource errorResource, int startLine, int startChar, int endChar, String descrip, int severity) {
         try {
             IMarker m= errorResource.createMarker(getMarkerIDFor(severity));

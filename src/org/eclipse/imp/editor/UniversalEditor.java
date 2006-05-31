@@ -83,6 +83,7 @@ import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.editor.SourceHyperlinkController;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
+import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
 
@@ -130,6 +131,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
+	if (SAFARIPreferenceCache.emitMessages)
+	    RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
 	setSourceViewerConfiguration(new Configuration());
 	configureInsertMode(SMART_INSERT, true);
 	setInsertMode(SMART_INSERT);
@@ -337,11 +340,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public void createPartControl(Composite parent) {
+	if (SAFARIPreferenceCache.emitMessages)
+	    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
 	// Create language service extensions now, for any services that could
 	// get invoked via super.createPartControl().
 	if (fLanguage != null) {
+	    if (SAFARIPreferenceCache.emitMessages)
+		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
 	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
 	    if (fHyperLinkDetector != null)
 	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
@@ -354,13 +361,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	if (fLanguage != null) {
 	    try {
+		if (SAFARIPreferenceCache.emitMessages)
+		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
 		fOutlineController= new OutlineController(this);
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
 		fFormattingController.setParseController(fParserScheduler.parseController);
 
-		if (fFoldingUpdater != null) {        
+		if (fFoldingUpdater != null) {
+		    if (SAFARIPreferenceCache.emitMessages)
+			RuntimePlugin.getInstance().writeInfoMsg("Enabling source folding for " + fLanguage.getName());
 		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
 		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
@@ -550,11 +561,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    // this here in case it still might work sometimes and as a reminder that some
 		    // alternative error handling might be appropriate here.
 		    if (damagedToken < 0) {
-		    	System.err.println("PresentationRepairer.createPresentation:\n" +
-		    			"\tCould not repair damage (damaged token not valid)");
+			final String msg= "PresentationRepairer.createPresentation(): Could not repair damage @ " + damage.getOffset() + " (invalid damaged token) in " + parseStream.getFileName();
+
+			if (SAFARIPreferenceCache.emitMessages)
+			    RuntimePlugin.getInstance().writeInfoMsg(msg);
+			else
+			    System.err.println(msg);
 		    	return;
 		    }
-		    
+
 		    IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
 		    int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
 			    : adjuncts[adjuncts.length - 1].getEndOffset();
@@ -602,6 +617,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		IDocument document= getDocumentProvider().getDocument(fileEditorInput);
 		String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
 
+		if (SAFARIPreferenceCache.emitMessages)
+		    RuntimePlugin.getInstance().writeInfoMsg("Parsing language " + fLanguage.getName() + " for input " + getEditorInput().getName());
+
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
 		fAnnotationCreator.removeParserAnnotations();
@@ -612,7 +630,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// else
 		//	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
-	    	ErrorHandler.reportError("Error running parser for " + fLanguage, e);
+	    	ErrorHandler.reportError("Error running parser for " + fLanguage.getName(), e);
+		if (SAFARIPreferenceCache.emitMessages)
+		    RuntimePlugin.getInstance().writeInfoMsg("Parsing failed for language " + fLanguage.getName() + " and input " + getEditorInput().getName());
 	    }
 	    return Status.OK_STATUS;
 	}
@@ -623,12 +643,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
 	    // Suppress the notification if there's no AST (e.g. due to a parse error)
-	    if (parseController != null && parseController.getCurrentAst() != null)
+	    if (parseController != null && parseController.getCurrentAst() != null) {
+		if (SAFARIPreferenceCache.emitMessages)
+		    RuntimePlugin.getInstance().writeInfoMsg("Notifying AST listeners of change in " + parseController.getParser().getParseStream().getFileName());
 		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
 		    //((IModelListener) astListeners.get(n)).update(parseController, monitor);
 			IModelListener listener = (IModelListener) astListeners.get(n);
 			listener.update(parseController, monitor);
 		}
+	    } else
+		if (SAFARIPreferenceCache.emitMessages)
+		    RuntimePlugin.getInstance().writeInfoMsg("No AST; bypassing listener notification.");
 	}
     }
 

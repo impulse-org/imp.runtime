@@ -18,6 +18,7 @@ import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.uide.editor.UniversalEditor;
+import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
@@ -54,7 +55,10 @@ public class LanguageRegistry {
 	    FileEditorInput fileEditorInput= (FileEditorInput) editorInput;
 	    IFile file= fileEditorInput.getFile();
 
-            ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
+	    if (SAFARIPreferenceCache.emitMessages)
+		RuntimePlugin.getInstance().writeInfoMsg("Determining language of file " + file.getFullPath().toString());
+	    else
+		ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
             extension= file.getFileExtension();
 	    if (extension == null)
 		return null;
@@ -70,7 +74,10 @@ public class LanguageRegistry {
 		}
 	    }
 	}
-	ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
+        if (SAFARIPreferenceCache.emitMessages)
+            RuntimePlugin.getInstance().writeInfoMsg("No language support for text/source file of type '" + extension + "'.");
+        else
+            ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
 	return null;
     }
 
@@ -91,6 +98,9 @@ public class LanguageRegistry {
 	if (sLanguages == null)
 	    findLanguages();
 
+	if (SAFARIPreferenceCache.emitMessages)
+	    RuntimePlugin.getInstance().writeInfoMsg("Looking for SAFARI language description extensions...");
+
 	// The following uses internal platform classes, given that there is no
 	// API for dynamically registering editors as of 3.1. See Bugzilla bug
 	//   https://bugs.eclipse.org/bugs/show_bug.cgi?id=110602
@@ -102,7 +112,6 @@ public class LanguageRegistry {
 	    ErrorHandler.logError("registerLanguages(): unable to proceed without universal editor descriptor.", null);
 	    return;
 	}
-	System.out.println("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
 
 	List/*<String>*/ langExtens= collectAllLanguageFileNameExtensions();
 	List/*<FileEditorMapping>*/ newMap= new ArrayList();
@@ -151,6 +160,10 @@ public class LanguageRegistry {
 	}
 	if (universalEditor == null)
 	    ErrorHandler.logError("Unable to locate universal editor descriptor", null);
+	else if (SAFARIPreferenceCache.emitMessages)
+	    RuntimePlugin.getInstance().writeInfoMsg("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
+	else
+	    System.out.println("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
 	return universalEditor;
     }
 
@@ -182,6 +195,9 @@ public class LanguageRegistry {
                         // Following is called just to get Language to parse the
                         // file-name extension attribute, and do some validation.
                         language.getFilenameExtensions();
+
+                        if (SAFARIPreferenceCache.emitMessages)
+                            RuntimePlugin.getInstance().writeInfoMsg("Found language description extension for " + language.getName());
                     }
 		}
 	    } else

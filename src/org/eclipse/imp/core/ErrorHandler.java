@@ -2,6 +2,7 @@ package org.eclipse.uide.core;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
 
 /*
@@ -46,7 +47,7 @@ public class ErrorHandler {
 	    System.err.println(message);
 	if (!noDump)
 	    new Error(message).printStackTrace();
-	if (LOG)
+	if (LOG || SAFARIPreferenceCache.emitMessages)
 	    logError(message, new Error(message));
 	if (showDialog) {
 	    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {

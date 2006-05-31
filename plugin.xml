@@ -78,4 +78,15 @@
             verticalRulerPreferenceKey="parseAnnotationVerticalKey"
             verticalRulerPreferenceValue="false"/>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.eclipse.uide.preferences.PreferencePage"
+            id="org.eclipse.uide.runtime.preferencePage"
+            name="SAFARI"/>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer class="org.eclipse.uide.preferences.PreferenceInitializer"/>
+   </extension>
 </plugin>

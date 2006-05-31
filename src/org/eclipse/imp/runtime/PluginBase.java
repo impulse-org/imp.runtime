@@ -17,21 +17,25 @@ public abstract class SAFARIPluginBase extends AbstractUIPlugin implements IPlug
     public void maybeWriteInfoMsg(String msg) {
         if (!fEmitInfoMessages)
             return;
-    
-        Status status= new Status(Status.INFO, getID(), 0, msg, null);
-    
+
+        writeInfoMsg(msg);
+    }
+
+    public void writeInfoMsg(String msg) {
+	Status status= new Status(Status.INFO, getID(), 0, msg, null);
+
         if (sLog == null)
             sLog= getLog();
-    
+
         sLog.log(status);
     }
 
     public void writeErrorMsg(String msg) {
         Status status= new Status(Status.ERROR, getID(), 0, msg, null);
-    
+
         if (sLog == null)
             sLog= getLog();
-    
+
         sLog.log(status);
     }
 

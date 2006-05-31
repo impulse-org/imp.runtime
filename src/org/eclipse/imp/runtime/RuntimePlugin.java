@@ -3,6 +3,9 @@ package org.eclipse.uide.runtime;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.plugin.*;
 import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.preferences.PreferenceConstants;
+import org.eclipse.uide.preferences.SAFARIPreferenceCache;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.osgi.framework.BundleContext;
 
@@ -35,6 +38,11 @@ public class RuntimePlugin extends SAFARIPluginBase implements IStartup {
      */
     public void start(BundleContext context) throws Exception {
 	super.start(context);
+
+	// Initialize the Preferences fields with the preference store data.
+        IPreferenceStore prefStore= getPreferenceStore();
+
+        SAFARIPreferenceCache.emitMessages= prefStore.getBoolean(PreferenceConstants.P_EMIT_MESSAGES);
     }
 
     /**

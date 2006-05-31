@@ -1,4 +1,4 @@
-package org.eclipse.uide.runtime.preferences;
+package org.eclipse.uide.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.preference.IPreferenceStore;

@@ -1,4 +1,4 @@
-package org.eclipse.uide.runtime.preferences;
+package org.eclipse.uide.preferences;
 
 public class SAFARIPreferenceCache {
     public static boolean emitMessages= false;

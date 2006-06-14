@@ -22,19 +22,11 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
+import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.IAutoEditStrategy;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.text.ITextDoubleClickStrategy;
-import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.ITypedRegion;
-import org.eclipse.jface.text.IUndoManager;
-import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.ContentFormatter;
@@ -42,6 +34,8 @@ import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
+import org.eclipse.jface.text.information.IInformationProvider;
+import org.eclipse.jface.text.information.InformationPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
@@ -50,15 +44,16 @@ import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
@@ -66,6 +61,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
+import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -133,7 +129,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public UniversalEditor() {
 	if (SAFARIPreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
-	setSourceViewerConfiguration(new Configuration());
+	setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
 	configureInsertMode(SMART_INSERT, true);
 	setInsertMode(SMART_INSERT);
     }
@@ -162,6 +158,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         markAsStateDependentAction("Format", true); //$NON-NLS-1$
         markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
         PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.FORMAT_ACTION);
+
+        action= new TextOperationAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "ShowOutline.", this, StructuredSourceViewer.SHOW_OUTLINE); //$NON-NLS-1$
+        action.setActionDefinitionId("org.eclipse.uide.runtime.showOutlineCommand"/*IJavaEditorActionDefinitionIds.SHOW_OUTLINE*/);
+        setAction("org.eclipse.uide.runtime.showOutlineCommand", action); //$NON-NLS-1$
+        PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
     }
 
     /**
@@ -404,13 +405,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * Override creation of the normal source viewer with one that supports source folding.
      */
     protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-	if (fFoldingUpdater == null)
-	    return super.createSourceViewer(parent, ruler, styles);
+//	if (fFoldingUpdater == null)
+//	    return super.createSourceViewer(parent, ruler, styles);
 
 	fAnnotationAccess= createAnnotationAccess();
 	fOverviewRuler= createOverviewRuler(getSharedColors());
 
-	ISourceViewer viewer= new ProjectionViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+	ISourceViewer viewer= new StructuredSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 	// ensure decoration support has been created and configured.
 	getSourceViewerDecorationSupport(viewer);
 
@@ -441,7 +442,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	fParserScheduler.addModelListener(listener);
     }
 
-    class Configuration extends SourceViewerConfiguration {
+    class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	public int getTabWidth(ISourceViewer sourceViewer) {
 	    return 8; // TODO should be read from preferences somewhere...
 	}
@@ -517,11 +518,35 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
-	    return super.getInformationControlCreator(sourceViewer);
+	    return new IInformationControlCreator() {
+		public IInformationControl createInformationControl(Shell parent) {
+		    int shellStyle= SWT.RESIZE | SWT.TOOL;
+		    int style= SWT.V_SCROLL | SWT.H_SCROLL;
+		    return new DefaultInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
+		}
+	    };
 	}
 
+	private InformationPresenter fInfoPresenter;
+
 	public IInformationPresenter getInformationPresenter(ISourceViewer sourceViewer) {
-	    return super.getInformationPresenter(sourceViewer);
+	    if (fInfoPresenter == null) {
+		fInfoPresenter= new InformationPresenter(getInformationControlCreator(sourceViewer));
+		fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+		fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+		IInformationProvider provider= new IInformationProvider() { // this should be language-specific
+		    public IRegion getSubject(ITextViewer textViewer, int offset) {
+			return new Region(offset, 10);
+		    }
+		    public String getInformation(ITextViewer textViewer, IRegion subject) {
+			return "Hi Mom!";
+		    }
+		};
+		fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+		fInfoPresenter.setSizeConstraints(60, 10, true, false);
+		fInfoPresenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
+	    }
+	    return fInfoPresenter;
 	}
 
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
@@ -538,6 +563,37 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public IAnnotationHover getOverviewRulerAnnotationHover(ISourceViewer sourceViewer) {
 	    return super.getOverviewRulerAnnotationHover(sourceViewer);
+	}
+
+	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
+	    return getInformationPresenter(sourceViewer); // need something more specific to the outline in particular???
+	}
+
+	/**
+	 * Returns the hierarchy presenter which will determine and shown type hierarchy
+	 * information requested for the current cursor position.
+	 *
+	 * @param sourceViewer the source viewer to be configured by this configuration
+	 * @param doCodeResolve a boolean which specifies whether code resolve should be used to compute the program element
+	 * @return an information presenter
+	 */
+	public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
+	    // See JavaSourceViewerConfiguration.getHierarchyPresenter() for inspiration...
+	    return null;
+	}
+
+	/**
+	 * Returns the settings for the given section.
+	 *
+	 * @param sectionName the section name
+	 * @return the settings
+	 * @since 3.0
+	 */
+	private IDialogSettings getSettings(String sectionName) {
+	    IDialogSettings settings= RuntimePlugin.getInstance().getDialogSettings().getSection(sectionName);
+	    if (settings == null)
+		settings= RuntimePlugin.getInstance().getDialogSettings().addNewSection(sectionName);
+	    return settings;
 	}
     }
 
@@ -599,7 +655,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * Therefore, we create a job that is executed in a background thread
      * by the platform's job service.
      */
-    // TODO Perhaps this should be driven off of the "IReconcileStrategy" mechanism?
+    // TODO Perhaps this should be driven off of the "IReconcilingStrategy" mechanism?
     class ParserScheduler extends Job {
 	protected IParseController parseController;
 

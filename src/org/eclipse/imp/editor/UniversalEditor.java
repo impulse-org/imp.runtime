@@ -522,6 +522,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		public IInformationControl createInformationControl(Shell parent) {
 		    int shellStyle= SWT.RESIZE | SWT.TOOL;
 		    int style= SWT.V_SCROLL | SWT.H_SCROLL;
+
+		    // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
 		    return new DefaultInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
 		}
 	    };

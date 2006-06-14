@@ -89,4 +89,20 @@
          point="org.eclipse.core.runtime.preferences">
       <initializer class="org.eclipse.uide.preferences.PreferenceInitializer"/>
    </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.uide.runtime.showOutlineCommand"
+            contextId="org.eclipse.ui.textEditorScope"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+O"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            categoryId="org.eclipse.ui.category.navigate"
+            description="Show the quick outline for the editor input"
+            id="org.eclipse.uide.runtime.showOutlineCommand"
+            name="Show Outline"/>
+   </extension>
 </plugin>

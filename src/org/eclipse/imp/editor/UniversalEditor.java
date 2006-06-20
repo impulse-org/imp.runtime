@@ -742,4 +742,26 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public IParseController getParseController() {
 	return fParserScheduler.parseController;
     }
+    
+    // SMS 4 May 2006:
+    // Added this as the only way I could think of (so far) to
+    // remove parser annotations that I expect to be duplicated
+    // if a save triggers a build that leads to the creation
+    // of markers and another set of annotations.
+	public void doSave(IProgressMonitor progressMonitor) {
+		removeParserAnnotations();
+		super.doSave(progressMonitor);
+	}
+	
+    private void removeParserAnnotations() {
+    	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
+
+    	for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
+    	    Annotation a= (Annotation) i.next();
+
+    	    if (a.getType().equals(PARSE_ANNOTATION_TYPE))
+    		model.removeAnnotation(a);
+    	}
+    }
+	
 }

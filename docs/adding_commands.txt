@@ -1,0 +1,7 @@
+Adding a new keystroke/command to the UniversalEditor:
+ 1) create the action in createActions()
+ 2) Add any necessary string resources to the resource bundle
+ 3) Define a new command (ext pt org.eclipse.ui.commands) and a key binding (ext pt org.eclipse.ui.bindings
+ 4) Add appropriate code to TextEditorActionContributor
+ 5) Add handling code to StructuredSourceViewer.doOperation()
+ 

@@ -95,23 +95,26 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     public void setSelection(ISelection selection) {}
 
     public void update(IParseController result, IProgressMonitor monitor) {
-	this.controller= result;
+
+ 	this.controller= result;
 	if (job != null) {
-	    job.cancel();
+		job.cancel();
 	}
 	else {
-		job= new UIJob("Outline View Controller") {
-		public IStatus runInUIThread(IProgressMonitor monitor) {
-		    int offset= 0;
-		    try {
-			if (outliner != null)
-			    outliner.createOutlinePresentation(controller, offset);
-		    } catch (Throwable e) {
-			ErrorHandler.reportError("Outline View Controller", e);
-		    }
-		    return Status.OK_STATUS;
-		}
-	    };
+		job= new UIJob("Outline View Controller" + result.toString()) {
+			public IStatus runInUIThread(IProgressMonitor monitor) {
+			    int offset= 0;
+			    try {
+				if (outliner != null)
+				    outliner.createOutlinePresentation(controller, offset);
+				else
+					throw new Exception("OutlineController.outliner is null; can't create outline presentation");
+			    } catch (Throwable e) {
+					ErrorHandler.reportError("Outline View Controller", e);
+			    }
+			    return Status.OK_STATUS;
+			}
+		};
 
 	} // else
 	job.schedule(DELAY);

@@ -627,10 +627,22 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 			    System.err.println(msg);
 		    	return;
 		    }
+		    // SMS 22 JUN 2006:  Added try block around call
+		    IToken[] adjuncts = null;
+		    int endOffset = 0;
+		    try {
+		    	adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
+		    	endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
+		    			: adjuncts[adjuncts.length - 1].getEndOffset();
+		    } catch (IndexOutOfBoundsException e) {
+				final String msg= "PresentationRepairer.createPresentation(): Could not repair damage @ " + damage.getOffset() + " (size of parse stream = 0) in " + parseStream.getFileName();
+				if (SAFARIPreferenceCache.emitMessages)
+				    RuntimePlugin.getInstance().writeInfoMsg(msg);
+				else
+				    ErrorHandler.reportError(msg, e);
+			    return;
+			}
 
-		    IToken[] adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
-		    int endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
-			    : adjuncts[adjuncts.length - 1].getEndOffset();
 		    int length= endOffset - damage.getOffset();
 
 		    fPresentationController.damage(damage.getOffset(),

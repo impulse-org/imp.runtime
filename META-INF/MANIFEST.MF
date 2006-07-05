@@ -23,7 +23,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.ui,
  org.eclipse.compare
 Eclipse-AutoStart: true
-Export-Package: org.eclipse.uide.core,
+Export-Package: org.eclipse.uide.builder,
+ org.eclipse.uide.core,
  org.eclipse.uide.defaults,
  org.eclipse.uide.editor,
  org.eclipse.uide.indexing,

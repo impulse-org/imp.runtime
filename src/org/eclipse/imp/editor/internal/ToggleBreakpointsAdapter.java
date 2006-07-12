@@ -13,11 +13,14 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.debug.core.IJavaLineBreakpoint;
 import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jface.text.ITextSelection;
@@ -38,21 +41,37 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
     }
 
     public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
-        if (selection instanceof ITextSelection) {
+    	if (selection instanceof ITextSelection) {
             ITextSelection textSel= (ITextSelection) selection;
             IEditorPart editorPart= (IEditorPart) part.getAdapter(IEditorPart.class);
             IFileEditorInput fileInput= (IFileEditorInput) editorPart.getEditorInput();
             final IFile origSrcFile= fileInput.getFile();
             IProject project= origSrcFile.getProject();
+            IJavaProject javaProj= JavaCore.create(project);
             final String origSrcFileName= origSrcFile.getName();
+       
+            String pathPrefix = project.getWorkspace().getRoot().getRawLocation() + project.getFullPath().toString();
+            IPath projPath= project.getFullPath();
+            //MV Note: javaProj.getOutputLocation returns a workspace relative path
+			boolean projectIsSrcBin= (javaProj.getOutputLocation().matchingFirstSegments(projPath) == projPath.segmentCount()) && 
+									 (javaProj.getOutputLocation().segmentCount() == projPath.segmentCount());
+            
+			if (!projectIsSrcBin){
+				String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).substring(1);
+				pathPrefix = pathPrefix + "/" + temp.substring(0,temp.indexOf("/"));
+			}
+			
+            String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).replaceAll("/", ".");
+            final String typeName = temp.substring(1,temp.lastIndexOf("."));
+            
             final IFile javaFile= javaFileForRootSourceFile(origSrcFile, project);
 
-            if (!javaFile.exists())
-                return; // Can't do anything; this file didn't produce a Java file
+            if (!javaFile.exists()) 
+            	return; // Can't do anything; this file didn't produce a Java file
 
             int extenStart= origSrcFileName.lastIndexOf('.');
             String origExten= origSrcFileName.substring(extenStart+1);
-            final String typeName= origSrcFileName.substring(0, extenStart);
+            //final String typeName= origSrcFileName.substring(0, extenStart);
             LineMapBuilder lmb= new LineMapBuilder(origSrcFile.getRawLocation().removeFileExtension().toString());
             Map lineMap= lmb.getLineMap();
             final Integer origSrcLineNumber= new Integer(textSel.getStartLine() + 1);
@@ -66,6 +85,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
                 return;
             }
 
+            
             System.out.println("******** The breakpoint is at line: " + origSrcLineNumber + " in " + origExten + " and " + javaLineNum + " in Java");
 
             // System.out.println("Breakpoint toggle request @ line " + javaLineNum + " of file "
@@ -73,8 +93,9 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
 
             // TODO Enable the breakpoint if there is already one that's disabled, rather than just blindly removing it.
 
-            final IJavaLineBreakpoint existingBreakpoint= JDIDebugModel.lineBreakpointExists(javaFile, typeName, origSrcLineNumber.intValue());
-
+        
+           final IJavaLineBreakpoint existingBreakpoint= JDIDebugModel.lineBreakpointExists(javaFile, typeName, origSrcLineNumber.intValue());
+            
             IWorkspaceRunnable wr= new IWorkspaceRunnable() {
                 public void run(IProgressMonitor monitor) throws CoreException {
 
@@ -93,7 +114,11 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
                     Map bkptAttributes= new HashMap();
                     bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
                     final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
-                            bkptAttributes);
+                          bkptAttributes);
+                    
+                    
+                    
+                   
 
                     // At this point, the Debug framework has been told there's a line breakpoint,
                     // and there's a marker in the *Java* source, but not in the original source.
@@ -120,7 +145,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
                     bkptToSrcMarkerMap.put(bkpt, origSrcMarker);
 
                     // bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
-                    // bkpt.setMarker(origSrcMarker);
+                    //bkpt.setMarker(origSrcMarker);
 
                 }
             };

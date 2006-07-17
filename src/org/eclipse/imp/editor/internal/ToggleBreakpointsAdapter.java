@@ -10,6 +10,7 @@ import java.util.Map;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -34,8 +35,9 @@ import com.ibm.watson.smapi.LineMapBuilder;
 
 public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
 
-    private static Map /* IJavaLineBreakPoint -> IMarker */bkptToSrcMarkerMap= new HashMap();
-
+    //private static Map /* IJavaLineBreakPoint -> IMarker */bkptToSrcMarkerMap= new HashMap();
+  
+    
     public ToggleBreakpointsAdapter() {
         super();
     }
@@ -49,7 +51,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
             IProject project= origSrcFile.getProject();
             IJavaProject javaProj= JavaCore.create(project);
             final String origSrcFileName= origSrcFile.getName();
-       
+            
             String pathPrefix = project.getWorkspace().getRoot().getRawLocation() + project.getFullPath().toString();
             IPath projPath= project.getFullPath();
             //MV Note: javaProj.getOutputLocation returns a workspace relative path
@@ -100,9 +102,17 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
                 public void run(IProgressMonitor monitor) throws CoreException {
 
                     if (existingBreakpoint != null) {
-                        IMarker marker= (IMarker) bkptToSrcMarkerMap.get(existingBreakpoint);
-                        marker.delete();
-                        bkptToSrcMarkerMap.remove(existingBreakpoint);
+                        //IMarker marker= (IMarker) bkptToSrcMarkerMap.get(existingBreakpoint);
+                    	
+                    	// find the marker first
+                    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, false, IResource.DEPTH_INFINITE);
+                    	for (int k = 0; k < markers.length; k++ ){
+                    		if (((Integer)markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == origSrcLineNumber.intValue()){
+                    			markers[k].delete();
+                    		}
+                    	}
+                        
+                        //bkptToSrcMarkerMap.remove(existingBreakpoint);
                         DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(existingBreakpoint, true);
                         System.out.println("******* deleting marker");
 
@@ -129,6 +139,8 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
 
                     // create the marker
                     IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
+                    
+              
                     Map javaMarkerAttrs= javaMarker.getAttributes();
                     for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {
                         String key= (String) iter.next();
@@ -139,15 +151,19 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
                         if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
                             continue;
                         origSrcMarker.setAttribute(key, value);
+                        
                         System.out.println("Attribute added for marker " + key + "-> " + value);
                     }
                     origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
-                    bkptToSrcMarkerMap.put(bkpt, origSrcMarker);
+                    
+                    //bkptToSrcMarkerMap.put(bkpt, origSrcMarker);
 
                     // bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
                     //bkpt.setMarker(origSrcMarker);
 
                 }
+
+				
             };
             try {
                 ResourcesPlugin.getWorkspace().run(wr, null);

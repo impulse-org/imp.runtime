@@ -7,8 +7,10 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IMarkerDelta;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
@@ -18,6 +20,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jdt.core.IJavaProject;
@@ -33,13 +36,15 @@ import org.eclipse.ui.IWorkbenchPart;
 import com.ibm.watson.smapi.LineElem;
 import com.ibm.watson.smapi.LineMapBuilder;
 
-public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
+public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBreakpointListener {
 
     //private static Map /* IJavaLineBreakPoint -> IMarker */bkptToSrcMarkerMap= new HashMap();
   
+	String origExten = "x10"; //MV -- TODO this is duplicated from SmapieBuilder
     
     public ToggleBreakpointsAdapter() {
         super();
+        DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
     }
 
     public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
@@ -62,6 +67,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
 				String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).substring(1);
 				pathPrefix = pathPrefix + "/" + temp.substring(0,temp.indexOf("/"));
 			}
+			
 			
             String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).replaceAll("/", ".");
             final String typeName = temp.substring(1,temp.lastIndexOf("."));
@@ -104,14 +110,11 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
                     if (existingBreakpoint != null) {
                         //IMarker marker= (IMarker) bkptToSrcMarkerMap.get(existingBreakpoint);
                     	
-                    	// find the marker first
-                    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, false, IResource.DEPTH_INFINITE);
-                    	for (int k = 0; k < markers.length; k++ ){
-                    		if (((Integer)markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == origSrcLineNumber.intValue()){
-                    			markers[k].delete();
-                    		}
-                    	}
-                        
+                    	// find the marker first, then delete it
+                    	IMarker marker = findMarker(origSrcFile, origSrcLineNumber.intValue());
+                    	marker.delete();
+                    	
+                    	
                         //bkptToSrcMarkerMap.remove(existingBreakpoint);
                         DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(existingBreakpoint, true);
                         System.out.println("******* deleting marker");
@@ -173,6 +176,16 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
 
         }
     }
+    
+    private IMarker findMarker(IFile origSrcFile, int lineNumber) throws CoreException {
+    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, false, IResource.DEPTH_INFINITE);
+    	for (int k = 0; k < markers.length; k++ ){
+    		if (((Integer)markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == lineNumber){
+    			return markers[k];
+    		}
+    	}
+    	return null;
+    }
 
     private IFile javaFileForRootSourceFile(IFile rootSrcFile, IProject project) {
         String rootSrcName= rootSrcFile.getName();
@@ -198,4 +211,33 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget {
     public boolean canToggleWatchpoints(IWorkbenchPart part, ISelection selection) {
         return false;
     }
+
+	public void breakpointAdded(IBreakpoint breakpoint) {
+		// MV -- This should never be called
+		
+	}
+
+	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
+		System.err.println("in breakpointRemoved");
+		IPath path = breakpoint.getMarker().getResource().getRawLocation();
+		String fileName = path.lastSegment();
+		fileName = fileName.substring(0, fileName.indexOf(".") + 1) + origExten; 
+		path = path.removeLastSegments(1).append(fileName);
+		
+		IFile origSrcFile = ((Workspace)breakpoint.getMarker().getResource().getProject().getWorkspace()).getFileSystemManager().fileForLocation(path);
+		try {
+			IMarker marker = findMarker(origSrcFile, ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
+			System.out.println("deleting marker " + origSrcFile.getFullPath() + " at line " + ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
+			if (marker != null)
+				marker.delete();
+		} catch(CoreException e){
+			System.err.println(e);
+		}
+		
+	}
+
+	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
+		// TODO Auto-generated method stub
+		
+	}
 }

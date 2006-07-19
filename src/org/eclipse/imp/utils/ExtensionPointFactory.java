@@ -34,6 +34,8 @@ public class ExtensionPointFactory {
 
 	    if (extensionPoint != null)
 		service= getLanguageContributor(extensionPoint, language.getName());
+	    else
+		ErrorHandler.reportError("No such language service extension point defined: " + pluginID + "." + extensionPointId);
 	} catch (Throwable e) {
 	    ErrorHandler.reportError("Error finding \"" + extensionPointId + "\" service for \"" + language + "\"", e);
 	}
@@ -78,7 +80,9 @@ public class ExtensionPointFactory {
 		Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
 
 		if (bundle != null) {
-		    if (lowerLang.equals(element.getAttribute("language").toLowerCase())) {
+		    final String attrValue= element.getAttribute("language");
+
+		    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
 			return (ILanguageService) element.createExecutableExtension("class");
 		    }
 		}

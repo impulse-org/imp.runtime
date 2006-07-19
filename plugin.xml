@@ -14,6 +14,10 @@
    <extension-point id="foldingUpdater" name="SAFARI Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="annotationHover" name="Annotation Hover" schema="schema/annotationHover.exsd"/>
    <extension-point id="formatter" name="SAFARI Source Code Formatter" schema="schema/formatter.exsd"/>
+   <extension-point id="labelProvider" name="Label Provider" schema="schema/labelProvider.exsd"/>
+   <extension-point id="imageDecorator" name="Image Decorator" schema="schema/imageDecorator.exsd"/>
+   <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
+   <extension-point id="outlineContentProvider" name="Outline Content Provider" schema="schema/outlineContentProvider.exsd"/>
    
    <extension
          point="org.eclipse.ui.editors">

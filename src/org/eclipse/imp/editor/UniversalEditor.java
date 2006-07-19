@@ -21,7 +21,6 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
-import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
@@ -65,7 +64,6 @@ import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.ContentAssistAction;
@@ -99,6 +97,12 @@ import org.eclipse.uide.utils.ExtensionPointFactory;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
+    public static final String TOGGLE_COMMENT_COMMAND= "org.eclipse.uide.runtime.toggleComment";
+
+    public static final String SHOW_OUTLINE_COMMAND= "org.eclipse.uide.runtime.showOutlineCommand";
+
+    public static final String MESSAGE_BUNDLE= "org.eclipse.uide.editor.messages";
+
     public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".safariEditor";
 
     public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.uide.editor.parseAnnotation";
@@ -129,7 +133,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private FormattingController fFormattingController;
 
-    private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= "org.eclipse.uide.editor.messages";//$NON-NLS-1$
+    private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
@@ -155,22 +159,28 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     protected void createActions() {
 	super.createActions();
 
-        Action action= new ContentAssistAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "ContentAssistProposal.", this);
+        final ResourceBundle bundle= ResourceBundle.getBundle(MESSAGE_BUNDLE);
+	Action action= new ContentAssistAction(bundle, "ContentAssistProposal.", this);
 	action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 	setAction("ContentAssistProposal", action);
 	markAsStateDependentAction("ContentAssistProposal", true);
 
-        action= new TextOperationAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
+        action= new TextOperationAction(bundle, "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
         action.setActionDefinitionId(IJavaEditorActionDefinitionIds.FORMAT);
         setAction("Format", action); //$NON-NLS-1$
         markAsStateDependentAction("Format", true); //$NON-NLS-1$
         markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.FORMAT_ACTION);
+//      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.FORMAT_ACTION);
 
-        action= new TextOperationAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "ShowOutline.", this, StructuredSourceViewer.SHOW_OUTLINE); //$NON-NLS-1$
-        action.setActionDefinitionId("org.eclipse.uide.runtime.showOutlineCommand"/*IJavaEditorActionDefinitionIds.SHOW_OUTLINE*/);
-        setAction("org.eclipse.uide.runtime.showOutlineCommand", action); //$NON-NLS-1$
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
+        action= new TextOperationAction(bundle, "ShowOutline.", this, StructuredSourceViewer.SHOW_OUTLINE); //$NON-NLS-1$
+        action.setActionDefinitionId(SHOW_OUTLINE_COMMAND);
+        setAction(SHOW_OUTLINE_COMMAND, action); //$NON-NLS-1$
+//      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
+
+	action= new TextOperationAction(bundle, "ToggleComment.", this, StructuredSourceViewer.TOGGLE_COMMENT); //$NON-NLS-1$
+	action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
+	setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
+//	PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
     }
 
     /**
@@ -804,12 +814,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
 	    // Suppress the notification if there's no AST (e.g. due to a parse error)
-	    if (parseController != null && parseController.getCurrentAst() != null) {
+	    if (parseController != null) {
 		if (SAFARIPreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Notifying AST listeners of change in " + parseController.getParser().getParseStream().getFileName());
 		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
-		    //((IModelListener) astListeners.get(n)).update(parseController, monitor);
-			IModelListener listener = (IModelListener) astListeners.get(n);
+		    IModelListener listener= (IModelListener) astListeners.get(n);
+
+		    // HACK RMF 7/19/2006 - PresentationController only needs a token stream,
+		    // so notify it even if the parser wasn't successful in producing an AST.
+		    //
+		    // In the long run, listeners should specify their prerequisite analysis
+		    // results (tokenization, parsing, name resolution, etc.). We should
+		    // probably have a SourceListener API that exposes this meta-info.
+		    if (parseController.getCurrentAst() != null || listener instanceof PresentationController)
 			listener.update(parseController, monitor);
 		}
 	    } else

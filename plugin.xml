@@ -100,6 +100,11 @@
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+O"/>
+      <key
+            commandId="org.eclipse.uide.runtime.toggleComment"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+/"/>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -108,5 +113,10 @@
             description="Show the quick outline for the editor input"
             id="org.eclipse.uide.runtime.showOutlineCommand"
             name="Show Outline"/>
+      <command
+            categoryId="org.eclipse.jdt.ui.category.source"
+            description="Comments/uncomments the current selection or the current source line"
+            id="org.eclipse.uide.runtime.toggleComment"
+            name="Toggle Comment"/>
    </extension>
 </plugin>

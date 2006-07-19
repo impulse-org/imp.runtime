@@ -4,7 +4,6 @@
 package org.eclipse.uide.editor;
 
 import java.util.ResourceBundle;
-import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.actions.JdtActionConstants;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IActionBars;
@@ -24,14 +23,16 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
     private RetargetTextEditorAction fShowOutline;
 
-    private static final String SHOW_OUTLINE_DEFN_ID= "org.eclipse.uide.runtime.showOutlineCommand";
+    private RetargetTextEditorAction fToggleComment;
 
     public TextEditorActionContributor() {
 	super();
 	fPreviousAnnotation= new GotoAnnotationAction("PreviousAnnotation.", false); //$NON-NLS-1$
 	fNextAnnotation= new GotoAnnotationAction("NextAnnotation.", true); //$NON-NLS-1$
-	fShowOutline= new RetargetTextEditorAction(ResourceBundle.getBundle("org.eclipse.uide.editor.messages"), "ShowOutline."); //$NON-NLS-1$
-	fShowOutline.setActionDefinitionId(SHOW_OUTLINE_DEFN_ID);
+	fShowOutline= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "ShowOutline."); //$NON-NLS-1$
+	fShowOutline.setActionDefinitionId(UniversalEditor.SHOW_OUTLINE_COMMAND);
+	fToggleComment= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "ToggleComment."); //$NON-NLS-1$
+	fToggleComment.setActionDefinitionId(UniversalEditor.TOGGLE_COMMENT_COMMAND);
     }
 
     public void init(IActionBars bars, IWorkbenchPage page) {
@@ -40,7 +41,8 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 	bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION, fPreviousAnnotation);
 	bars.setGlobalActionHandler(ActionFactory.NEXT.getId(), fNextAnnotation);
 	bars.setGlobalActionHandler(ActionFactory.PREVIOUS.getId(), fPreviousAnnotation);
-	bars.setGlobalActionHandler(SHOW_OUTLINE_DEFN_ID, fShowOutline);
+	bars.setGlobalActionHandler(UniversalEditor.SHOW_OUTLINE_COMMAND, fShowOutline);
+	bars.setGlobalActionHandler(UniversalEditor.TOGGLE_COMMENT_COMMAND, fToggleComment);
     }
 
     /*
@@ -54,6 +56,12 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 	if (navigateMenu != null) {
 	    navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fShowOutline);
 	}
+
+	IMenuManager editMenu= menu.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
+
+	if (editMenu != null) {
+	    editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fToggleComment);
+	}
     }
 
     public void setActiveEditor(IEditorPart part) {
@@ -66,7 +74,8 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
 	fPreviousAnnotation.setEditor(textEditor);
 	fNextAnnotation.setEditor(textEditor);
-	fShowOutline.setAction(getAction(textEditor, SHOW_OUTLINE_DEFN_ID));
+	fShowOutline.setAction(getAction(textEditor, UniversalEditor.SHOW_OUTLINE_COMMAND));
+	fToggleComment.setAction(getAction(textEditor, UniversalEditor.TOGGLE_COMMENT_COMMAND));
 
 	IActionBars bars= getActionBars();
 

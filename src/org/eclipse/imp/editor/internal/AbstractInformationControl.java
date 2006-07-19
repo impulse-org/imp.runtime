@@ -518,8 +518,8 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	data.horizontalAlignment= GridData.END;
 	data.verticalAlignment= GridData.BEGINNING;
 	fToolBar.setLayoutData(data);
-	viewMenuButton.setImage(SAFARIPluginImages.get(SAFARIPluginImages.IMAGE_VIEW_MENU));
-	viewMenuButton.setDisabledImage(SAFARIPluginImages.get(SAFARIPluginImages.IMAGE_VIEW_MENU));
+	viewMenuButton.setImage(SAFARIPluginImages.get(SAFARIPluginImages.VIEW_MENU_IMAGE));
+	viewMenuButton.setDisabledImage(SAFARIPluginImages.get(SAFARIPluginImages.VIEW_MENU_IMAGE));
 	viewMenuButton.setToolTipText("View Menu");
 	viewMenuButton.addSelectionListener(new SelectionAdapter() {
 	    public void widgetSelected(SelectionEvent e) {

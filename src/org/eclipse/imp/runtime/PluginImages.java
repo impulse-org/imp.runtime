@@ -23,7 +23,9 @@ public class SAFARIPluginImages {
     private static final String NAME_PREFIX= "com.ibm.watson.safari."; //$NON-NLS-1$
     private static final int NAME_PREFIX_LENGTH= NAME_PREFIX.length();
 
-    public static final String IMAGE_VIEW_MENU= NAME_PREFIX + "view_menu.gif"; //$NON-NLS-1$
+    public static final String VIEW_MENU_IMAGE= NAME_PREFIX + "view_menu.gif"; //$NON-NLS-1$
+
+    public static final ImageDescriptor viewMenuImageDesc= createManaged(NAME_PREFIX, VIEW_MENU_IMAGE);
 
     /**
      * Returns the image managed under the given key in this registry.

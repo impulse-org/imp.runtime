@@ -24,6 +24,7 @@ import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jdt.internal.ui.IJavaHelpContextIds;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
+import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.text.*;
@@ -35,6 +36,7 @@ import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.information.IInformationProvider;
+import org.eclipse.jface.text.information.IInformationProviderExtension;
 import org.eclipse.jface.text.information.InformationPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
@@ -47,10 +49,14 @@ import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
@@ -79,6 +85,7 @@ import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.editor.SourceHyperlinkController;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
+import org.eclipse.uide.preferences.PreferenceConstants;
 import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
@@ -129,6 +136,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public UniversalEditor() {
 	if (SAFARIPreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
+	setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
 	setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
 	configureInsertMode(SMART_INSERT, true);
 	setInsertMode(SMART_INSERT);
@@ -360,6 +368,20 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	super.createPartControl(parent);
 
+	if (SAFARIPreferenceCache.sourceFont != null)
+	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
+
+	// BUG Need to remove this change listener when dispose() is called...
+	getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
+	    public void propertyChange(PropertyChangeEvent event) {
+		if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
+		    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
+		} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
+		    getSourceViewer().getTextWidget().setTabs(SAFARIPreferenceCache.tabWidth);
+		}
+	    }
+	});
+
 	if (fLanguage != null) {
 	    try {
 		if (SAFARIPreferenceCache.emitMessages)
@@ -444,7 +466,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	public int getTabWidth(ISourceViewer sourceViewer) {
-	    return 8; // TODO should be read from preferences somewhere...
+	    return SAFARIPreferenceCache.tabWidth;
 	}
 
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -567,8 +589,55 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    return super.getOverviewRulerAnnotationHover(sourceViewer);
 	}
 
+	private class LangInformationProvider implements IInformationProvider, IInformationProviderExtension {
+	    public IRegion getSubject(ITextViewer textViewer, int offset) {
+		return new Region(offset, 10);
+	    }
+	    public String getInformation(ITextViewer textViewer, IRegion subject) {
+		return "never called?!?"; // shouldn't be called, given IInformationProviderExtension???
+	    }
+	    public Object getInformation2(ITextViewer textViewer, IRegion subject) {
+		return fParserScheduler.parseController.getCurrentAst();
+	    }
+	}
+
+	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
+
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-	    return getInformationPresenter(sourceViewer); // need something more specific to the outline in particular???
+	    InformationPresenter presenter;
+
+	    presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
+	    presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+	    presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+
+	    IInformationProvider provider= fSourceElementProvider;
+
+	    presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+	    // TODO Should associate all other partition types with this provider, too
+	    presenter.setSizeConstraints(50, 20, true, false);
+	    presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
+	    return presenter;
+	}
+
+	/**
+	 * Returns the outline presenter control creator. The creator is a factory creating outline
+	 * presenter controls for the given source viewer. This implementation always returns a creator
+	 * for <code>JavaOutlineInformationControl</code> instances.
+	 *
+	 * @param sourceViewer the source viewer to be configured by this configuration
+	 * @param commandId the ID of the command that opens this control
+	 * @return an information control creator
+	 * @since 2.1
+	 */
+	private IInformationControlCreator getOutlinePresenterControlCreator(ISourceViewer sourceViewer, final String commandId) {
+	    return new IInformationControlCreator() {
+		public IInformationControl createInformationControl(Shell parent) {
+		    int shellStyle= SWT.RESIZE;
+		    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
+
+		    return new OutlineInformationControl(parent, shellStyle, treeStyle, commandId, UniversalEditor.this.fLanguage);
+		}
+	    };
 	}
 
 	/**
@@ -580,8 +649,30 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	 * @return an information presenter
 	 */
 	public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
-	    // See JavaSourceViewerConfiguration.getHierarchyPresenter() for inspiration...
-	    return null;
+	    InformationPresenter presenter= new InformationPresenter(getHierarchyPresenterControlCreator(sourceViewer));
+	    presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+	    presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+	    IInformationProvider provider= null; // TODO RMF new SourceElementProvider(this);
+	    presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_DOC);
+//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
+//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
+//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_STRING);
+//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_CHARACTER);
+	    presenter.setSizeConstraints(50, 20, true, false);
+	    presenter.setRestoreInformationControlBounds(getSettings("hierarchy_presenter_bounds"), true, true); //$NON-NLS-1$
+	    return presenter;
+	}
+
+	private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
+	    return new IInformationControlCreator() {
+		public IInformationControl createInformationControl(Shell parent) {
+		    int shellStyle= SWT.RESIZE;
+		    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
+
+		    return new DefaultInformationControl(parent); // HierarchyInformationControl(parent, shellStyle, treeStyle);
+		}
+	    };
 	}
 
 	/**

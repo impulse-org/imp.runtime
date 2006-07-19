@@ -13,5 +13,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 	IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
 
 	store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
+//	store.setDefault(PreferenceConstants.P_SOURCE_FONT, 9);
+	store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
     }
 }

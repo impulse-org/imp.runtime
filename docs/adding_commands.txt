@@ -1,7 +1,18 @@
 Adding a new keystroke/command to the UniversalEditor:
  1) create the action in createActions()
  2) Add any necessary string resources to the resource bundle
- 3) Define a new command (ext pt org.eclipse.ui.commands) and a key binding (ext pt org.eclipse.ui.bindings
- 4) Add appropriate code to TextEditorActionContributor
- 5) Add handling code to StructuredSourceViewer.doOperation()
+ 3) Define a new command (ext pt org.eclipse.ui.commands) and a key binding
+    (ext pt org.eclipse.ui.bindings) in plugin.xml
+ 4) Add appropriate code to TextEditorActionContributor to create an action instance
+    and add it to the editor menus, toolbars, and so on, as appropriate. You can make
+    the action an instance of RetargetTextEditorAction, in which case you need to
+    create a new action operation code in the StructuredSourceViewer, and implement
+    support for the new operation in StructuredSourceViewer (see step #5).
+    Alternatively, you can create a custom action class, which might subclass
+    TextEditorAction (as does GotoAnnotationAction), in which case the implementation
+    of the action is in the TextEditorAction subclass' run() method.
+ 5) If you created a RetargetTextEditorAction:
+    - Add handling code to StructuredSourceViewer.doOperation()
+    If you created a custom action class:
+    - Implement the action's run() method.
  

@@ -1,14 +1,20 @@
 package org.eclipse.uide.editor;
 
-import org.eclipse.jdt.ui.text.JavaSourceViewerConfiguration;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DocumentRewriteSession;
+import org.eclipse.jface.text.DocumentRewriteSessionType;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentExtension4;
+import org.eclipse.jface.text.IRewriteTarget;
+import org.eclipse.jface.text.formatter.IFormattingContext;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
-import org.eclipse.jface.text.source.SourceViewer;
 import org.eclipse.jface.text.source.SourceViewerConfiguration;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.uide.editor.UniversalEditor.StructuredSourceViewerConfiguration;
 
@@ -27,6 +33,11 @@ public class StructuredSourceViewer extends ProjectionViewer {
      * Text operation code for requesting the hierarchy for the current input.
      */
     public static final int SHOW_HIERARCHY= 53;
+
+    /**
+     * Text operation code for toggling the commenting of a selected range of text, or the current line.
+     */
+    public static final int TOGGLE_COMMENT= 54;
 
     private IInformationPresenter fOutlinePresenter;
 
@@ -64,8 +75,56 @@ public class StructuredSourceViewer extends ProjectionViewer {
 	    if (fHierarchyPresenter != null)
 		fHierarchyPresenter.showInformation();
 	    return;
+	case TOGGLE_COMMENT:
+	    doToggleComment();
 	}
 	super.doOperation(operation);
+    }
+
+    private void doToggleComment() {
+	IDocument doc= this.getDocument();
+	DocumentRewriteSession rewriteSession= null;
+	Point p= this.getSelectedRange();
+	final String lineCommentStart= "//"; // RMF this needs to be language-specific
+
+	if (doc instanceof IDocumentExtension4) {
+	    IDocumentExtension4 extension= (IDocumentExtension4) doc;
+	    rewriteSession= extension.startRewriteSession(DocumentRewriteSessionType.SEQUENTIAL);
+	}
+
+	try {
+	    final int selStart= p.x;
+	    final int selLen= p.y;
+	    final int selEnd= selStart + selLen;
+	    final int startLine= doc.getLineOfOffset(selStart);
+	    int endLine= doc.getLineOfOffset(selEnd);
+
+	    if (selLen > 0 && doc.getChar(selEnd-1) == '\n')
+		endLine--;
+	    for(int line= startLine; line <= endLine; line++) {
+		int lineStartOffset= doc.getLineOffset(line);
+		int offset= lineStartOffset;
+
+		while (Character.isWhitespace(doc.getChar(offset)) && offset < doc.getLength())
+		    offset++;
+		if (doc.get(offset, lineCommentStart.length()).equals(lineCommentStart)) {
+		    int len= lineCommentStart.length();
+
+		    while (Character.isWhitespace(doc.getChar(offset+len)))
+			len++;
+		    doc.replace(offset, len, "");
+		} else
+		    doc.replace(offset, 0, lineCommentStart + " ");
+	    }
+	} catch (BadLocationException e) {
+	    e.printStackTrace();
+	} finally {
+	    if (doc instanceof IDocumentExtension4) {
+		IDocumentExtension4 extension= (IDocumentExtension4) doc;
+		extension.stopRewriteSession(rewriteSession);
+	    }
+	    restoreSelection();
+	}
     }
 
     /*
@@ -78,6 +137,8 @@ public class StructuredSourceViewer extends ProjectionViewer {
 	    return fStructurePresenter != null;
 	if (operation == SHOW_HIERARCHY)
 	    return fHierarchyPresenter != null;
+	if (operation == TOGGLE_COMMENT)
+	    return true;
 	return super.canDoOperation(operation);
     }
 

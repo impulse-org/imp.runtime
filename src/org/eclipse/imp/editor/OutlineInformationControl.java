@@ -179,6 +179,16 @@ public class OutlineInformationControl extends AbstractInformationControl {
 	    if (fInfoControl != null)
 		fInfoControl.fTypeHierarchies.clear();
 	}
+
+	public boolean hasChildren(Object element) {
+	    Object[] children= getChildren(element);
+	
+	    return (children != null) && children.length > 0;
+	}
+
+	public Object[] getElements(Object inputElement) {
+	    return getChildren(inputElement);
+	}
     }
 
     private class OutlineSorter extends ViewerSorter {

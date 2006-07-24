@@ -425,8 +425,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public void dispose() {
-        super.dispose();
+	// Remove the pref store listener *before* calling super; super nulls out the pref store.
         getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
+        super.dispose();
     }
 
     /**

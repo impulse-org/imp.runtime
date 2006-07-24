@@ -381,16 +381,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	if (SAFARIPreferenceCache.sourceFont != null)
 	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
 
-	// BUG Need to remove this change listener when dispose() is called...
-	getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-	    public void propertyChange(PropertyChangeEvent event) {
-		if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-		    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
-		} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
-		    getSourceViewer().getTextWidget().setTabs(SAFARIPreferenceCache.tabWidth);
-		}
-	    }
-	});
+	getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
 
 	if (fLanguage != null) {
 	    try {
@@ -431,6 +422,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		ErrorHandler.reportError("Could not create part", e);
 	    }
 	}
+    }
+
+    public void dispose() {
+        super.dispose();
+        getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
     }
 
     /**
@@ -764,6 +760,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private AnnotationCreator fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
+
+    private final IPropertyChangeListener fPrefStoreListener= new IPropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent event) {
+    	if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
+    	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
+    	} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
+    	    getSourceViewer().getTextWidget().setTabs(SAFARIPreferenceCache.tabWidth);
+    	}
+        }
+    };
 
     /**
      * Parsing may take a long time, and is not done inside the UI thread.

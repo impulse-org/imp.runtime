@@ -21,7 +21,8 @@ Require-Bundle: org.eclipse.ui,
  com.ibm.watson.smapi,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
- org.eclipse.compare
+ org.eclipse.compare,
+ org.eclipse.jdt.launching
 Eclipse-AutoStart: true
 Export-Package: org.eclipse.uide.builder,
  org.eclipse.uide.core,

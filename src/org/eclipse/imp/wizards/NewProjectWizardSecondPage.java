@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -25,6 +24,10 @@ import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.util.CoreUtility;
 import org.eclipse.jdt.internal.ui.wizards.ClassPathDetector;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.IVMInstall2;
+import org.eclipse.jdt.launching.IVMInstallType;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.preference.IPreferenceStore;
@@ -163,26 +166,44 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
     }
 
     private IClasspathEntry[] getDefaultClasspathEntry() {
-	IClasspathEntry[] defaultJRELibrary= PreferenceConstants.getDefaultJRELibrary();
-//	String compliance= fFirstPage.getJRECompliance();
-//	IPath jreContainerPath= new Path(JavaRuntime.JRE_CONTAINER);
-//	if (compliance == null || defaultJRELibrary.length > 1 || !jreContainerPath.isPrefixOf(defaultJRELibrary[0].getPath())) {
-////	     use default
-//	    return defaultJRELibrary;
-//	}
-//	// try to find a compatible JRE
-//	IVMInstall inst= BuildPathSupport.findMatchingJREInstall(compliance);
-//	if (inst != null) {
-//	    IPath newPath= jreContainerPath.append(inst.getVMInstallType().getId()).append(inst.getName());
-//	    return new IClasspathEntry[] { JavaCore.newContainerEntry(newPath) };
-//	}
+	// First create a classpath entry for the language-specific runtime
 	IPath langRuntimePath= getLanguageRuntimePath();
 	IClasspathEntry langRuntimeCPE= JavaCore.newVariableEntry(langRuntimePath, null, null);
+
+	// Now try to find a compatible JRE
+	String compliance= fFirstPage.getJRECompliance();
+	IVMInstall inst= findMatchingJREInstall(compliance);
+	IPath jreContainerPath= new Path(JavaRuntime.JRE_CONTAINER);
+
+	if (inst != null) {
+	    IPath newPath= jreContainerPath.append(inst.getVMInstallType().getId()).append(inst.getName());
+	    return new IClasspathEntry[] { langRuntimeCPE, JavaCore.newContainerEntry(newPath) };
+	}
+
+	// Didn't find a compatible JRE; use the default
+	IClasspathEntry[] defaultJRELibrary= PreferenceConstants.getDefaultJRELibrary();
 	IClasspathEntry[] allEntries= new IClasspathEntry[defaultJRELibrary.length + 1];
 
 	System.arraycopy(defaultJRELibrary, 0, allEntries, 0, defaultJRELibrary.length);
 	allEntries[allEntries.length-1]= langRuntimeCPE;
 
 	return allEntries;
+    }
+
+    private IVMInstall findMatchingJREInstall(String compliance) {
+	IVMInstallType vmInstallType= JavaRuntime.getVMInstallTypes()[0];
+	IVMInstall[] vmInstalls= vmInstallType.getVMInstalls();
+
+	for(int i= 0; i < vmInstalls.length; i++) {
+	    if (vmInstalls[i] instanceof IVMInstall2) {
+		IVMInstall2 vmInstall2= (IVMInstall2) vmInstalls[i];
+		String vmVers= vmInstall2.getJavaVersion();
+
+		if (vmVers.startsWith(compliance)) {
+		    return vmInstalls[i];
+		}
+	    }
+	}
+	return null;
     }
 }

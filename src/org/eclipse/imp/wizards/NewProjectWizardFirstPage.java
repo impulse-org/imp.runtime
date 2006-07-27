@@ -276,8 +276,8 @@ public class NewProjectWizardFirstPage extends WizardPage {
 	    fPreferenceLink.setLayoutData(new GridData(GridData.END, GridData.END, false, false));
 	    fPreferenceLink.addSelectionListener(this);
 
-	    boolean useSrcBin= PreferenceConstants.getPreferenceStore().getBoolean(
-		    PreferenceConstants.SRCBIN_FOLDERS_IN_NEWPROJ);
+	    // RMF 7/25/2006 - Default to "src/bin" folders; the builder can't yet handle the project otherwise...
+	    boolean useSrcBin= true; // PreferenceConstants.getPreferenceStore().getBoolean(PreferenceConstants.SRCBIN_FOLDERS_IN_NEWPROJ);
 	    fSrcBinRadio.setSelection(useSrcBin);
 	    fStdRadio.setSelection(!useSrcBin);
 	}

@@ -51,7 +51,7 @@ Contributor has to implement the IModelListener interface.
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  The fully-qualified name for the listener class that implements IModelListener.
+                  The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
                <appInfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.uide.parser.IModelListener"/>
@@ -61,7 +61,7 @@ Contributor has to implement the IModelListener interface.
          <attribute name="language" type="string" use="required">
             <annotation>
                <documentation>
-                  The name of the language for which this listener wants to see model updates. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
+                  The name of the language to which this service applies. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
                </documentation>
             </annotation>
          </attribute>

@@ -64,16 +64,14 @@ The extension point serves mostly as a central registration location for languag
          <attribute name="language" type="string" use="required">
             <annotation>
                <documentation>
-                  The programming language this index is meant for. See the org.eclipse.uide.languageDescription extension point.
+                  The name of the language to which this service applies. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
                </documentation>
             </annotation>
          </attribute>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
-                  The class the contributor has to extend. Users of the index are expected to downcast the 
-generic &lt;tt&gt;org.eclipse.uide.Index&lt;/tt&gt; class to their specific implementation
-to provide content-specific indexing and searching.
+                  The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
                <appInfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.uide.indexing.IndexContributorBase"/>

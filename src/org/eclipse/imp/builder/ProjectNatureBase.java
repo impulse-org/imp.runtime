@@ -30,11 +30,22 @@ public abstract class ProjectNatureBase implements IProjectNature {
     protected abstract void refreshPrefs();
 
     /**
-     * Return the ID of the builder on which this nature's builder depends to process
-     * its output files. If there is no such dependency, returns null.
+     * Returns the ID of the builder that processes the artifacts that this
+     * nature's builder produces. If there is no such dependency, returns null.
      */
     // TODO this should be a property of the builder itself...
-    protected abstract String getDownstreamBuilderID();
+    protected String getDownstreamBuilderID() {
+	return null; // by default, no such dependency
+    }
+
+    /**
+     * Returns the ID of the builder that produces artifacts that this nature's
+     * builder consumes. If there is no such dependency, returns null.
+     */
+    // TODO this should be a property of the builder itself...
+    protected String getUpstreamBuilderID() {
+	return null; // by default, no such dependency
+    }
 
     public void addToProject(IProject project) {
 	String natureID= getNatureID();
@@ -71,17 +82,40 @@ public abstract class ProjectNatureBase implements IProjectNature {
 		return; // relevant command is already in there...
 	}
 
-	int where= 0;
+	int beforeWhere= cmds.length;
 	String downstreamBuilderID= getDownstreamBuilderID();
 
 	if (downstreamBuilderID != null) {
-	    // Since this builder depends on another one, it needs to run *before* that one.
-	    // So, find the right spot (in front of that builder) to put this builder.
-	    for(; where < cmds.length; where++) {
-		if (cmds[where].getBuilderName().equals(downstreamBuilderID))
+	    // Since this builder produces artifacts that another one will
+	    // post-process, it needs to run *before* that one.
+	    // So, find the right spot (in front of that builder) to put this one.
+	    for(beforeWhere--; beforeWhere >= 0; beforeWhere--) {
+		if (cmds[beforeWhere].getBuilderName().equals(downstreamBuilderID))
 		    break; // found it
 	    }
+	    if (beforeWhere < 0)
+		getLog().writeErrorMsg("Unable to find downstream builder '" + downstreamBuilderID + "' for builder '" + builderID + "'.");
 	}
+
+	int afterWhere= -1;
+	String upstreamBuilderID= getUpstreamBuilderID();
+
+	if (upstreamBuilderID != null) {
+	    // This builder consumes artifacts that another one will produce,
+	    // so it needs to run *after* that one.
+	    // So, find the right spot (after that builder) to put this one.
+	    for(afterWhere= 0; afterWhere < cmds.length; afterWhere++) {
+		if (cmds[afterWhere].getBuilderName().equals(upstreamBuilderID))
+		    break; // found it
+	    }
+	    if (afterWhere == cmds.length)
+		getLog().writeErrorMsg("Unable to find upstream builder '" + upstreamBuilderID + "' for builder '" + builderID + "'.");
+	}
+
+	if (beforeWhere <= afterWhere)
+	    getLog().writeErrorMsg("Error: builder '" + builderID + "' needs to be before downstream builder '" + downstreamBuilderID + "' but after builder " + upstreamBuilderID + ", but " + downstreamBuilderID + " comes after " + upstreamBuilderID + "!");
+	if (beforeWhere == cmds.length && afterWhere >= 0)
+	    beforeWhere= afterWhere + 1;
 
 	ICommand compilerCmd= desc.newCommand();
 
@@ -90,9 +124,9 @@ public abstract class ProjectNatureBase implements IProjectNature {
 
 	ICommand[] newCmds= new ICommand[cmds.length+1];
 
-	System.arraycopy(cmds, 0, newCmds, 0, where);
-	newCmds[where] = compilerCmd;
-	System.arraycopy(cmds, where, newCmds, where+1, cmds.length-where);
+	System.arraycopy(cmds, 0, newCmds, 0, beforeWhere);
+	newCmds[beforeWhere] = compilerCmd;
+	System.arraycopy(cmds, beforeWhere, newCmds, beforeWhere+1, cmds.length-beforeWhere);
 	desc.setBuildSpec(newCmds);
 	getProject().setDescription(desc, null);
     }

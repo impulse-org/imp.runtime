@@ -52,6 +52,11 @@ public class ExtensionPointFactory {
 	return service;
     }
 
+    /**
+     * Uses reflection and the language name to find and return a default
+     * implementation for the given language service, if it exists.
+     * Otherwise, returns null.
+     */
     private static ILanguageService createDefaultImpl(Language language, String pluginID, String extensionPointId) {
 	ILanguageService service= null;
 	try {
@@ -68,6 +73,29 @@ public class ExtensionPointFactory {
 	    ErrorHandler.reportError("Universal Editor Error", ee);
 	}
 	return service;
+    }
+
+    public static boolean languageServiceExists(String pluginID, String extensionPointID, Language language) {
+	IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointID);
+	IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
+	String lowerLang= language.getName().toLowerCase();
+
+	if (elements != null) {
+	    for(int n= 0; n < elements.length; n++) {
+		IConfigurationElement element= elements[n];
+		Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
+
+		if (bundle != null) {
+		    final String attrValue= element.getAttribute("language");
+
+		    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase()))
+			return true;
+		}
+	    }
+	}
+	if (language.getDerivedFrom() != null)
+	    return languageServiceExists(pluginID, extensionPointID, LanguageRegistry.findLanguage(language.getDerivedFrom()));
+	return false;
     }
 
     public static ILanguageService getLanguageContributor(IExtensionPoint extensionPoint, String language) throws CoreException {

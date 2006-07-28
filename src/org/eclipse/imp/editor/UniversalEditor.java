@@ -611,6 +611,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
 
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
+	    if (!ExtensionPointFactory.languageServiceExists(RuntimePlugin.UIDE_RUNTIME, OutlineInformationControl.OutlineContentProviderID, fLanguage))
+		return null;
+
 	    InformationPresenter presenter;
 
 	    presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));

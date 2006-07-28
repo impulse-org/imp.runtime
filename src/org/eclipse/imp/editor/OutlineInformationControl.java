@@ -40,8 +40,14 @@ import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
 
 public class OutlineInformationControl extends AbstractInformationControl {
+    // These must agree with the SAFARI extension point ID's defined in plugin.xml
+    public static final String OutlineContentProviderID= "outlineContentProvider";
+    public static final String LabelProviderID= "labelProvider";
+    public static final String ImageDecoratorID= "imageDecorator";
+    public static final String ViewerFilterID= "viewerFilter";
+
     private KeyAdapter fKeyAdapter;
-    private OutlineContentProvider fOutlineContentProvider;
+    private OutlineContentProviderBase fOutlineContentProvider;
     private Object fInput= null;
     private OutlineSorter fOutlineSorter;
     private OutlineLabelProvider fInnerLabelProvider;
@@ -102,11 +108,11 @@ public class OutlineInformationControl extends AbstractInformationControl {
 //	}
     }
 
-    public abstract static class OutlineContentProvider implements ITreeContentProvider {
+    public abstract static class OutlineContentProviderBase implements ITreeContentProvider {
 	private OutlineInformationControl fInfoControl;
 	private boolean fShowInheritedMembers;
 
-	protected OutlineContentProvider(OutlineInformationControl oic) {
+	protected OutlineContentProviderBase(OutlineInformationControl oic) {
 	    this(oic, false);
 	}
 
@@ -115,7 +121,7 @@ public class OutlineInformationControl extends AbstractInformationControl {
 	 *
 	 * @param showInheritedMembers <code>true</code> iff inherited members are shown
 	 */
-	protected OutlineContentProvider(OutlineInformationControl oic, boolean showInheritedMembers) {
+	protected OutlineContentProviderBase(OutlineInformationControl oic, boolean showInheritedMembers) {
 	    fShowInheritedMembers= showInheritedMembers;
 	    fInfoControl= oic;
 	}
@@ -307,26 +313,26 @@ public class OutlineInformationControl extends AbstractInformationControl {
 	tree.setLayoutData(gd);
 	final TreeViewer treeViewer= new OutlineTreeViewer(tree);
 	// Hard-coded filters
-	treeViewer.addFilter(new NamePatternFilter());
+	fLexicalSortingAction= new LexicalSortingAction(treeViewer);
 	if (fElementFilter != null)
 	    treeViewer.addFilter(fElementFilter);
 	fForegroundColor= parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);
 
 	// RMF 7/7/2006 - oops, fLanguage is still null at this point, b/c createTreeViewer() gets called from super ctor and field inits haven't happened yet...
 	fLanguage= ((UniversalEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()).fLanguage;
-	fLangLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "labelProvider");
-	fElemImageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "imageDecorator");
-	fElementFilter= (ViewerFilter) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "viewerFilter");
-	fOutlineContentProvider= (OutlineContentProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "outlineContentProvider");
+	fOutlineContentProvider= (OutlineContentProviderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, OutlineContentProviderID);
 	fOutlineContentProvider.setInfoControl(this);
+	fLangLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, LabelProviderID);
+	fElemImageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, ImageDecoratorID);
+	fElementFilter= (ViewerFilter) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, ViewerFilterID);
 
 	fInnerLabelProvider= new OutlineLabelProvider(fLangLabelProvider, fElemImageProvider, fOutlineContentProvider.fShowInheritedMembers, fShowStorage, fForegroundColor);
 	fInnerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator());
-	IDecoratorManager decoratorMgr= PlatformUI.getWorkbench().getDecoratorManager();
+//	IDecoratorManager decoratorMgr= PlatformUI.getWorkbench().getDecoratorManager();
 //	if (decoratorMgr.getEnabled("org.eclipse.jdt.ui.override.decorator")) //$NON-NLS-1$
 //	    fInnerLabelProvider.addLabelDecorator(new OverrideIndicatorLabelDecorator(null));
 	treeViewer.setLabelProvider(fInnerLabelProvider);
-	fLexicalSortingAction= new LexicalSortingAction(treeViewer);
+	treeViewer.addFilter(new NamePatternFilter());
 //	fSortByDefiningTypeAction= new SortByDefiningTypeAction(treeViewer);
 //	fShowOnlyMainTypeAction= new ShowOnlyMainTypeAction(treeViewer);
 	treeViewer.setContentProvider(fOutlineContentProvider);

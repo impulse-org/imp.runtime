@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+
 import lpg.lpgjavaruntime.IToken;
 import lpg.lpgjavaruntime.PrsStream;
+
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -23,7 +25,6 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
-import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.text.*;
@@ -43,6 +44,7 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
@@ -54,9 +56,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
@@ -70,6 +71,7 @@ import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
+import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
@@ -106,6 +108,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".safariEditor";
 
     public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.uide.editor.parseAnnotation";
+
+    private static final String ERROR_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.error";
+
+    private static final String WARNING_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.warning";
+
+    private static final String INFO_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.info";
+
+    private static final String DEBUG_ANNOTATION_TYPE= "org.eclipse.debug.core.breakpoint";
 
     protected Language fLanguage;
 
@@ -181,6 +191,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
 	setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
 //	PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
+    }
+
+    /* (non-Javadoc)
+     * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#isOverviewRulerVisible()
+     */
+    protected boolean isOverviewRulerVisible() {
+        return true;
     }
 
     /**
@@ -378,7 +395,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	super.createPartControl(parent);
 
-	if (SAFARIPreferenceCache.sourceFont != null)
+        setupOverviewRulerAnnotations();
+
+        if (SAFARIPreferenceCache.sourceFont != null)
 	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
 
 	getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
@@ -422,6 +441,26 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		ErrorHandler.reportError("Could not create part", e);
 	    }
 	}
+    }
+
+    private void setupOverviewRulerAnnotations() {
+        final IOverviewRuler overviewRuler= getOverviewRuler();
+
+        overviewRuler.addAnnotationType(PARSE_ANNOTATION_TYPE);
+        overviewRuler.setAnnotationTypeColor(PARSE_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 0, 0)));
+        overviewRuler.setAnnotationTypeLayer(PARSE_ANNOTATION_TYPE, 0);
+        overviewRuler.addAnnotationType(ERROR_ANNOTATION_TYPE);
+        overviewRuler.setAnnotationTypeColor(ERROR_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 0, 0)));
+        overviewRuler.setAnnotationTypeLayer(ERROR_ANNOTATION_TYPE, 0);
+        overviewRuler.addAnnotationType(WARNING_ANNOTATION_TYPE);
+        overviewRuler.setAnnotationTypeColor(WARNING_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 215, 0)));
+        overviewRuler.setAnnotationTypeLayer(WARNING_ANNOTATION_TYPE, 0);
+        overviewRuler.addAnnotationType(INFO_ANNOTATION_TYPE);
+        overviewRuler.setAnnotationTypeColor(INFO_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0, 255, 0)));
+        overviewRuler.setAnnotationTypeLayer(INFO_ANNOTATION_TYPE, 0);
+        overviewRuler.addAnnotationType(DEBUG_ANNOTATION_TYPE);
+        overviewRuler.setAnnotationTypeColor(DEBUG_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0, 0, 255)));
+        overviewRuler.setAnnotationTypeLayer(DEBUG_ANNOTATION_TYPE, 0);
     }
 
     public void dispose() {

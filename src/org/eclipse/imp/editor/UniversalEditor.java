@@ -56,6 +56,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
@@ -143,6 +144,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private FormattingController fFormattingController;
 
+    private ProblemMarkerManager fProblemMarkerManager;
+
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
@@ -154,6 +157,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
 	configureInsertMode(SMART_INSERT, true);
 	setInsertMode(SMART_INSERT);
+        fProblemMarkerManager= new ProblemMarkerManager();
     }
 
     public Object getAdapter(Class required) {
@@ -221,6 +225,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
 	if (statusLine != null)
 	    statusLine.setMessage(false, msg, null);
+    }
+
+    public ProblemMarkerManager getProblemMarkerManager() {
+        return fProblemMarkerManager;
+    }
+
+    public void updatedTitleImage(Image image) {
+        setTitleImage(image);
     }
 
     /**
@@ -932,5 +944,4 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     		model.removeAnnotation(a);
     	}
     }
-	
 }

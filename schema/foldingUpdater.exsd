@@ -44,20 +44,6 @@
 
    <element name="foldingUpdater">
       <complexType>
-         <attribute name="id" type="string">
-            <annotation>
-               <documentation>
-                  An id for the extension that can be used to reference the extension from other extensions or from within applications
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="name" type="string">
-            <annotation>
-               <documentation>
-                  A name for the extension that will be meaningful to human users		
-               </documentation>
-            </annotation>
-         </attribute>
          <attribute name="language" type="string" use="required">
             <annotation>
                <documentation>

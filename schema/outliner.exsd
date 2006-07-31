@@ -46,13 +46,6 @@
          </documentation>
       </annotation>
       <complexType>
-         <attribute name="id" type="string">
-            <annotation>
-               <documentation>
-                  
-               </documentation>
-            </annotation>
-         </attribute>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
@@ -68,14 +61,6 @@
                <documentation>
                   The programming language for which this outliner can generate an outline. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
 Examples: &quot;C&quot;, &quot;php&quot;, &quot;Java&quot;, &quot;Lisp&quot;, etc
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="name" type="string">
-            <annotation>
-               <documentation>
-                  A name for the extension that will be meaningful to human users
-
                </documentation>
             </annotation>
          </attribute>

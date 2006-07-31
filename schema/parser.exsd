@@ -41,24 +41,6 @@
 
    <element name="parser">
       <complexType>
-         <attribute name="id" type="string" use="required">
-            <annotation>
-               <documentation>
-                  A unique id for this parser. 
-
-Example: &quot;com.acme.parsing.cpp.fastParser&quot;
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="name" type="string" use="required">
-            <annotation>
-               <documentation>
-                  A symbolic name for this parser used for resolving ambiguities in the case there is more than one parser for a given content type. This text is shown to a user.
-
-Example: &quot;The Fast-but-fuzzy ACME C++ parser&quot;.
-               </documentation>
-            </annotation>
-         </attribute>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>

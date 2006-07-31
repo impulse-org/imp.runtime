@@ -53,25 +53,10 @@
             <annotation>
                <documentation>
                   The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
-
                </documentation>
                <appInfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.jface.text.source.IAnnotationHover"/>
                </appInfo>
-            </annotation>
-         </attribute>
-         <attribute name="id" type="string">
-            <annotation>
-               <documentation>
-                  An id for the extension that can be used to reference the extension from other extensions or from within applications
-               </documentation>
-            </annotation>
-         </attribute>
-         <attribute name="name" type="string">
-            <annotation>
-               <documentation>
-                  A name for the extension that will be meaningful to human users
-               </documentation>
             </annotation>
          </attribute>
          <attribute name="language" type="string" use="required">

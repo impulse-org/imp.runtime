@@ -862,9 +862,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// else
 		//	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
-	    	ErrorHandler.reportError("Error running parser for " + fLanguage.getName(), e);
+	    	ErrorHandler.reportError("Error running parser for " + fLanguage.getName() + ":", e);
 		if (SAFARIPreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Parsing failed for language " + fLanguage.getName() + " and input " + getEditorInput().getName());
+                // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
+                // may have failed at some phase, but there may be enough info to drive IDE services.
+                notifyAstListeners(parseController, monitor);
 	    }
 	    return Status.OK_STATUS;
 	}

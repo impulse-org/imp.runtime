@@ -7,6 +7,7 @@ import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
 
@@ -38,12 +39,13 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
         IEditorInput input= fEditor.getEditorInput();
 
         if (input != null) { // might run async, tests needed
-            IFile fileInput= (IFile) input;
+            IFileEditorInput fileInput= (IFileEditorInput) input;
+            IFile file= fileInput.getFile();
 
-            if (fileInput != null) {
+            if (file != null) {
                 for(int i= 0; i < changedResources.length; i++) {
-                    if (changedResources[i].equals(fileInput)) {
-                        updateEditorImage(fileInput);
+                    if (changedResources[i].equals(file)) {
+                        updateEditorImage(file);
                     }
                 }
             }

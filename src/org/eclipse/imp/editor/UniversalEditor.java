@@ -52,6 +52,7 @@ import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -403,11 +404,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
 	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
 	    fFormattingController= new FormattingController(fFormattingStrategy);
+	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
 	}
 
 	super.createPartControl(parent);
 
         setupOverviewRulerAnnotations();
+
+        {
+            ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "labelProvider");
+
+            setTitleImage(lp.getImage(((IFileEditorInput) getEditorInput()).getFile()));
+        }
 
         if (SAFARIPreferenceCache.sourceFont != null)
 	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);

@@ -4,6 +4,7 @@
 package org.eclipse.uide.core;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import org.eclipse.core.resources.ICommand;
 import org.eclipse.core.resources.IProject;
@@ -120,7 +121,7 @@ public abstract class ProjectNatureBase implements IProjectNature {
 	ICommand compilerCmd= desc.newCommand();
 
 	compilerCmd.setBuilderName(builderID);
-	compilerCmd.setArguments(new HashMap());
+	compilerCmd.setArguments(getBuilderArguments());
 
 	ICommand[] newCmds= new ICommand[cmds.length+1];
 
@@ -129,6 +130,10 @@ public abstract class ProjectNatureBase implements IProjectNature {
 	System.arraycopy(cmds, beforeWhere, newCmds, beforeWhere+1, cmds.length-beforeWhere);
 	desc.setBuildSpec(newCmds);
 	getProject().setDescription(desc, null);
+    }
+
+    protected Map getBuilderArguments() {
+	return new HashMap();
     }
 
     public void deconfigure() throws CoreException {

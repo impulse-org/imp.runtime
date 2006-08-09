@@ -65,6 +65,25 @@ public abstract class ProjectNatureBase implements IProjectNature {
 	    description.setNatureIds(newNatures);
 	    project.setDescription(description, null);
 
+	    // At this point, this nature's builder should be in the project description,
+	    // but since the description holds only nature ID's, the Eclipse framework ends
+	    // up instantiating the nature itself and calling configure() on that instance.
+	    // It uses the default (no-arg) ctor to do this, so that instance won't have
+	    // enough info to properly populate the builder arguments, if any. So: we need
+	    // to find the builder now and set its arguments using getBuilderArguments().
+	    // N.B.: As an added twist, we have to ask Eclipse for the project description
+	    // again, rather than using the one we got above, since the latter won't have
+	    // the builder in it.
+	    IProjectDescription newDesc= project.getDescription();
+	    ICommand[] builders= newDesc.getBuildSpec();
+
+	    for(int i= 0; i < builders.length; i++) {
+		if (builders[i].getBuilderName().equals(getBuilderID())) {
+		    builders[i].setArguments(getBuilderArguments());
+		}
+	    }
+	    newDesc.setBuildSpec(builders);
+	    project.setDescription(newDesc, null);
 	    getLog().maybeWriteInfoMsg("Added nature " + natureID);
 	} catch (CoreException e) {
 	    // Something went wrong
@@ -121,7 +140,11 @@ public abstract class ProjectNatureBase implements IProjectNature {
 	ICommand compilerCmd= desc.newCommand();
 
 	compilerCmd.setBuilderName(builderID);
-	compilerCmd.setArguments(getBuilderArguments());
+	// RMF 8/9/2006 - Don't bother trying to set the builder arguments here; this instance of
+	// the nature will have been constructed with the no-arg ctor (by the Eclipse framework),
+	// and won't have enough info to compute the builder arguments. Do it later, in addToProject(),
+	// which will hopefully be executed by a nature instance that does have the necessary info.
+//	compilerCmd.setArguments(getBuilderArguments());
 
 	ICommand[] newCmds= new ICommand[cmds.length+1];
 

@@ -414,7 +414,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         {
             ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "labelProvider");
 
-            setTitleImage(lp.getImage(((IFileEditorInput) getEditorInput()).getFile()));
+            // SMS 9 Aug 2006
+            // lp will be null for a language that has no labelProvider service (at least,
+            // that's what happens to me with jsdiv, which lacks one).  I don't know what
+            // happens if you simply skip this part if lp is null, but I'm going to try it
+            // (since it might very well be better than an NPE, and it otherwise seems to
+            // be okay for a language to lack a label provider
+            if (lp != null) {
+            	setTitleImage(lp.getImage(((IFileEditorInput) getEditorInput()).getFile()));
+            }
         }
 
         if (SAFARIPreferenceCache.sourceFont != null)

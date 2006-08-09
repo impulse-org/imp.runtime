@@ -57,6 +57,13 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
         if (titleImage == null) {
             return;
         }
+        
+    	// SMS 9 Aug 2006
+    	// fLabelProvider may be null, so check for that
+        if (fLabelProvider == null) {
+        	return;
+        }
+        
         Image newImage= fLabelProvider.getImage(file);
         if (titleImage != newImage) {
             postImageChange(newImage);
@@ -75,7 +82,12 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
     }
 
     public void dispose() {
-        fLabelProvider.dispose();
+    	// SMS 9 Aug 2006
+    	// as noted above, fLabelProvoider may be referenced when null,
+    	// so I've added a guard here for that condition
+    	if (fLabelProvider != null) {
+    		fLabelProvider.dispose();
+    	}
         fEditor.getProblemMarkerManager().removeListener(this);
     }
 }

@@ -41,8 +41,21 @@ public class ExtensionPointFactory {
 	}
 
 	// Check for a base language implementation and use that if available
-	if (service == null && language.getDerivedFrom() != null)
-	    service= createExtensionPoint(LanguageRegistry.findLanguage(language.getDerivedFrom()), pluginID, extensionPointId);
+	if (service == null && language.getDerivedFrom() != null) {
+		// SMS 9 Aug 2006
+		// When a user is defining a new language, if the user fills in a value for "derived from"
+		// that does not correspond to a SAFARI-supported language, then a call to
+		// LanguageRegistry.findLanguage(language.getDerivedFrom()) will return null,
+		// so check for that before using the return value in a call to languageServiceExists(..)
+		// (that was not done originally)
+		// Note:  Check the explanatory text for that attribute in the NewLanguage wizard
+		// to assure that it provides a warning to provide only SAFARI-supported languages
+		if (LanguageRegistry.findLanguage(language.getDerivedFrom()) == null) {
+			service = null;
+		} else {
+		    service= createExtensionPoint(LanguageRegistry.findLanguage(language.getDerivedFrom()), pluginID, extensionPointId);		
+		}
+	}
 
 	if (service == null)
 	    service= createDefaultImpl(language, pluginID, extensionPointId);
@@ -93,8 +106,20 @@ public class ExtensionPointFactory {
 		}
 	    }
 	}
-	if (language.getDerivedFrom() != null)
+	if (language.getDerivedFrom() != null) {
+		// SMS 9 Aug 2006
+		// When a user is defining a new language, if the user fills in a value for "derived from"
+		// that does not correspond to a SAFARI-supported language, then a call to
+		// LanguageRegistry.findLanguage(language.getDerivedFrom()) will return null,
+		// so check for that before using the return value in a call to languageServiceExists(..)
+		// (that was not done originally)
+		// Note:  Check the explanatory text for that attribute in the NewLanguage wizard
+		// to assure that it provides a warning to provide only SAFARI-supported languages
+		if (LanguageRegistry.findLanguage(language.getDerivedFrom()) == null) {
+			return false;
+		}
 	    return languageServiceExists(pluginID, extensionPointID, LanguageRegistry.findLanguage(language.getDerivedFrom()));
+	}
 	return false;
     }
 

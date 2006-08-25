@@ -26,8 +26,8 @@ import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.action.SubMenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -213,11 +213,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             IAction[] editorActions= contributor.getEditorRefactoringActions(this);
 
 //          IMenuManager refMenu= new SubMenuManager(menu);
-            Separator refGroup= new Separator("Refactor");
-            menu.appendToGroup("additions", refGroup);
+            Separator refGroup= new Separator("group.refactor");
+            IMenuManager refMenu= new MenuManager("Refac&tor");
+
+            menu.add(refGroup);
+            menu.appendToGroup("group.refactor", refMenu);
 
             for(int i= 0; i < editorActions.length; i++) {
-                menu.appendToGroup("Refactor", editorActions[i]);
+                refMenu.add(editorActions[i]);
 	    }
         }
     }

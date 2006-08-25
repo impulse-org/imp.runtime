@@ -18,6 +18,7 @@
    <extension-point id="imageDecorator" name="Image Decorator" schema="schema/imageDecorator.exsd"/>
    <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
    <extension-point id="outlineContentProvider" name="Outline Content Provider" schema="schema/outlineContentProvider.exsd"/>
+   <extension-point id="refactoringContributions" name="Refactoring Contributions" schema="schema/refactoringContributions.exsd"/>
    
    <extension
          point="org.eclipse.ui.editors">
@@ -118,5 +119,18 @@
             description="Comments/uncomments the current selection or the current source line"
             id="org.eclipse.uide.runtime.toggleComment"
             name="Toggle Comment"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="org.eclipse.uide.runtime.refactoringActions"
+            label="SAFARI Refactoring Actions"
+            visible="true">
+         <menu
+               id="org.eclipse.uide.refactoring"
+               label="Refactor">
+            <separator name="org.eclipse.uide.refactoring"/>
+         </menu>
+      </actionSet>
    </extension>
 </plugin>

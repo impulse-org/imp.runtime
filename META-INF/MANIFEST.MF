@@ -22,7 +22,9 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.compare,
- org.eclipse.jdt.launching
+ org.eclipse.jdt.launching,
+ org.eclipse.ltk.core.refactoring,
+ org.eclipse.ltk.ui.refactoring
 Eclipse-AutoStart: true
 Export-Package: org.eclipse.uide.builder,
  org.eclipse.uide.core,
@@ -31,6 +33,7 @@ Export-Package: org.eclipse.uide.builder,
  org.eclipse.uide.indexing,
  org.eclipse.uide.parser,
  org.eclipse.uide.preferences,
+ org.eclipse.uide.refactoring,
  org.eclipse.uide.runtime,
  org.eclipse.uide.utils,
  org.eclipse.uide.wizards,

@@ -11,10 +11,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
-
 import lpg.lpgjavaruntime.IToken;
 import lpg.lpgjavaruntime.PrsStream;
-
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -26,6 +24,10 @@ import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.action.SubMenuManager;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
@@ -73,10 +75,10 @@ import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
-import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.defaults.DefaultAnnotationHover;
@@ -196,6 +198,28 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
 	setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
 //	PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
+    }
+
+    public interface IRefactoringContributor extends ILanguageService {
+	public IAction[] getEditorRefactoringActions(UniversalEditor editor);
+    }
+
+    protected void editorContextMenuAboutToShow(IMenuManager menu) {
+        super.editorContextMenuAboutToShow(menu);
+
+        IRefactoringContributor contributor= (IRefactoringContributor) createExtensionPoint("refactoringContributions");
+
+        if (contributor != null) {
+            IAction[] editorActions= contributor.getEditorRefactoringActions(this);
+
+//          IMenuManager refMenu= new SubMenuManager(menu);
+            Separator refGroup= new Separator("Refactor");
+            menu.appendToGroup("additions", refGroup);
+
+            for(int i= 0; i < editorActions.length; i++) {
+                menu.appendToGroup("Refactor", editorActions[i]);
+	    }
+        }
     }
 
     /* (non-Javadoc)

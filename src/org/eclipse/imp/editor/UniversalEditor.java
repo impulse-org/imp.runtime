@@ -75,6 +75,7 @@ import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
+import org.eclipse.ui.texteditor.MarkerAnnotationPreferences;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
@@ -437,6 +438,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	super.createPartControl(parent);
 
         setupOverviewRulerAnnotations();
+        MarkerAnnotationPreferences.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
         {
             ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "labelProvider");
@@ -801,7 +803,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {
-		if (fPresentationController != null) {
+		if (fPresentationController != null && fParserScheduler.parseController != null) {
 		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
 		    int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
 
@@ -842,8 +844,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 		    fPresentationController.damage(damage.getOffset(),
 			    (length > damage.getLength() ? length : damage.getLength()));
-		}
-		if (fParserScheduler != null) {
 		    fParserScheduler.cancel();
 		    fParserScheduler.schedule();
 		}

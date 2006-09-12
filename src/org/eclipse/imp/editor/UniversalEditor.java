@@ -85,6 +85,7 @@ import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.defaults.DefaultAnnotationHover;
 import org.eclipse.uide.internal.editor.FoldingController;
 import org.eclipse.uide.internal.editor.FormattingController;
+import org.eclipse.uide.internal.editor.HyperlinkDetector;
 import org.eclipse.uide.internal.editor.OutlineController;
 import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.editor.SourceHyperlinkController;
@@ -427,6 +428,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    if (SAFARIPreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
 	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
+	    if (fHyperLinkDetector == null)
+		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
 	    if (fHyperLinkDetector != null)
 	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");

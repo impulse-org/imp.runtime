@@ -10,33 +10,7 @@ import org.eclipse.uide.parser.IParseController;
  * @author sutton
  *
  */
-
-
 public interface IReferenceResolver {
-	
-	/**
-	 * Returns true or false according to whether the given node has
-	 * a type that may serve as the source of a hyperlink (or at least
-	 * for which a target node can reasonably be requested).
-	 * 
-	 * The purpose of this method is to allow unsuitble nodes to be
-	 * screened out before an attempt is made to identify their target
-	 * nodes.
-	 * 
-	 * Note:  If the getLinkText(..) method is robust and efficient, then
-	 * the check for a suitable source type may be bypassed (or the
-	 * implementation of this method may always return true), and a null
-	 * target can simply be returned for nodes that cannot serve as link
-	 * sources because of their type.
-	 * 
-	 * @param node	A candidate source node
-	 * @return		True or false according to whether the given
-	 * 				node has a type that can serve as a source
-	 * 				for hyperlinks (or at least that getLinkTarget(..)
-	 * 				can accept as input)
-	 */
-	public boolean hasSuitableLinkSourceType(Object node);
-
 	
 	/**
 	 * Returns the AST node that represents the target of a hyperlink that

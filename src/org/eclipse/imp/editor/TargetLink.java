@@ -50,6 +50,9 @@ public final class TargetLink implements IHyperlink {
     }
 
     public void open() {
+	// TODO RMF 9/12/2006 - Do the necessary editor navigation history maintainence.
+	// Would be nice if we could call TextEditor.selectAndReveal(), which does the
+	// right thing, but we don't have access to the TextEditor to begin with...
         fViewer.setSelectedRange(fTargetStart, fTargetLength);
         fViewer.revealRange(fTargetStart, fTargetLength);
     }

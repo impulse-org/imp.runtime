@@ -9,5 +9,5 @@ import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.uide.parser.IParseController;
 
 public interface ISourceHyperlinkDetector {
-    IHyperlink[] detectHyperlinks(ITextViewer textViewer, IRegion region, IParseController parseController);
+    IHyperlink[] detectHyperlinks(IRegion region, UniversalEditor editor, ITextViewer textViewer, IParseController parseController);
 }

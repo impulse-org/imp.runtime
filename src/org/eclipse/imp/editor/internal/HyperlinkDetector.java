@@ -8,6 +8,7 @@ import org.eclipse.uide.core.Language;
 import org.eclipse.uide.editor.IReferenceResolver;
 import org.eclipse.uide.editor.ISourceHyperlinkDetector;
 import org.eclipse.uide.editor.TargetLink;
+import org.eclipse.uide.editor.UniversalEditor;
 import org.eclipse.uide.parser.IASTNodeLocator;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
@@ -26,7 +27,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
     }
 
     public IHyperlink[] detectHyperlinks(
-    		final ITextViewer textViewer, final IRegion region, IParseController parseController)
+    		final IRegion region, UniversalEditor editor, final ITextViewer textViewer, IParseController parseController)
     {
     	// This is the only language-specific bit ...
 	if (fResolver == null)
@@ -65,7 +66,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
        	
         // Create and return the new hyperlink
         IHyperlink[] result = new IHyperlink[] {
-            new TargetLink(linkText, srcStart, textViewer, target, srcLength, targetStart, targetLength)
+            new TargetLink(linkText, srcStart, textViewer, editor, target, srcLength, targetStart, targetLength)
         };
         
         return result;

@@ -9,19 +9,22 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
 import org.eclipse.uide.editor.ISourceHyperlinkDetector;
+import org.eclipse.uide.editor.UniversalEditor;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 
 public class SourceHyperlinkController implements IHyperlinkDetector, IModelListener {
     private final ISourceHyperlinkDetector fSourceHyperlinkDetector;
     private IParseController fParseController;
+    private final UniversalEditor fEditor;
 
-    public SourceHyperlinkController(ISourceHyperlinkDetector sourceHyperlinkDetector) {
+    public SourceHyperlinkController(ISourceHyperlinkDetector sourceHyperlinkDetector, UniversalEditor editor) {
 	fSourceHyperlinkDetector= sourceHyperlinkDetector;
+	fEditor= editor;
     }
 
     public IHyperlink[] detectHyperlinks(final ITextViewer textViewer, final IRegion region, boolean canShowMultipleHyperlinks) {
-	return fSourceHyperlinkDetector.detectHyperlinks(textViewer, region, fParseController);
+	return fSourceHyperlinkDetector.detectHyperlinks(region, fEditor, textViewer, fParseController);
     }
 
     public void update(IParseController parseController, IProgressMonitor monitor) {

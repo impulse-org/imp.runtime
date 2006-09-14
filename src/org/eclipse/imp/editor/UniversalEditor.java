@@ -431,7 +431,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    if (fHyperLinkDetector == null)
 		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
 	    if (fHyperLinkDetector != null)
-	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector);
+	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
 	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
 	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
 	    fFormattingController= new FormattingController(fFormattingStrategy);

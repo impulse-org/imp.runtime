@@ -78,11 +78,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
             if (! validateLineNumber(origSrcFile, origSrcLineNumber)) 
             	 return;
             
-            //System.out.println("******** &&&& The breakpoint is at line: " + origSrcLineNumber + " in " + origExten + " and " + javaLineNum + " in Java");
-
-            // System.out.println("Breakpoint toggle request @ line " + javaLineNum + " of file "
-            // + javaFile.getProjectRelativePath());
-
+            
             // TODO Enable the breakpoint if there is already one that's disabled, rather than just blindly removing it.
 
         
@@ -101,7 +97,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
                     	
                         //bkptToSrcMarkerMap.remove(existingBreakpoint);
                         DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(existingBreakpoint, true);
-                        System.out.println("******* deleting marker");
+                        //System.out.println("******* deleting marker");
 
                         return;
                     }
@@ -138,7 +134,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
                             continue;
                         origSrcMarker.setAttribute(key, value);
                         
-                        System.out.println("Attribute added for marker " + key + "-> " + value);
+                        //System.out.println("Attribute added for marker " + key + "-> " + value);
                     }
                     origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
                     
@@ -210,12 +206,11 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
     }
 
 	public void breakpointAdded(IBreakpoint breakpoint) {
-		// MV -- This should never be called
-		System.out.println("***** in breakpointAdded");
+		
 	}
 
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		System.err.println("in breakpointRemoved");
+		
 		IPath path = breakpoint.getMarker().getResource().getRawLocation();
 		String fileName = path.lastSegment();
 		fileName = fileName.substring(0, fileName.indexOf(".") + 1) + origExten; 
@@ -224,7 +219,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 		IFile origSrcFile = ((Workspace)breakpoint.getMarker().getResource().getProject().getWorkspace()).getFileSystemManager().fileForLocation(path);
 		try {
 			IMarker marker = findMarker(origSrcFile, ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
-			System.out.println("deleting marker " + origSrcFile.getFullPath() + " at line " + ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
+			//System.out.println("deleting marker " + origSrcFile.getFullPath() + " at line " + ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
 			if (marker != null)
 				marker.delete();
 		} catch(CoreException e){
@@ -234,7 +229,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 	}
 
 	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-		System.err.println("In breakpoint removed");
+		
 		
 	}
 	

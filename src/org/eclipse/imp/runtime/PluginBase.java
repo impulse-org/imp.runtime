@@ -3,9 +3,11 @@
  */
 package org.eclipse.uide.runtime;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.uide.preferences.SafariPreferencesService;
 
 public abstract class SAFARIPluginBase extends AbstractUIPlugin implements IPluginLog {
     private ILog sLog= null;
@@ -51,4 +53,16 @@ public abstract class SAFARIPluginBase extends AbstractUIPlugin implements IPlug
     public void refreshPrefs() {
 	// default: do nothing, no preferences
     }
+    
+    
+    // SMS 22 Aug 2006
+    protected static SafariPreferencesService preferencesService = null;
+    public static SafariPreferencesService getPreferencesService() {
+    	if (preferencesService == null) {
+    		preferencesService = new SafariPreferencesService(ResourcesPlugin.getWorkspace().getRoot().getProject());
+    	}
+    	return preferencesService;
+    }
+
+    
 }

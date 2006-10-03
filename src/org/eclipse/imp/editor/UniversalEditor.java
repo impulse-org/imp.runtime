@@ -105,9 +105,9 @@ import org.eclipse.uide.utils.ExtensionPointFactory;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
-    public static final String TOGGLE_COMMENT_COMMAND= "org.eclipse.uide.runtime.toggleComment";
+    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.UIDE_RUNTIME + ".toggleComment";
 
-    public static final String SHOW_OUTLINE_COMMAND= "org.eclipse.uide.runtime.showOutlineCommand";
+    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.UIDE_RUNTIME + ".showOutlineCommand";
 
     public static final String MESSAGE_BUNDLE= "org.eclipse.uide.editor.messages";
 
@@ -452,9 +452,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // happens if you simply skip this part if lp is null, but I'm going to try it
             // (since it might very well be better than an NPE, and it otherwise seems to
             // be okay for a language to lack a label provider
-            if (lp != null) {
+            if (lp != null)
             	setTitleImage(lp.getImage(((IFileEditorInput) getEditorInput()).getFile()));
-            }
         }
 
         if (SAFARIPreferenceCache.sourceFont != null)

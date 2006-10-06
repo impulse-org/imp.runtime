@@ -29,6 +29,9 @@ public interface IParseController extends ILanguageService
 
     boolean hasErrors();
 
+    /**
+     * @return a List of ParseError
+     */
     List getErrors();
 
     Object parse(String input, boolean scanOnly, IProgressMonitor monitor);

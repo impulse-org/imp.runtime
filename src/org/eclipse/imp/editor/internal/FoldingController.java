@@ -16,6 +16,10 @@ public class FoldingController implements IModelListener {
 	this.fFoldingUpdater= foldingUpdater;
     }
 
+    public AnalysisRequired getAnalysisRequired() {
+        return AnalysisRequired.SYNTACTIC_ANALYSIS;
+    }
+
     public void update(IParseController parseController, IProgressMonitor monitor) {
 	fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
     }

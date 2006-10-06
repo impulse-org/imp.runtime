@@ -22,6 +22,10 @@ class HoverHelpController implements ITextHover, IModelListener {
 
     private IHoverHelper hoverHelper;
 
+    public AnalysisRequired getAnalysisRequired() {
+	return AnalysisRequired.NAME_ANALYSIS;
+    }
+
     public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
         return new Region(offset, 0);
     }

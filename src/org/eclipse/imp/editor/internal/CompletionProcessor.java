@@ -34,6 +34,10 @@ class CompletionProcessor implements IContentAssistProcessor, IModelListener {
 		    RuntimePlugin.UIDE_RUNTIME, "contentProposer");
 	}
 
+	public AnalysisRequired getAnalysisRequired() {
+	    return AnalysisRequired.TYPE_ANALYSIS;
+	}
+
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 	    try {
 		if (parseController != null && contentProposer != null) {

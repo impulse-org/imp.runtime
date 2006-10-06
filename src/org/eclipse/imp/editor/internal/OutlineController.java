@@ -52,6 +52,10 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "outliner");
     }
 
+    public AnalysisRequired getAnalysisRequired() {
+        return AnalysisRequired.SYNTACTIC_ANALYSIS;
+    }
+
     public void createControl(Composite parent) {
     	tree= new Tree(parent, SWT.NONE);
     	tree.addSelectionListener(new SelectionAdapter() {

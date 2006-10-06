@@ -23,6 +23,10 @@ public class SourceHyperlinkController implements IHyperlinkDetector, IModelList
 	fEditor= editor;
     }
 
+    public AnalysisRequired getAnalysisRequired() {
+        return AnalysisRequired.NAME_ANALYSIS;
+    }
+
     public IHyperlink[] detectHyperlinks(final ITextViewer textViewer, final IRegion region, boolean canShowMultipleHyperlinks) {
 	return fSourceHyperlinkDetector.detectHyperlinks(region, fEditor, textViewer, fParseController);
     }

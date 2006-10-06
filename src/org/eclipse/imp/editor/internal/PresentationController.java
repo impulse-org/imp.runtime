@@ -24,21 +24,13 @@ import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
 import lpg.lpgjavaruntime.IToken;
 
-/*
- * Licensed Materials - Property of IBM,
- * (c) Copyright IBM Corp. 2005  All Rights Reserved
- */
-
 /**
  * @author Claffra
- *
- * TODO add documentation
+ * @author rfuhrer@watson.ibm.com
  */
 public class PresentationController implements IModelListener {
-    //  private ArrayList squigglies;
     private ISourceViewer sourceViewer;
 
-    //  private IParser parser;
     private ITokenColorer colorer;
 
     private List annotations;
@@ -46,6 +38,10 @@ public class PresentationController implements IModelListener {
     public PresentationController(ISourceViewer sourceViewer) {
 	this.sourceViewer= sourceViewer;
 	annotations= new ArrayList();
+    }
+
+    public AnalysisRequired getAnalysisRequired() {
+	return AnalysisRequired.LEXICAL_ANALYSIS;
     }
 
     public void setLanguage(Language language) {
@@ -132,6 +128,7 @@ public class PresentationController implements IModelListener {
 		if (!monitor.isCanceled())
 		    workItems.removeAllElements();
 	    }
+	    // TODO This should be separated out to another service, since it requires deeper analysis than lexical analysis...
 	    generateErrorAnnotations(controller);
 	}
     }
@@ -146,5 +143,4 @@ public class PresentationController implements IModelListener {
     public void damage(int offset, int length) {
 	workItems.push(new Region(offset, length));
     }
-
 }

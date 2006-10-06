@@ -928,14 +928,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    RuntimePlugin.getInstance().writeInfoMsg("Notifying AST listeners of change in " + parseController.getParser().getParseStream().getFileName());
 		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
 		    IModelListener listener= (IModelListener) astListeners.get(n);
+		    // Pretend to get through the highest level of analysis so all services execute (for now)
+		    int analysisLevel= IModelListener.AnalysisRequired.POINTER_ANALYSIS.level();
 
-		    // HACK RMF 7/19/2006 - PresentationController only needs a token stream,
-		    // so notify it even if the parser wasn't successful in producing an AST.
-		    //
-		    // In the long run, listeners should specify their prerequisite analysis
-		    // results (tokenization, parsing, name resolution, etc.). We should
-		    // probably have a SourceListener API that exposes this meta-info.
-		    if (parseController.getCurrentAst() != null || listener instanceof PresentationController)
+		    if (parseController.getCurrentAst() == null)
+			analysisLevel= IModelListener.AnalysisRequired.LEXICAL_ANALYSIS.level();
+		    // TODO How to tell how far we got with the source analysis? The IAnalysisController should tell us!
+		    // TODO Rename IParseController to IAnalysisController
+		    // TODO Compute the minimum amount of analysis sufficient for all current listeners, and pass that to the IAnalysisController.
+		    if (listener.getAnalysisRequired().level() <= analysisLevel)
 			listener.update(parseController, monitor);
 		}
 	    } else

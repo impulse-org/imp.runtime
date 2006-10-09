@@ -19,7 +19,7 @@
    <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
    <extension-point id="outlineContentProvider" name="Outline Content Provider" schema="schema/outlineContentProvider.exsd"/>
    <extension-point id="refactoringContributions" name="Refactoring Contributions" schema="schema/refactoringContributions.exsd"/>
-   <extension-point id="referenceResolvers" name="SAFARI Reference Resolver" schema="schema/referenceResolver.exsd"/>
+   <extension-point id="referenceResolvers" name="SAFARI Reference Resolver" schema="schema/referenceResolvers.exsd"/>
    
    <extension
          point="org.eclipse.ui.editors">

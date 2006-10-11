@@ -8,7 +8,7 @@
 		<property name="plugin.version" value="${runtime.version}"/>
 		<property name="plugin.jar.name" value="${plugin.name}_${plugin.version}.jar"/>
 		<property name="plugin.zip.name" value="${plugin.name}_${plugin.version}.zip"/>
-		<property name="plugin.src.zip" value="${plugin.name}src.zip"/>
+		<property name="plugin.src.zip" value="${plugin.name}_src.zip"/>
 		<property name="plugin.destination" value="${basedir}"/>
 		<condition property="pluginTemp" value="${buildTempFolder}/plugins">
 			<isset property="buildTempFolder"/>

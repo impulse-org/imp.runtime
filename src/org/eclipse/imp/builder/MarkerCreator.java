@@ -3,10 +3,10 @@ package org.eclipse.uide.builder;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.uide.editor.IMessageHandler;
 import org.eclipse.uide.parser.IParseController;
 import lpg.lpgjavaruntime.IToken;
 import lpg.lpgjavaruntime.PrsStream;
+import lpg.lpgjavaruntime.IMessageHandler;
 
 
 /**

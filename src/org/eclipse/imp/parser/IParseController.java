@@ -2,10 +2,10 @@ package org.eclipse.uide.parser;
 
 import java.util.List;
 import lpg.lpgjavaruntime.IToken;
+import lpg.lpgjavaruntime.IMessageHandler;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.editor.IMessageHandler;
 
 public interface IParseController extends ILanguageService
 {

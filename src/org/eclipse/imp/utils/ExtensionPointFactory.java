@@ -37,7 +37,7 @@ public class ExtensionPointFactory {
 	    else
 		ErrorHandler.reportError("No such language service extension point defined: " + pluginID + "." + extensionPointId);
 	} catch (Throwable e) {
-	    ErrorHandler.reportError("Error finding \"" + extensionPointId + "\" service for \"" + language + "\"", e);
+	    ErrorHandler.reportError("Error finding or creating \"" + extensionPointId + "\" service for \"" + language + "\"", e);
 	}
 
 	// Check for a base language implementation and use that if available

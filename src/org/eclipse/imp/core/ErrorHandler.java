@@ -17,7 +17,7 @@ import org.eclipse.uide.runtime.RuntimePlugin;
 public class ErrorHandler {
     private static final boolean PRINT= true;
     private static final boolean DUMP= true;
-    private static final boolean LOG= false;
+    private static final boolean LOG= true;
 
     public static void reportError(String message, Throwable e) {
 	reportError(message, false, e);

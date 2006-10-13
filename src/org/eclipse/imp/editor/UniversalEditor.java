@@ -886,9 +886,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    super(name);
 	    setSystem(true); // do not show this job in the Progress view
 	    parseController= (IParseController) createExtensionPoint("parser");
+	    if (parseController == null)
+		ErrorHandler.reportError("Unable to instantiate parser; parser-related services disabled.");
 	}
 
 	protected IStatus run(IProgressMonitor monitor) {
+	    if (parseController == null)
+		return Status.OK_STATUS;
 	    try {
 		IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
 		IDocument document= getDocumentProvider().getDocument(fileEditorInput);

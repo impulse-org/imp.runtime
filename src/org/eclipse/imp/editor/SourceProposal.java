@@ -11,7 +11,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 public class SourceProposal implements ICompletionProposal {
-    private final String fName;
+	private final String fName;
+
+	private final String fProposal;
 
     private final String fPrefix;
 
@@ -19,6 +21,15 @@ public class SourceProposal implements ICompletionProposal {
 
     public SourceProposal(String name, String prefix, int offset) {
         super();
+        fProposal= name;
+        fName= name;
+        fPrefix= prefix;
+        fOffset= offset;
+    }
+
+    public SourceProposal(String proposal, String name, String prefix, int offset) {
+        super();
+        fProposal= proposal;
         fName= name;
         fPrefix= prefix;
         fOffset= offset;
@@ -42,7 +53,7 @@ public class SourceProposal implements ICompletionProposal {
     }
 
     public String getDisplayString() {
-        return fName;
+        return fProposal;
     }
 
     public Image getImage() {

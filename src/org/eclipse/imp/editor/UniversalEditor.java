@@ -71,6 +71,7 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -441,7 +442,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	super.createPartControl(parent);
 
         setupOverviewRulerAnnotations();
-        MarkerAnnotationPreferences.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
+        AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
+//      MarkerAnnotationPreferences.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
         {
             ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "labelProvider");

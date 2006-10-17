@@ -61,7 +61,8 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // to the beginning of the file and give it a nominal length.
 
         final int targetStart= (nodeLocator.getStartOffset(target) < 0) ? 0 : nodeLocator.getStartOffset(target);
-        final int targetLength= (targetStart == 0) ? 1 : nodeLocator.getEndOffset(target) - targetStart + 1;
+        //final int targetLength= (targetStart == 0) ? 1 : nodeLocator.getEndOffset(target) - targetStart + 1;
+        final int targetLength= nodeLocator.getEndOffset(target) - targetStart + 1;
         final String linkText = fResolver.getLinkText(source);
        	
         // Create and return the new hyperlink

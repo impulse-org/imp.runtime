@@ -57,8 +57,8 @@ public class LanguageRegistry {
 
 	    if (SAFARIPreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Determining language of file " + file.getFullPath().toString());
-	    else
-		ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
+//	    else
+//		ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
             extension= file.getFileExtension();
 	    if (extension == null)
 		return null;

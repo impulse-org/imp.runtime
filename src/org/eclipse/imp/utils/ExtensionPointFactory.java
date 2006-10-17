@@ -80,8 +80,8 @@ public class ExtensionPointFactory {
 	} catch (ClassNotFoundException e) {
 	    if (SAFARIPreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("No language-specific or default implementation found for service " + extensionPointId + " and language " + language.getName());
-	    else
-		ErrorHandler.reportError("No language-specific or default implementation found for service " + extensionPointId + " and language " + language.getName(), false, true);
+	    //else
+		//ErrorHandler.reportError("No language-specific or default implementation found for service " + extensionPointId + " and language " + language.getName(), false, true);
 	} catch (Throwable ee) {
 	    ErrorHandler.reportError("Universal Editor Error", ee);
 	}

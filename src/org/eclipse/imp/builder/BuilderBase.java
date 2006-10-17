@@ -262,6 +262,11 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
      */
     protected void createMarker(IResource errorResource, int startLine, int startChar, int endChar, String descrip, int severity) {
         try {
+        	// TODO:  Address this situation properly after demo
+        	// Issue is resources that are templates and not in user's workspace
+        	if (!errorResource.exists())
+        		return;
+        	
             IMarker m= errorResource.createMarker(getMarkerIDFor(severity));
     
             m.setAttribute(IMarker.SEVERITY, severity);

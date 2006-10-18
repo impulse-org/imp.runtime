@@ -99,6 +99,11 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     public void setSelection(ISelection selection) {}
 
     public void update(IParseController result, IProgressMonitor monitor) {
+        // TODO RMF 10/18/2006: Shouldn't even create this controller if we have no
+        // language-specific outliner, but UniversalEditor doesn't know that when it
+        // instantiates this class... What to do?
+        if (outliner == null)
+            return;
 
  	this.controller= result;
 	if (job != null) {
@@ -109,12 +114,9 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 			public IStatus runInUIThread(IProgressMonitor monitor) {
 			    int offset= 0;
 			    try {
-				if (outliner != null)
-				    outliner.createOutlinePresentation(controller, offset);
-				else
-					throw new Exception("OutlineController.outliner is null; can't create outline presentation");
+			        outliner.createOutlinePresentation(controller, offset);
 			    } catch (Throwable e) {
-					ErrorHandler.reportError("Outline View Controller", e);
+			        ErrorHandler.reportError("Outline View Controller", e);
 			    }
 			    return Status.OK_STATUS;
 			}

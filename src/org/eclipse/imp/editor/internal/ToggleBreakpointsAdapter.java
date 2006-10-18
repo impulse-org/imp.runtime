@@ -56,7 +56,8 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
             IEditorPart editorPart= (IEditorPart) part.getAdapter(IEditorPart.class);
             IFileEditorInput fileInput= (IFileEditorInput) editorPart.getEditorInput();
             final IFile origSrcFile= fileInput.getFile();
-            
+
+            origExten= ((UniversalEditor) editorPart).fLanguage.getFilenameExtensions()[0];
            
             final String origSrcFileName= origSrcFile.getName();
             

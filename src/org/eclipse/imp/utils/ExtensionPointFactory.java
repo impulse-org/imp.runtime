@@ -89,6 +89,9 @@ public class ExtensionPointFactory {
     }
 
     public static boolean languageServiceExists(String pluginID, String extensionPointID, Language language) {
+	if (language == null)
+	    return false;
+
 	IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointID);
 	IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
 	String lowerLang= language.getName().toLowerCase();

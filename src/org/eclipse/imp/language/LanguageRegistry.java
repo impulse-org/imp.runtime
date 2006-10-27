@@ -6,12 +6,16 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IFileEditorMapping;
+import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
@@ -50,30 +54,38 @@ public class LanguageRegistry {
 	if (sLanguages == null)
 	    findLanguages();
 	String extension= "???";
+	IFile file= null;
 
-        if (editorInput instanceof FileEditorInput) {
-	    FileEditorInput fileEditorInput= (FileEditorInput) editorInput;
-	    IFile file= fileEditorInput.getFile();
+        if (editorInput instanceof IFileEditorInput) {
+	    IFileEditorInput fileEditorInput= (IFileEditorInput) editorInput;
+	    file= fileEditorInput.getFile();
 
 	    if (SAFARIPreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Determining language of file " + file.getFullPath().toString());
 //	    else
 //		ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
             extension= file.getFileExtension();
-	    if (extension == null)
-		return null;
-	    for(int n= 0; n < sLanguages.length; n++) {
-		if (sLanguages[n].hasExtension(extension)) {
-		    LanguageValidator validator= sLanguages[n].getValidator();
+	} else if (editorInput instanceof IPathEditorInput) {
+	    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
+	    IPath path= pathInput.getPath();
 
-                    if (validator != null) {
-			if (validator.validate(file))
-			    return sLanguages[n];
-		    } else
-			return sLanguages[n];
-		}
-	    }
+	    extension= path.getFileExtension();
+	    file= ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 	}
+
+        if (extension == null)
+            return null;
+        for(int n= 0; n < sLanguages.length; n++) {
+            if (sLanguages[n].hasExtension(extension)) {
+        	LanguageValidator validator= sLanguages[n].getValidator();
+
+        	if (validator != null && file != null) {
+        	    if (validator.validate(file))
+        		return sLanguages[n];
+        	} else
+        	    return sLanguages[n];
+            }
+        }
         if (SAFARIPreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("No language support for text/source file of type '" + extension + "'.");
         else

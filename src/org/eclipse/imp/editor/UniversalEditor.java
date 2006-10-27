@@ -13,7 +13,10 @@ import java.util.List;
 import java.util.ResourceBundle;
 import lpg.lpgjavaruntime.IToken;
 import lpg.lpgjavaruntime.PrsStream;
+
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -67,6 +70,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -449,8 +453,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "labelProvider");
 
             // Only set the editor's title bar icon if the language has a label provider
-            if (lp != null)
-            	setTitleImage(lp.getImage(((IFileEditorInput) getEditorInput()).getFile()));
+            if (lp != null) {
+        	IEditorInput editorInput= getEditorInput();
+        	IFile file= null;
+
+        	if (editorInput instanceof IFileEditorInput)
+        	    setTitleImage(lp.getImage(((IFileEditorInput) editorInput).getFile()));
+        	else if (editorInput instanceof IPathEditorInput) {
+		    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
+
+		    file= ResourcesPlugin.getWorkspace().getRoot().getFile(pathInput.getPath());
+        	}
+            }
         }
 
         if (SAFARIPreferenceCache.sourceFont != null)
@@ -891,9 +905,22 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    if (parseController == null)
 		return Status.OK_STATUS;
 	    try {
-		IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
-		IDocument document= getDocumentProvider().getDocument(fileEditorInput);
-		String filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
+		IEditorInput editorInput= getEditorInput();
+		IFile file= null;
+		IDocument document= null;
+		String filePath= null;
+
+		if (editorInput instanceof IFileEditorInput) {
+		    IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
+		    document= getDocumentProvider().getDocument(fileEditorInput);
+		    file= fileEditorInput.getFile();
+		    filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
+		} else if (editorInput instanceof IPathEditorInput) {
+		    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
+		    file= null;
+		    document= getDocumentProvider().getDocument(editorInput);
+		    filePath= pathInput.getPath().toString();
+		}
 
 		if (SAFARIPreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Parsing language " + fLanguage.getName() + " for input " + getEditorInput().getName());
@@ -901,7 +928,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
 		fAnnotationCreator.removeParserAnnotations();
-		parseController.initialize(filePath, fileEditorInput.getFile().getProject(), fAnnotationCreator);
+		parseController.initialize(filePath, file != null ? file.getProject() : null, fAnnotationCreator);
 		parseController.parse(document.get(), false, monitor);
 		if (!monitor.isCanceled())
 		    notifyAstListeners(parseController, monitor);

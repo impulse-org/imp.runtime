@@ -21,6 +21,7 @@ public class FoldingController implements IModelListener {
     }
 
     public void update(IParseController parseController, IProgressMonitor monitor) {
-	fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
+	if (fAnnotationModel != null) // can be null if file is outside workspace
+	    fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
     }
 }

@@ -24,10 +24,6 @@ public class AstLocator implements IASTNodeLocator {
         throw new UnsupportedOperationException();
     }
     
-    // SMS 13 Jun 2006:
-    // Added the following methods in response to a candidate change in
-    // the IASTNodeLocator interface.
-    
     public int getStartOffset(Object node) {
         Ast n = (Ast) node;
         return n.getToken().getStartOffset();
@@ -41,5 +37,8 @@ public class AstLocator implements IASTNodeLocator {
     public int getLength(Object  node) {
     	return getEndOffset(node) - getStartOffset(node);
     }
-    
+
+    public String getPath(Object node) {
+	return null;
+    }
 }

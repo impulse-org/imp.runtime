@@ -1,16 +1,23 @@
 package org.eclipse.uide.editor;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.ui.IEditorDescriptor;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 /**
  * Common class to represent a hyperlink to a given target location.
- * Currently limited to intra-file references.<br>
  * @author rfuhrer
  */
-// TODO Enhance this to handle cross-file references.
 public final class TargetLink implements IHyperlink {
     private final String fText;
 
@@ -24,15 +31,21 @@ public final class TargetLink implements IHyperlink {
 
     private final int fTargetLength;
 
-    private final ITextViewer fViewer;
+    private AbstractTextEditor fEditor;
 
-    private final UniversalEditor fEditor;
-
-    public TargetLink(String text, int srcStart, ITextViewer viewer, UniversalEditor editor, Object target, int srcLength, int targetStart, int targetLength) {
+    /**
+     * @param text
+     * @param srcStart
+     * @param editor may be null, if the target is in another compilation unit
+     * @param target a String filePath, if 'editor' is null
+     * @param srcLength
+     * @param targetStart
+     * @param targetLength
+     */
+    public TargetLink(String text, int srcStart, AbstractTextEditor editor, Object target, int srcLength, int targetStart, int targetLength) {
         super();
         fText= text;
         fStart= srcStart;
-        fViewer= viewer;
 	fEditor= editor;
         fTarget= target;
         fLength= srcLength;
@@ -53,6 +66,22 @@ public final class TargetLink implements IHyperlink {
     }
 
     public void open() {
+	if (fEditor == null) {
+	    String filePath= (String) fTarget;
+	    IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(filePath);
+	    final IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
+	    String wsLoc= wsRoot.getLocation().toOSString();
+	    String wsRelFilePath= filePath.startsWith(wsLoc) ?
+		    filePath.substring(wsLoc.length()) : filePath;
+	    IFile file= wsRoot.getFile(new Path(wsRelFilePath));
+
+	    try {
+		IEditorPart editor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(new FileEditorInput(file), ed.getId());
+		fEditor= (AbstractTextEditor) editor;
+	    } catch (PartInitException e) {
+		e.printStackTrace();
+	    }
+	}
 	fEditor.selectAndReveal(fTargetStart, fTargetLength);
     }
 }

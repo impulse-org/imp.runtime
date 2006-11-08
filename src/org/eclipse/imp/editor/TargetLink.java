@@ -36,13 +36,13 @@ public final class TargetLink implements IHyperlink {
     /**
      * @param text
      * @param srcStart
-     * @param editor may be null, if the target is in another compilation unit
-     * @param target a String filePath, if 'editor' is null
      * @param srcLength
+     * @param target a String filePath, if 'editor' is null
      * @param targetStart
      * @param targetLength
+     * @param editor may be null, if the target is in another compilation unit
      */
-    public TargetLink(String text, int srcStart, AbstractTextEditor editor, Object target, int srcLength, int targetStart, int targetLength) {
+    public TargetLink(String text, int srcStart, int srcLength, Object target, int targetStart, int targetLength, AbstractTextEditor editor) {
         super();
         fText= text;
         fStart= srcStart;

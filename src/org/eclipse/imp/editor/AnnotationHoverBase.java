@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.jdt.internal.ui.JavaUIMessages;
 import org.eclipse.jdt.internal.ui.text.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
@@ -158,8 +157,7 @@ public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguage
         }
         StringBuffer buffer= new StringBuffer();
         HTMLPrinter.addPageProlog(buffer);
-        HTMLPrinter.addParagraph(buffer, HTMLPrinter
-        	.convertToHTMLContent(JavaUIMessages.JavaAnnotationHover_multipleMarkersAtThisLine));
+        HTMLPrinter.addParagraph(buffer, HTMLPrinter.convertToHTMLContent("Multiple messages at this line"));
     
         HTMLPrinter.startBulletList(buffer);
         Iterator e= messages.iterator();

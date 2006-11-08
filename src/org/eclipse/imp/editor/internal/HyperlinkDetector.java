@@ -3,6 +3,8 @@ package org.eclipse.uide.internal.editor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.editor.IReferenceResolver;
@@ -61,15 +63,20 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // to the beginning of the file and give it a nominal length.
 
         final int targetStart= (nodeLocator.getStartOffset(target) < 0) ? 0 : nodeLocator.getStartOffset(target);
-        //final int targetLength= (targetStart == 0) ? 1 : nodeLocator.getEndOffset(target) - targetStart + 1;
         final int targetLength= nodeLocator.getEndOffset(target) - targetStart + 1;
+
+        // Use the file path info to determine whether the target editor is the same as
+        // the source editor, and initialize the TargetLink accordingly.
+        final String targetPath= nodeLocator.getPath(target);
         final String linkText = fResolver.getLinkText(source);
-       	
-        // Create and return the new hyperlink
+
+        String srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation().toOSString();
+        UniversalEditor targetEditor= (srcPath.equals(targetPath) ? editor : null);
+
         IHyperlink[] result = new IHyperlink[] {
-            new TargetLink(linkText, srcStart, textViewer, editor, target, srcLength, targetStart, targetLength)
+            new TargetLink(linkText, srcStart, srcLength, target, targetStart, targetLength, targetEditor)
         };
-        
+
         return result;
     }
 }

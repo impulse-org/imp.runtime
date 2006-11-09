@@ -70,8 +70,8 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         final String targetPath= nodeLocator.getPath(target);
         final String linkText = fResolver.getLinkText(source);
 
-        String srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation().toOSString();
-        UniversalEditor targetEditor= (srcPath.equals(targetPath) ? editor : null);
+        String srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation().toPortableString();
+        UniversalEditor targetEditor= (srcPath.endsWith(targetPath) ? editor : null);
         Object targetArg= targetEditor == null ? targetPath : target;
 
         IHyperlink[] result = new IHyperlink[] {

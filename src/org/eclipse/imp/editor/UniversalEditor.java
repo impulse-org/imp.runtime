@@ -659,10 +659,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    return new IInformationControlCreator() {
 		public IInformationControl createInformationControl(Shell parent) {
 		    int shellStyle= SWT.RESIZE | SWT.TOOL;
-		    int style= SWT.V_SCROLL | SWT.H_SCROLL;
+		    int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
 
 		    // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
-		    return new DefaultInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
+		    return new DefaultInformationControl(parent, style, new HTMLTextPresenter(false), "Press 'F2' for focus");
 		}
 	    };
 	}

@@ -13,7 +13,6 @@ import org.eclipse.core.resources.IProject;
 
 /**
  * Tracks dependencies among compilation units in a given project.<br>
- * TODO Should handle dependencies across projects.
  * @author rfuhrer@watson.ibm.com
  */
 public class DependencyInfo {
@@ -49,8 +48,8 @@ public class DependencyInfo {
 
     /**
      * Records a dependency between the two compilation units.
-     * @param fromPath a compilation unit path; should be project-relative
-     * @param uponPath a compilation unit path; should be project-relative
+     * @param fromPath a compilation unit path; should be workspace-relative
+     * @param uponPath a compilation unit path; should be workspace-relative
      */
     public void addDependency(String fromPath, String uponPath) {
 	Set/*<String path>*/ fwdEntry= getOrCreateEntry(fDependsUpon, fromPath);
@@ -73,7 +72,7 @@ public class DependencyInfo {
 
     /**
      * Clears any dependencies related to the given compilation unit
-     * @param unitPath should be project-relative
+     * @param unitPath should be workspace-relative
      */
     public void clearDependenciesOf(String unitPath) {
         Set/*<String path>*/ entry= getEntry(fDependsUpon, unitPath);
@@ -88,16 +87,16 @@ public class DependencyInfo {
     }
 
     /**
-     * @return a Map from project-relative unit paths to Sets of dependent
-     * project-relative unit paths
+     * @return a Map from workspace-relative unit paths to Sets of dependent
+     * workspace-relative unit paths
      */
     public Map/*<String path,Set<String path>>*/ getDependencies() {
         return Collections.unmodifiableMap(fDependsUpon);
     }
 
     /**
-     * @param unitPath should be project-relative
-     * @return a Set of dependent project-relative unit paths
+     * @param unitPath should be workspace-relative
+     * @return a Set of dependent workspace--relative unit paths
      */
     public Set/*<String path>*/ getDependentsOf(String unitPath) {
         return (Set) fIsDependedUponBy.get(unitPath);

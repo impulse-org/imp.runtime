@@ -77,11 +77,16 @@ public final class TargetLink implements IHyperlink {
 
 	    try {
 		IEditorPart editor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(new FileEditorInput(file), ed.getId());
-		fEditor= (AbstractTextEditor) editor;
+
+		// Don't assume the target editor is a text editor; the target might be
+		// in a class file or another kind of binary file.
+		if (editor instanceof AbstractTextEditor)
+		    fEditor= (AbstractTextEditor) editor;
 	    } catch (PartInitException e) {
 		e.printStackTrace();
 	    }
 	}
-	fEditor.selectAndReveal(fTargetStart, fTargetLength);
+	if (fEditor != null)
+	    fEditor.selectAndReveal(fTargetStart, fTargetLength);
     }
 }

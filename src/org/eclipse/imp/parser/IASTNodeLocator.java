@@ -37,7 +37,9 @@ public interface IASTNodeLocator
     int getLength(Object node);
 
     /**
-     * @return the path to the compilation unit (source or compiled, if no source) that contains the given AST node
+     * @return the path to the compilation unit (source or compiled, if no source) that contains the given AST node.
+     * The path is in "portable" format, using the Eclipse convention '/' for the path component separator.
+     * @see org.eclipse.core.runtime.IPath#toPortableString()
      */
     String getPath(Object node);
 }

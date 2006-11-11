@@ -29,7 +29,12 @@ public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguage
     protected static boolean isRulerLine(Position position, IDocument document, int line) {
         if (position.getOffset() > -1 && position.getLength() > -1) {
             try {
-        	return line == document.getLineOfOffset(position.getOffset()) + 1;
+        	// RMF 11/10/2006 - This used to add 1 to the line computed by the document,
+        	// which appears to be bogus. First, it didn't work right (annotation hovers
+        	// never appeared); second, the line passed in comes from the Eclipse
+        	// framework, so it should be consistent (wrt the index base) with what the
+        	// IDocument API provides.
+        	return line == document.getLineOfOffset(position.getOffset())/* + 1*/;
             } catch (BadLocationException x) {
             }
         }

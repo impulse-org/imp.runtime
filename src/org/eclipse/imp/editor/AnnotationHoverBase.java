@@ -68,7 +68,7 @@ public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguage
     
             if (!isRulerLine(position, document, line))
         	continue;
-    
+
             if (annotation instanceof AnnotationBag) {
         	AnnotationBag bag= (AnnotationBag) annotation;
         	Iterator e= bag.iterator();
@@ -97,7 +97,7 @@ public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguage
      * @return
      */
     private static boolean includeAnnotation(Annotation annotation, Position position, HashMap messagesAtPosition) {
-        return !(annotation instanceof ProjectionAnnotation);
+        return !(annotation instanceof ProjectionAnnotation) && !annotation.getType().equals("org.eclipse.ui.workbench.texteditor.quickdiffUnchanged");
     }
 
     public static String formatAnnotationList(List javaAnnotations) {

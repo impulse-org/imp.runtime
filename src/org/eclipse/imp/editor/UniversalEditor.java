@@ -211,6 +211,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	public IAction[] getEditorRefactoringActions(UniversalEditor editor);
     }
 
+    public interface ILanguageActionsContributor extends ILanguageService {
+	public IAction[] getEditorActions(UniversalEditor editor);
+    }
+
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
         super.editorContextMenuAboutToShow(menu);
 
@@ -218,13 +222,26 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         if (contributor != null) {
             IAction[] editorActions= contributor.getEditorRefactoringActions(this);
-
-//          IMenuManager refMenu= new SubMenuManager(menu);
             Separator refGroup= new Separator("group.refactor");
             IMenuManager refMenu= new MenuManager("Refac&tor");
 
             menu.add(refGroup);
             menu.appendToGroup("group.refactor", refMenu);
+
+            for(int i= 0; i < editorActions.length; i++) {
+                refMenu.add(editorActions[i]);
+	    }
+        }
+
+        ILanguageActionsContributor actionContributor= (ILanguageActionsContributor) createExtensionPoint("editorActionContributions");
+
+        if (actionContributor != null) {
+            IAction[] editorActions= actionContributor.getEditorActions(this);
+            Separator refGroup= new Separator("group.languageActions");
+            IMenuManager refMenu= new MenuManager(fLanguage.getName());
+
+            menu.add(refGroup);
+            menu.appendToGroup("group.languageActions", refMenu);
 
             for(int i= 0; i < editorActions.length; i++) {
                 refMenu.add(editorActions[i]);

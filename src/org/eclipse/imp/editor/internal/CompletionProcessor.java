@@ -41,7 +41,7 @@ class CompletionProcessor implements IContentAssistProcessor, IModelListener {
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
 	    try {
 		if (parseController != null && contentProposer != null) {
-		    return contentProposer.getContentProposals(parseController, offset);
+		    return contentProposer.getContentProposals(parseController, offset, viewer);
 		}
 		// TODO Once we move to 3.2, delegate to the HippieProposalProcessor
 //		return hippieProcessor.computeCompletionProposals(viewer, offset);

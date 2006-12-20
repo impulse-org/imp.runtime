@@ -1,5 +1,6 @@
 package org.eclipse.uide.editor;
 
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.parser.IParseController;
@@ -20,6 +21,6 @@ import org.eclipse.uide.parser.IParseController;
  */
 public interface IContentProposer extends ILanguageService {
 
-    public ICompletionProposal[] getContentProposals(IParseController controller, int offset);
+    public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer);
 
 }

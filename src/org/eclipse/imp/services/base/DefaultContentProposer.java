@@ -5,6 +5,7 @@ package org.eclipse.uide.defaults;
  */
 
 
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.uide.core.ErrorHandler;
@@ -25,7 +26,7 @@ public class DefaultContentProposer implements IContentProposer {
         this.language = language;
     }
 
-    public ICompletionProposal[] getContentProposals(IParseController controller, int offset) {
+    public ICompletionProposal[] getContentProposals(IParseController controller, int offset, ITextViewer viewer) {
 		char keywords[][] = controller.getKeywords();
         String msg = "This is the default content proposer.";
         String info = "You can add your own using the UIDE wizard.\n" +

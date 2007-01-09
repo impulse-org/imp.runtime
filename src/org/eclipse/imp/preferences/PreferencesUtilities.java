@@ -19,22 +19,34 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.uide.preferences.fields.SafariBooleanFieldEditor;
+import org.eclipse.uide.preferences.fields.SafariComboFieldEditor;
 import org.eclipse.uide.preferences.fields.SafariDirectoryListFieldEditor;
+import org.eclipse.uide.preferences.fields.SafariFieldEditor;
 import org.eclipse.uide.preferences.fields.SafariFileFieldEditor;
+import org.eclipse.uide.preferences.fields.SafariIntegerFieldEditor;
+import org.eclipse.uide.preferences.fields.SafariRadioGroupFieldEditor;
 import org.eclipse.uide.preferences.fields.SafariStringFieldEditor;
+import org.eclipse.uide.preferences.fields.details.DetailsDialogForBooleanFields;
+import org.eclipse.uide.preferences.fields.details.DetailsDialogForComboFields;
+import org.eclipse.uide.preferences.fields.details.DetailsDialogForRadioGroupFields;
+import org.eclipse.uide.preferences.fields.details.DetailsDialogForStringFields;
 
 
 public class SafariPreferencesUtilities {
 
 	
-	public Color colorWhite = new Color(null, 255, 255, 255);
-	public Color colorBluish = new Color(null, 175, 207, 239);
-	public Color colorGreenish = new Color(null, 0, 127, 239);
-	public Color colorLightGray = new Color(null, 224, 223, 226);
+	public static final Color colorWhite = new Color(null, 255, 255, 255);
+	public static final Color colorBluish = new Color(null, 175, 207, 239);
+	public static final Color colorGreenish = new Color(null, 0, 127, 239);
+	public static final Color colorLightGray = new Color(null, 224, 223, 226);
+	
+	public static final String comboDefaultValue = "none selected";
+	public static final String comboDefaultName = "None selected";
 	
 	ISafariPreferencesService service = null;
 	
@@ -42,6 +54,291 @@ public class SafariPreferencesUtilities {
 	{
 		this.service = service;
 	}
+	
+	
+	public String setField(SafariBooleanFieldEditor field, Composite parent)
+	{
+		// TODO:  Add checks on input validity (see below)
+		// Note:  so far assumes that the given level is the one to which the
+		// field belongs (which should be true but isn't guaranteed (?))
+
+		String level = field.getPreferencesLevel();
+		
+		// If the level is "project" and project == null then just set
+		// the field here (as a special case).
+		// Note:  without some project selected the field should not be
+		// editable.  Field will have to be set back to editable when
+		// (and probably where) a project is selected.  We might take
+		// care of this elsewhere but, until that is verified, keep
+		// doing it here.
+		// Note also:  loadWithInheritance (which calls setField(..))
+		// won't know that project == null and will try toset the field
+		// from some higher level
+		if (ISafariPreferencesService.PROJECT_LEVEL.equals(level) &&
+			service.getProject() == null)
+		{
+			if (parent == null) {
+				System.err.println("SafariPreferencesUtilities.setField():  parent is null");
+			}	
+			if (parent.isDisposed()) {
+				System.err.println("SafariPreferencesUtilities.setField():  parent is disposed");
+			}	
+			// Don't have a null boolean value to set field to,
+			// but would like to show it as "cleared" somehow
+			// (presumably "false" shows as empty
+			field.setFieldValueFromOutside(false);
+			if (!parent.isDisposed()) {
+				field.getChangeControl().setEnabled(false);
+				field.getChangeControl().setBackground(colorBluish);
+			}
+			// Pretend that this was set at the project level?
+			// (It was certainly cleared at that level)
+			return ISafariPreferencesService.PROJECT_LEVEL;
+		}
+		
+		// Otherwise, we have a legitimate level, so set normally
+		String levelFromWhichSet = field.loadWithInheritance();
+		
+		// Note:  You can evidently load a field even when it's control
+		// is disposed.  In that case (evidently) you can change the
+		// text in the field but not the background color.	
+		
+		if (parent != null && !parent.isDisposed()) {
+			if (level != null && level.equals(levelFromWhichSet)) {
+				field.getChangeControl().setBackground(colorLightGray);
+			} else if (level != null && field.getChangeControl().getEnabled()) {
+				field.getChangeControl().setBackground(colorBluish);
+			}
+		} else {
+			// If composite.isDisposed(), then both field.getTextControl(composite)
+			// and field.getTextControl() will return null; if needed, a text control
+			// must be obtained from somewhere else--but I have no idea where that
+			// might be.  Not sure why composite.isDisposed() here in the first place,
+			// especially considering that the field can be set
+		}
+
+		return levelFromWhichSet;
+	}
+	
+	
+	public String setField(SafariBooleanFieldEditor field, Composite composite, boolean value)
+	{
+		final String whoiam = "SafariPreferenesUtilities.setField(SafariBooleanFieldEditor field, composite, value):  ";
+		
+		if (field == null)
+			throw new IllegalArgumentException(whoiam + "given field is null");
+		if (composite == null)
+			throw new IllegalArgumentException(whoiam + "given composite is null");
+		
+		if (composite.isDisposed())
+			throw new IllegalStateException(whoiam + "composite is disposed");
+		if (!field.getChangeControl().getEnabled())
+			throw new IllegalStateException(whoiam + "field is not editable");
+		if (ISafariPreferencesService.PROJECT_LEVEL.equals(field.getPreferencesLevel()) &&
+				service.getProject() == null)
+			throw new IllegalStateException(whoiam + "field represents a project-level preference and project is not set");
+		
+		String level = field.getPreferencesLevel();
+				
+		field.setFieldValueFromOutside(value);
+		field.getChangeControl().setBackground(colorLightGray);
+
+		return level;
+	}
+
+
+	
+	public String setField(SafariComboFieldEditor field, Composite composite)
+	{
+		// TODO:  Add checks on input validity (see below)
+		// Note:  so far assumes that the given level is the one to which the
+		// field belongs (which should be true but isn't guaranteed (?))
+
+		String level = field.getPreferencesLevel();
+		
+		// If the level is "project" and project == null then just set
+		// the field here (as a special case).
+		if (ISafariPreferencesService.PROJECT_LEVEL.equals(level) &&
+			service.getProject() == null)
+		{
+			if (composite.isDisposed()) {
+				System.err.println("SafariPreferencesUtilities.setField():  composite is disposed");
+			}
+			// Updating a radio field with a null value should
+			// cause the first button to be selected
+			field.setFieldValueFromOutside(null);
+			if (!composite.isDisposed()) {
+				// Assume that editability on the project level is set
+				// appropriately by a project-selection listener
+				//field.getTextControl(composite).setEditable(false);
+				field.getComboBoxControl(composite).setBackground(colorWhite);
+				Control[] children = field.getComboBoxControl(composite).getChildren();
+		    	if (children != null) {
+		    		for (int i = 0; i < children.length; i++) {
+		    			Button button = (Button) children[i];
+		    			button.setBackground(SafariPreferencesUtilities.colorWhite);	
+		    		}
+		    	}
+			}
+			// Pretend that this was set at the project level?
+			// (It was certainly cleared at that level)
+			return ISafariPreferencesService.PROJECT_LEVEL;
+		}
+		
+		// Otherwise, we have a legitimate level, so set normally
+		String levelFromWhichSet = field.loadWithInheritance();
+		
+		// Note:  You can evidently load a field even when it's control
+		// is disposed.  In that case you can (evidently) change the
+		// text in the field but not the background color.	
+		
+		if (!composite.isDisposed()) {
+			// Needed if color is set in loadWithInheritance()?
+			// (Should the color be set in loadWithInheritance()?
+//			if (field.isInherited()) {
+//				field.getComboBoxControl(composite).setBackground(colorBluish);
+//			} else 	{
+//				field.getComboBoxControl(composite).setBackground(colorWhite);
+//			}
+		} else {
+			// If composite.isDisposed(), then both field.getTextControl(composite)
+			// and field.getTextControl() will return null; if needed, a text control
+			// must be obtained from somewhere else--but I have no idea where that
+			// might be.  Not sure why composite.isDisposed() here in the first place,
+			// especially considering that the field can be set
+		}
+		
+		return levelFromWhichSet;
+	}
+	
+	
+	public String setField(SafariComboFieldEditor field, Composite composite, String value)
+	{
+		final String whoiam = "SafariPreferenesUtilities.setField(SafariComboFieldEditor field, composite, value):  ";
+		
+		if (field == null)
+			throw new IllegalArgumentException(whoiam + "given field is null");
+		if (composite == null)
+			throw new IllegalArgumentException(whoiam + "given composite is null");
+		if (value == null)
+			throw new IllegalArgumentException(whoiam + "given value is null");
+		
+		if (composite.isDisposed())
+			throw new IllegalStateException(whoiam + "composite is disposed");
+		if (ISafariPreferencesService.PROJECT_LEVEL.equals(field.getPreferencesLevel()) &&
+				service.getProject() == null)
+			throw new IllegalStateException(whoiam + "field represents a project-level preference and project is not set");
+		
+		String level = field.getPreferencesLevel();
+				
+		field.setFieldValueFromOutside(value);
+		// setString(value) takes care of setting isInherited
+		// and presentsDefaultValue, but not ...
+		field.getComboBoxControl(composite).setBackground(colorWhite);
+
+		return level;
+	}
+
+
+	
+	public String setField(SafariRadioGroupFieldEditor field, Composite composite)
+	{
+		// TODO:  Add checks on input validity (see below)
+		// Note:  so far assumes that the given level is the one to which the
+		// field belongs (which should be true but isn't guaranteed (?))
+
+		String level = field.getPreferencesLevel();
+		
+		// If the level is "project" and project == null then just set
+		// the field here (as a special case).
+		if (ISafariPreferencesService.PROJECT_LEVEL.equals(level) &&
+			service.getProject() == null)
+		{
+			if (composite.isDisposed()) {
+				System.err.println("SafariPreferencesUtilities.setField():  composite is disposed");
+			}
+			// Updating a radio field with a null value should
+			// cause the first button to be selected
+			field.setFieldValueFromOutside(null);
+			if (!composite.isDisposed()) {
+				// Assume that editability on the project level is set
+				// appropriately by a project-selection listener
+				//field.getTextControl(composite).setEditable(false);
+				field.getRadioBoxControl().setBackground(colorBluish);
+				Button[] radioButtons = field.getRadioButtons();
+		    	if (radioButtons != null) {
+		    		for (int i = 0; i < radioButtons.length; i++) {
+		    			Button button = (Button) radioButtons[i];
+		    			button.setBackground(colorBluish);	
+		    		}
+		    	}
+			}
+			// Pretend that this was set at the project level?
+			// (It was certainly cleared at that level)
+			return ISafariPreferencesService.PROJECT_LEVEL;
+		}
+		
+		// Otherwise, we have a legitimate level, so set normally
+		String levelFromWhichSet = field.loadWithInheritance();
+		
+		// Note:  You can evidently load a field even when it's control
+		// is disposed.  In that case (evidently) you can change the
+		// text in the field but not the background color.	
+		
+		if (!composite.isDisposed()) {
+			// Needed if color is set in loadWithInheritance()?
+			// (Should the color be set in loadWithInheritance()?
+//			if (field.isInherited()) {
+//				field.getRadioBoxControl(composite).setBackground(colorBluish);
+//			} else 	{
+//				field.getRadioBoxControl(composite).setBackground(colorWhite);
+//			}
+		} else {
+			// If composite.isDisposed(), then both field.getTextControl(composite)
+			// and field.getTextControl() will return null; if needed, a text control
+			// must be obtained from somewhere else--but I have no idea where that
+			// might be.  Not sure why composite.isDisposed() here in the first place,
+			// especially considering that the field can be set
+		}
+
+		return levelFromWhichSet;
+	}
+	
+	
+	public String setField(SafariRadioGroupFieldEditor field, Composite composite, String value)
+	{
+		final String whoiam = "SafariPreferenesUtilities.setField(SafariRadioGroupFieldEditor field, composite, value):  ";
+		
+		if (field == null)
+			throw new IllegalArgumentException(whoiam + "given field is null");
+		if (composite == null)
+			throw new IllegalArgumentException(whoiam + "given composite is null");
+		if (value == null)
+			throw new IllegalArgumentException(whoiam + "given value is null");
+		
+		if (composite.isDisposed())
+			throw new IllegalStateException(whoiam + "composite is disposed");
+		if (ISafariPreferencesService.PROJECT_LEVEL.equals(field.getPreferencesLevel()) &&
+				service.getProject() == null)
+			throw new IllegalStateException(whoiam + "field represents a project-level preference and project is not set");
+		
+		String level = field.getPreferencesLevel();
+				
+		field.setFieldValueFromOutside(value);
+		// setString(value) takes care of setting isInherited
+		// and presentsDefaultValue, but not coloring
+		field.getRadioBoxControl().setBackground(colorLightGray);
+        Button[] radioButtons = field.getRadioButtons();
+    	if (radioButtons != null) {
+    		for (int i = 0; i < radioButtons.length; i++) {
+    			((Button) radioButtons[i]).setBackground(colorWhite);	
+    		}
+    	}
+
+		return level;
+	}
+
+	
 	
 	
 	public String setField(SafariStringFieldEditor field, Composite composite)
@@ -60,7 +357,7 @@ public class SafariPreferencesUtilities {
 			if (composite.isDisposed()) {
 				System.err.println("SafariPreferencesUtilities.setField():  composite is disposed");
 			}
-			field.setStringValue(null);
+			field.setFieldValueFromOutside(null);
 			if (!composite.isDisposed()) {
 				// Assume that editability on the project level is set
 				// appropriately by a project-selection listener
@@ -99,15 +396,15 @@ public class SafariPreferencesUtilities {
 			// might be.  Not sure why composite.isDisposed() here in the first place,
 			// especially considering that the field can be set
 		}
-		
+
 		return levelFromWhichSet;
 	}
 	
 	
-	
+
 	public String setField(SafariStringFieldEditor field, Composite composite, String value)
 	{
-		final String whoiam = "SafariPreferenesUtilities.setField(String field, composite, value):  ";
+		final String whoiam = "SafariPreferenesUtilities.setField(SafariStringFieldEditor field, composite, value):  ";
 		
 		if (field == null)
 			throw new IllegalArgumentException(whoiam + "given field is null");
@@ -120,7 +417,7 @@ public class SafariPreferencesUtilities {
 			throw new IllegalStateException(whoiam + "composite is disposed");
 		if (!field.getTextControl(composite).getEditable())
 			throw new IllegalStateException(whoiam + "field is not editable");
-		if (value.equals("") && !field.isEmptyStringAllowed())
+		if (value.equals("") && !field.isEmptyValueAllowed())
 			throw new IllegalArgumentException(whoiam + "value is empty and field does not allow empty values");
 		if (ISafariPreferencesService.PROJECT_LEVEL.equals(field.getPreferencesLevel()) &&
 				service.getProject() == null)
@@ -128,116 +425,107 @@ public class SafariPreferencesUtilities {
 		
 		String level = field.getPreferencesLevel();
 				
-		field.setStringValue(value);
+		field.setFieldValueFromOutside(value);
 		// setString(value) takes care of setting isInherited
 		// and presentsDefaultValue, but not ...
 		field.getTextControl(composite).setBackground(colorWhite);
 
-
-
 		return level;
 	}
 	
 	
 	
-	
-	public String setField(SafariBooleanFieldEditor field, Composite parent)
-	{
-		// TODO:  Add checks on input validity (see below)
-		// Note:  so far assumes that the given level is the one to which the
-		// field belongs (which should be true but isn't guaranteed (?))
 
-		String level = field.getPreferencesLevel();
-		
-		// If the level is "project" and project == null then just set
-		// the field here (as a special case).
-		// Note:  without some project selected the field should not be
-		// editable.  Field will have to be set back to editable when
-		// (and probably where) a project is selected.  We might take
-		// care of this elsewhere but, until that is verified, keep
-		// doing it here.
-		// Note also:  loadWithInheritance (which calls setField(..))
-		// won't know that project == null and will try toset the field
-		// from some higher level
-		if (ISafariPreferencesService.PROJECT_LEVEL.equals(level) &&
-			service.getProject() == null)
-		{
-			if (parent == null) {
-				System.err.println("SafariPreferencesUtilities.setField():  parent is null");
-			}	
-			if (parent.isDisposed()) {
-				System.err.println("SafariPreferencesUtilities.setField():  parent is disposed");
-			}	
-			// Don't have a null boolean value to set field to,
-			// but would like to show it as "cleared" somehow
-			// (presumably "false" shows as empty
-			field.setBooleanValue(false);
-			if (!parent.isDisposed()) {
-				field.getChangeControl().setEnabled(false);
-				field.getChangeControl().setBackground(colorBluish);
-			}
-			// Pretend that this was set at the project level?
-			// (It was certainly cleared at that level)
-			return ISafariPreferencesService.PROJECT_LEVEL;
-		}
-		
-		// Otherwise, we have a legitimate level, so set normally
-		String levelFromWhichSet = field.loadWithInheritance();
-		
-		// Note:  You can evidently load a field even when it's control
-		// is disposed.  In that case (evidently) you can change the
-		// text in the field but not the background color.	
-		
-		if (parent != null && !parent.isDisposed()) {
-		//if (!parent.isDisposed()) {
-			if (level != null && level.equals(levelFromWhichSet)) {
-				field.getChangeControl(parent).setBackground(colorLightGray);
-				//field.setRemovable(true);
-			} else if (level != null && field.getChangeControl(parent).getEnabled()) {
-				field.getChangeControl(parent).setBackground(colorBluish);
-			}
+	
+	public SafariBooleanFieldEditor makeNewBooleanField(
+	   		PreferencePage page, SafariPreferencesTab tab,
+			ISafariPreferencesService service,
+			String level, String key, String text,
+			Composite parent,
+			boolean isEnabled, boolean isEditable,	
+			boolean hasSpecialValue, boolean specialValue,
+			boolean emptyValueAllowed, boolean emptyValue,
+			boolean isRemovable)
+	{
+		//System.err.println("SPU.makeNewBooleanField() starting for key = " + key);
+		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);	
+		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+	    
+		SafariBooleanFieldEditor field =
+			new SafariBooleanFieldEditor(page, tab, service, level, key, text, fieldHolder);
+		if (level != null && level.equals(ISafariPreferencesService.PROJECT_LEVEL) && service.getProject() != null) {
+			setField(field, fieldHolder);
+			addBooleanPropertyChangeListeners(service, level, field, key, fieldHolder);
 		} else {
-			// If composite.isDisposed(), then both field.getTextControl(composite)
-			// and field.getTextControl() will return null; if needed, a text control
-			// must be obtained from somewhere else--but I have no idea where that
-			// might be.  Not sure why composite.isDisposed() here in the first place,
-			// especially considering that the field can be set
+			setField(field, fieldHolder);
+			addBooleanPropertyChangeListeners(service, level, field, key, fieldHolder);
+		}
+		field.getChangeControl().setEnabled(isEnabled);
+		// boolean controls have no setEditable() method
+		field.setSpecialValue(false);
+		// also cannot be empty
+		//field.setEmptyValueAllowed(false);
+		
+		if (level == null) field.setRemovable(false);
+		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);
+		else field.setRemovable(isRemovable);
+
+		//System.err.println("SPU.makeNewBooleanField() ending for key = " + key);
+		return field;
+	}	
+
+	
+	
+	public SafariComboFieldEditor makeNewComboField(
+	   		PreferencePage page, SafariPreferencesTab tab,
+	   		ISafariPreferencesService service, String level,
+	   		String name, String labelText, String[][] entryNamesAndValues, Composite parent,
+	   		boolean isEnabled, boolean hasSpecialValue, String specialValue, boolean isRemovable)
+	{	
+		//System.err.println("SPU.makeNewRadioGroupField() starting for key = " + key);
+			
+		// Note:  for a RadioGroupFieldEditor, the Radio Box plays the
+		// role of fieldHolder, and that is created by the Radio Group.
+		// It appears to work to use the parent as the container of the field here.
+		// Not sure if this may still be unnecessary 
+		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+	    boolean onProjectLevelWithNullProject =
+	    	level != null && level.equals(ISafariPreferencesService.PROJECT_LEVEL) && service.getProject() == null;
+	    //boolean notOnARealLevel = level == null;
+	    //boolean onAFunctioningLevel = !onProjectLevelWithNullProject && !notOnARealLevel;
+	    
+	    SafariComboFieldEditor field = new SafariComboFieldEditor(
+	    		page, tab, service, level,
+	    		name, labelText, entryNamesAndValues, fieldHolder,
+	    		isEnabled, hasSpecialValue, specialValue, isRemovable);
+	    
+	    //Composite comboControl = field.getComboBoxControl(parent);
+	    //Composite radioBoxControlParent = field.getComboBoxControl(parent).getParent();
+	    
+		if (!onProjectLevelWithNullProject) {
+			setField(field, fieldHolder);
+			addComboPropertyChangeListeners(service, level, field, name, fieldHolder);
+		} else {
+			//setField(field, parent);
+			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
 		}
 		
-		return levelFromWhichSet;
+		field.setEnabled(isEnabled, fieldHolder);		
+
+		if (level == null) field.setRemovable(false);	// can never remove from a field that doesn't have a stored value
+		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
+		else field.setRemovable(isRemovable);
+		
+		//System.err.println("SPU.makeNewRadioField() ending for key = " + key);
+		return field;
 	}
 	
 	
 	
-	public String setField(SafariBooleanFieldEditor field, Composite composite, boolean value)
-	{
-		final String whoiam = "SafariPreferenesUtilities.setField(boolean field, composite, value):  ";
-		
-		if (field == null)
-			throw new IllegalArgumentException(whoiam + "given field is null");
-		if (composite == null)
-			throw new IllegalArgumentException(whoiam + "given composite is null");
-		
-		if (composite.isDisposed())
-			throw new IllegalStateException(whoiam + "composite is disposed");
-		if (!field.getChangeControl(composite).getEnabled())
-			throw new IllegalStateException(whoiam + "field is not editable");
-		if (ISafariPreferencesService.PROJECT_LEVEL.equals(field.getPreferencesLevel()) &&
-				service.getProject() == null)
-			throw new IllegalStateException(whoiam + "field represents a project-level preference and project is not set");
-		
-		String level = field.getPreferencesLevel();
-				
-		field.setBooleanValue(value);
-		field.getChangeControl(composite).setBackground(colorLightGray);
-		//field.setRemovable(true);
-		// isInherited, levelAtWhichSet should be addressed by field in setBooleanValue
-
-		return level;
-	}
-
-	
-	public SafariStringFieldEditor makeNewStringField(
+	public SafariDirectoryListFieldEditor makeNewDirectoryListField(
 			PreferencePage page,
 			SafariPreferencesTab tab,
 			ISafariPreferencesService service,
@@ -248,7 +536,8 @@ public class SafariPreferencesUtilities {
 			boolean emptyValueAllowed, String emptyValue,
 			boolean isRemovable)
 	{
-		//System.err.println("SPU.makeNewStringField() starting for key = " + key);
+		//System.err.println("SPU.makeNewDirectoryField() starting for key = " + key);
+		
 		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -257,83 +546,36 @@ public class SafariPreferencesUtilities {
 	    boolean notOnARealLevel = level == null;
 	    boolean onAFunctioningLevel = !onProjectLevelWithNullProject && !notOnARealLevel;
 	    
-		SafariStringFieldEditor field = new SafariStringFieldEditor(page, tab, service, level, key, text, fieldHolder);
+	    SafariDirectoryListFieldEditor field = new SafariDirectoryListFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		
-		if (!onProjectLevelWithNullProject) {
-			setField(field, fieldHolder);
-			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
-		} else {
-			//setField(field, fieldHolder);
-			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
-		}
+//		if (!onProjectLevelWithNullProject) {
+//			setField(field, fieldHolder);
+//			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
+//		} else {
+//			//setField(field, fieldHolder);
+//			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
+//		}
 		
-		field.getTextControl().setEnabled(isEnabled);
+		Text textControl = field.getTextControl();
 		if (onProjectLevelWithNullProject || notOnARealLevel) {
-			field.getTextControl().setEditable(false);
+			// Turn everything off
+			textControl.setEnabled(false);
+			textControl.setEditable(false);
+			field.getChangeControl(fieldHolder).setEnabled(false);
+			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
 		} else if (onAFunctioningLevel) {
-			field.getTextControl().setEditable(isEditable);
-		}
-
-		if (hasSpecialValue)
-			field.setSpecialValue(specialValue);
-		else
-			field.setNoSpecialValue();
-		field.setEmptyValueAllowed(emptyValueAllowed);
-		
-		if (level == null) field.setRemovable(false);	// can never remove from a field that doesn't have a stored value
-		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
-		else field.setRemovable(isRemovable);
-		
-		//System.err.println("SPU.makeNewStringField() ending for key = " + key);
-		return field;
-	}
-
-	// Lacks preference-page and preference-tab parameters, so should be deprecated eventually
-	/*
-	public SafariFileFieldEditor makeNewFileField(
-			ISafariPreferencesService service,
-			String level, String key, String text,
-			Composite parent,
-			boolean isEnabled, boolean isEditable,
-			boolean hasSpecialValue, String specialValue,
-			boolean emptyValueAllowed, String emptyValue,
-			boolean isRemovable)
-	{
-		//System.err.println("SPU.makeNewFileField() starting for key = " + key);
-		
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
-		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-
-	    boolean onProjectLevelWithNullProject =
-	    	level != null && level.equals(ISafariPreferencesService.PROJECT_LEVEL) && service.getProject() == null;
-	    boolean onARealLevel = level != null;
-	    boolean onAFunctioningLevel = !onProjectLevelWithNullProject && onARealLevel;
-	    
-		SafariFileFieldEditor field = new SafariFileFieldEditor(service, level, key, text, fieldHolder);
-		
-		if (!onProjectLevelWithNullProject) {
+			// Set as specified
+			textControl.setEnabled(isEnabled);
+			textControl.setEditable(isEditable);
+			field.getChangeControl(fieldHolder).setEnabled(isEnabled);
 			setField(field, fieldHolder);
 			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
-		} else {
-			//setField(field, fieldHolder);
-			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
 		}
+			
 		
-
-		if (onProjectLevelWithNullProject || !onARealLevel) {
-			field.getTextControl().setEnabled(false);
-			field.getTextControl().setEditable(false);
-		} else { //if (onAFunctioningLevel) {
-			field.getTextControl().setEnabled(isEnabled);
-			field.getTextControl().setEditable(isEditable);
-		}
-
-		if (onProjectLevelWithNullProject || !onARealLevel) {
-			field.getChangeControl(fieldHolder).setEnabled(false);
-		} else { //if (onAFunctioningLevel) {
-			field.getChangeControl(fieldHolder).setEnabled(isEnabled);
-		}
-		
+		// This sort of field has a button, that should be
+		// enabled or disabled in conjunction with the text
+		//field.getChangeControl(fieldHolder).setEnabled(isEnabled);
 		
 		if (hasSpecialValue)
 			field.setSpecialValue(specialValue);
@@ -345,12 +587,12 @@ public class SafariPreferencesUtilities {
 		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
 		else field.setRemovable(isRemovable);
 		
-		//System.err.println("SPU.makeNewFileField() ending for key = " + key);
+		//System.err.println("SPU.makeNewDirectoryListField() ending for key = " + key + " with button enabled = " + field.getChangeControl(fieldHolder).isEnabled());
+		
 		return field;
 	}
-*/
 	
-	// With PreferencePage
+
 	public SafariFileFieldEditor makeNewFileField(
 			PreferencePage page,
 			SafariPreferencesTab tab,
@@ -414,7 +656,7 @@ public class SafariPreferencesUtilities {
 	}
 
 	
-	public SafariDirectoryListFieldEditor makeNewDirectoryListField(
+	public SafariIntegerFieldEditor makeNewIntegerField(
 			PreferencePage page,
 			SafariPreferencesTab tab,
 			ISafariPreferencesService service,
@@ -425,8 +667,7 @@ public class SafariPreferencesUtilities {
 			boolean emptyValueAllowed, String emptyValue,
 			boolean isRemovable)
 	{
-		//System.err.println("SPU.makeNewDirectoryField() starting for key = " + key);
-		
+		//System.err.println("SPU.makeNewIntegerField() starting for key = " + key);
 		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -435,7 +676,7 @@ public class SafariPreferencesUtilities {
 	    boolean notOnARealLevel = level == null;
 	    boolean onAFunctioningLevel = !onProjectLevelWithNullProject && !notOnARealLevel;
 	    
-	    SafariDirectoryListFieldEditor field = new SafariDirectoryListFieldEditor(page, tab, service, level, key, text, fieldHolder);
+		SafariIntegerFieldEditor field = new SafariIntegerFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		
 		if (!onProjectLevelWithNullProject) {
 			setField(field, fieldHolder);
@@ -445,121 +686,157 @@ public class SafariPreferencesUtilities {
 			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
 		}
 		
-		Text textControl = field.getTextControl();
-		// Want to set enabled differently from editable since
-		// disabling has the effect of graying out whereas setting
-		// not editable leaves the appearance alone and just renders
-		// the control inoperative
-		textControl.setEnabled(isEnabled);
 		if (onProjectLevelWithNullProject || notOnARealLevel) {
-			textControl.setEditable(false);
+			field.getTextControl().setEnabled(false);
+			field.getTextControl().setEditable(false);
+			field.setEnabled(false, field.getParent());
 		} else if (onAFunctioningLevel) {
-			textControl.setEditable(isEditable);
+			field.getTextControl().setEnabled(isEnabled);
+			field.getTextControl().setEditable(isEditable);
+			field.setEnabled(isEnabled, field.getParent());
 		}
-		// This sort of field has a button, that should be
-		// enabled or disabled in conjunction with the text
-		field.getChangeControl(fieldHolder).setEnabled(isEnabled);
-		
-		
-		
+
 		if (hasSpecialValue)
 			field.setSpecialValue(specialValue);
 		else
 			field.setNoSpecialValue();
 		field.setEmptyValueAllowed(emptyValueAllowed);
 		
-		if (level == null) field.setRemovable(false);	// can never remove from "Applicable" level (if that's what this is)
+		if (level == null) field.setRemovable(false);	// can never remove from a field that doesn't have a stored value
 		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
 		else field.setRemovable(isRemovable);
 		
-		//System.err.println("SPU.makeNewDirectoryListField() ending for key = " + key + " with button enabled = " + field.getChangeControl(fieldHolder).isEnabled());
-		
+		//System.err.println("SPU.makeNewIntegerField() ending for key = " + key);
 		return field;
 	}
 
 	
-	
+	public SafariRadioGroupFieldEditor makeNewRadioGroupField(
+		PreferencePage page, SafariPreferencesTab tab,
+		ISafariPreferencesService service, String level,	
+		String name, String labelText, int numColumns,
+        String[][] labelAndValues, Composite parent, boolean useGroup,
+		boolean isEnabled, boolean isRemovable)	
+	{	
+		//System.err.println("SPU.makeNewRadioGroupField() starting for key = " + key);
+			
+		// Note:  for a RadioGroupFieldEditor, the Radio Box plays the
+		// role of fieldHolder, and that is created by the Radio Group.
+		// It appears to work to use the parent as the container of the field here.
+		//
+		//Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		//fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-	public SafariBooleanFieldEditor makeNewBooleanField(
+	    boolean onProjectLevelWithNullProject =
+	    	level != null && level.equals(ISafariPreferencesService.PROJECT_LEVEL) && service.getProject() == null;
+	    boolean notOnARealLevel = level == null;
+	    boolean onAFunctioningLevel = !onProjectLevelWithNullProject && !notOnARealLevel;
+	    
+	    SafariRadioGroupFieldEditor field = new SafariRadioGroupFieldEditor(
+	    		page, tab, service, level, name, labelText, numColumns,
+	    		labelAndValues, parent, useGroup);
+	    
+	    //Composite radioBoxControl = field.getRadioBoxControl(parent);
+	    //Composite radioBoxControlParent = field.getRadioBoxControl(parent).getParent();
+	    
+		if (!onProjectLevelWithNullProject) {
+			setField(field, parent);
+			addRadioGroupPropertyChangeListeners(service, level, field, name, parent);
+		} else {
+			//setField(field, parent);
+			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
+		}
+		
+		// Set the enabled state
+		// Assumes that RadioGroups use the Group representation for the button box;
+		// if a Group is not used, then fill out the elxe branches below accordingly
+		if (onProjectLevelWithNullProject || notOnARealLevel) {
+			if (useGroup) {
+				Group radioGroup = (Group) field.getRadioBoxControl();
+				radioGroup.setEnabled(false);
+			} else {
+				// do something else as appropriate to the representation
+			}
+			field.setEnabled(false, parent);
+		} else if (onAFunctioningLevel) {
+			if (useGroup) {
+				Group radioGroup = (Group) field.getRadioBoxControl();
+				radioGroup.setEnabled(isEnabled);
+			} else {
+				// do something else as appropriate to the representation
+			}
+			field.setEnabled(isEnabled, parent);	
+		}
+
+		if (level == null) field.setRemovable(false);	// can never remove from a field that doesn't have a stored value
+		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
+		else field.setRemovable(isRemovable);
+		
+		//System.err.println("SPU.makeNewRadioField() ending for key = " + key);
+		return field;
+	}
+	
+	
+	public SafariStringFieldEditor makeNewStringField(
+			PreferencePage page,
+			SafariPreferencesTab tab,
 			ISafariPreferencesService service,
 			String level, String key, String text,
 			Composite parent,
-			boolean isEnabled, boolean isEditable,	
-			boolean hasSpecialValue, boolean specialValue,
-			boolean emptyValueAllowed, boolean emptyValue,
+			boolean isEnabled, boolean isEditable,
+			boolean hasSpecialValue, String specialValue,
+			boolean emptyValueAllowed, String emptyValue,
 			boolean isRemovable)
 	{
-		//System.err.println("SPU.makeNewBooleanField() starting for key = " + key);
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);	
+		//System.err.println("SPU.makeNewStringField() starting for key = " + key);
+		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
+	    boolean onProjectLevelWithNullProject =
+	    	level != null && level.equals(ISafariPreferencesService.PROJECT_LEVEL) && service.getProject() == null;
+	    boolean notOnARealLevel = level == null;
+	    boolean onAFunctioningLevel = !onProjectLevelWithNullProject && !notOnARealLevel;
 	    
-		SafariBooleanFieldEditor field =
-			new SafariBooleanFieldEditor(service, level, key, text, fieldHolder);
-		if (level != null && level.equals(ISafariPreferencesService.PROJECT_LEVEL) && service.getProject() != null) {
+		SafariStringFieldEditor field = new SafariStringFieldEditor(page, tab, service, level, key, text, fieldHolder);
+		
+		if (!onProjectLevelWithNullProject) {
 			setField(field, fieldHolder);
-			addBooleanPropertyChangeListeners(service, level, field, key, fieldHolder);
+			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
 		} else {
-			setField(field, fieldHolder);
-			addBooleanPropertyChangeListeners(service, level, field, key, fieldHolder);
+			//setField(field, fieldHolder);
+			//addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
 		}
-		field.getChangeControl().setEnabled(isEnabled);
-		// boolean controls have no setEditable() method
-		field.setSpecialValue(false);
-		field.setEmptyValueAllowed(false);
 		
-		if (level == null) field.setRemovable(false);
-		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);
+		//field.getTextControl().setEnabled(isEnabled);
+		if (onProjectLevelWithNullProject || notOnARealLevel) {
+			System.out.println("SPU.makeNewStringField(..):  disabling all");
+			field.getTextControl().setEnabled(false);
+			field.getTextControl().setEditable(false);
+			field.setEnabled(false, field.getParent());
+		} else if (onAFunctioningLevel) {
+			System.out.println("SPU.makeNewStringField(..):  setting all to " + isEnabled);
+			field.getTextControl().setEnabled(isEnabled);
+			field.getTextControl().setEditable(isEditable);
+			field.setEnabled(isEnabled, field.getParent());
+		}
+
+		if (hasSpecialValue)
+			field.setSpecialValue(specialValue);
+		else
+			field.setNoSpecialValue();
+		field.setEmptyValueAllowed(emptyValueAllowed);
+		
+		if (level == null) field.setRemovable(false);	// can never remove from a field that doesn't have a stored value
+		else if (level.equals(ISafariPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
 		else field.setRemovable(isRemovable);
-
-		//System.err.println("SPU.makeNewBooleanField() ending for key = " + key);
+		
+		//System.err.println("SPU.makeNewStringField() ending for key = " + key);
 		return field;
-	}	
-
-	
-	
-	private void addStringPropertyChangeListeners(
-		ISafariPreferencesService service, String level, SafariStringFieldEditor field, String key, Composite composite)
-	{
-		int levelIndex = service.getIndexForLevel(level);
-		IEclipsePreferences[] nodes = service.getNodesForLevels();
-		
-		for (int i = levelIndex + 1; i < nodes.length; i++) {
-			if (nodes[i] != null) {
-				nodes[i].addPreferenceChangeListener(new SafariStringPreferenceChangeListener(field, key, composite));	
-			} else {
-				//	System.err.println("JsdivInstancePreferencesPage.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
-			}
-		}	
 	}
 
-	
-	public class SafariStringPreferenceChangeListener implements IEclipsePreferences.IPreferenceChangeListener
-	{
-		Composite composite = null;
-		String key = null;
-		SafariStringFieldEditor field = null;
-		
-		public SafariStringPreferenceChangeListener(SafariStringFieldEditor field, String key, Composite composite) {
-			this.field = field;
-			this.key = key;	
-			this.composite = composite;
-		}
-		
-		public void preferenceChange(PreferenceChangeEvent event)
-		{
-			if (event.getNewValue() == null && event.getOldValue() == null) return;
-			if (event.getNewValue() != null && event.getNewValue().equals(event.getOldValue())) return;	
-			
-			String eventKey = event.getKey();
-			if (!composite.isDisposed()) {
-				if (eventKey.equals(key)) {
-					setField(field, composite);
-				}
-			}
-		}
-	}
-	
+
+
+
 	
 	private void addBooleanPropertyChangeListeners(
 		ISafariPreferencesService service, String level, SafariBooleanFieldEditor field, String key, Composite composite)
@@ -577,46 +854,155 @@ public class SafariPreferencesUtilities {
 	}
 
 	
-	
-	public class SafariBooleanPreferenceChangeListener implements IEclipsePreferences.IPreferenceChangeListener
+	public abstract class SafariPreferenceChangeListener implements IEclipsePreferences.IPreferenceChangeListener
 	{
 		Composite composite = null;
 		String key = null;
-		SafariBooleanFieldEditor field = null;
+		SafariFieldEditor field = null;
 		
-		public SafariBooleanPreferenceChangeListener(SafariBooleanFieldEditor field, String key, Composite composite) {
+		public SafariPreferenceChangeListener(SafariFieldEditor field, String key, Composite composite) {
 			this.field = field;
 			this.key = key;	
 			this.composite = composite;
-			if (!field.getChangeControl().getParent().equals(composite)) {
-				System.err.println("SPU.SafariBooleanPreferenceChangeListener():  field and composite don't match!");
+			if (!field.getParent().equals(composite)) {
+				System.err.println("SPU.SafariPreferenceChangeListener():  field and composite don't match!");
 				System.err.println("\tfield = " + field.getLabelText());
 			}
 		}
 		
+		abstract protected void setFieldByListener(SafariFieldEditor field, Composite composite);
+		
 		public void preferenceChange(PreferenceChangeEvent event)
 		{
+			if (!event.getKey().equals(key)) return;	// may receive many wrong events
 			if (event.getNewValue() == null && event.getOldValue() == null) return;
 			if (event.getNewValue() != null && event.getNewValue().equals(event.getOldValue())) return;	
 
-			String eventKey = event.getKey();
-			if (!composite.isDisposed()) {
-				if (eventKey.equals(key)) {
-					//System.out.println("SafariBooleanPreferenceChangeListener.preferenceChange:  key = " + key +
-					//	"level = " + field.getPreferencesLevel() + ":  " + event.getOldValue() + "/" + event.getNewValue());
-					setField(field, field.getChangeControl().getParent());
-				}
+			// Does the change that actually affect the field?
+			String fieldLevel = field.getPreferencesLevel();
+			String eventLevel = event.getNode().parent().name();
+			String levelAtWhichSet = field.getLevelFromWhichLoaded();
+			if (levelAtWhichSet != null && firstLevelAboveSecond(eventLevel, levelAtWhichSet))
+				return;
+			
+			if (!composite.isDisposed() && 
+				(!ISafariPreferencesService.PROJECT_LEVEL.equals(fieldLevel) || service.getProject() != null))
+			{
+				setFieldByListener(field, field.getParent());
 			}
 		}
+	}
+	
+	
+	public class SafariBooleanPreferenceChangeListener extends SafariPreferenceChangeListener {
+		
+		public SafariBooleanPreferenceChangeListener(SafariFieldEditor field, String key, Composite composite) {
+			super(field, key, composite);
+		}
+		
+		protected void setFieldByListener(SafariFieldEditor field, Composite composite) {
+			setField((SafariBooleanFieldEditor) field, composite);
+		}
+	}
+	
+	
+	
+	public class SafariComboPreferenceChangeListener extends SafariPreferenceChangeListener {
+		
+		public SafariComboPreferenceChangeListener(SafariFieldEditor field, String key, Composite composite) {
+			super(field, key, composite);
+		}
+		
+		protected void setFieldByListener(SafariFieldEditor field, Composite composite) {
+			setField((SafariComboFieldEditor) field, composite);
+		}
+	}
+	
+	
+	
+	public class SafariRadioGroupPreferenceChangeListener extends SafariPreferenceChangeListener {
+		
+		public SafariRadioGroupPreferenceChangeListener(SafariFieldEditor field, String key, Composite composite) {
+			super(field, key, composite);
+		}
+		
+		protected void setFieldByListener(SafariFieldEditor field, Composite composite) {
+			setField((SafariRadioGroupFieldEditor) field, composite);
+		}
+	}
+	
+	
+	public class SafariStringPreferenceChangeListener extends SafariPreferenceChangeListener {
+		
+		public SafariStringPreferenceChangeListener(SafariFieldEditor field, String key, Composite composite) {
+			super(field, key, composite);
+		}
+		
+		protected void setFieldByListener(SafariFieldEditor field, Composite composite) {
+			setField((SafariStringFieldEditor) field, composite);
+		}
+	}
+
+	
+	
+	private void addComboPropertyChangeListeners(
+		ISafariPreferencesService service, String level, SafariComboFieldEditor field, String key, Composite composite)
+	{
+		int levelIndex = service.getIndexForLevel(level);
+		IEclipsePreferences[] nodes = service.getNodesForLevels();
+		
+		for (int i = levelIndex + 1; i < nodes.length; i++) {
+			if (nodes[i] != null) {
+				nodes[i].addPreferenceChangeListener(new SafariComboPreferenceChangeListener(field, key, composite));	
+			} else {
+				//	System.err.println("SafariPreferencesUtilities.addComboPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+			}
+		}	
+	}
+	
+
+	private void addRadioGroupPropertyChangeListeners(
+		ISafariPreferencesService service, String level, SafariRadioGroupFieldEditor field, String key, Composite composite)
+	{
+		int levelIndex = service.getIndexForLevel(level);
+		IEclipsePreferences[] nodes = service.getNodesForLevels();
+		
+		for (int i = levelIndex + 1; i < nodes.length; i++) {
+			if (nodes[i] != null) {
+				nodes[i].addPreferenceChangeListener(new SafariRadioGroupPreferenceChangeListener(field, key, composite));	
+			} else {
+				//	System.err.println("JsdivInstancePreferencesPage.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+			}
+		}	
+	}
+	
+
+	private void addStringPropertyChangeListeners(
+		ISafariPreferencesService service, String level, SafariStringFieldEditor field, String key, Composite composite)
+	{
+		int levelIndex = service.getIndexForLevel(level);
+		IEclipsePreferences[] nodes = service.getNodesForLevels();
+		
+		for (int i = levelIndex + 1; i < nodes.length; i++) {
+			if (nodes[i] != null) {
+				nodes[i].addPreferenceChangeListener(new SafariStringPreferenceChangeListener(field, key, composite));	
+			} else {
+				//	System.err.println("JsdivInstancePreferencesPage.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+			}
+		}	
+	}
+
+
+	
+	public boolean firstLevelAboveSecond(String first, String second) {
+		return service.indexForLevel(first) > service.indexForLevel(second);
 	}
 	
 	
 	
 	public void createToggleFieldListener(SafariBooleanFieldEditor booleanField, SafariStringFieldEditor stringField, boolean sense)
 	{
-		// Field-state listener should be sufficient since
-		// changes to the control entail changes to the state
-		//createFieldControlToggle(booleanField, stringField, sense);
+		createFieldControlToggle(booleanField, stringField, sense);
 		createFieldStateToggle(booleanField, stringField, sense);
 	}
 	
@@ -640,6 +1026,25 @@ public class SafariPreferencesUtilities {
 	}
 
 	
+	/*
+	 * SMS 16 Nov 2006
+	 * 
+	 * The following two listeners toggle the enabled/editable state
+	 * of a text field according to the value of a boolean field.
+	 * In the wigetSelected(SelectionEvent) methods,
+	 * 		stringField.getTextControl() returns the text field itself,
+	 * 		which can be both enabled and editable (separately)
+	 * whereas
+	 * 		stringField.getParent() returns the larger control in which
+	 * 		the text field occurs (e.g., a "string button" field), which
+	 * 		will have an enabled state but not an editable state.
+	 * 
+	 * The FieldStateToggleListener is the effective one in the examples
+	 * I've developed.  The FieldcontrolToggleListener isn't used now and
+	 * I'm not sure it will actually have a role.
+	 */
+	
+	
 	public class FieldControlToggleListener implements SelectionListener
 	{
 		public SafariBooleanFieldEditor booleanField = null;
@@ -655,16 +1060,20 @@ public class SafariPreferencesUtilities {
 		}
 		
 		public void widgetSelected(SelectionEvent e) {
+			System.out.println("SPU.FieldControlToggleListener.wigetSelected(..)");
 			boolean value = booleanField.getBooleanValue();
 			value = sense? value : !value;
 			stringField.getTextControl().setEditable(value);
+			stringField.getTextControl().setEnabled(value);
 			stringField.setEnabled(value, stringField.getParent());
 		}
 
 		public void widgetDefaultSelected(SelectionEvent e) {
+			System.out.println("SPU.FieldControlToggleListener.wigetDefaultSelected(..)");
 			boolean value = booleanField.getBooleanValue();
 			value = sense? value : !value;
 			stringField.getTextControl().setEditable(value);
+			stringField.getTextControl().setEnabled(value);
 			stringField.setEnabled(value, stringField.getParent());
 		}
 	}
@@ -686,11 +1095,106 @@ public class SafariPreferencesUtilities {
 		}
 		
 	    public void propertyChange(PropertyChangeEvent event) {
+			System.out.println("SPU.FieldStateToggleListener.propertyChange(..)");
 			boolean value = ((Boolean)event.getNewValue()).booleanValue();
 			value = sense? value : !value;
 			stringField.getTextControl().setEditable(value);
+			stringField.getTextControl().setEnabled(value);
 			stringField.setEnabled(value, stringField.getParent());
 	    }
+	}
+	
+	
+	
+	public Link createDetailsLink(Composite parent, final SafariBooleanFieldEditor field, final Composite fieldHolder, String text)
+	{
+		Composite detailsHolder = new Composite(parent, SWT.EMBEDDED);
+	    GridLayout gl = new GridLayout();
+	    detailsHolder.setLayout(gl);
+	    
+		Link link = new Link(detailsHolder, SWT.NONE);
+		link.setFont(detailsHolder.getFont());
+		link.setText("<A>" + text + "</A>");
+		
+		final class DetailsLinkListener implements SelectionListener {
+			//DetailsLinkListener(Composite fieldHolder) {
+			//}
+			public void widgetSelected(SelectionEvent e) {
+				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+			}
+		}
+		DetailsLinkListener detailsLinkListener = new DetailsLinkListener(/*detailsHolder*/);
+		
+		link.addSelectionListener(detailsLinkListener);
+	
+		return link;	
+	}
+
+	
+	
+	public Link createDetailsLink(Composite detailsHolder, final SafariComboFieldEditor field, final Composite fieldHolder, String text)
+	{
+		Link link = new Link(detailsHolder, SWT.NONE);
+		link.setFont(detailsHolder.getFont());
+		// Blanks added ahead of text to better align vertically links
+		// for text fields with links for boolean fields.  This is a
+		// kludge and should be done some better way, but right now
+		// it's not worth the effort to figure that out.
+		link.setText("  <A>" + text + "</A>");
+		
+		final class DetailsLinkListener implements SelectionListener {
+			DetailsLinkListener(Composite fieldHolder) {
+			}
+			public void widgetSelected(SelectionEvent e) {
+				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+			}
+		}
+		DetailsLinkListener detailsLinkListener = new DetailsLinkListener(detailsHolder);
+		
+		link.addSelectionListener(detailsLinkListener);
+	
+		return link;	
+	}
+	
+	
+	
+	
+	
+	
+	public Link createDetailsLink(Composite detailsHolder, final SafariRadioGroupFieldEditor field, final Composite fieldHolder, String text)
+	{
+		Link link = new Link(detailsHolder, SWT.NONE);
+		link.setFont(detailsHolder.getFont());
+		// Blanks added ahead of text to better align vertically links
+		// for text fields with links for boolean fields.  This is a
+		// kludge and should be done some better way, but right now
+		// it's not worth the effort to figure that out.
+		link.setText("  <A>" + text + "</A>");
+		
+		final class DetailsLinkListener implements SelectionListener {
+			DetailsLinkListener(Composite fieldHolder) {
+			}
+			public void widgetSelected(SelectionEvent e) {
+				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+			}
+		}
+		DetailsLinkListener detailsLinkListener = new DetailsLinkListener(detailsHolder);
+		
+		link.addSelectionListener(detailsLinkListener);
+	
+		return link;	
 	}
 	
 	
@@ -724,8 +1228,6 @@ public class SafariPreferencesUtilities {
 		return link;	
 	}
 	
-
-	
 	
 	public Link createDetailsLinkDefault(Composite detailsHolder, final SafariBooleanFieldEditor field, final Composite fieldHolder, String text)
 	{
@@ -752,34 +1254,23 @@ public class SafariPreferencesUtilities {
 	}
 
 	
-	public Link createDetailsLink(Composite /*detailsHolder*/ parent, final SafariBooleanFieldEditor field, final Composite fieldHolder, String text)
-	{
-		Composite detailsHolder = new Composite(parent, SWT.EMBEDDED);
-	    GridLayout gl = new GridLayout();
-	    detailsHolder.setLayout(gl);
-	    
-		Link link = new Link(detailsHolder, SWT.NONE);
-		link.setFont(detailsHolder.getFont());
-		link.setText("<A>" + text + "</A>");
-		
-		final class DetailsLinkListener implements SelectionListener {
-			//DetailsLinkListener(Composite fieldHolder) {
-			//}
-			public void widgetSelected(SelectionEvent e) {
-				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
-			}
-		}
-		DetailsLinkListener detailsLinkListener = new DetailsLinkListener(/*detailsHolder*/);
-		
-		link.addSelectionListener(detailsLinkListener);
 	
-		return link;	
+	final void doDetailsLinkActivated(Link link, SafariBooleanFieldEditor field, Composite fieldHolder) {
+		DetailsDialogForBooleanFields dialog = new DetailsDialogForBooleanFields(fieldHolder.getShell(), field, fieldHolder, service);
+		dialog.open();
 	}
-
+	
+	
+	final void doDetailsLinkActivated(Link link, SafariComboFieldEditor field, Composite fieldHolder) {
+		DetailsDialogForComboFields dialog = new DetailsDialogForComboFields(fieldHolder.getShell(), field, fieldHolder, service);
+		dialog.open();
+	}
+	
+	
+	final void doDetailsLinkActivated(Link link, SafariRadioGroupFieldEditor field, Composite fieldHolder) {
+		DetailsDialogForRadioGroupFields dialog = new DetailsDialogForRadioGroupFields(fieldHolder.getShell(), field, fieldHolder, service);
+		dialog.open();
+	}
 	
 	
 	void doDetailsLinkActivated(Link link, SafariStringFieldEditor field, Composite fieldHolder) {
@@ -787,12 +1278,7 @@ public class SafariPreferencesUtilities {
 		dialog.open();
 	}
 	
-	
-	final void doDetailsLinkActivated(Link link, SafariBooleanFieldEditor field, Composite fieldHolder) {
-		DetailsDialogForBooleanFields dialog = new DetailsDialogForBooleanFields(fieldHolder.getShell(), field, fieldHolder, service);
-		dialog.open();
-	}
-	
+
 	
 	
 	/*
@@ -902,7 +1388,7 @@ public class SafariPreferencesUtilities {
 					buttonHolder.performApply();
 				}
 			});
-            applyButton.setEnabled(true);		//isValid());
+            //applyButton.setEnabled(true);		//isValid());
             Dialog.applyDialogFont(buttonBar);
         } else {
             /* Check if there are any other buttons on the button bar.

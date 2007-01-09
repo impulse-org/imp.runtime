@@ -1,15 +1,8 @@
 package org.eclipse.uide.preferences;
 
-import java.util.EventObject;
-
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.core.runtime.preferences.IScopeContext;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences.NodeChangeEvent;
 import org.osgi.service.prefs.Preferences;
 
 
@@ -48,6 +41,8 @@ public interface ISafariPreferencesService {
 	public final int DEFAULT_INDEX			= 3;
 	
 	public final String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
+	
+	public int indexForLevel(String levelName);
 	
 	public boolean isaPreferencesLevel(String possibleLevel);	
 	

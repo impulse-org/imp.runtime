@@ -1,24 +1,21 @@
 package org.eclipse.uide.preferences;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IPreferencesService;
+import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences.INodeChangeListener;
-import org.eclipse.core.runtime.preferences.IEclipsePreferences.NodeChangeEvent;
-
-import org.osgi.service.prefs.BackingStoreException;	
-import org.osgi.service.prefs.Preferences;
-
-import java.util.*;
+import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * A Preferences Service for SAFARI.  Intended as an adaptation of the
@@ -919,6 +916,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 				for (int i = 0; i < keys.length; i++) {
 					node.remove(keys[i]);
 				}
+				node.flush();	// SMS 28 Nov 2006
 			}
 		} catch (BackingStoreException e) {
 			System.out.println("SafariPreferencesService.setPreferences():  " +
@@ -973,6 +971,13 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		if (node == null) return null;
 		String preference = node.get(key, null);
 		node.remove(key);
+		try {
+			node.flush();
+		} catch (BackingStoreException e){
+			System.err.println("SafariPreferencesService.clearPreferenceAtLevel(..):  BackingStoreException trying to flush node with cleared preference;\n" +
+				"\tproject = " + project + "; level = " + level + "; key = " + key + "\n" +	
+				"\tclearing may not have a persistent effect");
+		}
 		return preference;
 	}
 	
@@ -991,6 +996,18 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	public final String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
 	
 
+	
+	public int indexForLevel(String levelName) {
+		for (int i = 0; i < levels.length; i++) {
+			if (levels[i].equals(levelName))
+				return i;	
+		}
+		return -1;
+	}
+	
+	
+	
+	
 	/**
 	 * Returns the first preference level in the standard search order
 	 * at which the given key is defined for the current language.

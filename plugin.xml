@@ -21,6 +21,7 @@
    <extension-point id="refactoringContributions" name="Refactoring Contributions" schema="schema/refactoringContributions.exsd"/>
    <extension-point id="referenceResolvers" name="SAFARI Reference Resolver" schema="schema/referenceResolvers.exsd"/>
    <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
+   <extension-point id="preferencesDialog" name="Preferences Dialog" schema="schema/preferencesDialog.exsd"/>
    
    <extension
          point="org.eclipse.ui.editors">

@@ -4,12 +4,12 @@ import java.io.File;
 import java.util.Stack;
 
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.PreferenceDialogConstants;
 import org.eclipse.uide.preferences.SafariPreferencesTab;
 
 public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
@@ -40,7 +40,7 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
     		ISafariPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
-        super(page, tab, service, level, name, labelText, width, VALIDATE_ON_KEY_STROKE, parent);
+        super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     	this.getChangeControl(parent).setText(PreferenceDialogConstants.BROWSE_LABEL);
     }
     
@@ -62,25 +62,6 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
     }
  
     
-    /**	
-     * Creates a SAFARI string button field editor.
-     * Use the method <code>setTextLimit</code> to limit the text.
-     * 
-     * @param name the name of the preference this field editor works on
-     * @param labelText the label text of the field editor
-     * @param parent the parent of the field editor's control
-     */
-/*    
-    public SafariFileFieldEditor(
-    		PreferencePage page,
-    		SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
-    {
-        super(service, level, name, labelText, parent);
-    	prefPage = page;
-    	prefTab = tab;
-    }
-*/    
     
     /*
      * Below copoied from org.eclipse.jface.preference.FileFieldEditor
@@ -105,7 +86,7 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
      * Opens the file chooser dialog and returns the selected file.
      */
     protected String changePressed() {    	
-        File f = new File(getTextControl().getText());
+        File f = new File(getTextControl(parent).getText());
         if (!f.exists())
             f = null;
         File d = getFile(f);
@@ -115,43 +96,6 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
         return d.getAbsolutePath();
     }
 
-    /* (non-Javadoc)
-     * Method declared on StringFieldEditor.
-     * Checks whether the text input field specifies an existing file.
-     */
-/*   
-   protected boolean checkState() {
-        String msg = null;
-
-        String path = getTextControl().getText();
-        if (path != null)
-            path = path.trim();
-        else
-            path = "";//$NON-NLS-1$
-        if (path.length() == 0) {
-            if (!isEmptyStringAllowed())
-                msg = getErrorMessage();
-        } else {
-            File file = new File(path);
-            if (file.isFile()) {
-                if (enforceAbsolute && !file.isAbsolute())
-                    msg = JFaceResources
-                            .getString("FileFieldEditor.errorMessage2");//$NON-NLS-1$
-            } else {
-                msg = getErrorMessage();
-            }
-        }
-
-        if (msg != null) { // error
-            showErrorMessage(msg);
-            return false;
-        }
-
-        // OK!
-        clearErrorMessage();
-        return true;
-    }
-*/
     	
     /**
      * Helper to open the file chooser dialog.
@@ -189,58 +133,7 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
     
     
     
-    /**
-     * Informs this field editor's listener, if it has one, about a change
-     * to the value (<code>VALUE</code> property) provided that the old and
-     * new values are different.
-     * <p>
-     * This hook is <em>not</em> called when the text is initialized 
-     * (or reset to the default value) from the preference store.
-     * </p>
-     */
-/*    
-    protected void valueChanged() {
-    	// TODO:  The following line is from the original, but check
-    	// whether it still applies (when is valueChanged() called?)
-    	// Alternatively, could modify setPresentsDefaultValue to
-    	// compute whether the default is set (rather than to set it
-    	// directly)
-    	setPresentsDefaultValue(false);
-        
-//        System.out.println("SSFE.valueChanged():  newValue = " + getTextControl().getText());
-        
-        boolean oldState = 	isValid();
-        refreshValidState();
-        
-
-        if (isValid() != oldState) {
-            fireStateChanged(IS_VALID, oldState, isValid());
-            if (prefPage != null)
-            	prefPage.setValid(isValid());
-        }
-
-            
-        // SMS 24 Aug 2006:  Added check for null control
-        // and branch for null case
-        if (getTextControl() ==  null) {
-        	if (previousValue != null) {
-                fireValueChanged(VALUE, previousValue, null);
-                previousValue = null;
-                if (prefPage != null)
-                	prefPage.setValid(isValid());
-        	}
-        	return;
-        }
-        String newValue = getTextControl().getText();
-        if (!newValue.equals(previousValue)) {
-            fireValueChanged(VALUE, previousValue, newValue);
-            if (prefPage != null)
-            	prefPage.setValid(isValid());
-            previousValue = newValue;
-        }
-    }
-*/
-    
+ 
     // getErrorMessage() is defined on StringFieldEditor,
     // and can be set with setErrorMessage(String);
     
@@ -253,14 +146,13 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
         // Here we check for empty or null strings, although
         // this may very well be checked at a higher level
         // (so we might not ever get here with this problem)
-        String path = getTextControl().getText();
+        String path = getTextControl(parent).getText();
         if (path != null)
             path = path.trim();
         else
             path = "";//$NON-NLS-1$
-        if (path.length() == 0 && !isEmptyStringAllowed()) {
-                msg = "Path length is zero when empty string is not allowed";
-                setErrorMessage(msg);
+        if (path.length() == 0 && !emptyStringAllowed) {
+        		setErrorMessage(getFieldMessagePrefix() + "Path length is zero when empty string is not allowed");
                 return false;
         }
         
@@ -292,8 +184,14 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
         int start = path.startsWith("'") ? 1 : 0;
         for (int i = start; i < splits.length; i++) {
         	splitsVerified = splitsVerified && doCheckState(splits[i]);
-        	if (!splitsVerified) return false;
+        	if (!splitsVerified) {
+        		if (!hasErrorMessage()) {
+        			setErrorMessage(getFieldMessagePrefix() + "Path segment \"splits[i]\" failed verification");
+        		}
+        		return false;
+        	}
         }
+    	clearErrorMessage();
         return true;
     	
     }
@@ -305,21 +203,17 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
         File file = new File(path);
         if (file.isFile()) {
             if (enforceAbsolute && !file.isAbsolute())
-                msg = JFaceResources
-                        .getString("FileFieldEditor.errorMessage2");//$NON-NLS-1$
+                msg = JFaceResources.getString("FileFieldEditor.errorMessage2");//$NON-NLS-1$
         } else {
-            msg = 	//etErrorMessage();
-            	"Path does not designate a valid file";
+            msg = "Path does not designate a valid file";
         }
 
 	    boolean result = true;
-	    if (msg != null) { // error
-	        setErrorMessage(msg);
+	    if (msg != null) {
+	    	setErrorMessage(getFieldMessagePrefix() + msg);
 	    	result = false;
-	    } else {	// OK!
-	        // don't clear any prior error message,
-	    	// although probably if we're here there
-	    	// isn't one
+	    } else {
+	    	clearErrorMessage();
 	    	result = true;
 	    }
 	

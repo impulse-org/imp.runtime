@@ -1,39 +1,88 @@
 package org.eclipse.uide.preferences.fields;
 
-import java.io.File;
-
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.Assert;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.events.FocusAdapter;
+import org.eclipse.swt.events.FocusEvent;
+import org.eclipse.swt.events.KeyAdapter;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.uide.preferences.ISafariPreferencesService;
 import org.eclipse.uide.preferences.SafariPreferencesTab;
+import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 import org.osgi.service.prefs.BackingStoreException;
 
+/**
+ * Things to note:
+ * 
+ * @author sutton
+ *
+ */
 
-public class SafariStringFieldEditor extends StringFieldEditor
+public class SafariStringFieldEditor extends SafariFieldEditor
 {
-	PreferencePage prefPage = null;
-	SafariPreferencesTab prefTab = null;
-	
-	protected ISafariPreferencesService preferencesService = null;
-	
-	protected String previousValue = null;
-
-	protected Composite parent = null;
-
     
-	public Color colorWhite = new Color(null, 255, 255, 255);
-	public Color colorBluish = new Color(null, 175, 207, 239);
-	public Color colorGreenish = new Color(null, 0, 127, 239);
-	public Color colorLightGray = new Color(null, 224, 223, 226);
+	/**
+     * Cached valid state.
+     */
+    private boolean isValid;
+
+    /**
+     * Old text value.
+     */
+    //private String oldValue;
+    protected String previousValue;
+
+    /**
+     * The text field, or <code>null</code> if none.
+     */
+    protected Text textField;
+
+    /**
+     * Width of text field in characters; initially unlimited.
+     */
+    protected int widthInChars = StringFieldEditor.UNLIMITED;
+
+    /**
+     * Text limit of text field in characters; initially unlimited.
+     */
+    protected int textLimit = StringFieldEditor.UNLIMITED;
+
+    /**
+     * The error message, or <code>null</code> if none.
+     */
+    protected String errorMessage;
+
+    /**
+     * Indicates whether the empty string is legal;
+     * <code>true</code> by default.
+     */
+    protected boolean emptyStringAllowed = true;
+
+    /**
+     * The empty string (in case you needed it)
+     */
+	protected final String emptyValue = "";
+    
+    /**
+     * The validation strategy; 
+     * <code>VALIDATE_ON_KEY_STROKE</code> by default.
+     */
+    protected int validateStrategy = StringFieldEditor.VALIDATE_ON_KEY_STROKE;
+
+ 
+	
 	
     /**
      * Creates a string field editor.
@@ -54,13 +103,25 @@ public class SafariStringFieldEditor extends StringFieldEditor
     		ISafariPreferencesService service, String level, String name, String labelText,
     		int width, int strategy, Composite parent)
     {
-    	super(name, labelText, width, strategy, parent);
-    	preferencesService = service;
-    	preferencesLevel = level;
-    	this.parent = parent;
-    	prefPage = page;
-    	setPage(prefPage);
-    	prefTab = tab;
+    	super(page, tab, service, level, name, labelText, parent);
+
+    	// Relating to SAFARI things
+//    	preferencesService = service;
+//    	preferencesLevel = level;
+//    	this.parent = parent;
+//    	prefPage = page;
+//    	setPage(prefPage);
+//    	prefTab = tab;	
+    	
+    	// Relating to StrinfFieldEditor things
+        init(name, labelText);
+        widthInChars = width;
+        setValidateStrategy(strategy);
+        isValid = false;
+        // Why set this in a local field rather than in the page?
+        errorMessage = JFaceResources
+                .getString("SafariStringFieldEditor.errorMessage");//$NON-NLS-1$
+        createControl(parent);	
     }
 	
 	
@@ -76,16 +137,11 @@ public class SafariStringFieldEditor extends StringFieldEditor
      */
     public SafariStringFieldEditor(
 			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
-    		int width, Composite parent)
+    		ISafariPreferencesService service, String level,
+    		String name, String labelText, int width, Composite parent)
     {
-        super(name, labelText, width, VALIDATE_ON_KEY_STROKE, parent);
-    	preferencesService = service;
-    	preferencesLevel = level;
-    	this.parent = parent;
-    	prefPage = page;
-    	setPage(prefPage);
-    	prefTab = tab;
+        this(page, tab, service, level,
+        	 name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     }
     
     /**
@@ -98,94 +154,164 @@ public class SafariStringFieldEditor extends StringFieldEditor
      */
     public SafariStringFieldEditor(
 			PreferencePage page, SafariPreferencesTab tab,
-			ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
+			ISafariPreferencesService service, String level,
+			String name, String labelText, Composite parent)
     {
-        super(name, labelText, UNLIMITED, parent);
-    	preferencesService = service;
-    	preferencesLevel = level;
-    	this.parent = parent;
-    	prefPage = page;
-    	setPage(prefPage);
-    	prefTab = tab;
+        this(page, tab, service, level, name, labelText, StringFieldEditor.UNLIMITED, parent);
     }
 
    
-    private boolean isInherited = false;
+    /**
+     * @return	The parent control of this field editor
+     */
+    public Composite getParent() {
+    	return parent;
+    }
+ 
     
-    public boolean isInherited() { return isInherited; }
     
-    protected void setInherited(boolean inherited) { isInherited = inherited; }
+    /**
+     * Sets the strategy for validating the text.
+     * <p>
+     * Calling this method has no effect after <code>createPartControl</code>
+     * is called. Thus this method is really only useful for subclasses to call
+     * in their constructor. However, it has public visibility for backward 
+     * compatibility.
+     * </p>
+     *
+     * @param value either <code>VALIDATE_ON_KEY_STROKE</code> to perform
+     *  on the fly checking (the default), or <code>VALIDATE_ON_FOCUS_LOST</code> to
+     *  perform validation only after the text has been typed in
+     *  
+     *  Copied from StringFieldEditor and adapted to this location.
+     */
+    public void setValidateStrategy(int value) {
+        Assert.isTrue(value == StringFieldEditor.VALIDATE_ON_FOCUS_LOST
+                || value == StringFieldEditor.VALIDATE_ON_KEY_STROKE);
+        validateStrategy = value;
+    }
+
     
-    
-	
-	protected String specialValue = null;
-	protected boolean hasSpecialValue = false;
-	
-	public boolean hasSpecialValue() { return hasSpecialValue; }
-	
-	public String getSpecialValue() { 
-		if (hasSpecialValue) return specialValue;
-		throw new IllegalStateException("SafariStringField.getSpecialValue:  called when field does not have a special value");
+    /*
+     * Methods related to a special value for this field, treated
+     * as a string (as you would expect)
+     */
+
+    /**
+     * @return	The special value associated with this field, if there
+     * 			is such a value and it is a string
+     * @throws	IllegalStateException
+     * 				If the field does not have a special value or
+     * 				if the special value is not a string
+     */
+	public String getSpecialStringValue() { 
+		if (!hasSpecialValue) {
+			throw new IllegalStateException("SafariStringField.getSpecialValue():  field does not have a special value");
+		} else if (!(specialValue instanceof String)) {
+			throw new IllegalStateException("SafariStringField.getSpecialValue():  special value is not a String");
+		} else {
+			return (String) specialValue;
+		}
 	}
 	
-	public void setNoSpecialValue() {
-		hasSpecialValue = false;
-		specialValue = null;
-	}
-    
+  
+	/**
+	 * Set the special value associated with this field to be the given string.
+	 * Overrides the method in the supertype to check that the given value is
+	 * a String.
+	 * 
+	 * @param specialValue	The special value to associate with this field
+	 * @throws IllegalStateException
+	 * 				If the given value is not a String
+	 */
 	public void setSpecialValue(String specialValue) {
+		if (!(specialValue instanceof String)) {
+			throw new IllegalStateException("SafariStringField.setSpecialValue():  given value is not a String");
+		}
 		hasSpecialValue = true;
 		this.specialValue = specialValue;
 	}
 
 	
-	protected final String emptyValue = "";
+	/*
+	 * Methods related to whether the empty string is allowed
+	 * for this field.
+	 * 
+	 * These methods mimic coresponding instance methods defined
+	 * on the superclass.
+	 */
 	
 	
+	/**
+	 * @return	Whether the empty string is allowed as a value
+	 * 			for this field.
+	 */
 	public boolean isEmptyValueAllowed() {
-		return isEmptyStringAllowed();
+		return emptyStringAllowed;
 	}
 	
+	/**
+	 * Sets whether the empty string is allowed as a value
+	 * for this field.
+	 * 
+	 * @param allowed	Whether ...
+	 */
 	public void setEmptyValueAllowed(boolean allowed) {
-		setEmptyStringAllowed(allowed);
+		emptyStringAllowed = allowed;
 	}
 	
 
+	
+	/**
+	 * @return	The empty value for fields of this type,
+	 * 			i.e., the empty string, regardless of whether
+	 * 			that value is allowed for a particular field
+	 */
 	public String getEmptyValue() {
-		if (isEmptyStringAllowed())
 			return emptyValue;
-		throw new IllegalStateException("SafariStringFieldEditor.getEmptyValue:  called when field does not allow an empty value");
 	}
-	
-	
-	protected boolean isRemovable = false;
-	
-	public boolean isRemovable() { return isRemovable; }
-	
-	public void setRemovable(boolean isRemovable) {
-		this.isRemovable = isRemovable;
-	}
-	
-    
-    /**
-     * Initializes this field editor with the preference value from
-     * the preference service.
-     */
-    public void load() {
-        if (preferencesService != null) {
-            //isDefaultPresented = false;
-            doLoad();
-            refreshValidState();
-        }
-    }
 
 
-	/* (non-Javadoc)
+	
+
+    /* (non-Javadoc)
      * Method declared on FieldEditor.
      */
+    public boolean isValid() {
+        return isValid;
+    }
+
+    /* (non-Javadoc)
+     * Method declared on FieldEditor.
+     */
+    protected void refreshValidState() {
+        isValid = checkState();
+    }
+	
+	
+    /*
+     * Methods related to loading values from the preferences service
+     * into the preferences store.
+     * 
+     * All of the "doLoad..." methods should
+     * - Set isInherited, presentsDefaultValue, and levelFromWhichLoaded
+     *   since these are know directly here and vary from load method to
+     *   load method
+     * - Call setStringValue(..), which will set previousValue and
+     *   fieldModified (which can be set generally given the old and
+     *   new values), and which will also call valueChanged(), which
+     */
+	
+	
+	
+	/**
+	 * Load the string value for this field.  Load it according to
+	 * the preference level associated with this field, if there is one,
+	 * or load it according to an applicable level, if not.
+	 */
     protected void doLoad()
     {
-        if (getTextControl() != null) {
+        if (getTextControl(parent) != null) {
         	String value = null;
         	if (preferencesLevel != null) {
         		// The "normal" case, in which field corresponds to a preferences level
@@ -198,106 +324,77 @@ public class SafariStringFieldEditor extends StringFieldEditor
         		// field that is not associated with a specific level
         		value = preferencesService.getStringPreference(getPreferenceName());
         		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
-    			setInherited(true);	
+    			setInherited(!levelFromWhichLoaded.equals(preferencesLevel));
         	}
-            if (ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
-            	setPresentsDefaultValue(true);
-        	previousValue = value;
+           	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
             setStringValue(value);
-        }	
-    }
-
-    
-    
-    /**
-     * Initializes this field editor with the default preference value
-     * from the preference store.
-     */
-    public void loadDefault() {
-        if (preferencesService != null) {
-        	setPresentsDefaultValue(true);
-            doLoadDefault();
-            refreshValidState();
         }
+        // SMS 28 Nov 2006 added here
+       	// Set the background color of the field according to where found
+        Text text = getTextControl(parent);
+        if (isInherited())
+        	text.setBackground(SafariPreferencesUtilities.colorBluish);
+        else
+        	text.setBackground(SafariPreferencesUtilities.colorWhite);
     }
 
  
-    /* (non-Javadoc)
-     * Method declared on FieldEditor.
+    /**
+     * Load the default value associated with this field.  That is, load
+     * the value set at the default level for this field, regardless of
+     * the actual level of this field.
      */
     protected void doLoadDefault() {
-        if (getTextControl() != null) {
+        if (getTextControl(parent) != null) {
             String value = preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
-            setStringValue(value);
+            levelFromWhichLoaded = ISafariPreferencesService.DEFAULT_LEVEL;
+            setInherited(false);	// We're putting the default value here directly, not inheriting it
+            setPresentsDefaultValue(true);	// Need this really?
+            setStringValue(value);	// calls valueChanged();
+            
+            // SMS 28 Nov 2006 added here
+            // Value is default but is not inherited
+            Text text = getTextControl(parent);
+           	text.setBackground(SafariPreferencesUtilities.colorWhite);
         }
-        // Comments on valueChanged() says it is not called when 
-        // a value is initialized or restored from default
-        //valueChanged();
     }
 
     
-    
-    // SMS 22 Aug 2006
-    // I made up the following pair of operations "by level"
-    
+
     /**
-     * Initializes this field editor with the default preference value
-     * from the preference store.
-     */
-    public void loadLevel(String level) {
-        if (preferencesService != null &&
-        	preferencesService.isaPreferencesLevel(level))
-        {
-        	if (ISafariPreferencesService.DEFAULT_LEVEL.equals(level))
-        		setPresentsDefaultValue(true);
-        	doLoadLevel(level);
-            refreshValidState();
-        }
-    }
-
-
-    /* (non-Javadoc)
-     * 
+     * Do the work of loading the value for the given level into the field.
      */
     protected void doLoadLevel(String level) {
-        if (getTextControl() != null) {
+        if (getTextControl(parent) != null) {
         	String value = null;
         	if (preferencesLevel != null) {
         		value = preferencesService.getStringPreference(level, getPreferenceName());
         	} else {
-        		// TODO:  Check whether this is the right thing to do
+        		// TODO:  Check whether this is right
         		value = preferencesService.getStringPreference(getPreferenceName());
         	}
-        	setStringValue(value);
+         	// We're putting the level's value here directly, not inheriting it, so ...
+        	levelFromWhichLoaded = level;
+        	setInherited(false);
+           	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(level));
+        	setStringValue(value);	// calls valueChanged();
         }
-        //valueChanged();
     }
 
 
-    protected String levelFromWhichLoaded = null;
-    
-    public String getLevelFromWhichLoaded() {
-    	return levelFromWhichLoaded;
-    }
-    
- 
-    public String loadWithInheritance() {
-        if (preferencesService != null) {
-        	levelFromWhichLoaded = doLoadWithInheritance();
-            //if (preferencesService.isDefault(getPreferenceName()))
-        	if (ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
-            	setPresentsDefaultValue(true);
-            refreshValidState();
-        }
-        return levelFromWhichLoaded;
-    }
 
-
-	/*
-     * Load into the text field the value for this preference that is either
-     * the value defined on this preferences level, if any, or the value inherited
-     * from the next applicable level, if any.  Return the level at which the
-     * value loaded was found.  Load nothing and return null if no value is found.
+	/**	
+     * Do the work of setting the currently applicable value for this field,
+     * inheriting the value from a higher level if the value is not stored
+     * on the level associated with the field. (The "default" level should
+     * always have a value.)  Load nothing and return null if no value is found.
+     * 
+     * Should set varous fields such as levelFromWhichLoaded, previousValue,
+     * isInherited, and fieldModified.  Should also adjust the appearance of
+     * the field on the preferences page to reflect inherited state.
+     * 
+     * @return	The level from which the applicable value was loaded or
+     * 			null if no value found.
      */
     protected String doLoadWithInheritance()
     {
@@ -309,7 +406,7 @@ public class SafariStringFieldEditor extends StringFieldEditor
     	// If we're loading with inheritance for some field that is
     	// not attached to a preferences level (such as the "applicable"
     	// field, which inherits values from all of the real fields)
-    	// then assume that we should just search from the bottom up
+    	// then assume that we should search from the bottom up
     	String tmpPreferencesLevel = 
     		(preferencesLevel == null)?
     			levels[0]:
@@ -329,101 +426,36 @@ public class SafariStringFieldEditor extends StringFieldEditor
     	for (int level = fieldLevelIndex; level < levels.length; level++) {
        		value = preferencesService.getStringPreference(levels[level], getPreferenceName());
        		if (value == null) continue;
-       		if (value.equals("") && !isEmptyStringAllowed()) continue;
+       		if (value.equals("") && !isEmptyValueAllowed()) continue;
        		levelAtWhichFound = level;
        		levelLoaded = levels[levelAtWhichFound];
        		break;	
     	}
     	
-    	// Set the field to the value we found
-        setStringValue(value);
-        
-    	// We loaded it at this level or inherited it from some other level
+    	levelFromWhichLoaded = levelLoaded;
     	setInherited(fieldLevelIndex != levelAtWhichFound);
-    	
-    	// Since we just loaded some new text, it won't be modified yet
-    	textModified = false;
-    	
-    	// TODO:  Check on use of previous value
-       	previousValue = value;
+       	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+        setStringValue(value);		// sets fieldModified and previousValue
        	
        	// Set the background color of the field according to where found
-        Text text = getTextControl();
+        Text text = getTextControl(parent);
         if (isInherited())
-        	text.setBackground(colorBluish);
+        	text.setBackground(SafariPreferencesUtilities.colorBluish);
         else
-        	text.setBackground(colorWhite);
-  	
-        //System.out.println("doLoadWithInheritance:  preferencesName = " + getPreferenceName() + "; preferenceLevel = " + preferencesLevel + "; levelLoaded = " + levelLoaded);
+        	text.setBackground(SafariPreferencesUtilities.colorWhite);
         
         return levelLoaded;
     }
 
     
     
-    /**
-     * Stores this field editor's value back into the preference store.
+    /*
+     * Method related to storing String values for this field
      */
-    public void store() {
-
-    	// Don't store if the preferences service is null, since that may
-    	// represent an illegal state and anyway we need to refer to it below
-    	if (preferencesService == null) {
-    		throw new IllegalStateException("SafairBooleanFieldEditor.setPreferenceLevel:  attempt to store when preferences service is null");
-    	}
-    	
-    	// Can't store the value If there is no valid level (this isn't
-    	// necessarily an error, but it does prevent storing)
-        if (preferencesLevel == null) return;
-
-        // Don't store a value that comes from some other level
-        // Note:  presentsDefaultValue is true if the value was set direclty from
-        // the default level, which isn't inheritance but which still means that
-        // the value isn't associated with the local preferences node (unless
-        // the local node is the default node, but then we don't store default
-        // preferences in any case)
-        if (isInherited) return;
-        if (presentsDefaultValue()) return;
-        
-        // Don't bother storing if the field hasn't been modified
-        if (!textModified) return;
-        
-        // Don't store the value if the field's level is the project level
-        // but no project is selected
-        if (ISafariPreferencesService.PROJECT_LEVEL.equals(preferencesLevel) &&
-        		preferencesService.getProject() == null) return;
-        
-        // If the level is the default level, go ahead and store it even
-        // though preferences on the default level aren't persistent:
-        // the preference still needs to be stored into the default preference
-        // node, and the flushing of that node doesn't have any effect.
-        // In other words, do not return if the level is the default level
-
-        // Store the value
-        doStore();
-        
-        // If we've just stored the field, we've addressed any modifications
-   		//System.out.println("STFE.store:  setting fieldModified to FALSE");
-   		textModified = false;
-   		levelFromWhichLoaded = preferencesLevel;
-   		// If we've stored the field then it's not inherited, so be sure it's
-   		// color indicates that.
-   		// Note that for the checkbox wiget (which is the only one used so far)
-   		// the background color is the color behind the label (not the checkbox
-   		// itself), so it should be light gray like the background in the rest
-   		// of the tab.
-   		// TODO:  figure out how to determine the actual prevailing background
-   		// color and use that here
-   		getTextControl().setBackground(colorWhite);
-    	
-    }
-    
-    private boolean textModified = false;
     
     protected void doStore() {
-    	String 	value = getTextControl().getText();
-    	boolean isEmpty = value.equals(emptyValue);			// Want empty value, but can't call method to retrieve it
-    														// with fields where empty is not allowed
+    	String 	value = getTextControl(parent).getText();
+    	boolean isEmpty = value.equals(emptyValue);	
     	// getText() will return an empty string if the field is empty,
     	// and empty strings can be stored in the preferences service,
     	// but an empty string is recognized by the preferences service
@@ -434,7 +466,7 @@ public class SafariStringFieldEditor extends StringFieldEditor
     	// service so as to not short-circuit the search process, but we can't	
     	// do that.  So, if the field value is empty, we have to eliminate the
     	// preference entirely.  (Will that work in general???)
-    	if (isEmpty && !isEmptyStringAllowed()) {
+    	if (isEmpty && !isEmptyValueAllowed()) {
     		// We have an empty value where that isn't allowed, so clear the
     		// preference.  Expect that clearing the preferences at a level will
     		// trigger a loading with inheritance at that level
@@ -446,201 +478,175 @@ public class SafariStringFieldEditor extends StringFieldEditor
     		loadWithInheritance();
     		return;
     	}
-    	if (isInherited() && !textModified) {				// If inherited, why do we care whether it's modified?
-    		// We have a value	 but it's inherited			// shouldn't want to store in any case, should we?
-    		// (left over from after the last time we cleared the field)
-    		// so don't need (or want) to store it	
-    		return;
-    	}
+
     	// We have a value (possibly empty, if that is allowed) that has changed
     	// from the previous value, so store it
     	preferencesService.setStringPreference(preferencesLevel, getPreferenceName(), value);
 
-        // If we've just stored the field, we've addressed any modifications
-   		//System.out.println("STFE.doStore:  setting fieldModified to FALSE");
-   		textModified = false;
-   		// "Level from which loaded" (or set, as the case may be) is now this level
+   		fieldModified = false;
    		levelFromWhichLoaded = preferencesLevel;
+   		isInherited = false;
+   		setPresentsDefaultValue(
+   				value.equals(preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
+            
+   		
    		// If we've stored the field then it's not inherited, so be sure it's
    		// color indicates that.
    		// For text fields, the background color is the backgroud color within
    		// the field, so don't have to worry about matching anything else
-   		getTextControl().setBackground(colorWhite);
+   		getTextControl(parent).setBackground(SafariPreferencesUtilities.colorWhite);
     	
     	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
     	try {
     		if (node != null) node.flush();
     	} catch (BackingStoreException e) {
-    		System.err.println("SafariStringFieldEditor.	():  BackingStoreException flushing node;  node may not have been flushed:" + 
+    		System.err.println("SafariStringFieldEditor.doStore():  BackingStoreException flushing node;  node may not have been flushed:" + 
     				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
     	}
     }
     
-    
+ 
     /*
-     * Preferences are stored by level, so we need to provide some
-     * way to represent and set the applicable level.  Note that
-     * preferences can be reset at the default level during exeuction
-     * but default level preferences are never stored between
-     * executions. 
+     * Methods related to getting and setting the String value for this field
      */
-    	
-    String preferencesLevel = null;
-
-    	
-    public	void setPreferencesLevel(String level) {
-    	if (!preferencesService.isaPreferencesLevel(level)) {
-    		throw new IllegalArgumentException("SafariStringFieldEditor.setPreferencesLevel:  given level = " + level + " is invalid");
-    	}
-    	if (level.equals(preferencesService.PROJECT_LEVEL) && preferencesService.getProject() == null) {
-    		throw new IllegalStateException("SafariStringFieldEditor.setPreferenceLevel:  given level is '" + preferencesService.PROJECT_LEVEL +
-    				"' but project is not defined for preferences service");
-    	}
-    	preferencesLevel = level;
-    }
-    
-    
-    public String getPreferencesLevel() {
-    	return preferencesLevel;	
-    }
-    
     
     
     /**
-     * Returns the field editor's value.
+     * @return the previous value held by this field
+     */
+    protected String getPreviousStringValue() {
+    	return (String) previousValue;
+    }
+    
+    
+    /**
+     * Sets the previous value held by this field
+     */
+    protected void setPreviousStringValue(String value) {
+    	previousValue = value;
+    }
+
+    
+    /**
+     * Set the value of this field directly, from outside of
+     * the field, without loading a value from the preferences
+     * service.
+     *  	
+     * Intended for use by external clients of the field.
+     * 
+     * In addition to setting the value of the field this method
+     * also sets several attributes to appropriately characterize
+     * a field that has been set in this way.
+     * 
+     * @param newValue
+     */
+    public void setFieldValueFromOutside(String newValue) {
+    	setPreviousStringValue(getStringValue());
+    	setInherited(false);
+    	setPresentsDefaultValue(false);
+    	levelFromWhichLoaded = null;
+    	setStringValue(newValue);
+    }
+  
+    
+    
+    /**
+     * Returns the field editor's current value.
      *
      * @return the current value
      */
     public String getStringValue() {
-    	String value = getTextControl().getText();
+    	String value = getTextControl(parent).getText();
     	return value;
     }
 
-    
+
     /**
-     * Sets this field editor's value.
+     * Set this field editor's value.
+     * Likewise set previousValue and fieldModified flags,
+     * and call valueChanged() to signal that the value has
+     * changed.
+     * 
      *
      * @param value the new value, or <code>null</code> meaning the empty string
      */
-    public void setStringValue(String value) {	
-        if (getTextControl() != null) {
+    protected void setStringValue(String value) {	
+        if (getTextControl(parent) != null) {
             if (value == null)
                 value = "";//$NON-NLS-1$
-            previousValue = getTextControl().getText();
-            if (!previousValue.equals(value) ||
-            		levelFromWhichLoaded == null || !levelFromWhichLoaded.equals(preferencesLevel))
-            {
-            	getTextControl().setText(value);
-            	textModified = true;
-            	levelFromWhichLoaded = preferencesLevel;
-            	// Not to be called when initialized or set to the default
-            	// which means not when loaded in our case); however,
-            	// setting the value directly is like entering a value
-            	// from the keyboard, so consider it changed
-            	valueChanged();
-            }
-            // setInherited(false) is done in valueChanged(); and probably shouldn't
-            // be done when not valueChanged()
-            //setInherited(false);
-            /*
-            if (levelFromWhichLoaded == null || !levelFromWhichLoaded.equals(preferencesLevel)) {
-            	// even if the text hasn't changed its value, if its
-            	// changed its origin, then consider it modified
-            	// (may affect whether it is stored for this level
-            	// which it should be, even if it's the same as the
-            	// text that was previously inherited)
-            	textModified = true;
-            	levelFromWhichLoaded = preferencesLevel;
-            }
-            */
-            setPresentsDefaultValue(preferencesLevel.equals(ISafariPreferencesService.DEFAULT_LEVEL));
+            setPreviousStringValue(getTextControl(parent).getText());
+        	getTextControl(parent).setText(value);
+        	// Set fieldModified here because we know we just set it
+        	// and we consider it modified even if the old and new
+        	// values are the same
+        	fieldModified = true;
+        	// Set on this level, and so not inherited
+        	// SMS 17 Nov 2006:  level and inherited should be set in doLoad methods
+        	// Or wherever else setStringValue is called from (e.g., listeners)
+        	//levelFromWhichLoaded = preferencesLevel;
+        	//isInherited = levelFromWhichLoaded == preferencesLevel;
+        	valueChanged();
+        	// valueChanged() takes care of setting the previous value
+        	// and presents default value
+	//            }
+//       		setPresentsDefaultValue(
+//       				value.equals(preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
         }
     }
 
-    protected boolean textNull = true;
-
-    public Text getTextControl() {
-    	//return super.getTextControl();
-
-    	if (!parent.isDisposed()) {
-    		if (textNull) {
-	        	// Should actually create checkbox if it doesn't exist
-	        	// so should really never be null
-	        	Text text = super.getTextControl(parent);
-	        	textNull = text == null;
-	        	if (!textNull) {
-	    	    	text.addModifyListener(
-	    	    			new ModifyListener() {
-	    	    				public void modifyText(ModifyEvent e) {
-	    	    					//System.out.println("STFE.text modify listener (from getTextControl):  textModified set to true");
-	    	    					textModified = true;
-	    	    					setInherited(false);
-	    	    				}
-	    	    			}
-	    	    	);
-		            text.addDisposeListener(new DisposeListener() {
-		                public void widgetDisposed(DisposeEvent event) {
-		                    //System.out.println("STFE.text dispose listener (from getTextControl):  textNull set to true");
-		                    textNull = true;
-		                }
-		            });
-	        	}
-	        }
-	    	return super.getTextControl(parent);
-        }
-    	return null;
-    }
     
     
-    public Composite getParent() {
-    	return parent;
-    }
-    
+ 
+   
     /**
      * Informs this field editor's listener, if it has one, about a change
      * to the value (<code>VALUE</code> property) provided that the old and
-     * new values are different.
-     * <p>
+     * new values are different.  Also informs the listener (if there is one)
+     * of a change in the validity of the field (<code>IS_VALID</code> property). 
+     * 
      * This hook is <em>not</em> called when the text is initialized 
      * (or reset to the default value) from the preference store.
-     * </p>
-     * This extension converts an inherited field to a local one.
-     * This is done because we don't want to allow inehrited fields to
-     * be edited as such.  This extension also maintains the local copy
-     * of the previous value.	
+     * (That comment is taken from the original implementation of this
+     * method.  I've tried to follow it consistently for SAFARI preferences,
+     * but I'm not sure if the original intention translates into the
+     * multi-level model.  Still, so far there seems to be no problem
+     * with it.  SMS 16 Nov 2006)
+     * 
+     * Copied from StringFieldEditor and adapted to use in SAFARI.
+     * Added return of a boolean value.  Not intended to set any attributes
+     * of the field editor, just to signal changes to listeners.
      */
-    protected void valueChanged() {
-    	// If we're editing (or otherwise directly updating) this field,
-    	// then treat it as if the value is set locally
-    	Text control = getTextControl();
-    	isInherited = false;
-    	control.setBackground(colorWhite);
-    	
-    	// If we've just set the value (say, without editing)
-    	// then treat the field as if it's enabled and editable
-    	// (we might be able to affect the field without editing
-    	// it by setting the value directly, which seems to be
-    	// possible even when the field is disabled and not
-    	// editable)
-/*    	
-    	if (!control.getEnabled()) {
-    		control.setEnabled(true);
-    	}
-    	if (!control.getEditable()) {
-    		control.setEditable(true);
-    	}
-*/    	
-    	super.valueChanged();
-    	
-    	// Maintain our local copy of the previous value
-    	// (since we can't access oldValue in the parent)
-        String newValue = control.getText();
-        if (!newValue.equals(previousValue)) {
-            previousValue = newValue;
+    protected boolean valueChanged() {
+    	return valueChanged(false);
+    }
+    
+    protected boolean valueChanged(boolean assertChanged)
+    {
+        // Check for change in value
+    	boolean valueChanged = assertChanged || inheritanceChanged();
+        String newValue = textField.getText();
+        if (!valueChanged) {
+        	valueChanged = newValue.equals(getPreviousStringValue());
         }
+
+        if (valueChanged) {
+        	// Check for change in validity
+            fireValueChanged(VALUE, getPreviousStringValue(), newValue);
+	        boolean wasValid = isValid;
+	        refreshValidState();
+	        if (isValid != wasValid)
+	            fireStateChanged(IS_VALID, wasValid, isValid);
+	
+            fieldModified = true;
+            setPreviousStringValue(newValue);
+	        setModifiedMarkOnLabel();
+        }
+        
+        return valueChanged;
     }
 
     
+ 
     
     /**
      * Checks whether the text input field contains a valid value or not.
@@ -650,45 +656,202 @@ public class SafariStringFieldEditor extends StringFieldEditor
      */
     protected boolean checkState()
     {
-        boolean result = false;
+        boolean result = true;
     
-        if (isEmptyStringAllowed()) {
-            result = true;
-        }
-
-        if (!result && getTextControl() == null) {
-        	setErrorMessage("Text control is null; no valid value represented");
+        if (!emptyStringAllowed && getStringValue().length() == 0) {
+        	setErrorMessage(getFieldMessagePrefix() + "String is empty when empty string is not allowed");
             result = false;
         }
 
-        if (!result && getTextControl() != null) {
-        	String txt = getStringValue();
-        	result = (txt.trim().length() > 0) || isEmptyStringAllowed();
+        if (result && getTextControl(parent) == null) {
+        	setErrorMessage(getFieldMessagePrefix() + "Text control is null; no valid value represented");
+            result = false;
         }
         
-        result = result && doCheckState();
-
-
+        if (result && getTextControl(parent) != null) {
+        	String txt = getStringValue();
+        	result = (txt.trim().length() > 0) || emptyStringAllowed;
+        	if (!result) {
+        		setErrorMessage(getFieldMessagePrefix() + "String is blank when empty string is not allowed");
+        	}
+        }
+        
+        if (result)
+        	result = result && doCheckState();
+        
         return notifyState(result);
     }
     
-    
-    private boolean notifyState(boolean state)
-    {
-
-        if (state)
-            clearErrorMessage();
-        else
-        	showErrorMessage(getErrorMessage());
-        
-    	if (prefPage != null)
-    		prefPage.setValid(state);
-    	if (prefTab != null)
-    		prefTab.setValid(state);
-    	
-    	//System.out.println("SFFE.doCheckState():  returning " + state);
-    	return state;
-    }
  
+    
+    /**
+     * A hook for subclasses to implement more specialized checks
+     * 
+     * @return	Whether the state is okay based on additional checks
+     */
+    protected boolean doCheckState() {
+    	clearErrorMessage();
+    	return true;
+    }
+    
+    
+
+    protected boolean textNull = true;
+
+    
+    public Text getTextControl() {
+    	return getTextControl(parent);
+    }
+    
+    
+    /**
+     * Returns this field editor's text control.
+     * 
+     * The control is created if it does not yet exist
+     * 
+     * Copied from StringFieldEditor and adapted to this location.
+     *
+     * @param parent the parent
+     * @return the text control
+     */
+    public Text getTextControl(Composite parent) {
+        if (textField == null) {
+            textField = new Text(parent, SWT.SINGLE | SWT.BORDER);
+            textField.setFont(parent.getFont());
+            switch (validateStrategy) {
+            case StringFieldEditor.VALIDATE_ON_KEY_STROKE:
+                textField.addKeyListener(new KeyAdapter() {
+
+                    /* (non-Javadoc)
+                     * @see org.eclipse.swt.events.KeyAdapter#keyReleased(org.eclipse.swt.events.KeyEvent)
+                     */
+                    public void keyReleased(KeyEvent e) {
+	                	// Should call setInherited(..) before calling valueChanged() because
+	                	// valueChanged() will mark the field as modified, but only if isInherited
+	                	// is false, which it now should be
+                        refreshValidState();
+    					setInherited(false);
+                        boolean changed = valueChanged(true);
+    					fieldModified = changed;
+
+                    }
+                });
+
+                break;
+            case StringFieldEditor.VALIDATE_ON_FOCUS_LOST:
+                textField.addKeyListener(new KeyAdapter() {
+                    public void keyPressed(KeyEvent e) {
+                        clearErrorMessage();
+                    }
+                });
+                textField.addFocusListener(new FocusAdapter() {
+                    public void focusGained(FocusEvent e) {
+                        refreshValidState();
+                    }
+
+                    public void focusLost(FocusEvent e) {
+                    	// Assume  no change in inheritance with this event
+                        valueChanged();
+                        clearErrorMessage();
+                    }
+                });
+                break;
+            default:
+                Assert.isTrue(false, "Unknown validate strategy");//$NON-NLS-1$
+            }
+            // SMS 16 Nov 2006
+            // The original SafariStringFieldEditor just had a text-field modify listener,
+            // as copied below.  But that would be redundant with the listeners copied
+            // from StringFieldEditor above.  The use of more than one listener for the
+            // same event is problematic if they all check for changes in the text value,
+            // because only the first will see a change, and other will set fieldModified
+            // to false, in effect cancelling processing that should occur following the
+            // triggering change
+//	    	textField.addModifyListener(
+//	    			new ModifyListener() {
+//	    				public void modifyText(ModifyEvent e) {
+//	    					//System.out.println("STFE.text modify listener (from getTextControl):  textModified set to true");
+//	                        valueChanged();
+//	    					fieldModified = true;
+//	    					setInherited(false);
+//	    				}
+//	    			}
+//	    	);
+            textField.addDisposeListener(new DisposeListener() {
+                public void widgetDisposed(DisposeEvent event) {
+                    textField = null;
+                }
+            });
+            if (textLimit > 0) {//Only set limits above 0 - see SWT spec
+                textField.setTextLimit(textLimit);
+            }
+        } else {
+            checkParent(textField, parent);
+        }
+        return textField;
+    }
+
+    
+    
+    /*
+     * UI-related methods copied from StringFieldEditor
+     */
+    
+    
+    /**
+     * Does something with the columns
+     * (but the SAFARI templates adjust columns separately)
+     */
+    protected void adjustForNumColumns(int numColumns) {
+        GridData gd = (GridData) textField.getLayoutData();
+        gd.horizontalSpan = numColumns - 1;
+        // We only grab excess space if we have to
+        // If another field editor has more columns then
+        // we assume it is setting the width.
+        gd.grabExcessHorizontalSpace = gd.horizontalSpan == 1;
+    }
+
+    
+    /**
+     * Fills this field editor's basic controls into the given parent.
+     * <p>
+     * The string field implementation of this <code>FieldEditor</code>
+     * framework method contributes the text field. Subclasses may override
+     * but must call <code>super.doFillIntoGrid</code>.
+     * </p>
+     */
+    protected void doFillIntoGrid(Composite parent, int numColumns) {
+        getLabelControl(parent);
+
+        textField = getTextControl(parent);
+        GridData gd = new GridData();
+        gd.horizontalSpan = numColumns - 1;
+        if (widthInChars != StringFieldEditor.UNLIMITED) {
+            GC gc = new GC(textField);
+            try {
+                Point extent = gc.textExtent("X");//$NON-NLS-1$
+                gd.widthHint = widthInChars * extent.x;
+            } finally {
+                gc.dispose();
+            }
+        } else {
+            gd.horizontalAlignment = GridData.FILL;
+            gd.grabExcessHorizontalSpace = true;
+        }
+        textField.setLayoutData(gd);
+    }
+    
+    
+    /**
+     * Returns the number of controls in this editor.
+     * These are two:  the text control and the label control.
+     * 
+     * @return	The number of controls in this editor
+     */
+    public int getNumberOfControls() {
+        return 2;
+    }
+
+    
     
 }

@@ -2,39 +2,56 @@ package org.eclipse.uide.preferences.fields;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.text.TextAttribute;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.uide.preferences.ISafariPreferencesService;
+import org.eclipse.uide.preferences.Markings;
+import org.eclipse.uide.preferences.SafariPreferencesTab;
+import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 import org.osgi.service.prefs.BackingStoreException;
 
 
-public class SafariBooleanFieldEditor extends BooleanFieldEditor
+public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEditor
 {
-	protected ISafariPreferencesService preferencesService = null;
-	protected String preferencesLevel = null;
-	protected Composite parent = null;
-	protected boolean wasSelected;			// formerly previousValue
-    private boolean fieldModified = false;	// formerly textModified
-    private boolean nodeModified = false;
+	/*
+	 * Fields copied from BooleanFieldEditor
+	 */
+	
+	/**
+     * Style constant (value <code>0</code>) indicating the default
+     * layout where the field editor's check box appears to the left
+     * of the label.
+     */
+    public static final int DEFAULT = 0;
+
+    /**
+     * Style constant (value <code>1</code>) indicating a layout 
+     * where the field editor's label appears on the left
+     * with a check box on the right.
+     */
+    public static final int SEPARATE_LABEL = 1;
+
+    /**
+     * Style bits. Either <code>DEFAULT</code> or
+     * <code>SEPARATE_LABEL</code>.
+     */
+    private int style;
 
     
-	public Color colorWhite = new Color(null, 255, 255, 255);
-	public Color colorBluish = new Color(null, 175, 207, 239);
-	public Color colorGreenish = new Color(null, 0, 127, 239);
-	public Color colorLightGray = new Color(null, 224, 223, 226);
+    /**
+     * The checkbox control, or <code>null</code> if none.
+     */
+    private Button checkBox = null;
 
-	protected SafariBooleanFieldEditor(ISafariPreferencesService service, String level) {
-		super();
-    	preferencesService = service;
-    	preferencesLevel = level;
-	}
-	
 	
 	/**
      * Creates a boolean field editor in the given style.
@@ -48,12 +65,13 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
      * @see #SEPARATE_LABEL
      */
     public SafariBooleanFieldEditor(
-    		ISafariPreferencesService service, String level, String name, String labelText, int style, final Composite parent)
+			PreferencePage page, SafariPreferencesTab tab,
+    		ISafariPreferencesService service, String level,
+    		String name, String labelText, int style, final Composite parent)
     {
-    	super(name, labelText, style, parent);
-    	preferencesService = service;
-    	preferencesLevel = level;
-    	this.parent = parent;
+    	super(page, tab, service, level, name, labelText, parent);
+    	this.style = style;
+    	createControl(parent);
     }
 	
     
@@ -65,238 +83,99 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
      * @param parent the parent of the field editor's control
      */
     public SafariBooleanFieldEditor(
+		PreferencePage page, SafariPreferencesTab tab,
    		ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
     {
-        super(name, labelText, parent);
-    	preferencesService = service;
-    	preferencesLevel = level;
-    	this.parent = parent;
+        this(page, tab, service, level, name, labelText, DEFAULT, parent);
     }
 
     
-    /**
-     * Checks whether the text input field contains a valid value or not.
-     *
-     * @return <code>true</code> if the field value is valid,
-     *   and <code>false</code> if invalid
-     *   
-     *   SMS 24 Aug 2006:  Copied from StringFieldEditor and revised here
-     *   because of potential for NPE in original
+  
+    
+    /*
+     * Methods related to loading values from the preferences service
+     * into the preferences store.
+     * 
+     * All of the "doLoad..." methods should
+     * - Set isInherited, presentsDefaultValue, and levelFromWhichLoaded
+     *   since these are know directly here and vary from load method to
+     *   load method
+     * - Call setStringValue(..), which will set previousValue and
+     *   fieldModified (which can be set generally given the old and
+     *   new values), and which will also call valueChanged(), which
      */
-/*    
-    protected boolean checkState() {
-        boolean result = false;
-        if (isEmptyStringAllowed())
-            result = true;
-
-        if (getTextControl() == null)
-            result = false;
-
-        if (getTextControl() != null) {		// SMS:  Added this check
-        	// TODO:  Figure out why could textControl be null in the superclass?
-        	String txt = getTextControl().getText();
-        	result = (txt.trim().length() > 0) || isEmptyStringAllowed();
-        }
-        
-        // call hook for subclasses
-        result = result && doCheckState();
-
-        if (result)
-            clearErrorMessage();
-        else
-            showErrorMessage(getErrorMessage());
-
-        return result;
-    }
-*/    
     
-    private boolean isInherited = false;
-    
-    public boolean isInherited() { return isInherited; }
-    
-    protected void setInherited(boolean inherited) { isInherited = inherited; }
-    
-    
-	
-	protected boolean specialValue = false;
-	protected boolean hasSpecialValue = false;
-	
-	public boolean hasSpecialValue() { return hasSpecialValue; }
-	
-	public boolean getSpecialValue() { 
-		if (hasSpecialValue) return specialValue;
-		throw new IllegalStateException("SafariStringField.getSpecialValue:  called when field does not have a special value");
-	}
-	
-	public void setNoSpecialValue() {
-		hasSpecialValue = false;
-		specialValue = false;
-	}
-    
-	public void setSpecialValue(boolean specialValue) {
-		hasSpecialValue = true;
-		this.specialValue = specialValue;
-	}
-
-	
-	protected final boolean emptyValue = false;
-
-	public boolean isEmptyValueAllowed() {
-		return false;
-	}
-	
-	
-	public void setEmptyValueAllowed(boolean allowed) {
-		if (allowed) {
-			throw new IllegalArgumentException("SafairBooleanFieldEditor.setEmptyValue:  attempt to allow emtpy values when those are prohibited by type");
-		}
-	}
-	
-	public boolean getEmptyValue() {
-		if (isEmptyValueAllowed())
-			return emptyValue;
-		throw new IllegalStateException("SafairBooleanFieldEditor.getEmptyValue:  called when field does not allow an empty value");
-	}
-	
-	
-	protected boolean isRemovable = false;
-	
-	public boolean isRemovable() { return isRemovable; }
-	
-	public void setRemovable(boolean isRemovable) {
-		this.isRemovable = isRemovable;
-	}
-	
-    
-    /**
-     * Initializes this field editor with the preference value from
-     * the preference service.
-     */
-    public void load() {
-        if (preferencesService != null) {
-            //isDefaultPresented = false;
-        	doLoad();
-            refreshValidState();
-        }
-    }
 
 
-	/* (non-Javadoc)
+	/* (non-Javadoc)	
      * Method declared on FieldEditor.
      */
     protected void doLoad()
     {
-        if (super.getChangeControl(parent) != null) {
-        	boolean value;
-        	if (preferencesLevel != null) {
-        		// The "normal" case, in which field corresponds to a preferences level
-        		value = preferencesService.getBooleanPreference(preferencesLevel, getPreferenceName());
-        		levelFromWhichLoaded = preferencesLevel;
-        		setInherited(false);
-        	}
-        	else {
-        		// Not normal, exactly, but possible if loading is being done into a
-        		// field that is not associated with a specific level
-        		value = preferencesService.getBooleanPreference(getPreferenceName());
-        		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
-    			setInherited(true);
-        	}
-            if (preferencesService.isDefault(getPreferenceName(), preferencesLevel))
-            	// wasSelected = value;
-            	setPresentsDefaultValue(true);
-        	valueChanged(wasSelected, value);
-        	//super.getChangeControl(parent).setSelection(value);
+        if (getChangeControl() != null) {	
+	    	boolean value;
+	    	if (preferencesLevel != null) {
+	    		// The "normal" case, in which field corresponds to a preferences level
+	    		value = preferencesService.getBooleanPreference(preferencesLevel, getPreferenceName());
+	    		levelFromWhichLoaded = preferencesLevel;
+	    		setInherited(false);
+	    	}
+	    	else {
+	    		// Not normal, exactly, but possible if loading is being done into a
+	    		// field that is not associated with a specific level
+	    		value = preferencesService.getBooleanPreference(getPreferenceName());
+	    		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
+				setInherited(true);
+	    	}
+        	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
         	setBooleanValue(value);
-
         }
+        
     }
 
-    
-    /**
-     * Initializes this field editor with the default preference value
-     * from the preference store.
-     */
-    public void loadDefault() {
-        if (preferencesService != null) {
-        	setPresentsDefaultValue(true);
-            doLoadDefault();
-            //refreshValidState();
-        }
-    }
 
  
     /* (non-Javadoc)
      * Method declared on FieldEditor.
      */
     protected void doLoadDefault() {
-        if (super.getChangeControl(parent) != null) {
+        if (getChangeControl() != null) {
             boolean value = preferencesService.getBooleanPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName());
-        	setBooleanValue(value);	// calls valueChanged(..), which resets wasSelected as appropriate
-        	setPresentsDefaultValue(true);
-        	// Not setting isInherited here because the value was set
-        	// directly rather than through the inheritance process.
-        	// Will need to keep track of presentsDefaultValue to know
-        	// whether values not inherited are local to their field.
+        	levelFromWhichLoaded = ISafariPreferencesService.DEFAULT_LEVEL;
+            setInherited(false);	// We're putting the default value here directly, not inheriting it
+            setPresentsDefaultValue(true);
+            setBooleanValue(value);	// calls valueChanged();
         }
      }
-
-    
-    
-    // SMS 22 Aug 2006
-    // I made up the following pair of operations "by level"
-    
-    /**
-     * Initializes this field editor with the default preference value
-     * from the preference store.
-     */
-    public void loadLevel(String level) {
-        if (preferencesService != null &&
-        	preferencesService.isaPreferencesLevel(level))
-        {
-        	if (level == ISafariPreferencesService.DEFAULT_LEVEL)
-        		setPresentsDefaultValue(true);
-        	doLoadLevel(level);
-            //refreshValidState();
-        }
-    }
 
 
     /* (non-Javadoc)
      * 
      */
     protected void doLoadLevel(String level) {
-        if (super.getChangeControl(parent) != null) {
+        if (getChangeControl() != null) {
         	boolean value;
         	if (preferencesLevel != null) {
         		value = preferencesService.getBooleanPreference(level, getPreferenceName());
         	} else {
-        		// TODO:  Check whether this is the right thing to do
         		value = preferencesService.getBooleanPreference(getPreferenceName());
         	}
-        	//super.getChangeControl(parent).setSelection(value);
-        	setBooleanValue(value);
-        	//wasSelected = value;
-        	valueChanged(wasSelected, value);
+         	// We're putting the level's value here directly, not inheriting it, so ...
+        	levelFromWhichLoaded = level;
+        	setInherited(false);
+           	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(level));
+        	setBooleanValue(value);	// calls valueChanged();
         }
     }
 
 
-    protected String levelFromWhichLoaded = null;
-    
-    public String getLevelFromWhichLoaded() {
-    	return levelFromWhichLoaded;
+    /* (non-Javadoc)
+     * Method declared on FieldEditor.
+     */
+    protected void refreshValidState() {
+    	notifyState(true);
     }
-    
- 
-    public String loadWithInheritance() {
-    	if (preferencesService != null && !parent.isDisposed()) {
-        	levelFromWhichLoaded = doLoadWithInheritance();
-            if (preferencesService.isDefault(getPreferenceName(), preferencesLevel))
-            	setPresentsDefaultValue(true);
-            refreshValidState();
-        }
-        return levelFromWhichLoaded;
-    }
+
 
 
 	/*
@@ -344,91 +223,32 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
     		}
     	}
     	
-    	// Ok, now have all necessary information to set everyting that
-    	// needs to be set
-    	setBooleanValue(value);	// calls valueChanged(..), which sets modified flag and 
+    	// Ok, now have all necessary information to set everyting that needs to be set
+    	levelFromWhichLoaded = levelLoaded;
     	setInherited(fieldLevelIndex != levelAtWhichFound);
+       	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+       	setPreviousBooleanValue(getBooleanValue());
+    	setBooleanValue(value);
+    	
     	if (!isInherited())
-    		getChangeControl().setBackground(colorLightGray);
+    		getChangeControl().setBackground(SafariPreferencesUtilities.colorLightGray);
     	else
-    		getChangeControl().setBackground(colorBluish);	
+    		getChangeControl().setBackground(SafariPreferencesUtilities.colorBluish);	
     	setPresentsDefaultValue(levelAtWhichFound == ISafariPreferencesService.DEFAULT_INDEX);
     	fieldModified = true;
 
-    	// Loading the field will (or at least may) change the field value
-    	//System.out.println("SBFE.doLoadWithInheritance:  setting fieldModified to TRUE");
-        //System.out.println("doLoadWithInheritance:  preferencesName = " + getPreferenceName() + "; preferenceLevel = " + preferencesLevel + "; levelLoaded = " + levelLoaded);
-        
         return levelLoaded;
     }
 
-    
-    
-    /**
-     * Stores this field editor's value back into the preference store.
-     */
-    public void store() {
-    	// Don't store if the preferences service is null, since that may
-    	// represent an illegal state and anyway we need to refer to it below
-    	if (preferencesService == null) {
-    		throw new IllegalStateException("SafairBooleanFieldEditor.setPreferenceLevel:  attempt to store when preferences service is null");
-    	}
-    	
-    	// Can't store the value If there is no valid level (this isn't
-    	// necessarily an error, but it does prevent storing)
-        if (preferencesLevel == null) return;
 
-        // Don't store a value that comes from some other level
-        // Note:  presentsDefaultValue is true if the value was set direclty from
-        // the default level, which isn't inheritance but which still means that
-        // the value isn't associated with the local preferences node (unless
-        // the local node is the default node, but then we don't store default
-        // preferences in any case)
-        if (isInherited) return;
-        if (presentsDefaultValue()) return;
-        
-        // Don't bother storing if the field hasn't been modified
-        if (!fieldModified) return;
-        
-        // Don't store the value if the field's level is the project level
-        // but no project is selected
-        if (ISafariPreferencesService.PROJECT_LEVEL.equals(preferencesLevel) &&
-        		preferencesService.getProject() == null) return;
-        
-        // If the level is the default level, go ahead and store it even
-        // though preferences on the default level aren't persistent:
-        // the preference still needs to be stored into the default preference
-        // node, and the flushing of that node doesn't have any effect.
-        // In other words, do not return if the level is the default level
-
-        // Store the value
-        doStore();
-        
-
-    }
-    
-
-    
+  
     protected void doStore()
     {				
-    	// All these conditions now addressed in store()
-    	/*
-    	if (isInherited() || !fieldModified) {
-    		if (isInherited() && !fieldModified) return;	// nothing changed, nothing to store
-    		if (isInherited() && fieldModified) return;		// something changed, but not to be stored here
-    		if (!isInherited && !fieldModified) return;		// nothing changed, already stored
-    		return;
-    	}
-    	*/
-    	
     	boolean	value = getBooleanValue();
     	
     	// Not inherited, and modified:  field must have been set on this level, so store it.
     	// Storing here should trigger preference-change listeners at each level below this.
    		preferencesService.setBooleanPreference(preferencesLevel, getPreferenceName(), value);
-   		
-    	// Now write out the node
-    	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
 
         // If we've just stored the field, we've addressed any modifications
    		//System.out.println("SBFE.doStore:  setting fieldModified to FALSE");
@@ -441,12 +261,16 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
    		// of the tab.
    		// TODO:  figure out how to determine the actual prevailing background
    		// color and use that here
-   		getChangeControl().setBackground(colorLightGray);
+   		getChangeControl().setBackground(SafariPreferencesUtilities.colorLightGray);
     	
+   		
+    	// Now write out the node
+    	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
+
     	try {
     		if (node != null) node.flush();
     	} catch (BackingStoreException e) {
-    		System.err.println("SBFE.doStore():  BackingStoreException flushing node;  node may not have been flushed:" + 
+    		System.err.println("SBFE.doStore():  BackingStoreException 	;  node may not have been flushed:" + 
     				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
     	}
     }
@@ -459,8 +283,6 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
      * but default level preferences are never stored between
      * executions. 
      */
-    	
- 
 
     	
     public	void setPreferencesLevel(String level) {
@@ -487,32 +309,71 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
      * @return the current value
      */
     public boolean getBooleanValue() {
-            //return super.getChangeControl(parent).getSelection();
-    	return getChangeControl(parent).getSelection();
+            //return getChangeControl(parent).getSelection();
+    	return getChangeControl().getSelection();
     }
 
     
     /**
-     * Sets this field editor's value through the supertype.
-     * Sets local flags for fieldModified (true) and isInherited (false).
-     * (We need a local version of fieldModified since that information
-     * isn't available through the supertype.  We need a local version
-     * of isInherited because the supertype doesn't address inheritance.)
-     * Does not set presentsDefault since that isn't known here (would
-     * presumably be known to the caller).
-     * Calls valueChanged(..), so callers don't have to do that.
-     * valueChanged(..) also sets the previous value, wasSelected.
-     *
-     * @param value the new value
+     * Set the previous value for this field
+     * @param value		The value to be set
      */
-    public void setBooleanValue(boolean value) {
-    	Button button = getChangeControl(parent);
+    
+    protected void setPreviousBooleanValue(boolean value) {
+    	previousValue = value ? Boolean.TRUE : Boolean.FALSE;
+    }
+    
+    /**
+     * Get the previous value for this field
+     * @return	The previous value
+     */
+    protected boolean getPreviousBooleanValue() {
+    	return ((Boolean)previousValue).booleanValue();
+    }
+
+    
+    
+    /**
+     * Set the value of this field directly, from outside of
+     * the field, without loading a value from the preferences
+     * service.
+     *  	
+     * Intended for use by external clients of the field.
+     * 
+     * In addition to setting the value of the field this method
+     * also sets several attributes to appropriately characterize
+     * a field that has been set in this way.
+     * 
+     * @param newValue
+     */
+    public void setFieldValueFromOutside(boolean newValue) {
+    	setPreviousBooleanValue(getBooleanValue());
+    	setInherited(false);
+    	setPresentsDefaultValue(false);
+    	levelFromWhichLoaded = null;
+    	setBooleanValue(newValue);
+    }
+    
+    
+    
+    /**
+     * Sets this field editor's value through the supertype.
+     * Sets previous value and field modified.
+     * Also calls valueChanged(..) to signal the change in
+     * value.
+     *
+     * @param value 	the new value
+     */
+    protected void setBooleanValue(boolean newValue) {
+    	Button button = getChangeControl();
         if (button != null && !button.isDisposed()) {
-            	button.setSelection(value);
-                valueChanged(wasSelected, value);
+        		boolean currentValue = getBooleanValue();
+        		if (previousValue == null)
+        			setPreviousBooleanValue(!currentValue);
+            	button.setSelection(newValue);
                 fieldModified = true;
-                setInherited(false);
-                levelFromWhichLoaded = preferencesLevel;
+                setModifiedMarkOnLabel();
+                valueChanged();
         } else if (button.isDisposed()){
         	throw new IllegalStateException("SafariBooleanFieldEditor.setBooleanValue:  button is disposed");
         } else if (button == null) {
@@ -521,78 +382,182 @@ public class SafariBooleanFieldEditor extends BooleanFieldEditor
     }
 
 
-    private boolean checkBoxNull = true;
+   
+    
+    /**
+     * Should be called whenever there is an update to the field,
+     * regardless of whether the value has changed or not.
+     * 
+     * Informs this field editor's listener, if it has one, about a change
+     * to the value (<code>VALUE</code> property) provided that the old and
+     * new values are different.
+     * 
+     * Sets the "modified" mark on the fields label regardless of
+     * whether the value has changed (on the assumption that the
+     * field has, or may have, changed in some significant way.
+     *
+     * @param oldValue 	the old value
+     * @param newValue 	the new value
+     */
+    protected boolean valueChanged() {
+    	boolean changed = false;
+
+    	boolean oldValue = getPreviousBooleanValue();
+    	boolean newValue = getBooleanValue();
+    	
+        if (oldValue != newValue) {
+            fireStateChanged(VALUE, oldValue, newValue);
+            changed = true;
+        }
+        // Set modify mark in any case because field may
+        // have changed, e.g., going from inherited to not
+        // or vice versa, without the value changing
+        //setModifyMarkOnLabel();
+        return changed;
+    }
     
     /*
+     * For boolean fields we override the following two methods because
+     * the means of accessing the text to be modified is different.
+     * @see org.eclipse.uide.preferences.fields.SafariFieldEditor#setModifyMarkOnLabel()
+     * @see org.eclipse.uide.preferences.fields.SafariFieldEditor#clearModifyMarkOnLabel()
+     */
+    
+    
+    public void setModifiedMarkOnLabel() {
+    	// SMS 27 Nov 2006
+    	// Don't presume here to deal with inheritance.  If called then set mark.
+    	// Let caller worry about whether field is inherited and how that affects
+    	// the marking
+    	// if (isInherited) return;
+    	if (checkBox != null) {
+	        String labelText = checkBox.getText();
+	        if (!labelText.startsWith(Markings.MODIFIED_MARK)) {
+		        labelText = Markings.MODIFIED_MARK + labelText;
+		        checkBox.setText(labelText);
+	        }
+    	}
+    }
+
+    
+    public void clearModifiedMarkOnLabel() {
+    	if (checkBox != null) {
+	        String labelText = checkBox.getText();
+	        if (labelText.startsWith(Markings.MODIFIED_MARK))
+	        		labelText = labelText.substring(1);
+	        checkBox.setText(labelText);
+    	}
+    }
+ 
+    
+     
+    /*
+     * Returns the change button for this field editor.
      * This overrides the corresopnding superclass method so that we can set
      * a listener on the control for our purposes.
      * 
      */
     public Button getChangeControl() {
     	if (!parent.isDisposed()) {
-    		if (checkBoxNull) {
+    		if (checkBox == null) {
 	        	// Should actually create checkbox if it doesn't exist
 	        	// so should really never be null
-	        	Button checkBox = super.getChangeControl(parent);
-	        	checkBoxNull = checkBox == null;
-	        	if (!checkBoxNull) {
-		            checkBox.addSelectionListener(new SelectionAdapter() {
-		                public void widgetSelected(SelectionEvent e) {
-		                   // boolean isSelected = checkBox.getSelection();
-		                   // valueChanged(wasSelected, isSelected);
-		                   // wasSelected = isSelected;
-		                	
-		                    boolean isSelected = getChangeControl(parent).getSelection();
-		                    valueChanged(wasSelected, isSelected);
-		                    //wasSelected = isSelected;	// done in valueChanged(..)
-		                    // Changing the button will change the field
-		                    //System.out.println("SBFE.button selection listener (from getChangeControl):  fieldModified set to TRUE");
-		                    setBooleanValue(isSelected);	// right to set field?
-							fieldModified = true;
-							setInherited(false);
-		                }
-		            });
-		            checkBox.addDisposeListener(new DisposeListener() {
-		                public void widgetDisposed(DisposeEvent event) {
-		                    //System.out.println("SBFE.button dispose listener (from getChangeControl):  checkBoxNull set to true");
-		                    checkBoxNull = true;
-		                }
-		            });
-	        	}
+	        	//checkBox = getChangeControl(parent);
+                checkBox = new Button(parent, SWT.CHECK | SWT.LEFT);
+                checkBox.setFont(parent.getFont());
+	            checkBox.addSelectionListener(new SelectionAdapter() {
+	                public void widgetSelected(SelectionEvent e) {
+	                	// Whenever a new value is set, we have to record the previous value.
+	                	// If we're here, that means that the current value has been changed
+	                	// using the GUI.  Since the value in the GUI has changed, we can't
+	                	// use that to retrieve the previous value.  But, since this is a
+	                	// boolean field, we know that the previous value must have been the
+	                	// negation of the current value, so we can set the previous value
+	                	// from that.  It's important to set the previous value here before
+	                	// calling valueChanged(), because valueChanged() can't assume that
+	                	// a change has occurred--since a value loaded from the preferences
+	                	// service may match the current value of the field--so valueChanged()
+	                	// has to compare the new and previous values.  To make that comparison
+	                	// work, we need to assure that the previous value is set properly here.
+	                	setPreviousBooleanValue(!getBooleanValue());
+	                	fieldModified = true;
+	                	// Should call setInherited(..) before calling valueChanged() because
+	                	// valueChanged() will mark the field as modified, but only if isInherited
+	                	// is false, which it now should be
+    					setInherited(false);
+						levelFromWhichLoaded = preferencesLevel;
+						setBooleanValue(getBooleanValue());
+						// Set presentsDefaultValue to false on the basis that
+						// we've set it independently of the encoded default value
+						// even if we're on the default level.
+				       	setPresentsDefaultValue(false);
+	                	//valueChanged();
+	                	//setPreviousBooleanValue(getBooleanValue());
+	                }
+	            });
+	            checkBox.addDisposeListener(new DisposeListener() {
+	                public void widgetDisposed(DisposeEvent event) {
+	                    //System.out.println("SBFE.button dispose listener (from getChangeControl):  checkBoxNull set to true");
+	                    checkBox = null;
+	                }
+	            });
+    		} else {
+	            checkParent(checkBox, parent);
 	        }
-	    	return super.getChangeControl(parent);
+	    	return checkBox; //getChangeControl(parent);
         }
         return null;
     }
     
+   
     
-    public Button getChangeControl(Composite parent) {
-    	return super.getChangeControl(parent);
-    }
-    
-    
-    /**
-     * Informs this field editor's listener, if it has one, about a change
-     * to the value (<code>VALUE</code> property) provided that the old and
-     * new values are different.
-     * <p>
-     * This hook is <em>not</em> called when the text is initialized 
-     * (or reset to the default value) from the preference store.
-     * </p>
+    /*
+     * Additional methods copied from BooleanFieldEditor
      */
-    // Why not set fieldChanged, too?
-    protected void valueChanged(boolean oldValue, boolean newValue) {
-
-    	setInherited(false);
-    	getChangeControl().setBackground(colorWhite);
-    	
-        setPresentsDefaultValue(false);
-        if (oldValue != newValue) {
-            //fireStateChanged(VALUE, oldValue, newValue);
-            wasSelected = newValue;
-        }
-        super.valueChanged(oldValue,newValue);
-
+    
+    /* (non-Javadoc)
+     * Method declared on FieldEditor.
+     */
+    protected void adjustForNumColumns(int numColumns) {
+        if (style == SEPARATE_LABEL)
+            numColumns--;
+        ((GridData) checkBox.getLayoutData()).horizontalSpan = numColumns;
     }
+
+    /* (non-Javadoc)
+     * Method declared on FieldEditor.
+     */
+    protected void doFillIntoGrid(Composite parent, int numColumns) {
+        String text = getLabelText();
+        switch (style) {
+        case SEPARATE_LABEL:
+            getLabelControl(parent);
+            numColumns--;
+            text = null;
+        default:
+            checkBox = getChangeControl();
+            GridData gd = new GridData();
+            gd.horizontalSpan = numColumns;
+            checkBox.setLayoutData(gd);
+            if (text != null)
+                checkBox.setText(text);
+        }
+    }
+
+    
+    /* (non-Javadoc)
+     * Method declared on FieldEditor.
+     */
+    public int getNumberOfControls() {
+        switch (style) {
+        case SEPARATE_LABEL:
+            return 2;
+        default:
+            return 1;
+        }
+    }
+    
+    
+  
 
 }

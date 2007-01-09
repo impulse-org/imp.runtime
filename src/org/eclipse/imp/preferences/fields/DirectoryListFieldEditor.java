@@ -1,17 +1,17 @@
-package org.eclipse.uide.preferences.fields;
+	package org.eclipse.uide.preferences.fields;
 
 import java.io.File;
 import java.util.Stack;
 
+import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.PreferenceDialogConstants;
 import org.eclipse.uide.preferences.SafariPreferencesTab;
-import org.eclipse.jface.preference.PreferencePage;
 
 public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEditor {
 
@@ -46,7 +46,7 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
     		ISafariPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
-        super(page, tab, service, level, name, labelText, width, VALIDATE_ON_KEY_STROKE, parent);
+        super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     	prefPage = page;
     	prefTab = tab;
     	this.getChangeControl(parent).setText(PreferenceDialogConstants.BROWSE_LABEL);
@@ -79,12 +79,12 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
     
     
     protected String changePressed() {
-        Text text= getTextControl();
+        Text text= getTextControl(parent);
         String curText= text.getText();
         Point sel= text.getSelection();
         boolean replace= (text.getSelectionCount() > 0); // any non-empty selection?
         boolean replaceAll= text.getSelectionCount() == text.getCharCount(); // all selected?
-        File f = new File(getTextControl().getText());
+        File f = new File(getTextControl(parent).getText());
 
         if (!f.exists())
     	f = null;
@@ -133,14 +133,13 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
         // Here we check for empty or null strings, although
         // this may very well be checked at a higher level
         // (so we might not ever get here with this problem)
-        String path = getTextControl().getText();
+        String path = getTextControl(parent).getText();
         if (path != null)
             path = path.trim();
         else
             path = "";//$NON-NLS-1$
-        if (path.length() == 0 && !isEmptyStringAllowed()) {
-                msg = "Path length is zero when empty string is not allowed";
-                setErrorMessage(msg);
+        if (path.length() == 0 && !emptyStringAllowed) {
+                setErrorMessage(getFieldMessagePrefix() + "Path length is zero when empty string is not allowed");
                 return false;
         }
         
@@ -162,8 +161,11 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
         			stack.push(doubleQuote);
         	}
         }
-        if (stack.size() != 0)
+        if (stack.size() != 0) {
+        	setErrorMessage(getFieldMessagePrefix() + "Path has quotes that are not balanced");
         	return false;
+        }
+
 
         // Now validate list segments between quotes
         path = path.replace("\"", "'");
@@ -171,14 +173,20 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
         boolean splitsVerified = true;
         for (int i = 0; i < splits.length; i++) {
         	splitsVerified = splitsVerified && doCheckState(splits[i]);
-        	if (!splitsVerified) return false;
+        	if (!splitsVerified) {
+        		if (!hasErrorMessage()) {
+            		setErrorMessage(getFieldMessagePrefix() + "Path segment \"splits[i]\" failed verification	");
+        		}
+        		return false;
+        	}
         }
+        clearErrorMessage();	
         return true;
     }
     
     
     protected boolean doCheckState(String path)
-    {	// This is the real work of the original doCheckState()
+    {	// This is the real work of the original doCheckState()		
         if (path.length() == 0) {
         	return true;
         }
@@ -190,11 +198,12 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
 	    	File dir= new File(pathElem);
 	
 	    	if (!dir.isDirectory()) {
-	    		setErrorMessage("Path list contains a name that is not a directory name");
+	    		setErrorMessage(getFieldMessagePrefix() + "Path list contains a name that is not a directory name");
 	    		return false;
 	    	}
         }
-        
+        // Error message cleared in doCheckState();
+        //clearErrorMessage();
         return true;
     }
 

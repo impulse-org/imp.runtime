@@ -2,6 +2,7 @@ package org.eclipse.uide.preferences.fields;
 
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.PreferencePage;
+import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
@@ -17,6 +18,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.uide.preferences.ISafariPreferencesService;
 import org.eclipse.uide.preferences.SafariPreferencesTab;
+import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 
 public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEditor {
 
@@ -44,7 +46,7 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
     		ISafariPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
-        super(page, tab, service, level, name, labelText, width, VALIDATE_ON_KEY_STROKE, parent);
+        super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     }
 	
     
@@ -79,9 +81,9 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
      * be edited as such.  This extension also maintains the local copy
      * of the previous value.	
      */
-    protected void valueChanged() {
+    protected boolean valueChanged() {
     	
-    	super.valueChanged();
+    	return super.valueChanged();
     }
     
     
@@ -107,7 +109,7 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
      * Method declared on FieldEditor.
      */
     protected void adjustForNumColumns(int numColumns) {
-        ((GridData) getTextControl().getLayoutData()).horizontalSpan = numColumns - 2;
+        ((GridData) getTextControl(parent).getLayoutData()).horizontalSpan = numColumns - 2;
     }
 
     /**
@@ -165,7 +167,17 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
                 public void widgetSelected(SelectionEvent evt) {
                     String newValue = changePressed();
                     if (newValue != null) {
+                    	// SMS 28 Nov 2006
+                    	// Added setting of fields where setStringValue(..) is called
+                    	// and (below) setting of background color
+                    	levelFromWhichLoaded = preferencesLevel;
+                    	setInherited(false);
+                        setPresentsDefaultValue(false);
+                        
                         setStringValue(newValue);
+                        
+                        Text text = getTextControl();
+                       	text.setBackground(SafariPreferencesUtilities.colorWhite);
                     }
                 }
             });

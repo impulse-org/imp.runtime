@@ -294,25 +294,25 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      *
      * @param forward <code>true</code> if search direction is forward, <code>false</code> if backward
      */
-    public void gotoAnnotation(boolean forward) {
-	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
-	Position position= new Position(0, 0);
-
-	if (false /* delayed - see bug 18316 */) {
-	    getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
-	    selectAndReveal(position.getOffset(), position.getLength());
-	} else /* no delay - see bug 18316 */{
-	    Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
-
-	    setStatusLineErrorMessage(null);
-	    setStatusLineMessage(null);
-	    if (annotation != null) {
-		updateAnnotationViews(annotation);
-		selectAndReveal(position.getOffset(), position.getLength());
-		setStatusLineMessage(annotation.getText());
-	    }
-	}
-    }
+//    public Annotation gotoAnnotation(boolean forward) {
+//	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
+//	Position position= new Position(0, 0);
+//
+//	if (false /* delayed - see bug 18316 */) {
+//	    getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+//	    selectAndReveal(position.getOffset(), position.getLength());
+//	} else /* no delay - see bug 18316 */{
+//	    Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+//
+//	    setStatusLineErrorMessage(null);
+//	    setStatusLineMessage(null);
+//	    if (annotation != null) {
+//		updateAnnotationViews(annotation);
+//		selectAndReveal(position.getOffset(), position.getLength());
+//		setStatusLineMessage(annotation.getText());
+//	    }
+//	}
+//    }
 
     /**
      * Returns the annotation closest to the given range respecting the given

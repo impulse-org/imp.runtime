@@ -287,6 +287,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setTitleImage(image);
     }
 
+    
+    // SMS 24 Jan 2007:  Restoring gotoAnnotation (which had been briefly
+    // commented out) because it is called by the recently added class
+    // GotoAnnotationAction.  Also made return void (since nothing is
+    // returned and no return seems expected).
+    // This change may be specific to Eclipse 3.1 and the method may
+    // be removed again in versions of the Editor intended for Eclipse 3.2.
+    
     /**
      * Jumps to the next enabled annotation according to the given direction.
      * An annotation type is enabled if it is configured to be in the
@@ -294,32 +302,32 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      *
      * @param forward <code>true</code> if search direction is forward, <code>false</code> if backward
      */
-//    public Annotation gotoAnnotation(boolean forward) {
-//	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
-//	Position position= new Position(0, 0);
-//
-//	if (false /* delayed - see bug 18316 */) {
-//	    getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
-//	    selectAndReveal(position.getOffset(), position.getLength());
-//	} else /* no delay - see bug 18316 */{
-//	    Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
-//
-//	    setStatusLineErrorMessage(null);
-//	    setStatusLineMessage(null);
-//	    if (annotation != null) {
-//		updateAnnotationViews(annotation);
-//		selectAndReveal(position.getOffset(), position.getLength());
-//		setStatusLineMessage(annotation.getText());
-//	    }
-//	}
-//    }
+    public /*Annotation*/ void gotoAnnotation(boolean forward) {
+	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
+	Position position= new Position(0, 0);
+
+	if (false /* delayed - see bug 18316 */) {
+	    getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+	    selectAndReveal(position.getOffset(), position.getLength());
+	} else /* no delay - see bug 18316 */{
+	    Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+
+	    setStatusLineErrorMessage(null);
+	    setStatusLineMessage(null);
+	    if (annotation != null) {
+		updateAnnotationViews(annotation);
+		selectAndReveal(position.getOffset(), position.getLength());
+		setStatusLineMessage(annotation.getText());
+	    }
+	}
+    }
 
     /**
      * Returns the annotation closest to the given range respecting the given
      * direction. If an annotation is found, the annotations current position
      * is copied into the provided annotation position.
      *
-     * @param offset the region offset
+     * @param offset the region offset	
      * @param length the region length
      * @param forward <code>true</code> for forwards, <code>false</code> for backward
      * @param annotationPosition the position of the found annotation

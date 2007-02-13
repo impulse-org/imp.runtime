@@ -14,7 +14,7 @@ import org.eclipse.uide.parser.Ast;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
 
-import lpg.lpgjavaruntime.IToken;
+import lpg.javaruntime.IToken;
 
 /**
  * @author CLaffra

@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
-import lpg.lpgjavaruntime.IToken;
-import lpg.lpgjavaruntime.PrsStream;
+import lpg.javaruntime.IToken;
+import lpg.javaruntime.IPrsStream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -842,7 +842,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {
 		if (fPresentationController != null && fParserScheduler.parseController != null) {
-		    PrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
+		    IPrsStream parseStream= fParserScheduler.parseController.getParser().getParseStream();
 		    int damagedToken= fParserScheduler.parseController.getTokenIndexAtCharacter(damage.getOffset());
 
 		    // SMS 26 Apr 2006:

@@ -1,7 +1,7 @@
 package org.eclipse.uide.parser;
 
-import lpg.lpgjavaruntime.Monitor;
-import lpg.lpgjavaruntime.PrsStream;
+import lpg.javaruntime.Monitor;
+import lpg.javaruntime.PrsStream;
 
 /*
  * Licensed Materials - Property of IBM,

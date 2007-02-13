@@ -14,7 +14,6 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.views,
  org.eclipse.core.resources,
  org.eclipse.ui.ide,
- lpg,
  org.eclipse.debug.ui,
  org.eclipse.debug.core,
  org.eclipse.jdt.debug,
@@ -24,7 +23,8 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.compare,
  org.eclipse.jdt.launching,
  org.eclipse.ltk.core.refactoring,
- org.eclipse.ltk.ui.refactoring
+ org.eclipse.ltk.ui.refactoring,
+ lpg.javaruntime
 Eclipse-AutoStart: true
 Export-Package: org.eclipse.uide.builder,
  org.eclipse.uide.core,

@@ -4,9 +4,9 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.uide.parser.IParseController;
-import lpg.lpgjavaruntime.IToken;
-import lpg.lpgjavaruntime.PrsStream;
-import lpg.lpgjavaruntime.IMessageHandler;
+import lpg.javaruntime.IToken;
+import lpg.javaruntime.IPrsStream;
+import lpg.javaruntime.IMessageHandler;
 
 
 /**
@@ -48,10 +48,15 @@ public class MarkerCreator implements IMessageHandler {
 	}
 	
 	
-	public void handleMessage(int offset, int length, String message) {
-		PrsStream  ps = parseController.getParser().getParseStream();
-		IToken token = ps.getTokenAtCharacter(offset);
-		int line = token.getLine();
+	public void handleMessage(int errorCode, int [] msgLocation, int[] errorLocation, String filename, String [] errorInfo) {
+            int offset = msgLocation[IMessageHandler.OFFSET_INDEX],
+                length = msgLocation[IMessageHandler.LENGTH_INDEX];
+            String message = "";
+            for (int i = 0; i < errorInfo.length; i++)
+                message += (errorInfo[i] + (i < errorInfo.length - 1 ? " " : ""));
+            IPrsStream  ps = parseController.getParser().getParseStream();
+            IToken token = ps.getTokenAtCharacter(offset);
+            int line = token.getLine();
 
 		try {
 			// Based closely on "FAQ How do I create problem markers for my compiler?"

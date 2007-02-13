@@ -7,8 +7,8 @@ import org.eclipse.uide.parser.Ast;
 import org.eclipse.uide.parser.IASTNodeLocator;
 import org.eclipse.uide.parser.IParseController;
 
-import lpg.lpgjavaruntime.IToken;
-import lpg.lpgjavaruntime.PrsStream;
+import lpg.javaruntime.IToken;
+import lpg.javaruntime.IPrsStream;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -29,7 +29,7 @@ public class DefaultHoverHelper implements IHoverHelper {
 	try {
 	    Ast ast= (Ast) controller.getCurrentAst();
 	    IToken token= controller.getTokenAtCharacter(offset);
-	    PrsStream parser= controller.getParser().getParseStream();
+	    IPrsStream parser= controller.getParser().getParseStream();
 	    IASTNodeLocator nodeLocator= controller.getNodeLocator();
 	    Ast node= (Ast) nodeLocator.findNode(ast, offset);
 

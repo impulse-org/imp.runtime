@@ -1,6 +1,6 @@
 package org.eclipse.uide.parser;
 
-import lpg.lpgjavaruntime.IToken;
+import lpg.javaruntime.IToken;
 
 /*
  * Licensed Materials - Property of IBM,

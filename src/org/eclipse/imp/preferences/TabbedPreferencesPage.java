@@ -19,7 +19,7 @@ import org.eclipse.uide.preferences.ISafariPreferencesService;
  * as set on different levels (default, workspace configuration,
  * workspace instance, and project).
  * 
- * @author sutton
+ * @author suttons@us.ibm.com
  */
 public abstract class SafariTabbedPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 	

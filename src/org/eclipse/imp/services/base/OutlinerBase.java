@@ -1,9 +1,9 @@
-	package org.eclipse.uide.defaults;
+package org.eclipse.uide.defaults;
 
 import java.util.ArrayList;
 import java.util.Stack;
 
-import lpg.lpgjavaruntime.IToken;
+import lpg.javaruntime.IToken;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;

@@ -7,8 +7,8 @@ import org.eclipse.uide.parser.Ast;
 import org.eclipse.uide.parser.IASTNodeLocator;
 import org.eclipse.uide.parser.IParseController;
 
-import lpg.javaruntime.IToken;
-import lpg.javaruntime.IPrsStream;
+import lpg.runtime.IPrsStream;
+import lpg.runtime.IToken;
 
 /*
  * Licensed Materials - Property of IBM,

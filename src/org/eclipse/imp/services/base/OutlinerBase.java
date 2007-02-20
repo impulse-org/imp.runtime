@@ -3,7 +3,7 @@ package org.eclipse.uide.defaults;
 import java.util.ArrayList;
 import java.util.Stack;
 
-import lpg.javaruntime.IToken;
+import lpg.runtime.IToken;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;

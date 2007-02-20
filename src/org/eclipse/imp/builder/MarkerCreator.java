@@ -4,9 +4,10 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.uide.parser.IParseController;
-import lpg.javaruntime.IToken;
-import lpg.javaruntime.IPrsStream;
-import lpg.javaruntime.IMessageHandler;
+
+import lpg.runtime.IMessageHandler;
+import lpg.runtime.IPrsStream;
+import lpg.runtime.IToken;
 
 
 /**

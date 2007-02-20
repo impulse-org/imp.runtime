@@ -1,8 +1,8 @@
 package org.eclipse.uide.parser;
 
-import lpg.javaruntime.LexStream;
-import lpg.javaruntime.Monitor;
-import lpg.javaruntime.IPrsStream;
+import lpg.runtime.IPrsStream;
+import lpg.runtime.LexStream;
+import lpg.runtime.Monitor;
 
 public interface ILexer {
     public int[] getKeywordKinds();

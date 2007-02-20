@@ -22,7 +22,8 @@ import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
-import lpg.javaruntime.IToken;
+
+import lpg.runtime.IToken;
 
 /**
  * @author Claffra

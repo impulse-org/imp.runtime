@@ -8,7 +8,7 @@ import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.editor.ITokenColorer;
 import org.eclipse.uide.parser.IParseController;
 
-import lpg.javaruntime.IToken;
+import lpg.runtime.IToken;
 
 /**
  * @author CLaffra

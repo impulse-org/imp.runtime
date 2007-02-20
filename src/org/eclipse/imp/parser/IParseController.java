@@ -1,8 +1,10 @@
 package org.eclipse.uide.parser;
 
 import java.util.List;
-import lpg.javaruntime.IToken;
-import lpg.javaruntime.IMessageHandler;
+
+import lpg.runtime.IMessageHandler;
+import lpg.runtime.IToken;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.uide.core.ILanguageService;

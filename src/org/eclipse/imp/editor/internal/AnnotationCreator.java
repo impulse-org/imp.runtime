@@ -4,7 +4,9 @@
 package org.eclipse.uide.editor;
 
 import java.util.Iterator;
-import lpg.javaruntime.IMessageHandler;
+
+import lpg.runtime.IMessageHandler;
+
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;

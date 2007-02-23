@@ -6,6 +6,7 @@ package org.eclipse.uide.editor;
 import java.util.Iterator;
 
 import lpg.runtime.IMessageHandler;
+import lpg.runtime.ParseErrorCodes;
 
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
@@ -24,9 +25,9 @@ public class AnnotationCreator implements IMessageHandler {
     public void handleMessage(int errorCode, int [] msgLocation, int[] errorLocation, String filename, String [] errorInfo) {
         int offset = msgLocation[IMessageHandler.OFFSET_INDEX],
             length = msgLocation[IMessageHandler.LENGTH_INDEX];
-        String message = "";
+        String message = ParseErrorCodes.errorMsgText[errorCode];
         for (int i = 0; i < errorInfo.length; i++)
-            message += (errorInfo[i] + (i < errorInfo.length - 1 ? " " : ""));
+            message += " " + errorInfo[i];
 
         IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
         Annotation annotation= new Annotation(UniversalEditor.PARSE_ANNOTATION_TYPE, false, message);

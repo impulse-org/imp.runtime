@@ -8,10 +8,7 @@ package org.eclipse.uide.core;
 
 
 /**
- * This interface is to be implemented by services to the Universal Editor.
- * 
- * @author Claffra
- * 
+ * This interface is to be implemented by language services used by the Universal Editor.
  */
 public interface ILanguageService {
     /**
@@ -21,4 +18,29 @@ public interface ILanguageService {
      * @param language the canonical name of the language this service is meant for
      */
 	//public void setLanguage(String language);
+
+    // The constants below identify the various language services, and are defined
+    // for use by clients that wish to instantiate a given language service.
+
+    String CONTENT_PROPOSER_SERVICE= "contentProposer";
+    String HOVER_HELPER_SERVICE= "hoverHelper";
+    String TOKEN_COLORER_SERVICE= "tokenColorer";
+    String INDEX_CONTRIBUTOR_SERVICE= "indexContributor";
+
+    /**
+     * Parser service implementation. Must implement interface IParseController.
+     */
+    String PARSER_SERVICE= "parser";
+    String LISTENER_SERVICE= "modelListener";
+    String AUTO_EDIT_SERVICE= "autoEditStrategy";
+    String FOLDING_SERVICE= "foldingUpdater";
+    String ANNOTATION_HOVER_SERVICE= "annotationHover";
+    String FORMATTER_SERVICE= "formatter";
+    String LABEL_PROVIDER_SERVICE= "labelProvider";
+    String IMAGE_DECORATOR_SERVICE= "imageDecorator";
+    String OUTLINE_CONTENT_PROVIDER_SERVICE= "outlineContentProvider";
+    String REFACTORING_CONTRIBUTIONS_SERVICE= "refactoringContributions";
+    String REFERENCE_RESOLVER_SERVICE= "referenceResolvers";
+    String EDITOR_ACTION_SERVICE= "editorActionContributions";
+    String PREFERENCES_SERVICE= "preferencesDialog";
 }

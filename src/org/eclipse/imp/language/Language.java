@@ -51,7 +51,7 @@ public class Language {
     }
 
     /**
-     * Returns the langugage this language is derived from. For example, HTML is derived from XML.
+     * Returns the language this language is derived from. For example, HTML is derived from XML.
      * 
      * @return the canonical language name this language is derived from
      */
@@ -107,6 +107,14 @@ public class Language {
         if (fSynonyms == null)
             fSynonyms= parseList(fConfigElement.getAttribute("synonyms"));
         return fSynonyms;
+    }
+
+    /**
+     * A convenience method for LanguageRegistry.findLanguage(lang.getDerivedFrom()).
+     * @return the base Language, if known to the LanguageRegistry; otherwise, null
+     */
+    public Language getBaseLanguage() {
+        return LanguageRegistry.findLanguage(getDerivedFrom());
     }
 
     /**

@@ -1,5 +1,12 @@
 package org.eclipse.uide.parser;
 
+import org.eclipse.core.runtime.IPath;
+
+/**
+ * Locator implementation for generic AST class.
+ * @deprecated The generic AST and all its kin are deprecated; use a language-specific AST.
+ * @author rfuhrer
+ */
 public class AstLocator implements IASTNodeLocator {
     public Object findNode(Object ast, int offset) {
         Ast root= (Ast) ast;
@@ -38,7 +45,7 @@ public class AstLocator implements IASTNodeLocator {
     	return getEndOffset(node) - getStartOffset(node);
     }
 
-    public String getPath(Object node) {
+    public IPath getPath(Object node) {
 	return null;
     }
 }

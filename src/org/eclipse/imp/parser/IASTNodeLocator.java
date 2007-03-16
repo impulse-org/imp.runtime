@@ -3,6 +3,8 @@
  */
 package org.eclipse.uide.parser;
 
+import org.eclipse.core.runtime.IPath;
+
 public interface IASTNodeLocator
 {
     /**
@@ -41,5 +43,5 @@ public interface IASTNodeLocator
      * The path is in "portable" format, using the Eclipse convention '/' for the path component separator.
      * @see org.eclipse.core.runtime.IPath#toPortableString()
      */
-    String getPath(Object node);
+    IPath getPath(Object node);
 }

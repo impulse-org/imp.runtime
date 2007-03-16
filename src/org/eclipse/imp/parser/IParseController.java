@@ -6,12 +6,19 @@ import lpg.runtime.IMessageHandler;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.uide.core.ILanguageService;
 
-public interface IParseController extends ILanguageService
-{
-    void initialize(String projRelFilePath, IProject project, IMessageHandler handler);
+public interface IParseController extends ILanguageService {
+    void initialize(IPath projRelFilePath, IProject project, IMessageHandler handler);
+
+    IProject getProject();
+
+    /**
+     * @return either a project-relative path, if getProject() is non-null, or an absolute path.
+     */
+    IPath getPath();
 
     IParser getParser();
 

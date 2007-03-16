@@ -22,6 +22,10 @@ import org.osgi.framework.Bundle;
  * @author rfuhrer@watson.ibm.com
  */
 public class ExtensionPointFactory {
+    public static ILanguageService createExtensionPoint(Language language, String extensionPointID) {
+	return createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, extensionPointID);
+    }
+
     public static ILanguageService createExtensionPoint(Language language, String pluginID, String extensionPointId) {
 	if (language == null) {
 	    ErrorHandler.reportError("Cannot obtain service on null language: " + extensionPointId);

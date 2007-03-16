@@ -10,6 +10,7 @@ import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
@@ -30,8 +31,7 @@ class CompletionProcessor implements IContentAssistProcessor, IModelListener {
 	public CompletionProcessor() {}
 
 	public void setLanguage(Language language) {
-	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language,
-		    RuntimePlugin.UIDE_RUNTIME, "contentProposer");
+	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.CONTENT_PROPOSER_SERVICE);
 	}
 
 	public AnalysisRequired getAnalysisRequired() {

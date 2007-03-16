@@ -10,6 +10,7 @@ import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
@@ -32,17 +33,17 @@ class HoverHelpController implements ITextHover, IModelListener {
 
     public String getHoverInfo(ITextViewer textViewer, IRegion hoverRegion) {
         try {
-    	final int offset= hoverRegion.getOffset();
-    	String help= null;
+            final int offset= hoverRegion.getOffset();
+            String help= null;
 
-    	if (controller != null && hoverHelper != null)
-    	    help= hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, offset);
-    	if (help == null)
-    	    help= AnnotationUtils.formatAnnotationList(AnnotationUtils.getAnnotationsForOffset((ISourceViewer) textViewer, offset));
+            if (controller != null && hoverHelper != null)
+        	help= hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, offset);
+            if (help == null)
+        	help= AnnotationUtils.formatAnnotationList(AnnotationUtils.getAnnotationsForOffset((ISourceViewer) textViewer, offset));
 
-    	return help;
+            return help;
         } catch (Throwable e) {
-    	ErrorHandler.reportError("Universal Editor Error", e);
+            ErrorHandler.reportError("Universal Editor Error", e);
         }
         return null;
     }
@@ -52,7 +53,7 @@ class HoverHelpController implements ITextHover, IModelListener {
     }
 
     public void setLanguage(Language language) {
-        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME,
-    	    "hoverHelper");
+//        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.HOVER_HELPER_SERVICE);
+	hoverHelper= new HoverHelper(language);
     }
 }

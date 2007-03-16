@@ -33,6 +33,7 @@ import org.eclipse.ui.IDecoratorManager;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.editor.OutlineLabelProvider.IElementImageProvider;
@@ -320,11 +321,11 @@ public class OutlineInformationControl extends AbstractInformationControl {
 
 	// RMF 7/7/2006 - oops, fLanguage is still null at this point, b/c createTreeViewer() gets called from super ctor and field inits haven't happened yet...
 	fLanguage= ((UniversalEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()).fLanguage;
-	fOutlineContentProvider= (OutlineContentProviderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, OutlineContentProviderID);
+	fOutlineContentProvider= (OutlineContentProviderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.OUTLINE_CONTENT_PROVIDER_SERVICE);
 	fOutlineContentProvider.setInfoControl(this);
-	fLangLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, LabelProviderID);
-	fElemImageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, ImageDecoratorID);
-	fElementFilter= (ViewerFilter) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, ViewerFilterID);
+	fLangLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
+	fElemImageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.IMAGE_DECORATOR_SERVICE);
+	fElementFilter= (ViewerFilter) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.VIEWER_FILTER_SERVICE);
 
 	fInnerLabelProvider= new OutlineLabelProvider(fLangLabelProvider, fElemImageProvider, fOutlineContentProvider.fShowInheritedMembers, fShowStorage, fForegroundColor);
 	fInnerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator());

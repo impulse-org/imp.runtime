@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.List;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IPath;
@@ -16,6 +17,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IFileEditorMapping;
 import org.eclipse.ui.IPathEditorInput;
+import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
@@ -71,6 +73,15 @@ public class LanguageRegistry {
 
 	    extension= path.getFileExtension();
 	    file= ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+	} else if (editorInput instanceof IStorageEditorInput) {
+	    IStorageEditorInput storageEditorInput= (IStorageEditorInput) editorInput;
+	    try {
+		IPath path= storageEditorInput.getStorage().getFullPath();
+
+		extension= path.getFileExtension();
+	    } catch (CoreException e) {
+		ErrorHandler.reportError("Determining language of editor input " + storageEditorInput.getName());
+	    }
 	}
 
         if (extension == null)

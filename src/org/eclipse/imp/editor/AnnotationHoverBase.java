@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.jdt.internal.ui.text.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
@@ -20,8 +19,9 @@ import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.jface.text.source.projection.AnnotationBag;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.uide.core.ILanguageService;
+import org.eclipse.uide.utils.HTMLPrinter;
 
-public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
+public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
 
     public AnnotationHoverBase() {
     }
@@ -49,11 +49,11 @@ public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguage
         return viewer.getAnnotationModel();
     }
 
-    public static List getJavaAnnotationsForLine(ISourceViewer viewer, int line) {
+    public static List getSourceAnnotationsForLine(ISourceViewer viewer, int line) {
         IAnnotationModel model= getAnnotationModel(viewer);
         if (model == null)
             return null;
-    
+
         IDocument document= viewer.getDocument();
         List/*<Annotation>*/javaAnnotations= new ArrayList();
         HashMap messagesAtPosition= new HashMap();
@@ -172,5 +172,14 @@ public abstract class AnnotationHoverBase implements IAnnotationHover, ILanguage
     
         HTMLPrinter.addPageEpilog(buffer);
         return buffer.toString();
+    }
+
+    /**
+     * @see IVerticalRulerHover#getHoverInfo(ISourceViewer, int)
+     */
+    public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
+	List javaAnnotations= getSourceAnnotationsForLine(sourceViewer, lineNumber);
+
+	return formatAnnotationList(javaAnnotations);
     }
 }

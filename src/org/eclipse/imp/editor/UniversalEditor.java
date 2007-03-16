@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
@@ -72,6 +73,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPathEditorInput;
+import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.editors.text.TextEditor;
@@ -476,7 +478,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 //      MarkerAnnotationPreferences.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
         {
-            ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "labelProvider");
+            ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
 
             // Only set the editor's title bar icon if the language has a label provider
             if (lp != null) {
@@ -594,7 +596,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @return the extension implementation
      */
     private Object createExtensionPoint(String extensionPointID) {
-	return ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, extensionPointID);
+	return ExtensionPointFactory.createExtensionPoint(fLanguage, extensionPointID);
     }
 
     /**
@@ -934,18 +936,23 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		IEditorInput editorInput= getEditorInput();
 		IFile file= null;
 		IDocument document= null;
-		String filePath= null;
+		IPath filePath= null;
 
 		if (editorInput instanceof IFileEditorInput) {
 		    IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
 		    document= getDocumentProvider().getDocument(fileEditorInput);
 		    file= fileEditorInput.getFile();
-		    filePath= fileEditorInput.getFile().getProjectRelativePath().toString();
+		    filePath= fileEditorInput.getFile().getProjectRelativePath();
 		} else if (editorInput instanceof IPathEditorInput) {
 		    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
 		    file= null;
 		    document= getDocumentProvider().getDocument(editorInput);
-		    filePath= pathInput.getPath().toString();
+		    filePath= pathInput.getPath();
+		} else if (editorInput instanceof IStorageEditorInput) {
+		    IStorageEditorInput storageEditorInput= (IStorageEditorInput) editorInput;
+		    file= null;
+		    document= getDocumentProvider().getDocument(editorInput);
+		    filePath= storageEditorInput.getStorage().getFullPath();
 		}
 
 		if (SAFARIPreferenceCache.emitMessages)

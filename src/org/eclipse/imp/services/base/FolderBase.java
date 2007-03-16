@@ -32,7 +32,7 @@ public abstract class FolderBase implements IFoldingUpdater
     // Lists the new annotations, which are the keys for newAnnotations
     protected List annotations = new ArrayList();
 
-    IParseController parseController = null;
+    protected IParseController parseController = null;
     
     // Methods to make annotations will be called by visitor methods
     // in the language-specific concrete subtype    

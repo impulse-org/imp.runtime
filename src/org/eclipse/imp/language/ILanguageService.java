@@ -17,7 +17,7 @@ public interface ILanguageService {
      * 
      * @param language the canonical name of the language this service is meant for
      */
-	//public void setLanguage(String language);
+    //public void setLanguage(String language);
 
     // The constants below identify the various language services, and are defined
     // for use by clients that wish to instantiate a given language service.
@@ -43,4 +43,7 @@ public interface ILanguageService {
     String REFERENCE_RESOLVER_SERVICE= "referenceResolvers";
     String EDITOR_ACTION_SERVICE= "editorActionContributions";
     String PREFERENCES_SERVICE= "preferencesDialog";
+
+    String DOCUMENTATION_PROVIDER_SERVICE= "documentationProvider";
+    String VIEWER_FILTER_SERVICE= "viewerFilter";
 }

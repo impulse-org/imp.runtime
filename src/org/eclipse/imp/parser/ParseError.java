@@ -12,7 +12,6 @@ import lpg.runtime.IToken;
  *
  */
 public class ParseError {
-
     public IToken token;
     public String description;
 

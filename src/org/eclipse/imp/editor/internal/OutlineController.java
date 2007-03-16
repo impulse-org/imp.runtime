@@ -15,6 +15,7 @@ import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.editor.IOutliner;
 import org.eclipse.uide.editor.UniversalEditor;
@@ -49,7 +50,7 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     }
 
     public void setLanguage(Language language) {
-	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, "outliner");
+	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, "outliner");
     }
 
     public AnalysisRequired getAnalysisRequired() {

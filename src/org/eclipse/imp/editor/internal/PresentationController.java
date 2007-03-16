@@ -15,6 +15,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.editor.ITokenColorer;
 import org.eclipse.uide.parser.IModelListener;
@@ -46,9 +47,7 @@ public class PresentationController implements IModelListener {
     }
 
     public void setLanguage(Language language) {
-	colorer= (ITokenColorer) ExtensionPointFactory.createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME,
-		"tokenColorer");
-	//		parser = (IParser) ExtensionPointFactory.createExtensionPoint(language, "org.eclipse.uide", "parser");
+	colorer= (ITokenColorer) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.TOKEN_COLORER_SERVICE);
     }
 
     protected void generateErrorAnnotations(IParseController controller) {

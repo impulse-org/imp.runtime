@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
 import org.eclipse.uide.core.LanguageValidator;
@@ -53,8 +54,8 @@ public class Indexer {
      */
     public Indexer(String languageName) {
         fLanguage= LanguageRegistry.findLanguage(languageName);
-        fIndexer= (IndexContributorBase) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "indexContributor");
-        fParser= (IParseController) ExtensionPointFactory.createExtensionPoint(fLanguage, "org.eclipse.uide.runtime", "parser");
+        fIndexer= (IndexContributorBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.INDEX_CONTRIBUTOR_SERVICE);
+        fParser= (IParseController) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.PARSER_SERVICE);
     }
 
     // Probably don't ever want to do this; the complete set of indexes is huge.

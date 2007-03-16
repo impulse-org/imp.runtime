@@ -33,7 +33,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
     {
     	// This is the only language-specific bit ...
 	if (fResolver == null)
-	    fResolver= (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, RuntimePlugin.UIDE_RUNTIME, "referenceResolvers");
+	    fResolver= (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.REFERENCE_RESOLVER_SERVICE);
 
 	if (fResolver == null)
 	    return null;
@@ -67,7 +67,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
 
         // Use the file path info to determine whether the target editor is the same as
         // the source editor, and initialize the TargetLink accordingly.
-        final String targetPath= nodeLocator.getPath(target);
+        final String targetPath= nodeLocator.getPath(target).toPortableString();
         final String linkText = fResolver.getLinkText(source);
 
         String srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation().toPortableString();

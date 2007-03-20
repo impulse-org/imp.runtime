@@ -13,7 +13,7 @@ import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProject;	
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -36,27 +36,68 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 
-import com.ibm.watson.smapi.LineElem;
 import com.ibm.watson.smapi.LineMapBuilder;
+
+
+/**
+ * Modified Mar 19 2007
+ * Stan Sutton, suttons@us.ibm.com:
+ * 
+ * Modified constructor to take a UniversalEditor (presumably the one creating
+ * the adapter and to save that editor and the filename extension of the source
+ * file opened in that editor (the "origianl" source file).
+ * 
+ * The original filename extension is useful for methods that may need
+ * the extension but that don't have access to the original file or to an
+ * editor (or other IWorkbenchPart) from which to obtain the extension.
+ * 
+ * The editor that created the adapter may serve as a convenient replacement
+ * for the IWorkbenchParts that are passed into the methods that control toggling.
+ * The interface IToggleBreakpointsTarget requires that each of these methods
+ * be passed an IWorkbenchPart, so we can't eliminate those parameters from
+ * the method signatures in which they occur.  Another consideration is whether
+ * the IWorkbenchParts that are passed into these methods are guaranteed to be
+ * the same as the editor that created the adapter.  I guess that in general
+ * the adapters might be created by things other than the parts on which they
+ * may operate (consider that a single adapter should be able to handle multiple
+ * parts).  However, I also suspect that in our usage the editors that create
+ * the adapters are likely to be the only parts that get passed into these
+ * methods (at least so far).  In any case, the editor is availble here for
+ * future implementors of these methods to use or not as they see fit.
+ */
+
 
 public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBreakpointListener {
 
     //private static Map /* IJavaLineBreakPoint -> IMarker */bkptToSrcMarkerMap= new HashMap();
   
-	String origExten = "x10"; //MV -- TODO this is duplicated from SmapieBuilder
-    
-    public ToggleBreakpointsAdapter() {
-        super();
-        DebugPlugin.getDefault().getBreakpointManager().addBreakpointListener(this);
-    }
+	// SMS 14 Mar 2007
+	// Setting this to null here and letting the constructor take care of it
+	String origExten = 	null;
+	
+	// SMS 19 Mar 2007
+	// Editor that created this adapter
+	UniversalEditor fEditor = null;
+	
+
+    // SMS 14 Mar 2007
+    // New constructor to take a UniversalEditor as a parameter.  This allows
+	// the field origExten to be initialized with the proper extension for the	
+	// original source file.  We can also save the editor in a new field, in case
+	// it may be useful (see class 	header comments)
+	public ToggleBreakpointsAdapter(UniversalEditor editor) {
+		fEditor = editor;
+		origExten = editor.fLanguage.getFilenameExtensions()[0];
+	}
 
     public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
     	if (selection instanceof ITextSelection) {
             ITextSelection textSel= (ITextSelection) selection;
+
             IEditorPart editorPart= (IEditorPart) part.getAdapter(IEditorPart.class);
             IFileEditorInput fileInput= (IFileEditorInput) editorPart.getEditorInput();
-            final IFile origSrcFile= fileInput.getFile();
-
+            final IFile origSrcFile= fileInput.getFile();	
+            
             origExten= ((UniversalEditor) editorPart).fLanguage.getFilenameExtensions()[0];
            
             final String origSrcFileName= origSrcFile.getName();
@@ -69,14 +110,16 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
             if (!javaFile.exists()) 
             	return; // Can't do anything; this file didn't produce a Java file
 
-            int extenStart= origSrcFileName.lastIndexOf('.');
-            String origExten= origSrcFileName.substring(extenStart+1);
+            // SMS 19 Mar 2007
+            // Commenting these lines out because this version of origExten was never used
+            //int extenStart= origSrcFileName.lastIndexOf('.');
+            //String origExten= origSrcFileName.substring(extenStart+1);
             
          
             final Integer origSrcLineNumber= new Integer(textSel.getStartLine() + 1);
             
 
-            if (! validateLineNumber(origSrcFile, origSrcLineNumber)) 
+            if (! validateLineNumber(origSrcFile, origSrcLineNumber)	) 
             	 return;
             
             
@@ -122,7 +165,6 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 
                     // create the marker
                     IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
-                    
               
                     Map javaMarkerAttrs= javaMarker.getAttributes();
                     for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {

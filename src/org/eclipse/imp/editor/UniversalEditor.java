@@ -178,7 +178,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    return fOutlineController;
 	}
 	if (IToggleBreakpointsTarget.class.equals(required)) {
-	    return new ToggleBreakpointsAdapter();
+		// SMS 14 MAR 2007  added "this" parameter
+		// to make use of new constructor
+	    return new ToggleBreakpointsAdapter(this);
 	}
 	return super.getAdapter(required);
     }
@@ -869,15 +871,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    IToken[] adjuncts = null;
 		    int endOffset = 0;
 		    try {
-		    	adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
+			    	adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
 		    	endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
 		    			: adjuncts[adjuncts.length - 1].getEndOffset();
 		    } catch (IndexOutOfBoundsException e) {
 				final String msg= "PresentationRepairer.createPresentation(): Could not repair damage @ " + damage.getOffset() + " (size of parse stream = 0) in " + parseStream.getFileName();
-				if (SAFARIPreferenceCache.emitMessages)
+				// SMS 17 Mar 2007
+				// Problems occur frequently, and this block as originally coded emits a one-line message or,
+				// if not that, prints a long and largely (now) unhelpful exception trace.  I'm removing the
+				// exception trace but, by way of compensation, removing the condition on the message
+				//if (SAFARIPreferenceCache.emitMessages)
 				    RuntimePlugin.getInstance().writeInfoMsg(msg);
-				else
-				    ErrorHandler.reportError(msg, e);
+				//else
+				    //	ErrorHandler.reportError(msg, e);
 			    return;
 			}
 

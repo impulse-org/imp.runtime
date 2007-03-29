@@ -147,11 +147,18 @@ public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
      */
     protected void clearMarkersOn(IFile file) {
 	try {
-	    file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+		// SMS 28 Mar 2007
+		// Clear the markers for this builder only (and clear all of them)
+		// (may be a simpler way to do this, given a more complex set up of
+		// marker types)
+	    //file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+	    file.deleteMarkers(getErrorMarkerID(), true, IResource.DEPTH_INFINITE);
+	    file.deleteMarkers(getWarningMarkerID(), true, IResource.DEPTH_INFINITE);
+	    file.deleteMarkers(getInfoMarkerID(), true, IResource.DEPTH_INFINITE);
 	} catch (CoreException e) {
 	}
     }
-
+    
     private void dumpSourceList(Collection/*<IFile>*/ sourcesToCompile) {
         for(Iterator iter= sourcesToCompile.iterator(); iter.hasNext(); ) {
             IFile srcFile= (IFile) iter.next();

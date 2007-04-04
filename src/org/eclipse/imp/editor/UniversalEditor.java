@@ -34,7 +34,23 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.	text.AbstractInformationControlManager;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.IAutoEditStrategy;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.IUndoManager;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.ContentFormatter;
@@ -83,7 +99,6 @@ import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
-import org.eclipse.ui.texteditor.MarkerAnnotationPreferences;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.uide.core.ErrorHandler;
@@ -166,7 +181,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public UniversalEditor() {
 	if (SAFARIPreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
-	setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
+	// SMS 4 Apr 2007
+	// Do not set preference store with store obtained from plugin; one is
+	// already defined for the parent text editor and populated with relevant
+	// preferences
+	//setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
 	setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
 	configureInsertMode(SMART_INSERT, true);
 	setInsertMode(SMART_INSERT);
@@ -453,33 +472,37 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public void createPartControl(Composite parent) {
-	if (SAFARIPreferenceCache.emitMessages)
-	    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
-	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
+		if (SAFARIPreferenceCache.emitMessages)
+		    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
+		fLanguage= LanguageRegistry.findLanguage(getEditorInput());
+	
+		// Create language service extensions now, for any services that could
+		// get invoked via super.createPartControl().
+		if (fLanguage != null) {
+		    if (SAFARIPreferenceCache.emitMessages)
+			RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
+		    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
+		    if (fHyperLinkDetector == null)
+			fHyperLinkDetector= new HyperlinkDetector(fLanguage);
+		    if (fHyperLinkDetector != null)
+		    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
+		    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
+		    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
+		    fFormattingController= new FormattingController(fFormattingStrategy);
+		    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
+		}
 
-	// Create language service extensions now, for any services that could
-	// get invoked via super.createPartControl().
-	if (fLanguage != null) {
-	    if (SAFARIPreferenceCache.emitMessages)
-		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
-	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
-	    if (fHyperLinkDetector == null)
-		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
-	    if (fHyperLinkDetector != null)
-	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
-	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
-	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
-	    fFormattingController= new FormattingController(fFormattingStrategy);
-	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
-	}
+		super.createPartControl(parent);	
 
-	super.createPartControl(parent);
+		// SMS 4 Apr 2007:  Call no longer needed because preferences for the
+		// overview ruler are now obtained from appropriate preference store directly
+        //setupOverviewRulerAnnotations();
 
-        setupOverviewRulerAnnotations();
-        AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
-//      MarkerAnnotationPreferences.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
-
-        {
+		// SMS 4 Apr 2007:  Also should not need this, since we're not using
+		// the plugin's store (for this purpose)
+        //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
+    
+		{
             ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
 
             // Only set the editor's title bar icon if the language has a label provider
@@ -511,19 +534,20 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
 		fFormattingController.setParseController(fParserScheduler.parseController);
-
+		
 		if (fFoldingUpdater != null) {
 		    if (SAFARIPreferenceCache.emitMessages)
 			RuntimePlugin.getInstance().writeInfoMsg("Enabling source folding for " + fLanguage.getName());
 		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
 		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
 
-		    projectionSupport.install();
+		    projectionSupport.install();    
+		    
 		    viewer.doOperation(ProjectionViewer.TOGGLE);
 		    fAnnotationModel= viewer.getProjectionAnnotationModel();
 		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
 		}
-
+		
 		fOutlineController.setLanguage(fLanguage);
 		fPresentationController.setLanguage(fLanguage);
 		fCompletionProcessor.setLanguage(fLanguage);
@@ -541,27 +565,34 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		ErrorHandler.reportError("Could not create part", e);
 	    }
 	}
-    }
-
-    private void setupOverviewRulerAnnotations() {
-        final IOverviewRuler overviewRuler= getOverviewRuler();
-
-        overviewRuler.addAnnotationType(PARSE_ANNOTATION_TYPE);
-        overviewRuler.setAnnotationTypeColor(PARSE_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 0, 0)));
-        overviewRuler.setAnnotationTypeLayer(PARSE_ANNOTATION_TYPE, 0);
-        overviewRuler.addAnnotationType(ERROR_ANNOTATION_TYPE);
-        overviewRuler.setAnnotationTypeColor(ERROR_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 0, 0)));
-        overviewRuler.setAnnotationTypeLayer(ERROR_ANNOTATION_TYPE, 0);
-        overviewRuler.addAnnotationType(WARNING_ANNOTATION_TYPE);
-        overviewRuler.setAnnotationTypeColor(WARNING_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 215, 0)));
-        overviewRuler.setAnnotationTypeLayer(WARNING_ANNOTATION_TYPE, 0);
-        overviewRuler.addAnnotationType(INFO_ANNOTATION_TYPE);
-        overviewRuler.setAnnotationTypeColor(INFO_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0, 255, 0)));
-        overviewRuler.setAnnotationTypeLayer(INFO_ANNOTATION_TYPE, 0);
-        overviewRuler.addAnnotationType(DEBUG_ANNOTATION_TYPE);
-        overviewRuler.setAnnotationTypeColor(DEBUG_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0, 0, 255)));
-        overviewRuler.setAnnotationTypeLayer(DEBUG_ANNOTATION_TYPE, 0);
-    }
+    }  
+    
+    // SMS 4 Apr 2007
+    // No longer necessary since UniversalEditor is now using the preference store
+    // provided by the parent text editor rather the one obtained from the local plugin
+    // (the former has preferences for annotations that are based on the preference pages
+    // and adopted automatically, the latter does not).
+//    private void setupOverviewRulerAnnotations() {
+//        final IOverviewRuler overviewRuler= getOverviewRuler();
+//
+//        // Get these values from the preferences store
+//        
+//        overviewRuler.addAnnotationType(PARSE_ANNOTATION_TYPE);
+//        overviewRuler.setAnnotationTypeColor(PARSE_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0,255,0)));
+//        overviewRuler.setAnnotationTypeLayer(PARSE_ANNOTATION_TYPE, 0);
+//        overviewRuler.addAnnotationType(ERROR_ANNOTATION_TYPE);
+//        overviewRuler.setAnnotationTypeColor(ERROR_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 0, 0)));
+//        overviewRuler.setAnnotationTypeLayer(ERROR_ANNOTATION_TYPE, 0);
+//        overviewRuler.addAnnotationType(WARNING_ANNOTATION_TYPE);
+//        overviewRuler.setAnnotationTypeColor(WARNING_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(255, 215, 0)));
+//        overviewRuler.setAnnotationTypeLayer(WARNING_ANNOTATION_TYPE, 0);
+//        overviewRuler.addAnnotationType(INFO_ANNOTATION_TYPE);
+//        overviewRuler.setAnnotationTypeColor(INFO_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0, 255, 0)));
+//        overviewRuler.setAnnotationTypeLayer(INFO_ANNOTATION_TYPE, 0);
+//        overviewRuler.addAnnotationType(DEBUG_ANNOTATION_TYPE);
+//        overviewRuler.setAnnotationTypeColor(DEBUG_ANNOTATION_TYPE, getSharedColors().getColor(new RGB(0, 0, 255)));
+//        overviewRuler.setAnnotationTypeLayer(DEBUG_ANNOTATION_TYPE, 0);
+//    }
 
     public void dispose() {
 	// Remove the pref store listener *before* calling super; super nulls out the pref store.
@@ -913,6 +944,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     	} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
     	    getSourceViewer().getTextWidget().setTabs(SAFARIPreferenceCache.tabWidth);
     	}
+    	
         }
     };
 

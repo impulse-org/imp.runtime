@@ -25,7 +25,7 @@ public class DefaultOutlineImage implements IOutlineImage
 
 	private static ImageDescriptor OUTLINE_ITEM_DESC= AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.uide.runtime", IMAGE_ROOT + "/outline_item.gif");
 
-																	private static Image OUTLINE_ITEM_IMAGE= OUTLINE_ITEM_DESC.createImage();
+	private static Image OUTLINE_ITEM_IMAGE= OUTLINE_ITEM_DESC.createImage();
 
 	
 	public String getImageRoot() {

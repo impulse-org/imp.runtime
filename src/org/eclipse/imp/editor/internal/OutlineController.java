@@ -37,7 +37,7 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     private IParseController controller;
 
-    //    private UniversalEditor editor;
+    private UniversalEditor editor;		// SMS 5 Apr 2007
 
     private IOutliner outliner;
 
@@ -46,11 +46,12 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     private int DELAY= 50; //500;
 
     public OutlineController(UniversalEditor editor) {
-    //	this.editor= editor;
+    	this.editor= editor;	// SMS 5 Apr 2007
     }
 
     public void setLanguage(Language language) {
 	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, "outliner");
+	outliner.setEditor(editor);	// SMS 5 Apr 2007
     }
 
     public AnalysisRequired getAnalysisRequired() {

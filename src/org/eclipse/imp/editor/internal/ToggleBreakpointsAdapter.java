@@ -9,11 +9,10 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.core.internal.resources.Workspace;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.resources.IProject;	
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -87,7 +86,20 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 	// it may be useful (see class 	header comments)
 	public ToggleBreakpointsAdapter(UniversalEditor editor) {
 		fEditor = editor;
-		origExten = editor.fLanguage.getFilenameExtensions()[0];
+		// SMS 19 Apr 2007:
+		// fLanguage may be null, especially if language is no longer
+		// available in workspace, so check for that	
+		if (editor.fLanguage != null) {
+			origExten = editor.fLanguage.getFilenameExtensions()[0];
+		} else {
+			// And, if null, then the "original extension" should
+			// be meaningless (since that would only be defined and
+			// used with respect to a language).  Setting it to null
+			// (which it may already be) doesn't seem to cause any
+			// problems.
+			origExten = null;
+		}
+			
 	}
 
     public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
@@ -258,8 +270,12 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 		String fileName = path.lastSegment();
 		fileName = fileName.substring(0, fileName.indexOf(".") + 1) + origExten; 
 		path = path.removeLastSegments(1).append(fileName);
+
+		// SMS 20 Apr 2007
+		// Changed following call to avoid discouraged access to type Workspace
+		//IFile origSrcFile = ((Workspace)breakpoint.getMarker().getResource().getProject().getWorkspace()).getFileSystemManager().fileForLocation(path);
+		IFile origSrcFile = breakpoint.getMarker().getResource().getProject().getWorkspace().getRoot().getFileForLocation(path);
 		
-		IFile origSrcFile = ((Workspace)breakpoint.getMarker().getResource().getProject().getWorkspace()).getFileSystemManager().fileForLocation(path);
 		try {
 			IMarker marker = findMarker(origSrcFile, ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
 			//System.out.println("deleting marker " + origSrcFile.getFullPath() + " at line " + ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());

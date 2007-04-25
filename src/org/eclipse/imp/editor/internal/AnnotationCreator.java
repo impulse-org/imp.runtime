@@ -19,8 +19,10 @@ public class AnnotationCreator implements IMessageHandler {
 
     public AnnotationCreator(ITextEditor textEditor, String annotationType) {
         fEditor= textEditor;
-	fAnnotationType= annotationType;
-        
+        if (annotationType == null)
+        	fAnnotationType = UniversalEditor.PARSE_ANNOTATION_TYPE;
+        else 
+        	fAnnotationType= annotationType;
     }
     public void handleMessage(int errorCode, int [] msgLocation, int[] errorLocation, String filename, String [] errorInfo) {
         int offset = msgLocation[IMessageHandler.OFFSET_INDEX],
@@ -35,7 +37,7 @@ public class AnnotationCreator implements IMessageHandler {
         message += ParseErrorCodes.errorMsgText[errorCode];
 
         IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
-        Annotation annotation= new Annotation(UniversalEditor.PARSE_ANNOTATION_TYPE, false, message);
+        Annotation annotation= new Annotation(fAnnotationType, false, message);
         Position pos= new Position(offset, length);
 
         model.addAnnotation(annotation, pos);

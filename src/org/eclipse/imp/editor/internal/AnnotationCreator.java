@@ -43,7 +43,7 @@ public class AnnotationCreator implements IMessageHandler {
         model.addAnnotation(annotation, pos);
     }
 
-    public void removeParserAnnotations() {
+    public void removeAnnotations() {
 	IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
 
 	if (model == null)

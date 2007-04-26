@@ -34,7 +34,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.	text.AbstractInformationControlManager;
+import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.IAutoEditStrategy;
@@ -67,7 +67,6 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
-import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
@@ -82,7 +81,6 @@ import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
@@ -94,7 +92,6 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
-import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -616,10 +613,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	return viewer;
     }
+    
 
+    
     protected void doSetInput(IEditorInput input) throws CoreException {
 	super.doSetInput(input);
 	setInsertMode(SMART_INSERT);
+	
     }
 
     /**
@@ -998,7 +998,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
-		fAnnotationCreator.removeParserAnnotations();
+		fAnnotationCreator.removeAnnotations();
 		parseController.initialize(filePath, file != null ? file.getProject() : null, fAnnotationCreator);
 		parseController.parse(document.get(), false, monitor);
 		if (!monitor.isCanceled())
@@ -1078,18 +1078,22 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     // if a save triggers a build that leads to the creation
     // of markers and another set of annotations.
 	public void doSave(IProgressMonitor progressMonitor) {
-		removeParserAnnotations();
+		// SMS 25 Apr 2007:  Removing parser annotations here
+		// may not hurt but also doesn't seem to be necessary
+		//removeParserAnnotations();
 		super.doSave(progressMonitor);
 	}
 	
-    private void removeParserAnnotations() {
+    public void removeParserAnnotations() {
     	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
 
     	for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
     	    Annotation a= (Annotation) i.next();
 
     	    if (a.getType().equals(PARSE_ANNOTATION_TYPE))
-    		model.removeAnnotation(a);
+    	    	model.removeAnnotation(a);
     	}
     }
+    
+    
 }

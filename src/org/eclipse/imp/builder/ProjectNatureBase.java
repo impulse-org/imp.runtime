@@ -52,7 +52,15 @@ public abstract class ProjectNatureBase implements IProjectNature {
 	String natureID= getNatureID();
 
 	refreshPrefs();
-	getLog().maybeWriteInfoMsg("Attempting to add nature" + natureID);
+	// SMS 16 Apr 2007
+	// You can find log null here if the plugin hasn't been started yet.
+	// It is intended that the manifest file for the IDE plugin should have autostart
+	// set to true, in which case the log should not come back null, but if the
+	// manifest file has been corrupted (which can happen if you regenerate services
+	// over prior implementations) then the autostart property may be lost and the
+	// pluin may not be started yet.
+	IPluginLog log = getLog();
+	log.maybeWriteInfoMsg("Attempting to add nature" + natureID);
 
 	try {
 	    IProjectDescription	description= project.getDescription();

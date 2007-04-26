@@ -60,7 +60,7 @@ public class MarkerCreator implements IMessageHandler {
         int line = token.getLine();
 
 		try {
-			// Based closely on "FAQ How do I create problem markers for my compiler?"
+			// Based closely on the Eclipse "FAQ How do I create problem markers for my compiler?"
 			IMarker m = file.createMarker(problemType);
 			m.setAttribute(IMarker.LINE_NUMBER, line);
 			// SMS 23 Apr 2007

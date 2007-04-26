@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -22,7 +23,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.uide.editor.UniversalEditor;
 import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
@@ -130,7 +130,7 @@ public class LanguageRegistry {
 	EditorRegistry editorRegistry= (EditorRegistry) PlatformUI.getWorkbench().getEditorRegistry();
 	IFileEditorMapping[] currentMap= editorRegistry.getFileEditorMappings();
 	IEditorDescriptor universalEditor= findUniversalEditorDescriptor(editorRegistry);
-
+	
 	if (universalEditor == null) {
 	    ErrorHandler.logError("registerLanguages(): unable to proceed without universal editor descriptor.", null);
 	    return;

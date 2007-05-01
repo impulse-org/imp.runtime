@@ -8,6 +8,7 @@ package org.eclipse.uide.editor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -67,6 +68,7 @@ import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
@@ -111,6 +113,7 @@ import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.editor.SourceHyperlinkController;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
+import org.eclipse.uide.parser.IParseControllerWithMarkerTypes;
 import org.eclipse.uide.preferences.PreferenceConstants;
 import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
@@ -613,12 +616,167 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	return viewer;
     }
-    
 
     
+	public final String PARSE_ANNOTATION = "Parse_Annotation";
+	
+	private HashMap<IMarker, Annotation> markerParseAnnotations = new HashMap();
+	private HashMap<IMarker, MarkerAnnotation> markerMarkerAnnotations = new HashMap();
+    
+	
+	/**
+	 * Refresh the marker annotations on the input document by removing any
+	 * that do not map to current parse annotations.  Do this for problem
+	 * markers, specifically; ignore other types of markers.
+	 * 
+	 * SMS 25 Apr 2007
+	 */
+    public void refreshMarkerAnnotations(String problemMarkerType)
+    {
+    	// Get current marker annotations
+		IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
+		Iterator annIter = model.getAnnotationIterator();
+		List markerAnnotations = new ArrayList();
+		while (annIter.hasNext()) {
+			Object ann = annIter.next();
+			if (ann instanceof MarkerAnnotation) {
+				markerAnnotations.add(ann);
+			} 
+		}
+
+		// For the current marker annotations, if any lacks a corresponding
+		// parse annotation, delete the marker annotation from the document's
+		// annotation model (but leave the marker on the underlying resource,
+		// which presumably hasn't been changed, despite changes to the document)
+		if (markerAnnotations.size() > 0) {
+			for (int i = 0; i < markerAnnotations.size(); i++) {
+				IMarker marker = ((MarkerAnnotation)markerAnnotations.get(i)).getMarker();
+				try {
+					String markerType = marker.getType();
+					if (!markerType.endsWith(problemMarkerType))
+						continue;
+				} catch (CoreException e) {
+					// If we get a core exception here, probably something is wrong with the
+					// marker, and we probably don't want to keep any annotation that may be
+					// associated with it (I don't think)
+					model.removeAnnotation((MarkerAnnotation)markerAnnotations.get(i));
+					continue;
+				}
+				if (markerParseAnnotations.get(marker) != null) {
+					continue;
+				} else {
+					model.removeAnnotation((MarkerAnnotation)markerAnnotations.get(i));
+				}	
+			}
+		}
+    }
+    
+    
+    /**
+     * This is a type of listener whose purpose is to monitor changes to a document
+     * annotation model and to maintain at a mapping from markers on the underlying
+     * resource to parse annotations on the document.
+     * 
+     * The association of markers to annotations is determined by a subroutine that
+     * may be more or less sophisticated in how it identifies associations.  The
+     * accuracy of the map depends on the implementation of this routine.  (The
+     * current implementation of the method simply compares text ranges of annotations
+     * and markers.)
+     * 
+     * The motivating purpose of the mapping is to enable the identification of marker
+     * annotations that are (or are not) associated with a current parse annotation.
+     * Then, for instance, marker annotations that are not associated with current parse 
+     * annotations might be removed from the document.
+     * 
+     * No assumptions are made here about the type (or types) of marker annotation of
+     * interest; all types of marker annotation are considered.
+     * 
+     * SMS 25 Apr 2007
+     */
+    protected class InputAnnotationModelListener implements IAnnotationModelListener
+    {
+    	public void modelChanged(IAnnotationModel model)
+    	{
+    		List<Annotation> currentParseAnnotations = new ArrayList();
+    		List<IMarker> currentMarkers = new ArrayList();
+    		markerParseAnnotations = new HashMap();
+    		markerMarkerAnnotations = new HashMap();
+    		
+    		// Collect the current set of markers and parse annotations;
+    		// also maintain a map of markers to marker annotations (as it
+    		// there doesn't seem to be a way to get from a marker to the
+    		// annotations that may represent it)
+    		Iterator annotations = model.getAnnotationIterator();
+    		while (annotations.hasNext()) {
+    			Object ann = annotations.next();
+    			if (ann instanceof MarkerAnnotation) {
+    				IMarker marker = ((MarkerAnnotation)ann).getMarker();
+    				currentMarkers.add(marker);
+    				markerMarkerAnnotations.put(marker, (MarkerAnnotation) ann);
+    			} else if (ann instanceof Annotation) {
+    				Annotation annotation = (Annotation) ann;
+    				if (annotation.getType().equals(PARSE_ANNOTATION_TYPE)) {
+    					currentParseAnnotations.add(annotation);
+    				}
+    			}
+    		}
+
+    		// Create a mapping between current markers and parse annotations
+    		for (int i = 0; i < currentMarkers.size(); i++) {
+    			IMarker marker = (IMarker) currentMarkers.get(i);
+				Annotation annotation = findParseAnnotationForMarker(model, marker, currentParseAnnotations);
+				if (annotation != null) {
+					markerParseAnnotations.put(marker, annotation);
+				}
+    		}
+    	}
+    	
+    	
+    	public Annotation findParseAnnotationForMarker(IAnnotationModel model, IMarker marker, List parseAnnotations) {
+   			int markerStart = 0;
+			int markerEnd = 1; 
+			try {
+				markerStart = ((Integer) marker.getAttribute(IMarker.CHAR_START)).intValue();
+				markerEnd = ((Integer) marker.getAttribute(IMarker.CHAR_END)).intValue();
+			} catch (CoreException e) {
+				System.err.println("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end");
+			}
+			int markerLength = markerEnd - markerStart;
+
+			for (int j = 0; j < parseAnnotations.size(); j++) {
+				Annotation parseAnnotation = (Annotation) parseAnnotations.get(j);
+				Position pos = model.getPosition(parseAnnotation);
+				if (pos == null)
+					// And this would be why?
+					continue;
+				int annotationStart = pos.offset;
+				int annotationLength = pos.length;
+				//System.out.println("\tfindPareseAnnotationForMarker:  Checking annotation offset and length = " + annotationStart + ", " + annotationLength);
+				
+				if (markerStart == annotationStart && markerLength == annotationLength) {
+					//System.out.println("\tfindPareseAnnotationForMarker:  Returning annotation at offset = " + markerStart);
+					return parseAnnotation;
+				} else {
+  					//System.out.println("\tfindPareseAnnotationForMarker:  Not returning annotation at offset = " + markerStart);
+				}
+			}
+			
+			//System.out.println("  findPareseAnnotationForMarker:  No corresponding annotation found; returning null");
+			return null;
+    	}   	
+    }
+    
+    
+    
     protected void doSetInput(IEditorInput input) throws CoreException {
-	super.doSetInput(input);
-	setInsertMode(SMART_INSERT);
+		super.doSetInput(input);
+		setInsertMode(SMART_INSERT);
+	
+		// SMS 25 Apr 2007
+		// Added for maintenance of associations between marker annotations
+		// and parse annotations	
+		IAnnotationModel annotationModel = getDocumentProvider().getAnnotationModel(input);
+		annotationModel.addAnnotationModelListener(new InputAnnotationModelListener());
 	
     }
 
@@ -962,7 +1120,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	ParserScheduler(String name) {
 	    super(name);
 	    setSystem(true); // do not show this job in the Progress view
-	    parseController= (IParseController) createExtensionPoint("parser");
+    	parseController= (IParseController) createExtensionPoint("parser");
 	    if (parseController == null)
 		ErrorHandler.reportError("Unable to instantiate parser; parser-related services disabled.");
 	}
@@ -1013,6 +1171,20 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 // may have failed at some phase, but there may be enough info to drive IDE services.
                 notifyAstListeners(parseController, monitor);
 	    }
+	    // SMS 25 Apr 2007
+	    // Since parsing has finished, check whether the marker annotations
+	    // are up-to-date with the most recent parse annotations.
+	    // Assuming that's often enough--i.e., don't refresh the marker
+	    // annotations after every update to the document annotation model
+	    // since there will be many of these, including possibly many that
+	    // don't relate to problem markers.
+	    if (parseController instanceof IParseControllerWithMarkerTypes) {
+		    List problemMarkerTypes = ((IParseControllerWithMarkerTypes)parseController).getProblemMarkerTypes();
+		    for (int i = 0; i < problemMarkerTypes.size(); i++) {
+		    	refreshMarkerAnnotations((String)problemMarkerTypes.get(i));
+		    }
+	    }
+	    
 	    return Status.OK_STATUS;
 	}
 

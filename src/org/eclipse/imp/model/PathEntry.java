@@ -15,7 +15,10 @@ public class PathEntry implements IPathEntry {
     public PathEntryType getEntryType() {
         return fType;
     }
-    public IPath getProjectRelativePath() {
+    public IPath getPath() {
         return fPath;
+    }
+    public String toString() {
+	return "<" + fType + ": " + fPath.toPortableString() + ">";
     }
 }

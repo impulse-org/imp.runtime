@@ -15,6 +15,7 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
+import org.eclipse.uide.model.ISourceProject;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
@@ -22,7 +23,7 @@ import org.eclipse.uide.utils.ExtensionPointFactory;
 public abstract class SourceFileFinder implements IResourceVisitor {
     private final TextFileDocumentProvider fProvider;
 
-    protected final IProject fProject;
+    protected final ISourceProject fProject;
 
     protected final IFileVisitor fVisitor;
 
@@ -30,7 +31,7 @@ public abstract class SourceFileFinder implements IResourceVisitor {
 
     private final Set<String> fFileNameExtensions= new HashSet<String>();
 
-    public SourceFileFinder(TextFileDocumentProvider provider, IProject project, IFileVisitor visitor, Language language) {
+    public SourceFileFinder(TextFileDocumentProvider provider, ISourceProject project, IFileVisitor visitor, Language language) {
         super();
         fProvider= provider;
         fProject= project;
@@ -62,7 +63,7 @@ public abstract class SourceFileFinder implements IResourceVisitor {
     private void visitFile(IFile file) {
         System.out.println("Visiting file " + file.getName() + ".");
         IParseController parseCtrlr= (IParseController) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.PARSER_SERVICE);
-        IPath declFilePath= file.getLocation().removeFirstSegments(fProject.getLocation().segmentCount());
+        IPath declFilePath= file.getLocation().removeFirstSegments(fProject.getRawProject().getLocation().segmentCount());
         IFileEditorInput fileInput= new FileEditorInput(file);
 
         parseCtrlr.initialize(declFilePath, fProject, null);

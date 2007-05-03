@@ -36,6 +36,7 @@ public interface ILanguageService {
     String FOLDING_SERVICE= "foldingUpdater";
     String ANNOTATION_HOVER_SERVICE= "annotationHover";
     String FORMATTER_SERVICE= "formatter";
+    String HYPERLINK_SERVICE= "hyperLink";
     String LABEL_PROVIDER_SERVICE= "labelProvider";
     String IMAGE_DECORATOR_SERVICE= "imageDecorator";
     String OUTLINE_CONTENT_PROVIDER_SERVICE= "outlineContentProvider";

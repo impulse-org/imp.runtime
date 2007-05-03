@@ -41,6 +41,10 @@ public class Language {
         return fConfigElement.getAttribute("language");
     }
 
+    public String getNatureID() {
+	return fConfigElement.getAttribute("natureID");
+    }
+
     /**
      * Gets a human-readable description of the language. Not used for discovery.
      * 

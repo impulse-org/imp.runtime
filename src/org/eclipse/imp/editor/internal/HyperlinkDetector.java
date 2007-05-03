@@ -74,6 +74,10 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         UniversalEditor targetEditor= (srcPath.endsWith(targetPath) ? editor : null);
         Object targetArg= targetEditor == null ? targetPath : target;
 
+        // If the target is exactly the same entity, don't bother with the hyperlink.
+        if (srcStart == targetStart && srcLength == targetLength && srcPath.endsWith(targetPath))
+            return null;
+
         IHyperlink[] result = new IHyperlink[] {
             new TargetLink(linkText, srcStart, srcLength, targetArg, targetStart, targetLength, targetEditor)
         };

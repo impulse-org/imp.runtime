@@ -56,7 +56,7 @@ public class HoverHelper implements IHoverHelper {
 
         if (selNode == null) return null;
 
-       	Object target = refResolver.getLinkTarget(selNode, parseController);
+       	Object target = (refResolver != null) ? refResolver.getLinkTarget(selNode, parseController) : selNode;
 
        	if (target == null) return null;
 

@@ -28,7 +28,7 @@ public class ExtensionPointFactory {
 
     public static ILanguageService createExtensionPoint(Language language, String pluginID, String extensionPointId) {
 	if (language == null) {
-	    ErrorHandler.reportError("Cannot obtain service on null language: " + extensionPointId);
+	    ErrorHandler.reportError("Cannot obtain service '" + extensionPointId + "' on null language.");
 	    return null;
 	}
 	ILanguageService service= null;

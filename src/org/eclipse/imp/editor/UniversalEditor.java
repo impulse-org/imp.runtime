@@ -35,23 +35,7 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.text.AbstractInformationControlManager;
-import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DefaultInformationControl;
-import org.eclipse.jface.text.IAutoEditStrategy;
-import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IInformationControl;
-import org.eclipse.jface.text.IInformationControlCreator;
-import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextDoubleClickStrategy;
-import org.eclipse.jface.text.ITextHover;
-import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.ITypedRegion;
-import org.eclipse.jface.text.IUndoManager;
-import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.Region;
-import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.text.*;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.ContentFormatter;
@@ -111,6 +95,8 @@ import org.eclipse.uide.internal.editor.HyperlinkDetector;
 import org.eclipse.uide.internal.editor.OutlineController;
 import org.eclipse.uide.internal.editor.PresentationController;
 import org.eclipse.uide.internal.editor.SourceHyperlinkController;
+import org.eclipse.uide.model.ISourceProject;
+import org.eclipse.uide.model.ModelFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.IParseControllerWithMarkerTypes;
@@ -242,7 +228,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
         super.editorContextMenuAboutToShow(menu);
 
-        IRefactoringContributor contributor= (IRefactoringContributor) createExtensionPoint("refactoringContributions");
+        IRefactoringContributor contributor= (IRefactoringContributor) createExtensionPoint(ILanguageService.REFACTORING_CONTRIBUTIONS_SERVICE);
 
         if (contributor != null) {
             IAction[] editorActions= contributor.getEditorRefactoringActions(this);
@@ -257,7 +243,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    }
         }
 
-        ILanguageActionsContributor actionContributor= (ILanguageActionsContributor) createExtensionPoint("editorActionContributions");
+        ILanguageActionsContributor actionContributor= (ILanguageActionsContributor) createExtensionPoint(ILanguageService.EDITOR_ACTION_SERVICE);
 
         if (actionContributor != null) {
             IAction[] editorActions= actionContributor.getEditorActions(this);
@@ -472,37 +458,37 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public void createPartControl(Composite parent) {
-		if (SAFARIPreferenceCache.emitMessages)
-		    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
-		fLanguage= LanguageRegistry.findLanguage(getEditorInput());
-	
-		// Create language service extensions now, for any services that could
-		// get invoked via super.createPartControl().
-		if (fLanguage != null) {
-		    if (SAFARIPreferenceCache.emitMessages)
-			RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
-		    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint("hyperLink");
-		    if (fHyperLinkDetector == null)
-			fHyperLinkDetector= new HyperlinkDetector(fLanguage);
-		    if (fHyperLinkDetector != null)
-		    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
-		    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint("foldingUpdater");
-		    fFormattingStrategy= (ISourceFormatter) createExtensionPoint("formatter");
-		    fFormattingController= new FormattingController(fFormattingStrategy);
-		    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
-		}
+	if (SAFARIPreferenceCache.emitMessages)
+	    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
+	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
-		super.createPartControl(parent);	
+	// Create language service extensions now, for any services that could
+	// get invoked via super.createPartControl().
+	if (fLanguage != null) {
+	    if (SAFARIPreferenceCache.emitMessages)
+		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
+	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint(ILanguageService.HYPERLINK_SERVICE);
+	    if (fHyperLinkDetector == null)
+		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
+	    if (fHyperLinkDetector != null)
+	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
+	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint(ILanguageService.FOLDING_SERVICE);
+	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint(ILanguageService.FORMATTER_SERVICE);
+	    fFormattingController= new FormattingController(fFormattingStrategy);
+	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
+	}
 
-		// SMS 4 Apr 2007:  Call no longer needed because preferences for the
-		// overview ruler are now obtained from appropriate preference store directly
+	super.createPartControl(parent);
+
+	// SMS 4 Apr 2007:  Call no longer needed because preferences for the
+	// overview ruler are now obtained from appropriate preference store directly
         //setupOverviewRulerAnnotations();
 
-		// SMS 4 Apr 2007:  Also should not need this, since we're not using
-		// the plugin's store (for this purpose)
+	// SMS 4 Apr 2007:  Also should not need this, since we're not using
+	// the plugin's store (for this purpose)
         //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
-    
-		{
+
+        {
             ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
 
             // Only set the editor's title bar icon if the language has a label provider
@@ -534,7 +520,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
 		fFormattingController.setParseController(fParserScheduler.parseController);
-		
+
 		if (fFoldingUpdater != null) {
 		    if (SAFARIPreferenceCache.emitMessages)
 			RuntimePlugin.getInstance().writeInfoMsg("Enabling source folding for " + fLanguage.getName());
@@ -547,7 +533,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    fAnnotationModel= viewer.getProjectionAnnotationModel();
 		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
 		}
-		
+
 		fOutlineController.setLanguage(fLanguage);
 		fPresentationController.setLanguage(fLanguage);
 		fCompletionProcessor.setLanguage(fLanguage);
@@ -823,7 +809,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    IAnnotationHover hover= null;
 
 	    if (fLanguage != null)
-		hover= (IAnnotationHover) createExtensionPoint("annotationHover");
+		hover= (IAnnotationHover) createExtensionPoint(ILanguageService.ANNOTATION_HOVER_SERVICE);
 	    if (hover == null)
 		hover= new DefaultAnnotationHover();
 	    return hover;
@@ -831,7 +817,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
 	    if (fLanguage != null)
-		fAutoEditStrategy= (IAutoEditStrategy) createExtensionPoint("autoEditStrategy");
+		fAutoEditStrategy= (IAutoEditStrategy) createExtensionPoint(ILanguageService.AUTO_EDIT_SERVICE);
 
 	    if (fAutoEditStrategy == null)
 		fAutoEditStrategy= super.getAutoEditStrategies(sourceViewer, contentType)[0];
@@ -1060,7 +1046,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    IToken[] adjuncts = null;
 		    int endOffset = 0;
 		    try {
-			    	adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
+		    	adjuncts= parseStream.getFollowingAdjuncts(damagedToken);
 		    	endOffset= (adjuncts.length == 0) ? parseStream.getEndOffset(damagedToken)
 		    			: adjuncts[adjuncts.length - 1].getEndOffset();
 		    } catch (IndexOutOfBoundsException e) {
@@ -1102,7 +1088,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     	} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
     	    getSourceViewer().getTextWidget().setTabs(SAFARIPreferenceCache.tabWidth);
     	}
-    	
         }
     };
 
@@ -1120,7 +1105,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	ParserScheduler(String name) {
 	    super(name);
 	    setSystem(true); // do not show this job in the Progress view
-    	parseController= (IParseController) createExtensionPoint("parser");
+	    parseController= (IParseController) createExtensionPoint(ILanguageService.PARSER_SERVICE);
 	    if (parseController == null)
 		ErrorHandler.reportError("Unable to instantiate parser; parser-related services disabled.");
 	}
@@ -1157,7 +1142,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// Don't need to retrieve the AST; we don't need it.
 		// Just make sure the document contents gets parsed once (and only once).
 		fAnnotationCreator.removeAnnotations();
-		parseController.initialize(filePath, file != null ? file.getProject() : null, fAnnotationCreator);
+		ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
+		parseController.initialize(filePath, srcProject, fAnnotationCreator);
 		parseController.parse(document.get(), false, monitor);
 		if (!monitor.isCanceled())
 		    notifyAstListeners(parseController, monitor);
@@ -1266,6 +1252,4 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     	    	model.removeAnnotation(a);
     	}
     }
-    
-    
 }

@@ -76,18 +76,6 @@ Descriptions are not directly used by the Universal IDE, but can be used by huma
                </documentation>
             </annotation>
          </attribute>
-         <attribute name="synonyms" type="string">
-            <annotation>
-               <documentation>
-                  A comma-separated list describing the synonyms for this language. Examples:
-&lt;ul&gt;
-&lt;li&gt;If the name of the language is &quot;C#&quot;, the synonyms could be &quot;CSharp,csharp,c-sharp&quot;
-&lt;li&gt;If the name of the language is &quot;VB&quot;, the synonyms could be &quot;VisualBasic&quot;
-&lt;/ul&gt;
-&lt;p&gt;
-               </documentation>
-            </annotation>
-         </attribute>
          <attribute name="extensions" type="string" use="required">
             <annotation>
                <documentation>
@@ -130,7 +118,7 @@ For example, suppose a PHP source file is opened, but no PHP editor is available
                </documentation>
             </annotation>
          </attribute>
-         <attribute name="validator" type="string">
+         <attribute name="validatorClass" type="string">
             <annotation>
                <documentation>
                   The fully-qualified name of a class that can determine whether a given input file actually contains text in the given programming language. Useful for languages such as XML that have many dialects (e.g. Ant build scripts, Eclipse plugin descriptors, or DTD&apos;s). Examples:
@@ -144,6 +132,13 @@ The class must extend the LanguageValidator class. The validate method will be c
                <appInfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.uide.core.LanguageValidator"/>
                </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="natureID" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
             </annotation>
          </attribute>
       </complexType>

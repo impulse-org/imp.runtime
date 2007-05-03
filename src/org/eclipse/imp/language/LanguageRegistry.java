@@ -13,6 +13,9 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.content.IContentType;
+import org.eclipse.core.runtime.content.IContentTypeManager;
+import org.eclipse.core.runtime.content.IContentTypeManager.ISelectionPolicy;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -35,7 +38,7 @@ import org.osgi.framework.Bundle;
 
 /**
  * @author Claffra
- * 
+ * @author rfuhrer@watson.ibm.com
  * Registry for SAFARI language contributors.
  */
 public class LanguageRegistry {
@@ -56,6 +59,7 @@ public class LanguageRegistry {
 	if (sLanguages == null)
 	    findLanguages();
 	String extension= "???";
+	IPath path;
 	IFile file= null;
 
         if (editorInput instanceof IFileEditorInput) {
@@ -66,41 +70,81 @@ public class LanguageRegistry {
 		RuntimePlugin.getInstance().writeInfoMsg("Determining language of file " + file.getFullPath().toString());
 //	    else
 //		ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
-            extension= file.getFileExtension();
+	    path= file.getLocation();
+	    if (path == null)
+		path= file.getFullPath();
 	} else if (editorInput instanceof IPathEditorInput) {
 	    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
-	    IPath path= pathInput.getPath();
+	    path= pathInput.getPath();
 
-	    extension= path.getFileExtension();
 	    file= ResourcesPlugin.getWorkspace().getRoot().getFile(path);
 	} else if (editorInput instanceof IStorageEditorInput) {
 	    IStorageEditorInput storageEditorInput= (IStorageEditorInput) editorInput;
 	    try {
-		IPath path= storageEditorInput.getStorage().getFullPath();
-
-		extension= path.getFileExtension();
+		path= storageEditorInput.getStorage().getFullPath();
 	    } catch (CoreException e) {
 		ErrorHandler.reportError("Determining language of editor input " + storageEditorInput.getName());
+		path= null;
 	    }
+	} else {
+	    ErrorHandler.reportError("Unexpected type of IEditorInput: " + editorInput.getClass().getName());
+	    path= null;
 	}
-
-        if (extension == null)
+        if (path == null)
             return null;
-        for(int n= 0; n < sLanguages.length; n++) {
+
+        Language lang= findLanguage(path, file);
+
+        if (lang != null)
+            return lang;
+
+        if (SAFARIPreferenceCache.emitMessages)
+            RuntimePlugin.getInstance().writeInfoMsg("No language support for text/source file of type '" + extension + "'.");
+        else
+            ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
+	return null;
+    }
+
+    /**
+     * Determine the source language contained by the resource at the given path.
+     * @param path
+     * @param file if non-null, may be used to validate the contents of the file (e.g. to distinguish dialects)
+     * @return
+     */
+    public static Language findLanguage(IPath path, IFile file) {
+//	IContentTypeManager mgr= Platform.getContentTypeManager();
+//	IContentType type= mgr.findContentTypeFor(path.lastSegment().toString());
+//	String[] extensions= type.getFileSpecs(IContentType.FILE_EXTENSION_SPEC);
+//	String[] patterns= type.getFileSpecs(IContentType.FILE_NAME_SPEC);
+
+	String extension= path.getFileExtension(); // should instead try to determine Eclipse content type
+
+	if (extension == null)
+            return null;
+
+        // N.B. It's ok for multiple language descriptors to specify the same file name extension;
+        // the associated validators should use the file contents to identify the dialects.
+	for(int n= 0; n < sLanguages.length; n++) {
             if (sLanguages[n].hasExtension(extension)) {
         	LanguageValidator validator= sLanguages[n].getValidator();
 
         	if (validator != null && file != null) {
         	    if (validator.validate(file))
         		return sLanguages[n];
-        	} else
+        	} else // if no validator, assume only one language for this extension
         	    return sLanguages[n];
             }
         }
-        if (SAFARIPreferenceCache.emitMessages)
-            RuntimePlugin.getInstance().writeInfoMsg("No language support for text/source file of type '" + extension + "'.");
-        else
-            ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
+        return null;
+    }
+
+    public static Language findLanguageByNature(String natureID) {
+	for(int n= 0; n < sLanguages.length; n++) {
+            final String aNatureID= sLanguages[n].getNatureID();
+
+            if (aNatureID != null && aNatureID.equals(natureID))
+        	return sLanguages[n];
+	}
 	return null;
     }
 
@@ -136,8 +180,8 @@ public class LanguageRegistry {
 	    return;
 	}
 
-	List/*<String>*/ langExtens= collectAllLanguageFileNameExtensions();
-	List/*<FileEditorMapping>*/ newMap= new ArrayList();
+	List<String> langExtens= collectAllLanguageFileNameExtensions();
+	List<IFileEditorMapping> newMap= new ArrayList<IFileEditorMapping>();
 
 	// First, add only those mappings that don't already point to the universal editor
 	for(int i= 0; i < currentMap.length; i++) {
@@ -154,12 +198,12 @@ public class LanguageRegistry {
 	    newMapping.setDefaultEditor((EditorDescriptor) universalEditor);
 	    newMap.add(newMapping);
 	}
-	editorRegistry.setFileEditorMappings((FileEditorMapping[]) newMap.toArray(new FileEditorMapping[newMap.size()]));
+	editorRegistry.setFileEditorMappings(newMap.toArray(new FileEditorMapping[newMap.size()]));
 	editorRegistry.saveAssociations();
     }
 
-    private static List/*<String>*/ collectAllLanguageFileNameExtensions() {
-	List/*<String>*/ allExtens= new ArrayList();
+    private static List<String> collectAllLanguageFileNameExtensions() {
+	List<String> allExtens= new ArrayList<String>();
 	for(int i= 0; i < sLanguages.length; i++) {
 	    Language lang= sLanguages[i];
 	    String[] langExts= lang.getFilenameExtensions();
@@ -202,7 +246,7 @@ public class LanguageRegistry {
                 return;
 	    }
 
-            ArrayList langList= new ArrayList();
+            ArrayList<Language> langList= new ArrayList<Language>();
 	    IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
 
             if (elements != null) {
@@ -225,7 +269,7 @@ public class LanguageRegistry {
 		}
 	    } else
 		System.err.println("Warning: no languages defined.");
-            sLanguages= (Language[]) langList.toArray(new Language[langList.size()]);
+            sLanguages= langList.toArray(new Language[langList.size()]);
 	} catch (Throwable e) {
 	    ErrorHandler.reportError("SAFARI LanguageRegistry error", e);
 	}

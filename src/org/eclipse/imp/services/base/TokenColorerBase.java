@@ -10,7 +10,7 @@ import org.eclipse.uide.parser.IParseController;
 
 public class TokenColorerBase implements ITokenColorer {
 
-    TextAttribute keywordAttribute;
+    protected TextAttribute keywordAttribute;
 
     public TextAttribute getColoring(IParseController controller, IToken token) {
         switch (token.getKind()) {

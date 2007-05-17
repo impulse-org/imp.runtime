@@ -4,11 +4,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
@@ -17,7 +17,6 @@ import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.model.ISourceProject;
 import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
 
 public abstract class SourceFileFinder implements IResourceVisitor {
@@ -40,6 +39,7 @@ public abstract class SourceFileFinder implements IResourceVisitor {
 
         Language lang= fLanguage;
 
+        // Do we really want to include base language source files? I don't think so...
         while (lang != null) {
             String[] extens= lang.getFilenameExtensions();
             for(int i= 0; i < extens.length; i++) {
@@ -75,7 +75,7 @@ public abstract class SourceFileFinder implements IResourceVisitor {
         }
 
         IDocument document= fProvider.getDocument(fileInput);
-        Object astRoot= parseCtrlr.parse(document.get(), false, null);
+        Object astRoot= parseCtrlr.parse(document.get(), false, new NullProgressMonitor()); // TODO get a real monitor from somewhere...
 
         fVisitor.enterFile(file);
         doVisit(file, document, astRoot);

@@ -118,7 +118,10 @@ public class Language {
      * @return the base Language, if known to the LanguageRegistry; otherwise, null
      */
     public Language getBaseLanguage() {
-        return LanguageRegistry.findLanguage(getDerivedFrom());
+        String baseLangName= getDerivedFrom();
+        if (baseLangName != null)
+            return LanguageRegistry.findLanguage(baseLangName);
+        return null;
     }
 
     /**

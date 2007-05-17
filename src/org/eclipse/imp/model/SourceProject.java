@@ -10,19 +10,9 @@ import java.io.StringBufferInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.xml.parsers.DocumentBuilder; 
-import javax.xml.parsers.DocumentBuilderFactory;  
-import javax.xml.parsers.FactoryConfigurationError;  
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
-import org.xml.sax.SAXException;  
-import org.xml.sax.SAXParseException;
-
-import org.w3c.dom.Document;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -38,14 +28,20 @@ import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.model.IPathEntry.PathEntryType;
 import org.eclipse.uide.model.ModelFactory.ModelException;
-import org.eclipse.uide.runtime.RuntimePlugin;
+import org.w3c.dom.Document;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
-class SourceProject implements ISourceProject {
+// SMS 7 May 2007 made public (was package)
+public class SourceProject implements ISourceProject {
     private static final String CONFIG_FILE_NAME= ".projectConfig";
     private final IProject fProject;
     private final List<IPathEntry> fBuildPath= new ArrayList<IPathEntry>();
 
-    SourceProject(IProject project) {
+    //  SMS 7 May 2007 made public (was package)
+    public SourceProject(IProject project) {
         fProject= project;
 
         if (!readMetaData()) {

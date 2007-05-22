@@ -45,7 +45,7 @@
    <extension
          point="org.eclipse.ui.editorActions">
       <editorContribution
-          targetID="org.eclipse.ui.DefaultTextEditor"
+       	  targetID="org.eclipse.uide.runtime.safariEditor"
           id="uide.rulerActions">
          <action
              label="Not Used"

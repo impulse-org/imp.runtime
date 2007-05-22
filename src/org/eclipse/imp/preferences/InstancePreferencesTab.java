@@ -1,7 +1,6 @@
 package org.eclipse.uide.preferences;
 
 
-import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;

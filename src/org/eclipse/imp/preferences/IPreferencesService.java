@@ -40,7 +40,7 @@ public interface ISafariPreferencesService {
 	public final int CONFIGURATION_INDEX	= 2;
 	public final int DEFAULT_INDEX			= 3;
 	
-	public final String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
+	public final static String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
 	
 	public int indexForLevel(String levelName);
 	

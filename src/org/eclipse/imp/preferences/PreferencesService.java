@@ -993,7 +993,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	 * and it is presumed not to change during the operation of the SAFARI service.
 	 *  
 	 */
-	public final String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
+	public final static String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
 	
 
 	

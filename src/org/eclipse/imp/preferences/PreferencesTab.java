@@ -243,7 +243,7 @@ public abstract class SafariPreferencesTab
 		return true;
 	}
 
-	
+		
 	
 	
 	/*

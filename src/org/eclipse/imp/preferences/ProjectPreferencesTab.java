@@ -56,12 +56,12 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		GridLayout layout = null;
 		
 		final Composite composite= new Composite(tabFolder, SWT.NONE);
-        composite.setFont(tabFolder.getFont());
-        final GridData gd= new GridData(SWT.FILL, SWT.CENTER, true, false);
-        gd.widthHint= 0;
-        gd.heightHint= SWT.DEFAULT;
-        gd.horizontalSpan= 1;
-        composite.setLayoutData(gd);
+	        composite.setFont(tabFolder.getFont());
+	        final GridData gd= new GridData(SWT.FILL, SWT.CENTER, true, false);
+	        gd.widthHint= 0;
+	        gd.heightHint= SWT.DEFAULT;
+	        gd.horizontalSpan= 1;
+	        composite.setLayoutData(gd);
 		
 		layout = new GridLayout();
 		layout.numColumns = 2;

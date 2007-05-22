@@ -11,14 +11,6 @@ package org.eclipse.uide.core;
  * This interface is to be implemented by language services used by the Universal Editor.
  */
 public interface ILanguageService {
-    /**
-     * Sets the language for this service. Examples would be "Java", "C", "Pascal".
-     * The language name has to be registered through the <tt>org.eclipse.uide.runtime.languageDescription</tt> extension point.
-     * 
-     * @param language the canonical name of the language this service is meant for
-     */
-    //public void setLanguage(String language);
-
     // The constants below identify the various language services, and are defined
     // for use by clients that wish to instantiate a given language service.
 

@@ -722,11 +722,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
    			int markerStart = 0;
 			int markerEnd = 1; 
 			try {
+				// SMS 22 May 2007:  With markers created through the editor the CHAR_START
+				// and CHAR_END attributes are null, giving rise to NPEs here.  Not sure
+				// why this happens, but it seems to help down the line to trap the NPE.
 				markerStart = ((Integer) marker.getAttribute(IMarker.CHAR_START)).intValue();
 				markerEnd = ((Integer) marker.getAttribute(IMarker.CHAR_END)).intValue();
 			} catch (CoreException e) {
 				System.err.println("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end");
+			} // SMS 22 May 2007	
+			  catch (NullPointerException e) {
+					System.err.println("UniversalEditor.findParseAnnotationForMarker:  NullPointerException geting marker start and end");
 			}
+			  
 			int markerLength = markerEnd - markerStart;
 
 			for (int j = 0; j < parseAnnotations.size(); j++) {

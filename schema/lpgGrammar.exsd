@@ -1,0 +1,121 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Schema file written by PDE -->
+<schema targetNamespace="org.eclipse.uide">
+<annotation>
+      <appInfo>
+         <meta.schema plugin="org.eclipse.uide" id="lpgGrammar" name="New LPG Grammar"/>
+      </appInfo>
+      <documentation>
+         The org.eclipse.uide.lpgGrammar extension point allows extenders to provide new grammar files for a given language.
+      </documentation>
+   </annotation>
+
+    <element name="extension">
+      <complexType>
+         <sequence>
+            <element ref="grammar" minOccurs="1" maxOccurs="unbounded"/>
+         </sequence>
+         <attribute name="point" type="string" use="required">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="id" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+         <attribute name="name" type="string">
+            <annotation>
+               <documentation>
+                  
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <element name="grammar">
+      <annotation>
+         <documentation>
+         </documentation>
+      </annotation>
+      <complexType>
+         <attribute name="folder" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The name of the package into which the grammar files will be generated.
+               </documentation>
+               <appInfo>
+                  <meta.attribute kind="java" basedOn="FolderBrowse"/>
+               </appInfo>
+            </annotation>
+         </attribute>
+         <attribute name="language" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The name of the language to which this service applies. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
+               </documentation>
+            </annotation>
+         </attribute>
+      </complexType>
+   </element>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="since"/>
+      </appInfo>
+      <documentation>
+         1.0.0
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="examples"/>
+      </appInfo>
+      <documentation>
+         &lt;extension
+         point=&quot;org.eclipse.uide.parser&quot;&gt;
+      &lt;parser
+            class=&quot;org.eclipse.uide.DefaultParser&quot;
+            language=&quot;*&quot;
+            name=&quot;Default Parser&quot;
+            id=&quot;org.eclipse.uide.parser.default&quot;/&gt;
+   &lt;/extension&gt;
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="apiInfo"/>
+      </appInfo>
+      <documentation>
+         [Enter API information here.]
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="implementation"/>
+      </appInfo>
+      <documentation>
+         See org.eclipse.uide.DefaultParser.
+      </documentation>
+   </annotation>
+
+   <annotation>
+      <appInfo>
+         <meta.section type="copyright"/>
+      </appInfo>
+      <documentation>
+         Licensed Materials - Property of IBM,
+ (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved
+      </documentation>
+   </annotation>
+
+</schema>

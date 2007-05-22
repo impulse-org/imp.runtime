@@ -6,7 +6,7 @@
          <meta.schema plugin="org.eclipse.uide.runtime" id="preferencesDialog" name="Preferences Dialog"/>
       </appInfo>
       <documentation>
-         An extension point for adding preferences pages for specific IDEs based on the UIDE.
+         An extension point for adding preferences pages for specific SAFARI-based IDEs.
       </documentation>
    </annotation>
 
@@ -61,6 +61,16 @@
                </appInfo>
             </annotation>
          </attribute>
+         <attribute name="fields" type="string">
+            <annotation>
+               <documentation>
+                  The name of a &apos;prefspecs&apos; (.pfsp) file that contains a specification of the preferences fields that are to be put onto this page.  If left blank then the page will be empty.  [NOTE:  Features to make use of this field are still under development.]
+               </documentation>
+			   <appInfo>
+                  <meta.attribute kind="java" basedOn="org.eclipse.uide.wizards.ExtensionPointWizardPage.FileBrowse"/>
+               </appInfo>
+            </annotation>
+         </attribute>
          <attribute name="category" type="string">
             <annotation>
                <documentation>
@@ -71,7 +81,7 @@
          <attribute name="alternative" type="string">
             <annotation>
                <documentation>
-                  Use this to generate a simple page with a brief message entered here. 
+                  Use this to generate a simple page with a brief message entered here.
                </documentation>
             </annotation>
          </attribute>

@@ -520,7 +520,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
 		fParserScheduler= new ParserScheduler("Universal Editor Parser");
 		fFormattingController.setParseController(fParserScheduler.parseController);
-
+		// SMS 29 May 2007 (to get viewer access to single-line comment prefix)
+		ISourceViewer sourceViewer = getSourceViewer();
+		if (sourceViewer instanceof StructuredSourceViewer) {
+			((StructuredSourceViewer)sourceViewer).setParseController(getParseController());
+		}
 		if (fFoldingUpdater != null) {
 		    if (SAFARIPreferenceCache.emitMessages)
 			RuntimePlugin.getInstance().writeInfoMsg("Enabling source folding for " + fLanguage.getName());
@@ -599,7 +603,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	ISourceViewer viewer= new StructuredSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
 	// ensure decoration support has been created and configured.
 	getSourceViewerDecorationSupport(viewer);
-
+	
 	return viewer;
     }
 
@@ -762,7 +766,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     
     
     protected void doSetInput(IEditorInput input) throws CoreException {
-		super.doSetInput(input);
+    	// SMS 22 May 2007:  added try/catch around doSetInput(..)
+    	try {
+    		super.doSetInput(input);
+    	} catch (NullPointerException e) {
+    		return;
+    	}
 		setInsertMode(SMART_INSERT);
 	
 		// SMS 25 Apr 2007

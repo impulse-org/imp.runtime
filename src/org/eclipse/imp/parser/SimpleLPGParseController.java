@@ -1,5 +1,6 @@
 package org.eclipse.uide.parser;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import lpg.runtime.IMessageHandler;
@@ -46,6 +47,8 @@ public abstract class SimpleLPGParseController implements IParseController {
 
     public SimpleLPGParseController() {}
 
+    // Handler is required by the IParseController interface, but it is expected to
+    // be used only in relation to types of parser defined in concrete subclasses
     public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
 	this.fProject= project;
 	this.fFilePath= filePath;
@@ -88,6 +91,8 @@ public abstract class SimpleLPGParseController implements IParseController {
 	return Collections.singletonList(new ParseError("parse error", null));
     }
 
+    public String getSingleLineCommentPrefix() { return ""; }
+    
     protected void cacheKeywordsOnce() {
 	if (fKeywords == null) {
 	    String tokenKindNames[]= getParser().getParseStream().orderedTerminalSymbols();
@@ -101,4 +106,23 @@ public abstract class SimpleLPGParseController implements IParseController {
 	    }
 	}
     }
+    
+    
+    /*
+     * For the management of associated problem-marker types
+     */
+    
+    private static List problemMarkerTypes = new ArrayList();
+    
+    public List getProblemMarkerTypes() {
+    	return problemMarkerTypes;
+    }
+    
+    public void addProblemMarkerType(String problemMarkerType) {
+    	problemMarkerTypes.add(problemMarkerType);
+    }
+    
+	public void removeProblemMarkerType(String problemMarkerType) {
+		problemMarkerTypes.remove(problemMarkerType);
+	}
 }

@@ -5,8 +5,6 @@ import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
-import org.eclipse.jface.text.IRewriteTarget;
-import org.eclipse.jface.text.formatter.IFormattingContext;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -17,6 +15,7 @@ import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.uide.editor.UniversalEditor.StructuredSourceViewerConfiguration;
+import org.eclipse.uide.parser.IParseController;
 
 public class StructuredSourceViewer extends ProjectionViewer {
     /**
@@ -45,6 +44,10 @@ public class StructuredSourceViewer extends ProjectionViewer {
 
     private IInformationPresenter fHierarchyPresenter;
 
+    // SMS 29 May 2007
+    private IParseController fParseController;
+    
+    
     /**
      * Is this source viewer configured?
      *
@@ -80,12 +83,25 @@ public class StructuredSourceViewer extends ProjectionViewer {
 	}
 	super.doOperation(operation);
     }
+    
+    // SMS 29 May 2007 (see doToggleComment())
+    public void setParseController(IParseController parseController) {
+    	fParseController = parseController;
+    }
 
     private void doToggleComment() {
 	IDocument doc= this.getDocument();
 	DocumentRewriteSession rewriteSession= null;
 	Point p= this.getSelectedRange();
-	final String lineCommentStart= "//"; // RMF this needs to be language-specific
+	//final String lineCommentStart= "//"; // RMF this needs to be language-specific
+	// SMS 29 May 2007
+	// Short term solution to getting language-specific single-line
+	// comment prefix (i.e., from parse controller)
+	final String lineCommentStart;
+	if (fParseController != null)
+		lineCommentStart = fParseController.getSingleLineCommentPrefix();
+	else
+		lineCommentStart = "";
 
 	if (doc instanceof IDocumentExtension4) {
 	    IDocumentExtension4 extension= (IDocumentExtension4) doc;

@@ -1,5 +1,6 @@
 package org.eclipse.uide.internal.editor;
 
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -67,15 +68,15 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
 
         // Use the file path info to determine whether the target editor is the same as
         // the source editor, and initialize the TargetLink accordingly.
-        final String targetPath= nodeLocator.getPath(target).toPortableString();
+        final IPath targetPath= nodeLocator.getPath(target);
         final String linkText = fResolver.getLinkText(source);
 
-        String srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation().toPortableString();
-        UniversalEditor targetEditor= (srcPath.endsWith(targetPath) ? editor : null);
+        IPath srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation();
+        UniversalEditor targetEditor= (targetPath.equals(srcPath) ? editor : null);
         Object targetArg= targetEditor == null ? targetPath : target;
 
         // If the target is exactly the same entity, don't bother with the hyperlink.
-        if (srcStart == targetStart && srcLength == targetLength && srcPath.endsWith(targetPath))
+        if (srcStart == targetStart && srcLength == targetLength && targetPath.equals(srcPath))
             return null;
 
         IHyperlink[] result = new IHyperlink[] {

@@ -11,7 +11,6 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -119,7 +118,8 @@ public final class TargetLink implements IHyperlink {
      * @param text
      * @param srcStart
      * @param srcLength
-     * @param target an IPath to the file, if 'editor' is null
+     * @param target an IPath to the file, if 'editor' is null; otherwise,
+     * an object that indicates the particular target within the source file
      * @param targetStart
      * @param targetLength
      * @param editor may be null, if the target is in another compilation unit

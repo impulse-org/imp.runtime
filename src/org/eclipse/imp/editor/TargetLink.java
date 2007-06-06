@@ -72,7 +72,6 @@ public final class TargetLink implements IHyperlink {
 	private final IPath fPath;
 
 	private ExternalStorage(IPath path) {
-	    super();
 	    fPath= path;
 	}
 
@@ -120,7 +119,7 @@ public final class TargetLink implements IHyperlink {
      * @param text
      * @param srcStart
      * @param srcLength
-     * @param target a String filePath, if 'editor' is null
+     * @param target an IPath to the file, if 'editor' is null
      * @param targetStart
      * @param targetLength
      * @param editor may be null, if the target is in another compilation unit
@@ -150,20 +149,18 @@ public final class TargetLink implements IHyperlink {
 
     public void open() {
 	if (fEditor == null) {
-	    String targetStr= (String) fTarget;
-	    final IPath targetPath= new Path(targetStr);
-	    IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetStr);
-//	    boolean isWSRel= targetPath.matchingFirstSegments(wsLoc) == wsLoc.segmentCount();
+	    final IPath targetPath= (IPath) fTarget;
+	    IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
 	    IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
+            IPath wsLoc= wsRoot.getLocation();
 	    IEditorInput editorInput;
 
-	    if (targetPath.isAbsolute() && !wsRoot.getProject(targetPath.segment(0)).exists()) {
+	    if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
 		// http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
 		final IStorage storage= new ExternalStorage(targetPath);
 		editorInput= new ExternalEditorInput(storage);
 	    } else {
-		IPath wsLoc= wsRoot.getLocation();
-		IFile file= wsRoot.getFile(targetPath.isAbsolute() ? targetPath : targetPath.removeFirstSegments(wsLoc.segmentCount()));
+		IFile file= wsRoot.getFile(wsLoc.isPrefixOf(targetPath) ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
 		editorInput= new FileEditorInput(file);
 	    }
 

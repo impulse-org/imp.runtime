@@ -778,7 +778,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// Added for maintenance of associations between marker annotations
 		// and parse annotations	
 		IAnnotationModel annotationModel = getDocumentProvider().getAnnotationModel(input);
-		annotationModel.addAnnotationModelListener(new InputAnnotationModelListener());
+                // RMF 6 Jun 2007 - Not sure why annotationModel is null for files outside the
+                // workspace, but they are, so make sure we don't cause an NPE here.
+                if (annotationModel != null)
+                    annotationModel.addAnnotationModelListener(new InputAnnotationModelListener());
 	
     }
 

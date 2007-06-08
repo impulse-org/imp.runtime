@@ -113,14 +113,27 @@ public abstract class OutlinerBase implements IOutliner
 
 	private Stack fItemStack = new Stack();
 	
+	
 	public void pushTopItem(String itemName, Object node) {
 		fItemStack.push(createTopItem(itemName, node));
 	}
+	
+	
+	public void pushTopItem(String itemName, Object node, IOutlineImage image) {
+		fItemStack.push(createTopItem(itemName, node, image));
+	}
+	
 
 	public void pushSubItem(String itemName, Object node) {
 		fItemStack.push(createSubItem(itemName, node));
 	}
 
+	
+	public void pushSubItem(String itemName, Object node, IOutlineImage image) {
+		fItemStack.push(createSubItem(itemName, node, image));
+	}
+	
+	
 	public void popSubItem() {
 		fItemStack.pop();
 	}
@@ -129,6 +142,9 @@ public abstract class OutlinerBase implements IOutliner
   		createSubItem(label, node);
 	}
 	
+	public void addSubItem(String label, Object node, IOutlineImage image) {
+  		createSubItem(label, node, image);
+	}
 	
 	/*
 	 * Following are two pairs of methods, one for creating new top-level

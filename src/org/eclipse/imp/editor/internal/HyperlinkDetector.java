@@ -72,7 +72,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         final String linkText = fResolver.getLinkText(source);
 
         IPath srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation();
-        UniversalEditor targetEditor= (targetPath.equals(srcPath) ? editor : null);
+        UniversalEditor targetEditor= ((targetPath.segmentCount() == 0 || targetPath.equals(srcPath)) ? editor : null);
         Object targetArg= targetEditor == null ? targetPath : target;
 
         // If the target is exactly the same entity, don't bother with the hyperlink.

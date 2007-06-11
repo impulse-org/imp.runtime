@@ -99,7 +99,6 @@ import org.eclipse.uide.model.ISourceProject;
 import org.eclipse.uide.model.ModelFactory;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.parser.IParseControllerWithMarkerTypes;
 import org.eclipse.uide.preferences.PreferenceConstants;
 import org.eclipse.uide.preferences.SAFARIPreferenceCache;
 import org.eclipse.uide.runtime.RuntimePlugin;
@@ -1183,11 +1182,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // annotations after every update to the document annotation model
 	    // since there will be many of these, including possibly many that
 	    // don't relate to problem markers.
-	    if (parseController instanceof IParseControllerWithMarkerTypes) {
-		    List problemMarkerTypes = ((IParseControllerWithMarkerTypes)parseController).getProblemMarkerTypes();
-		    for (int i = 0; i < problemMarkerTypes.size(); i++) {
-		    	refreshMarkerAnnotations((String)problemMarkerTypes.get(i));
-		    }
+	    List problemMarkerTypes = parseController.getProblemMarkerTypes();
+	    for (int i = 0; i < problemMarkerTypes.size(); i++) {
+	    	refreshMarkerAnnotations((String)problemMarkerTypes.get(i));
 	    }
 	    
 	    return Status.OK_STATUS;

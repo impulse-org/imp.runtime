@@ -51,7 +51,8 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     public void setLanguage(Language language) {
 	outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, "outliner");
-	outliner.setEditor(editor);	// SMS 5 Apr 2007
+	if (outliner != null)
+		outliner.setEditor(editor);	// SMS 5 Apr 2007
     }
 
     public AnalysisRequired getAnalysisRequired() {

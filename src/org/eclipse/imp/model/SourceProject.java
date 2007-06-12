@@ -34,14 +34,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-// SMS 7 May 2007 made public (was package)
-public class SourceProject implements ISourceProject {
+class SourceProject implements ISourceProject {
     private static final String CONFIG_FILE_NAME= ".projectConfig";
     private final IProject fProject;
     private final List<IPathEntry> fBuildPath= new ArrayList<IPathEntry>();
 
-    //  SMS 7 May 2007 made public (was package)
-    public SourceProject(IProject project) {
+    SourceProject(IProject project) {
         fProject= project;
 
         if (!readMetaData()) {

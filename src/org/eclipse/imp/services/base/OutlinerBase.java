@@ -33,6 +33,9 @@ import org.eclipse.uide.parser.IParseController;
  * @see org.eclipse.uide.defaults.DefaultOutliner
  * 
  * @author 	suttons@us.ibm.com
+ * Updates:
+ * SMS 21 Jun 2007:  Added guards on array indices computed in comparing
+ * 	individual tokens
  */
 public abstract class OutlinerBase implements IOutliner
 {
@@ -378,10 +381,12 @@ public abstract class OutlinerBase implements IOutliner
 				return true;
     		}
     		for (int j = 0; j < (previousEnd - previousStart + 1); j++) {
-    			if ((previousChars.length != 0) && previousChars[previousStart+j] != chars[start+j]) {
-    				// System.out.println("Previous and current tokens have different characters at token # = " + i +
-    				//		", character # = " + j);
-    				return true;
+    			if (previousStart+j < previousChars.length && start+j < chars.length) {
+	    			if ((previousChars.length != 0) && previousChars[previousStart+j] != chars[start+j]) {
+	    				// System.out.println("Previous and current tokens have different characters at token # = " + i +
+	    				//		", character # = " + j);
+	    				return true;
+	    			}
     			}
     		}
     	}

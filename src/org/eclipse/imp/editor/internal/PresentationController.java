@@ -3,6 +3,9 @@ package org.eclipse.uide.internal.editor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
+
+import lpg.runtime.IToken;
+
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
@@ -21,10 +24,7 @@ import org.eclipse.uide.editor.ITokenColorer;
 import org.eclipse.uide.parser.IModelListener;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.parser.ParseError;
-import org.eclipse.uide.runtime.RuntimePlugin;
 import org.eclipse.uide.utils.ExtensionPointFactory;
-
-import lpg.runtime.IToken;
 
 /**
  * @author Claffra
@@ -99,7 +99,13 @@ public class PresentationController implements IModelListener {
 	if (!monitor.isCanceled()) {
 	    Display.getDefault().asyncExec(new Runnable() {
 		public void run() {
-		    sourceViewer.changeTextPresentation(presentation, true);
+			// SMS 21 Jun 2007 added try-catch block
+			try {
+				sourceViewer.changeTextPresentation(presentation, true);	
+			} catch (IllegalArgumentException e) {
+				// One possible cause is a negative length in a styleRange in the presentation
+				System.err.println("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; discarding");	
+			}
 		}
 	    });
 	}
@@ -116,6 +122,13 @@ public class PresentationController implements IModelListener {
 	StyleRange styleRange= new StyleRange(token.getStartOffset(), token.getEndOffset() - token.getStartOffset() + 1,
 		attribute == null ? null : attribute.getForeground(), attribute == null ? null : attribute.getBackground(),
 		attribute == null ? SWT.NORMAL : attribute.getStyle());
+	
+	// SMS 21 Jun 2007:  negative (possibly 0) length style ranges seem to cause problems;
+	// but if you have one it should lead to an IllegalArgumentException in changeTextPresentation(..)
+//	if (styleRange.length <= 0) {
+//		System.err.println("PresentationController.changeTokenPresentation():  adding style range, start =  " + styleRange.start + ", length = " + styleRange.length);
+//	}
+	
 	presentation.addStyleRange(styleRange);
     }
 

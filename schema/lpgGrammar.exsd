@@ -45,21 +45,21 @@
          </documentation>
       </annotation>
       <complexType>
-         <attribute name="folder" type="string" use="required">
+            <attribute name="language" type="string" use="required">
+            <annotation>
+               <documentation>
+                  The name of the language to which this service applies. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
+               </documentation>
+            </annotation>
+            </attribute>
+            <attribute name="Package" type="string" use="required">
             <annotation>
                <documentation>
                   The name of the package into which the grammar files will be generated.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="FolderBrowse"/>
+                  <meta.attribute kind="java" basedOn="PackageBrowse"/>
                </appInfo>
-            </annotation>
-         </attribute>
-         <attribute name="language" type="string" use="required">
-            <annotation>
-               <documentation>
-                  The name of the language to which this service applies. There must be a corresponding &quot;language description&quot; extension whose name matches this attribute&apos;s value.
-               </documentation>
             </annotation>
          </attribute>
       </complexType>

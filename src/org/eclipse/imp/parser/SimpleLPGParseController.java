@@ -75,12 +75,28 @@ public abstract class SimpleLPGParseController implements IParseController {
     }
 
     public int getTokenIndexAtCharacter(int offset) {
-	int index= getParser().getParseStream().getTokenIndexAtCharacter(offset);
-	return (index < 0 ? -index : index);
+    	// SMS 25 Jun 2007
+    	// Added try-catch block in case parser is null
+    	//	int index= getParser().getParseStream().getTokenIndexAtCharacter(offset);
+    	//	return (index < 0 ? -index : index);
+    	try {
+    		int index= getParser().getParseStream().getTokenIndexAtCharacter(offset);
+    		return (index < 0 ? -index : index);
+    	} catch (NullPointerException e) {
+    		System.err.println("SimpleLPGParseController.getTokenIndexAtCharacter(offset):  NullPointerException; returning 0");
+    	}
+    	return 0;
     }
 
     public IToken getTokenAtCharacter(int offset) {
-	return getParser().getParseStream().getTokenAtCharacter(offset);
+    	// SMS 25 Jun 2007
+    	// Added try-catch block in case parser is null
+    	try {
+    		return getParser().getParseStream().getTokenAtCharacter(offset);
+    	} catch (NullPointerException e) {
+    		System.err.println("SimpleLPGParseController.getTokenAtCharacter(offset):  NullPointerException; returning null");
+    	}
+    	return null;
     }
 
     public boolean hasErrors() {
@@ -94,18 +110,25 @@ public abstract class SimpleLPGParseController implements IParseController {
     public String getSingleLineCommentPrefix() { return ""; }
     
     protected void cacheKeywordsOnce() {
-	if (fKeywords == null) {
-	    String tokenKindNames[]= getParser().getParseStream().orderedTerminalSymbols();
-	    this.fIsKeyword= new boolean[tokenKindNames.length];
-	    this.fKeywords= new char[tokenKindNames.length][];
-	    int[] keywordKinds= getLexer().getKeywordKinds();
-	    for(int i= 1; i < keywordKinds.length; i++) {
-		int index= getParser().getParseStream().mapKind(keywordKinds[i]);
-		fIsKeyword[index]= true;
-		fKeywords[index]= getParser().getParseStream().orderedTerminalSymbols()[index].toCharArray();
-	    }
-	}
+		if (fKeywords == null) {
+			// SMS 25 Jun 2007
+			// Added try-catch block in case parser is null
+			try {
+			    String tokenKindNames[]= getParser().getParseStream().orderedTerminalSymbols();
+			    this.fIsKeyword= new boolean[tokenKindNames.length];
+			    this.fKeywords= new char[tokenKindNames.length][];
+			    int[] keywordKinds= getLexer().getKeywordKinds();
+			    for(int i= 1; i < keywordKinds.length; i++) {
+					int index= getParser().getParseStream().mapKind(keywordKinds[i]);
+					fIsKeyword[index]= true;
+					fKeywords[index]= getParser().getParseStream().orderedTerminalSymbols()[index].toCharArray();
+			    }
+			}catch (NullPointerException e) {
+	    		System.err.println("SimpleLPGParseController.cacheKeywordsOnce():  NullPointerException; trapped and discarded");
+		    }
+		}
     }
+
     
     
     /*

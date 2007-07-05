@@ -10,7 +10,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.model.IPathEntry.PathEntryType;
 import org.eclipse.uide.model.internal.CompilationUnitRef;
+import org.eclipse.uide.model.internal.PathEntry;
 import org.eclipse.uide.model.internal.SourceProject;
 
 /**
@@ -198,5 +200,9 @@ public class ModelFactory {
 
     private ICompilationUnit doCreate(IFile file, ISourceProject srcProject) throws ModelException {
 	return doCreate(file.getProjectRelativePath(), srcProject);
+    }
+
+    public static IPathEntry createPathEntry(PathEntryType type, IPath path) {
+	return new PathEntry(type, path);
     }
 }

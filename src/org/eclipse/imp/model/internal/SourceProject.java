@@ -1,7 +1,7 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model;
+package org.eclipse.uide.model.internal;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +26,9 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.uide.core.ErrorHandler;
+import org.eclipse.uide.model.IPathEntry;
+import org.eclipse.uide.model.ISourceProject;
+import org.eclipse.uide.model.ModelFactory;
 import org.eclipse.uide.model.IPathEntry.PathEntryType;
 import org.eclipse.uide.model.ModelFactory.ModelException;
 import org.w3c.dom.Document;
@@ -34,12 +37,12 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-class SourceProject implements ISourceProject {
+public class SourceProject implements ISourceProject {
     private static final String CONFIG_FILE_NAME= ".projectConfig";
     private final IProject fProject;
     private final List<IPathEntry> fBuildPath= new ArrayList<IPathEntry>();
 
-    SourceProject(IProject project) {
+    public SourceProject(IProject project) {
         fProject= project;
 
         if (!readMetaData()) {

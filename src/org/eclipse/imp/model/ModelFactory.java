@@ -10,6 +10,8 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.model.internal.CompilationUnitRef;
+import org.eclipse.uide.model.internal.SourceProject;
 
 /**
  * A factory for implementations of the various common model interfaces, e.g., ISourceProject,

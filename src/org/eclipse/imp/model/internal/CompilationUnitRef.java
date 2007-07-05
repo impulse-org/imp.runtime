@@ -1,7 +1,7 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model;
+package org.eclipse.uide.model.internal;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -23,10 +23,12 @@ import org.eclipse.uide.core.ErrorHandler;
 import org.eclipse.uide.core.ILanguageService;
 import org.eclipse.uide.core.Language;
 import org.eclipse.uide.core.LanguageRegistry;
+import org.eclipse.uide.model.ICompilationUnit;
+import org.eclipse.uide.model.ISourceProject;
 import org.eclipse.uide.parser.IParseController;
 import org.eclipse.uide.utils.ExtensionPointFactory;
 
-class CompilationUnitRef implements ICompilationUnit {
+public class CompilationUnitRef implements ICompilationUnit {
     /**
      * The containing ISourceProject. May be null if the associated path is workspace-absolute.
      */

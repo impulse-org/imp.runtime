@@ -11,6 +11,8 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
@@ -151,9 +153,25 @@ public final class TargetLink implements IHyperlink {
 	if (fEditor == null) {
 	    final IPath targetPath= (IPath) fTarget;
 	    IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
+
+	    if (ed == null) {
+		MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
+			"Error",
+			"No editor defined for target file " + targetPath.toPortableString());
+		return;
+	    }
+
 	    IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
             IPath wsLoc= wsRoot.getLocation();
 	    IEditorInput editorInput;
+
+	    // Abortive attempt to support links to class files embedded in jars (e.g., Java rt.jar).
+//	    if (targetPath.toPortableString().endsWith(".class")) {
+//		IFile jarFile= null; // Can't get an IFile for something not in the workspace... and rt.jar usually isn't... right?
+//              // Anyway, we'll have to use something other than a plain IFileEditorInput.
+//	        // JDT has IClassFileEditorInput, but it's internal... Hmmm...
+//		JavaCore.createClassFileFrom(jarFile);
+//	    } else
 
 	    if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
 		// http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
@@ -163,7 +181,7 @@ public final class TargetLink implements IHyperlink {
 		IFile file= wsRoot.getFile(wsLoc.isPrefixOf(targetPath) ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
 		editorInput= new FileEditorInput(file);
 	    }
-
+ 
 	    try {
 		IEditorPart editor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(editorInput, ed.getId());
 

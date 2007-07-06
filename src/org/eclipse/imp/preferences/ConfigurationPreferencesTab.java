@@ -46,7 +46,8 @@ public class ConfigurationPreferencesTab  extends SafariPreferencesTab
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(composite);
+		//fields = createFields(composite);
+		fields = createFields(page, this, ISafariPreferencesService.CONFIGURATION_LEVEL, composite, prefService);
 		
 		SafariPreferencesUtilities.fillGridPlace(composite, 2);
 		

@@ -7,8 +7,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.uide.preferences.fields.SafariBooleanFieldEditor;
 
 public class DefaultPreferencesTab extends SafariPreferencesTab
 {	
@@ -45,7 +47,15 @@ public class DefaultPreferencesTab extends SafariPreferencesTab
 		
 
 		// Don't want newly created fields to be flagged as modified
-		fields = createFields(composite);
+		// page, this, prefService, "default", 	
+		fields = createFields(page, this, ISafariPreferencesService.DEFAULT_LEVEL, composite, prefService);
+		
+//		SafariBooleanFieldEditor boolField = prefUtils.makeNewBooleanField(
+//				prefsPage, prefsTab, prefsService,
+//				tabLevel, fieldInfo.getName(), fieldInfo.getName(),		// tab level, key, text
+//				parent,
+
+
 
 		// Being newly loaded, the fields may be displayed with some
 		// indication that they have been modified.  This should reset

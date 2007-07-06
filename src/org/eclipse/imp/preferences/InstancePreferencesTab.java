@@ -45,7 +45,8 @@ public class InstancePreferencesTab extends SafariPreferencesTab {
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(composite);
+		fields = createFields(page, this, ISafariPreferencesService.INSTANCE_LEVEL, composite, prefService);
+
 		
 		SafariPreferencesUtilities.fillGridPlace(composite, 2);
 		

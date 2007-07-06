@@ -463,7 +463,11 @@ public class SafariPreferencesUtilities {
 		}
 		field.getChangeControl().setEnabled(isEnabled);
 		// boolean controls have no setEditable() method
-		field.setSpecialValue(false);
+		// SMS 19 Jun 2007
+		if (!hasSpecialValue)
+			field.setNoSpecialValue();
+		else
+			field.setSpecialValue(specialValue);
 		// also cannot be empty
 		//field.setEmptyValueAllowed(false);
 		

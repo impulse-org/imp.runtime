@@ -52,10 +52,29 @@ public abstract class SafariPreferencesTab
 	
 	/**
 	 * To create specific preferences fields.  At this level does nothing.
-	 * Override in subclasses.
+	 * To be overridden.
 	 *
 	 */
 	protected SafariFieldEditor[] createFields(Composite composite) {
+		// TODO:  create specific preferences fields here
+		System.out.println("SafariPreferencesTab.createFields():  unimplemented");
+		return null;
+	}
+	
+	
+	/**
+	 * To create specific preferences fields.  At this level does nothing.
+	 * To be overridden.
+	 * 
+	 * This version is adapted for use in automatically generating the tabs.
+	 */
+	protected SafariFieldEditor[] createFields(
+			SafariTabbedPreferencesPage page,
+			SafariPreferencesTab tab,
+			String level,
+			Composite parent,
+			ISafariPreferencesService prefsService)
+    {
 		// TODO:  create specific preferences fields here
 		System.out.println("SafariPreferencesTab.createFields():  unimplemented");
 		return null;

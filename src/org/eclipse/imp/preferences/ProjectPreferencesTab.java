@@ -30,6 +30,7 @@ import org.eclipse.uide.preferences.fields.SafariBooleanFieldEditor;
 import org.eclipse.uide.preferences.fields.SafariComboFieldEditor;
 import org.eclipse.uide.preferences.fields.SafariRadioGroupFieldEditor;
 import org.eclipse.uide.preferences.fields.SafariStringFieldEditor;
+import org.osgi.service.prefs.Preferences;
 
 
 public class ProjectPreferencesTab extends SafariPreferencesTab {
@@ -78,7 +79,8 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(composite);
+		fields = createFields(page, this, ISafariPreferencesService.PROJECT_LEVEL, composite, prefService);
+
 
 		// Clear some space
 		SafariPreferencesUtilities.fillGridPlace(composite, 2);
@@ -206,6 +208,118 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 	protected void addressProjectSelection(ISafariPreferencesService.ProjectSelectionEvent event, Composite composite) {
 		// TODO:  Override in subtype with a real implementation
 		System.err.println("ProjectPreferencesTab.addressProjectSelection(..):  unimplemented");
+
+		// SMS 20 Jun 2007
+		// Adding code from JikesPG project tab implementation to try
+		// to flesh out a skeleton (field-independent) implementaiton)
+		// just to see what there may be of that
+		boolean haveCurrentListeners = false;
+		
+		Preferences oldeNode = event.getPrevious();
+		Preferences newNode = event.getNew();
+		
+		if (oldeNode == null && newNode == null) {
+			// This is what happens for some reason when you clear the project selection.
+			// Nothing, really, to do in this case ...
+			return;
+		}
+
+		// If oldeNode is not null, we want to remove any preference-change listeners from it
+		if (oldeNode != null && oldeNode instanceof IEclipsePreferences && haveCurrentListeners) {
+			removeProjectPreferenceChangeListeners();
+			haveCurrentListeners = false;
+		} else {	
+			// Print an advisory message if you want to
+		}
+
+		
+		// Declare a "holder" for each preference field; not strictly necessary
+		// but helpful in various manipulations of fields and controls to follow
+		//Composite field1Holder = null;
+		//Composite field2Holder = null;
+		//...
+
+		
+		// If we have a new project preferences node, then do various things
+		// to set up the project's preferences
+		if (newNode != null && newNode instanceof IEclipsePreferences) {
+			// Set project name in the selected-project field
+			selectedProjectName.setStringValue(newNode.name());
+			
+			// If the containing composite is not disposed, then set the fields' values
+			// and make them enabled and editable (as appropriate to the type of field)
+			
+			if (!composite.isDisposed()) {		
+				// Note:  Where there are toggles between fields, it is a good idea to set the
+				// properties of the dependent field here according to the values they should have
+				// based on the independent field.  There should be listeners to take care of 
+				// that sort of adjustment once the tab is established, but when properties are
+				// first initialized here, the properties may not always be set correctly through
+				// the toggle.  I'm not entirely sure why that happens, except that there may be
+				// a race condition between the setting of the dependent values by the listener
+				// and the setting of those values here.  If the values are set by the listener
+				// first (which might be surprising, but may be possible) then they will be
+				// overwritten by values set here--so the values set here should be consistent
+				// with what the listener would set.
+				
+				// Used in setting enabled and editable status
+				boolean enabledState = false;
+				
+				// Example:
+//				// Pretend field1 is a boolean field (checkbox)
+//				field1Holder = field1.getChangeControl().getParent();
+//				prefUtils.setField(field1, field1Holder);
+//				field1.getChangeControl().setEnabled(true);
+//				
+//				// Pretend field2 is a text-based field
+//				field2Holder = field2.getTextControl().getParent();
+//				prefUtils.setField(field2, field2Holder);
+//				// field2 enabled iff field1 not checked
+//				enabledState = !field1.getBooleanValue();
+//				field2.getTextControl().setEditable(enabledState);
+//				field2.getTextControl().setEnabled(enabledState);
+//				field2.setEnabled(enabledState, field2.getParent());
+	
+				// And so on for other fields
+				
+				clearModifiedMarksOnLabels();
+				
+			}
+			
+
+			// Add property change listeners
+			// Example
+//			if (field1Holder != null) addProjectPreferenceChangeListeners(field1, PreferenceConstants.P_FIELD_1, field1Holder);
+//			if (field2Holder != null) addProjectPreferenceChangeListeners(fieldw, PreferenceConstants.P_FIELD_2, field2Holder);
+			// And so on for other fields ...
+
+			haveCurrentListeners = true;
+		}
+		
+		// Or if we don't have a new project preferences node ...
+		if (newNode == null || !(newNode instanceof IEclipsePreferences)) {
+			// May happen when the preferences page is first brought up, or
+			// if we allow the project to be deselected
+			
+			// Unset project name in the tab
+			selectedProjectName.setStringValue("none selected");
+			
+			// Clear the preferences from the store
+			prefService.clearPreferencesAtLevel(ISafariPreferencesService.PROJECT_LEVEL);
+			
+			// Disable fields and make them non-editable
+			if (!composite.isDisposed()) {
+				// Example:
+//				field1.getChangeControl().setEnabled(false);
+//
+//				field2.getTextControl(field2Holder).setEnabled(false);
+//				field2.getTextControl(field2Holder).setEditable(false);
+			}
+			
+			// Remove listeners
+			removeProjectPreferenceChangeListeners();
+			haveCurrentListeners = false;
+		}
 	}
 	
 

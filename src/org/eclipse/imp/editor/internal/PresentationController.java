@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import lpg.runtime.ErrorToken;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -89,6 +90,18 @@ public class PresentationController implements IModelListener {
 //	controller.getParser().getParseStream().dumpTokens();
 	for(int n= startIndex; !monitor.isCanceled() && n <= endIndex; n++) {
 	    IToken token= controller.getParser().getParseStream().getTokenAt(n);
+	    
+	    // SMS 09 Jul 2007 adding in an attempt to preclude exceptions
+	    // arising from negative style ranges (as per discussion in
+	    // group meeting of 06 Jul 2007)
+	    if (token.getEndOffset() < token.getStartOffset()) {
+	    	if (!(token instanceof ErrorToken))
+	    		ErrorHandler.logMessage(
+	    			"PresentationController.changeTextPresentation:  Encountered token other than ErrorToken with endOffset < startOffset;\n" +
+	    			"\ttokenKind = " + token.getKind(), null);
+	    	continue;
+	    }
+
 	    if (token.getKind() != controller.getParser().getEOFTokenKind()) {
 		changeTokenPresentation(controller, presentation, token);
 		IToken adjuncts[]= controller.getParser().getParseStream().getFollowingAdjuncts(n);
@@ -100,11 +113,14 @@ public class PresentationController implements IModelListener {
 	    Display.getDefault().asyncExec(new Runnable() {
 		public void run() {
 			// SMS 21 Jun 2007 added try-catch block
+			// Note:  It doesn't work to just eat the exception here; if there is a problematic token
+			// then an exception is likely to arise downstream in the computation anyway
 			try {
 				sourceViewer.changeTextPresentation(presentation, true);	
 			} catch (IllegalArgumentException e) {
 				// One possible cause is a negative length in a styleRange in the presentation
-				System.err.println("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; discarding");	
+				ErrorHandler.logError("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; rethrowing", e);
+				throw e;
 			}
 		}
 	    });
@@ -125,9 +141,9 @@ public class PresentationController implements IModelListener {
 	
 	// SMS 21 Jun 2007:  negative (possibly 0) length style ranges seem to cause problems;
 	// but if you have one it should lead to an IllegalArgumentException in changeTextPresentation(..)
-//	if (styleRange.length <= 0) {
-//		System.err.println("PresentationController.changeTokenPresentation():  adding style range, start =  " + styleRange.start + ", length = " + styleRange.length);
-//	}
+	if (styleRange.length <= 0) {
+		System.err.println("PresentationController.changeTokenPresentation():  adding style range, start =  " + styleRange.start + ", length = " + styleRange.length);
+	}
 	
 	presentation.addStyleRange(styleRange);
     }

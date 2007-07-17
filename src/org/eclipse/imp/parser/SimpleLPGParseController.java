@@ -12,10 +12,13 @@ import org.eclipse.uide.model.ISourceProject;
 
 /**
  * Base class for an IParseController implementation that encapsulates a simple LPG-based
- * scanner and parser.
+ * scanner and parser.  Implements IParseController because methods defined there are
+ * used here.
+ * 
  * @author rfuhrer
  */
-public abstract class SimpleLPGParseController implements IParseController {
+public abstract class SimpleLPGParseController implements IParseController
+{
     protected ISourceProject fProject;
 
     protected IPath fFilePath;
@@ -47,13 +50,20 @@ public abstract class SimpleLPGParseController implements IParseController {
 
     public SimpleLPGParseController() {}
 
-    // Handler is required by the IParseController interface, but it is expected to
-    // be used only in relation to types of parser defined in concrete subclasses
+    /*
+     * Defined in the IParseController interface.  The implementation here serves
+     * as a super method to support initialization of lexer and parser in a concrete
+     * subtype where the concrete lexer and parser types are known.
+     * 
+     * The handler parameter is required by the IParseController interface and is
+     * used in a concrete subtype along with a concrete parser type.
+     */
     public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
-	this.fProject= project;
-	this.fFilePath= filePath;
+		this.fProject= project;
+		this.fFilePath= filePath;	
     }
-
+    
+    
     public ISourceProject getProject() {
 	return fProject;
     }

@@ -722,21 +722,27 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     	
     	
     	public Annotation findParseAnnotationForMarker(IAnnotationModel model, IMarker marker, List parseAnnotations) {
-   			int markerStart = 0;
-			int markerEnd = 1; 
+    		Integer markerStartAttr = null;
+    		Integer markerEndAttr = null;
 			try {
 				// SMS 22 May 2007:  With markers created through the editor the CHAR_START
 				// and CHAR_END attributes are null, giving rise to NPEs here.  Not sure
 				// why this happens, but it seems to help down the line to trap the NPE.
-				markerStart = ((Integer) marker.getAttribute(IMarker.CHAR_START)).intValue();
-				markerEnd = ((Integer) marker.getAttribute(IMarker.CHAR_END)).intValue();
+				markerStartAttr = ((Integer) marker.getAttribute(IMarker.CHAR_START));
+				markerEndAttr = ((Integer) marker.getAttribute(IMarker.CHAR_END));
+				if (markerStartAttr == null || markerEndAttr == null) {
+					return null;
+				}
 			} catch (CoreException e) {
-				System.err.println("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end");
-			} // SMS 22 May 2007	
-			  catch (NullPointerException e) {
-					System.err.println("UniversalEditor.findParseAnnotationForMarker:  NullPointerException geting marker start and end");
+				System.err.println("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end attributes");
+				return null;
+			} catch (NullPointerException e) {
+				System.err.println("UniversalEditor.findParseAnnotationForMarker:  NullPointerException geting marker start and end attributes");
+				return null;
 			}
-			  
+			
+   			int markerStart = markerStartAttr.intValue();
+			int markerEnd = markerEndAttr.intValue();
 			int markerLength = markerEnd - markerStart;
 
 			for (int j = 0; j < parseAnnotations.size(); j++) {

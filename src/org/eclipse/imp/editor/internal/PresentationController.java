@@ -88,25 +88,39 @@ public class PresentationController implements IModelListener {
 	int endIndex= controller.getTokenIndexAtCharacter(damage.getOffset() + damage.getLength());
 	final TextPresentation presentation= new TextPresentation();
 //	controller.getParser().getParseStream().dumpTokens();
+	
 	for(int n= startIndex; !monitor.isCanceled() && n <= endIndex; n++) {
 	    IToken token= controller.getParser().getParseStream().getTokenAt(n);
 	    
-	    // SMS 09 Jul 2007 adding in an attempt to preclude exceptions
+	    // SMS 09 Jul 2007  Adding in an attempt to preclude exceptions
 	    // arising from negative style ranges (as per discussion in
 	    // group meeting of 06 Jul 2007)
-	    if (token.getEndOffset() < token.getStartOffset()) {
-	    	if (!(token instanceof ErrorToken))
-	    		ErrorHandler.logMessage(
-	    			"PresentationController.changeTextPresentation:  Encountered token other than ErrorToken with endOffset < startOffset;\n" +
-	    			"\ttokenKind = " + token.getKind(), null);
+	    // SMS 16 Jul 2007  Added "=" to condition; it turns out that there may
+	    // be many kinds of tokens with equal start and end offsets, and these
+	    // will be given a length of 1 in the style range, which will create an
+	    // overlap with the following range, which will trigger an
+	    // IllegalArgumentException in org.eclipse.swt.custom.StyledText.
+	    // This exception many only show up in Eclipse 3.2.2 (i.e., not in
+	    // Eclipse 3.1), but the change is probably appropriate independent
+	    // of Eclipse version.
+	    if (token.getEndOffset() <= token.getStartOffset()) {
+	    	// SMS 16 Jul 2007  Commenting out this reporting because there may be
+	    	// many token kinds with equal start and end offsets, such as control
+	    	// characters and blanks.
+//	    	if (!(token instanceof ErrorToken))
+//	    		ErrorHandler.logMessage(
+//	    			"PresentationController.changeTextPresentation:  Encountered token other than ErrorToken with endOffset <= startOffset;\n" +
+//	    			"\ttoken number = " + n + "; start = " + token.getStartOffset() + "; end = " + token.getEndOffset() + "; tokenKind = " + token.getKind(), null);	
 	    	continue;
 	    }
 
+	    
+
 	    if (token.getKind() != controller.getParser().getEOFTokenKind()) {
-		changeTokenPresentation(controller, presentation, token);
-		IToken adjuncts[]= controller.getParser().getParseStream().getFollowingAdjuncts(n);
-		for(int i= 0; i < adjuncts.length; i++)
-		    changeTokenPresentation(controller, presentation, adjuncts[i]);
+			changeTokenPresentation(controller, presentation, token);
+			IToken adjuncts[]= controller.getParser().getParseStream().getFollowingAdjuncts(n);
+			for(int i= 0; i < adjuncts.length; i++)
+			    changeTokenPresentation(controller, presentation, adjuncts[i]);
 	    }
 	}
 	if (!monitor.isCanceled()) {

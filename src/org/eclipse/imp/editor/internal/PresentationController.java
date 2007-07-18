@@ -103,10 +103,17 @@ public class PresentationController implements IModelListener {
 	    	continue;
 	    }
 
-	    
-
+	    // SMS 18 Jul 2007  Added condition below to process tokens only if they have
+	    // a positive range; it turns out that there may be many kinds of tokens with
+	    // equal start and end offsets, and these will be given a length of 1, which
+	    // will create an overlap with the following range, which will trigger an
+	    // IllegalArgumentException in org.eclipse.swt.custom.StyledText.
+	    // This exception many only show up in Eclipse 3.2.2 (i.e., not in Eclipse 3.1),
+	    // but the change is probably appropriate independent of Eclipse version.
 	    if (token.getKind() != controller.getParser().getEOFTokenKind()) {
-			changeTokenPresentation(controller, presentation, token);
+	    	if (token.getEndOffset() > token.getStartOffset()) {
+	    		changeTokenPresentation(controller, presentation, token);
+	    	}
 			IToken adjuncts[]= controller.getParser().getParseStream().getFollowingAdjuncts(n);
 			for(int i= 0; i < adjuncts.length; i++)
 			    changeTokenPresentation(controller, presentation, adjuncts[i]);

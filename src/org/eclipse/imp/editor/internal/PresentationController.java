@@ -91,29 +91,25 @@ public class PresentationController implements IModelListener {
 	
 	for(int n= startIndex; !monitor.isCanceled() && n <= endIndex; n++) {
 	    IToken token= controller.getParser().getParseStream().getTokenAt(n);
-	    
-	    // SMS 09 Jul 2007  Adding in an attempt to preclude exceptions
-	    // arising from negative style ranges (as per discussion in
-	    // group meeting of 06 Jul 2007)
-	    if (token.getEndOffset() < token.getStartOffset()) {
-	    	if (!(token instanceof ErrorToken))
-	    		ErrorHandler.logMessage(
-	    			"PresentationController.changeTextPresentation:  Encountered token other than ErrorToken with endOffset <= startOffset;\n" +
-	    			"\ttoken number = " + n + "; start = " + token.getStartOffset() + "; end = " + token.getEndOffset() + "; tokenKind = " + token.getKind(), null);	
-	    	continue;
-	    }
 
+	    //if (token.getEndOffset() < token.getStartOffset()) continue;
+	    
 	    // SMS 18 Jul 2007  Added condition below to process tokens only if they have
-	    // a positive range; it turns out that there may be many kinds of tokens with
-	    // equal start and end offsets, and these will be given a length of 1, which
-	    // will create an overlap with the following range, which will trigger an
-	    // IllegalArgumentException in org.eclipse.swt.custom.StyledText.
-	    // This exception many only show up in Eclipse 3.2.2 (i.e., not in Eclipse 3.1),
-	    // but the change is probably appropriate independent of Eclipse version.
+	    // a positive range.  Tokens with a negative length can lead to overlapping
+	    // offsets.  Tokens with 0 length can lead to overlapping offsets, as well.
+	    // In such cases two tokens can start at the same offset, which may make some
+	    // sense if you think of the first token as having length 0.  But below we
+	    // give the 0-length tokens a length of 1, without bumping up the start of
+	    // the following token.  So we create an overlap in that way.  Overlapping
+	    // text ranges lead to IllegalArgumentExceptions when processing StyleRanges
+	    // or related types (e.g., StyledText).  Some of the cases in which the
+	    // exception gets thrown may be new in Eclipse 3.2, but the modifications
+	    // made to address them are probably appropriate independent of Eclipse version.
 	    if (token.getKind() != controller.getParser().getEOFTokenKind()) {
 	    	if (token.getEndOffset() > token.getStartOffset()) {
 	    		changeTokenPresentation(controller, presentation, token);
 	    	}
+
 			IToken adjuncts[]= controller.getParser().getParseStream().getFollowingAdjuncts(n);
 			for(int i= 0; i < adjuncts.length; i++)
 			    changeTokenPresentation(controller, presentation, adjuncts[i]);

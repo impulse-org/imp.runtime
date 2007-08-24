@@ -1,3 +1,8 @@
+/*
+ * (C) Copyright IBM Corporation 2007
+ * 
+ * This file is part of the Eclipse IMP.
+ */
 package org.eclipse.imp.services.base;
 
 import org.eclipse.imp.services.IOutlineImage;

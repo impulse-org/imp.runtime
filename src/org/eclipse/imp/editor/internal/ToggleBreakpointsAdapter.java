@@ -1,4 +1,9 @@
 /*
+ * (C) Copyright IBM Corporation 2007
+ * 
+ * This file is part of the Eclipse IMP.
+ */
+/*
  * Created on Mar 1, 2006
  */
 package org.eclipse.imp.editor.internal;

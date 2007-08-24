@@ -1,10 +1,11 @@
-package org.eclipse.uide.utils;
+package org.eclipse.imp.utils;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.graphics.RGB;

@@ -1,4 +1,4 @@
-package org.eclipse.uide.refactoring;
+package org.eclipse.imp.refactoring;
 
 /**
  * Represents a textual range within some text, expressed as a character offset and a length.

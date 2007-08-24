@@ -1,7 +1,7 @@
 /*
  * Created on Feb 6, 2006
  */
-package org.eclipse.uide.wizards.fields;
+package org.eclipse.imp.wizards.fields;
 
 /**
  * Change listener used by <code>StringButtonDialogField</code>

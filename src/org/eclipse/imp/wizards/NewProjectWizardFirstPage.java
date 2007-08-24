@@ -1,7 +1,7 @@
 /*
  * Created on Mar 22, 2006
  */
-package org.eclipse.uide.wizards;
+package org.eclipse.imp.wizards;
 
 import java.io.File;
 import java.util.Observable;
@@ -15,10 +15,16 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.imp.wizards.fields.DialogField;
+import org.eclipse.imp.wizards.fields.IDialogFieldListener;
+import org.eclipse.imp.wizards.fields.IStringButtonAdapter;
+import org.eclipse.imp.wizards.fields.LayoutUtil;
+import org.eclipse.imp.wizards.fields.SelectionButtonDialogField;
+import org.eclipse.imp.wizards.fields.StringButtonDialogField;
+import org.eclipse.imp.wizards.fields.StringDialogField;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.preferences.NewJavaProjectPreferencePage;
 import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
-import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -33,13 +39,6 @@ import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.ui.dialogs.PreferencesUtil;
-import org.eclipse.uide.wizards.fields.DialogField;
-import org.eclipse.uide.wizards.fields.IDialogFieldListener;
-import org.eclipse.uide.wizards.fields.IStringButtonAdapter;
-import org.eclipse.uide.wizards.fields.LayoutUtil;
-import org.eclipse.uide.wizards.fields.SelectionButtonDialogField;
-import org.eclipse.uide.wizards.fields.StringButtonDialogField;
-import org.eclipse.uide.wizards.fields.StringDialogField;
 
 public class NewProjectWizardFirstPage extends WizardPage {
     private NameGroup fNameGroup;

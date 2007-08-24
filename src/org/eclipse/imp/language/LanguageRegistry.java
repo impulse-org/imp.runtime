@@ -1,4 +1,4 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.language;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,9 +13,10 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.content.IContentType;
-import org.eclipse.core.runtime.content.IContentTypeManager;
-import org.eclipse.core.runtime.content.IContentTypeManager.ISelectionPolicy;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -26,9 +27,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
-import org.eclipse.uide.editor.UniversalEditor;
-import org.eclipse.uide.preferences.SAFARIPreferenceCache;
-import org.eclipse.uide.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
 /*
@@ -66,7 +64,7 @@ public class LanguageRegistry {
 	    IFileEditorInput fileEditorInput= (IFileEditorInput) editorInput;
 	    file= fileEditorInput.getFile();
 
-	    if (SAFARIPreferenceCache.emitMessages)
+	    if (PreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Determining language of file " + file.getFullPath().toString());
 //	    else
 //		ErrorHandler.reportError("Determining language of file " + file.getFullPath().toString());
@@ -98,7 +96,7 @@ public class LanguageRegistry {
         if (lang != null)
             return lang;
 
-        if (SAFARIPreferenceCache.emitMessages)
+        if (PreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("No language support for text/source file of type '" + extension + "'.");
         else
             ErrorHandler.reportError("No language support for text/source file of type '" + extension + "'.");
@@ -165,7 +163,7 @@ public class LanguageRegistry {
 	if (sLanguages == null)
 	    findLanguages();
 
-	if (SAFARIPreferenceCache.emitMessages)
+	if (PreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Looking for SAFARI language description extensions...");
 
 	// The following uses internal platform classes, given that there is no
@@ -227,7 +225,7 @@ public class LanguageRegistry {
 	}
 	if (universalEditor == null)
 	    ErrorHandler.logError("Unable to locate universal editor descriptor", null);
-	else if (SAFARIPreferenceCache.emitMessages)
+	else if (PreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
 	else
 	    System.out.println("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
@@ -239,10 +237,10 @@ public class LanguageRegistry {
      */
     static void findLanguages() {
 	try {
-	    IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.UIDE_RUNTIME, EXTENSION);
+	    IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
 
             if (extensionPoint == null) {
-		ErrorHandler.reportError("Nonexistent extension point called \"" + RuntimePlugin.UIDE_RUNTIME + "." + EXTENSION);
+		ErrorHandler.reportError("Nonexistent extension point called \"" + RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
                 return;
 	    }
 
@@ -263,7 +261,7 @@ public class LanguageRegistry {
                         // file-name extension attribute, and do some validation.
                         language.getFilenameExtensions();
 
-                        if (SAFARIPreferenceCache.emitMessages)
+                        if (PreferenceCache.emitMessages)
                             RuntimePlugin.getInstance().writeInfoMsg("Found language description extension for " + language.getName());
                     }
 		}

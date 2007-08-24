@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
@@ -25,7 +25,7 @@ import org.osgi.service.prefs.Preferences;
  *
  */
 
-public interface ISafariPreferencesService {
+public interface IPreferencesService {
 
 	/*	
 	 * Levels at which preferences are supported

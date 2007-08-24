@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;

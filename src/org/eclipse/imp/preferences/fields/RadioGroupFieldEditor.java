@@ -1,7 +1,10 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.jface.preference.FieldEditor;
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.Markings;
+import org.eclipse.imp.preferences.PreferencesTab;
+import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
@@ -17,19 +20,13 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.Markings;
-import org.eclipse.uide.preferences.SafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
-import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * A field editor for an enumeration type preference.
  * The choices are presented as a list of radio buttons.
  */
-public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
+public class RadioGroupFieldEditor extends FieldEditor {
 
 	// All fields in RadioGroupFieldEditor, which were private there,
 	// copied here and made protected.
@@ -77,7 +74,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     /**
      * Creates a new radio group field editor 
      */
-    protected SafariRadioGroupFieldEditor() {
+    protected RadioGroupFieldEditor() {
     }
 
     // Public constructors all adapted from RadioGroupFieldEditor.
@@ -107,9 +104,9 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
      *  the value is returned when the radio button is selected
      * @param parent the parent of the field editor's control
      */
-    public SafariRadioGroupFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level,
+    public RadioGroupFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level,
     		String name, String labelText, int numColumns,
             String[][] labelAndValues, Composite parent)
     {
@@ -141,9 +138,9 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
      * @param parent the parent of the field editor's control
      * @param useGroup whether to use a Group control to contain the radio buttons
      */
-    public SafariRadioGroupFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level,	
+    public RadioGroupFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level,	
     		String name, String labelText, int numColumns,
             String[][] labelAndValues, Composite parent, boolean useGroup)
     {
@@ -242,7 +239,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
         		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
     			setInherited(true);	
         	}
-            if (ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
+            if (IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
             	setPresentsDefaultValue(true);
             setPreviousStringValue(value);
         	updateValue(value);
@@ -251,7 +248,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
 
     
     /**
-     * Method declared on SafariFieldEditor.
+     * Method declared on FieldEditor.
      * 
      * SMS 23 Dec 2006:  This method is probably inapropriate and should probably
      * be removed.  The effect as programmed is to update the field without going
@@ -263,7 +260,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
         //updateValue(getPreferenceStore().getDefaultString(getPreferenceName()));
     	
         if (radioButtons != null) {
-            String value = preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
+            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
             updateValue(value);	// calls valueChanged()
         }
     }
@@ -303,7 +300,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     {
     	String levelLoaded = null;
     	
-    	String[] levels = ISafariPreferencesService.levels;
+    	String[] levels = IPreferencesService.levels;
     	int fieldLevelIndex = 0;
 
     	// If we're loading with inheritance for some field that is
@@ -357,10 +354,10 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     protected void setFieldColors() {
         Control buttonBox = getRadioBoxControl(parent);
         Color color = isInherited() ?
-        		SafariPreferencesUtilities.colorBluish :
-        		SafariPreferencesUtilities.colorWhite;
+        		PreferencesUtilities.colorBluish :
+        		PreferencesUtilities.colorWhite;
 
-        buttonBox.setBackground(SafariPreferencesUtilities.colorLightGray);
+        buttonBox.setBackground(PreferencesUtilities.colorWhite);
     	if (radioButtons != null) {
     		for (int i = 0; i < radioButtons.length; i++) {
     			((Button) radioButtons[i]).setBackground(color);	
@@ -373,7 +370,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     /**
      * Overrides method implemented in RadioGroupFieldEditor.
      * 
-     * Abstract method declared on SafariFieldEditor.
+     * Abstract method declared on FieldEditor.
      */
     protected void doStore() {
     	String 	value = getStringValue();
@@ -410,7 +407,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
    		levelFromWhichLoaded = preferencesLevel;
    		setInherited(false);
    		setPresentsDefaultValue(
-   				value.equals(preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
+   				value.equals(preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
     	
    		// If we've stored the field then it's not inherited, so be sure it's
    		// color indicates that.
@@ -420,7 +417,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     	try {
     		if (node != null) node.flush();
     	} catch (BackingStoreException e) {
-    		System.err.println("SafariStringFieldEditor.():  BackingStoreException flushing node;  node may not have been flushed:" + 
+    		System.err.println("StringFieldEditor.():  BackingStoreException flushing node;  node may not have been flushed:" + 
     				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
     	}
     }
@@ -438,8 +435,8 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
      * the buttons.  If groups are not used for this purpose, then the methods to
      * set and clear the marks will need to be adapted accordinly.
      * 
-     * @see org.eclipse.uide.preferences.fields.SafariFieldEditor#setModifiedMarkOnLabel()
-     * @see org.eclipse.uide.preferences.fields.SafariFieldEditor#clearModifiedMarkOnLabel()
+     * @see org.eclipse.imp.preferences.fields.FieldEditor#setModifiedMarkOnLabel()
+     * @see org.eclipse.imp.preferences.fields.FieldEditor#clearModifiedMarkOnLabel()
      */
     
     
@@ -648,12 +645,12 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
      * This hook is <em>not</em> called when the text is initialized 
      * (or reset to the default value) from the preference store.
      * (That comment is taken from the original implementation of this
-     * method.  I've tried to follow it consistently for SAFARI preferences,
+     * method.  I've tried to follow it consistently for IMP preferences,
      * but I'm not sure if the original intention translates into the
      * multi-level model.  Still, so far there seems to be no problem
      * with it.  SMS 16 Nov 2006)
      * 
-     * Copied from StringFieldEditor and adapted to use in SAFARI.
+     * Copied from StringFieldEditor and adapted to use in IMP.
      * Added return of a boolean value.  Sets certain attributes of
      * the field that do not depend on the context of the call.  Does
      * not set other attributes that do depend on the context (so those
@@ -729,7 +726,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     
     public String getSpecialStringValue() {
     	if (!hasSpecialValue) {
-			throw new IllegalStateException("SafariRadioGroupFieldEditor.getSpecialValue():  field does not have a special value");
+			throw new IllegalStateException("RadioGroupFieldEditor.getSpecialValue():  field does not have a special value");
     	}
     	return (String) specialValue;
     }
@@ -747,9 +744,9 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
 	 */
 	public void setSpecialValue(String specialValue) {
 		if (!hasSpecialValue()) {
-			throw new IllegalStateException("SafariComboField.setSpecialValue(String):  field has no special value");			
+			throw new IllegalStateException("ComboField.setSpecialValue(String):  field has no special value");			
 		} else if (specialValue == null || specialValue == "") {
-			throw new IllegalArgumentException("SafariRadioGroupFieldEditor.setSpecialValue(String):  special value cannot be null or empty");
+			throw new IllegalArgumentException("RadioGroupFieldEditor.setSpecialValue(String):  special value cannot be null or empty");
 		}
 		this.specialValue = specialValue;
 	}
@@ -759,7 +756,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
     
     
     /* 
-     * Method declared on SafariFieldEditor.
+     * Method declared on FieldEditor.
      * Copied from RadioGroupFieldEditor.
      */
     public int getNumberOfControls() {
@@ -768,7 +765,7 @@ public class SafariRadioGroupFieldEditor extends SafariFieldEditor {
 
     
     /*
-     * @see SafariFieldEditor.setEnabled(boolean,Composite).
+     * @see FieldEditor.setEnabled(boolean,Composite).
      */
     public void setEnabled(boolean enabled, Composite parent) {
         if (!useGroup)

@@ -1,8 +1,10 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesTab;
+import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
@@ -16,15 +18,12 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
-import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 
-public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEditor {
+public abstract class StringButtonFieldEditor extends StringFieldEditor {
 
-	public SafariStringButtonFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+	public StringButtonFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, int strategy, Composite parent)
     {
     	super(page, tab, service, level, name, labelText, width, strategy, parent);
@@ -32,7 +31,7 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
 	
 	
     /**
-     * Creates a SAFARI string button field editor.
+     * Creates a IMP string button field editor.
      * Use the method <code>setTextLimit</code> to limit the text.
      * 
      * @param name the name of the preference this field editor works on
@@ -41,26 +40,26 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
      *  or <code>UNLIMITED</code> for no limit
      * @param parent the parent of the field editor's control
      */
-    public SafariStringButtonFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+    public StringButtonFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
-        super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
+        super(page, tab, service, level, name, labelText, width, org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     }
 	
     
     /**
-     * Creates a SAFARI string button field editor.
+     * Creates a IMP string button field editor.
      * Use the method <code>setTextLimit</code> to limit the text.
      * 
      * @param name the name of the preference this field editor works on
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public SafariStringButtonFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-			ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
+    public StringButtonFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+			IPreferencesService service, String level, String name, String labelText, Composite parent)
     {
         super(page, tab, service, level, name, labelText, parent);
     }
@@ -177,7 +176,7 @@ public abstract class SafariStringButtonFieldEditor extends SafariStringFieldEdi
                         setStringValue(newValue);
                         
                         Text text = getTextControl();
-                       	text.setBackground(SafariPreferencesUtilities.colorWhite);
+                       	text.setBackground(PreferencesUtilities.colorWhite);
                     }
                 }
             });

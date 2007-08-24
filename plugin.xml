@@ -1,71 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin>
-   <extension-point id="contentProposer" name="SAFARI Content Proposer" schema="schema/contentProposer.exsd"/>
-   <extension-point id="hoverHelper" name="SAFARI Hover Helper" schema="schema/hoverHelper.exsd"/>
-   <extension-point id="outliner" name="SAFARI Outliner" schema="schema/outliner.exsd"/>
-   <extension-point id="tokenColorer" name="SAFARI Token Colorer" schema="schema/tokenColorer.exsd"/>
+   <extension-point id="contentProposer" name="IMP Content Proposer" schema="schema/contentProposer.exsd"/>
+   <extension-point id="hoverHelper" name="IMP Hover Helper" schema="schema/hoverHelper.exsd"/>
+   <extension-point id="outliner" name="IMP Outliner" schema="schema/outliner.exsd"/>
+   <extension-point id="tokenColorer" name="IMP Token Colorer" schema="schema/tokenColorer.exsd"/>
    <extension-point id="languageDescription" name="Description of a programming language" schema="schema/languageDescription.exsd"/>
    <extension-point id="indexContributor" name="Shared index of language-specific items, such as types" schema="schema/indexContributor.exsd"/>
    <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
    <extension-point id="lpgGrammar" name="LPG Grammar" schema="schema/lpgGrammar.exsd"/>
    <extension-point id="lpgGrammarWithParserWrapper" name="LPG Grammar with Parser Wrapper" schema="schema/lpgGrammarWithParserWrapper.exsd"/>
-   <extension-point id="parserWrapper" name="SAFARI Parser Wrapper" schema="schema/parserWrapper.exsd"/>
+   <extension-point id="parserWrapper" name="IMP Parser Wrapper" schema="schema/parserWrapper.exsd"/>
    <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
-   <extension-point id="hyperLink" name="SAFARI Hyperlink Detector" schema="schema/hyperLink.exsd"/>
+   <extension-point id="hyperLink" name="IMP Hyperlink Detector" schema="schema/hyperLink.exsd"/>
    <extension-point id="autoEditStrategy" name="Auto-Edit Strategy" schema="schema/autoEditStrategy.exsd"/>
-   <extension-point id="foldingUpdater" name="SAFARI Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
+   <extension-point id="foldingUpdater" name="IMP Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="annotationHover" name="Annotation Hover" schema="schema/annotationHover.exsd"/>
-   <extension-point id="formatter" name="SAFARI Source Code Formatter" schema="schema/formatter.exsd"/>
+   <extension-point id="formatter" name="IMP Source Code Formatter" schema="schema/formatter.exsd"/>
    <extension-point id="labelProvider" name="Label Provider" schema="schema/labelProvider.exsd"/>
    <extension-point id="imageDecorator" name="Image Decorator" schema="schema/imageDecorator.exsd"/>
    <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
    <extension-point id="outlineContentProvider" name="Outline Content Provider" schema="schema/outlineContentProvider.exsd"/>
    <extension-point id="refactoringContributions" name="Refactoring Contributions" schema="schema/refactoringContributions.exsd"/>
-   <extension-point id="referenceResolvers" name="SAFARI Reference Resolver" schema="schema/referenceResolvers.exsd"/>
+   <extension-point id="referenceResolvers" name="IMP Reference Resolver" schema="schema/referenceResolvers.exsd"/>
    <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
    <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
+   <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
 
    <extension
          point="org.eclipse.ui.editors">
       <editor
-            name="SAFARI Editor"
-            icon="icons/uide-editor.gif"
+            name="IMP Editor"
+            icon="icons/IMP-editor.gif"
             extensions="txt"
-            contributorClass="org.eclipse.uide.editor.TextEditorActionContributor"
-            class="org.eclipse.uide.editor.UniversalEditor"
-            id="org.eclipse.uide.runtime.safariEditor">
+            contributorClass="org.eclipse.imp.editor.internal.TextEditorActionContributor"
+            class="org.eclipse.imp.editor.UniversalEditor"
+            id="org.eclipse.imp.runtime.impEditor">
       </editor>
    </extension>
    <extension
-         id="org.eclipse.uide.startup"
-         name="UIDE Runtime Startup"
+         id="org.eclipse.imp.startup"
+         name="IMP Runtime Startup"
          point="org.eclipse.ui.startup">
    </extension>
    <extension
          point="org.eclipse.ui.editorActions">
       <editorContribution
-       	  targetID="org.eclipse.uide.runtime.safariEditor"
-          id="uide.rulerActions">
+       	  targetID="org.eclipse.imp.runtime.impEditor"
+          id="imp.rulerActions">
          <action
              label="Not Used"
              class="org.eclipse.debug.ui.actions.RulerToggleBreakpointActionDelegate"
              style="push"
              actionID="RulerDoubleClick"
-             id="uide.doubleClickBreakpointAction"/>
+             id="imp.doubleClickBreakpointAction"/>
       </editorContribution>
    </extension>
    <extension
          point="org.eclipse.ui.editors.annotationTypes">
       <type
             markerSeverity="1"
-            name="org.eclipse.uide.editor.parseAnnotation"
+            name="org.eclipse.imp.editor.parseAnnotation"
             super="org.eclipse.ui.workbench.texteditor.error"/>
    </extension>
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
-            annotationType="org.eclipse.uide.editor.parseAnnotation"
+            annotationType="org.eclipse.imp.editor.parseAnnotation"
             colorPreferenceKey="parseAnnotationColor"
             colorPreferenceValue="255,128,147"
             contributesToHeader="false"
@@ -76,7 +77,7 @@
             isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
             isGoToPreviousNavigationTarget="true"
             isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
-            label="SAFARI Parser Annotation"
+            label="IMP Parser Annotation"
             overviewRulerPreferenceKey="parseAnnotationOverviewKey"
             overviewRulerPreferenceValue="true"
             presentationLayer="2"
@@ -93,24 +94,24 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="org.eclipse.uide.preferences.PreferencePage"
-            id="org.eclipse.uide.runtime.preferencePage"
-            name="SAFARI"/>
+            class="org.eclipse.imp.preferences.PreferencePage"
+            id="org.eclipse.imp.runtime.preferencePage"
+            name="IMP"/>
    </extension>
    <extension
          point="org.eclipse.core.runtime.preferences">
-      <initializer class="org.eclipse.uide.preferences.PreferenceInitializer"/>
+      <initializer class="org.eclipse.imp.preferences.PreferenceInitializer"/>
    </extension>
    -->
    <extension
          point="org.eclipse.ui.bindings">
       <key
-            commandId="org.eclipse.uide.runtime.showOutlineCommand"
+            commandId="org.eclipse.imp.runtime.showOutlineCommand"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+O"/>
       <key
-            commandId="org.eclipse.uide.runtime.toggleComment"
+            commandId="org.eclipse.imp.runtime.toggleComment"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
@@ -120,25 +121,55 @@
       <command
             categoryId="org.eclipse.ui.category.navigate"
             description="Show the quick outline for the editor input"
-            id="org.eclipse.uide.runtime.showOutlineCommand"
+            id="org.eclipse.imp.runtime.showOutlineCommand"
             name="Show Outline"/>
       <command
             categoryId="org.eclipse.jdt.ui.category.source"
             description="Comments/uncomments the current selection or the current source line"
-            id="org.eclipse.uide.runtime.toggleComment"
+            id="org.eclipse.imp.runtime.toggleComment"
             name="Toggle Comment"/>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">
       <actionSet
-            id="org.eclipse.uide.runtime.refactoringActions"
-            label="SAFARI Refactoring Actions"
+            id="org.eclipse.imp.runtime.refactoringActions"
+            label="IMP Refactoring Actions"
             visible="true">
          <menu
-               id="org.eclipse.uide.refactoring"
+               id="org.eclipse.imp.refactoring"
                label="Refactor">
-            <separator name="org.eclipse.uide.refactoring"/>
+            <separator name="org.eclipse.imp.refactoring"/>
          </menu>
+         <action
+               class="org.eclipse.imp.editor.MarkOccurrencesAction"
+               icon="icons/mark_occurrences.gif"
+               id="org.eclipse.imp.runtime.actions.markOccurrencesAction"
+               label="&amp;Toggle Mark Occurrences"
+               state="false"
+               style="toggle"
+               toolbarPath="sampleGroup"
+               tooltip="Toggles marking occurrences of the given entity"/>
       </actionSet>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
+            annotationType="org.eclipse.imp.runtime.occurrenceAnnotation"
+            colorPreferenceKey="occurrenceColorPreference"
+            colorPreferenceValue="0,255,128"
+            contributesToHeader="false"
+            highlightPreferenceValue="true"
+            includeOnPreferencePage="true"
+            isGoToNextNavigationTarget="true"
+            isGoToPreviousNavigationTarget="true"
+            overviewRulerPreferenceKey="occurrenceOverviewRulerPreference"
+            overviewRulerPreferenceValue="true"
+            presentationLayer="4"
+            showInNextPrevDropdownToolbarAction="true"
+            textPreferenceKey="occurrenceTextPreference"
+            textPreferenceValue="true"
+            textStylePreferenceValue="UNDERLINE"
+            verticalRulerPreferenceKey="occurrenceVerticalRulerPreference"
+            verticalRulerPreferenceValue="true"/>
    </extension>
 </plugin>

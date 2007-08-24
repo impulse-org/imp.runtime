@@ -1,13 +1,11 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
-import org.eclipse.jface.preference.FieldEditor;
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.Markings;
+import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.Markings;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
 
 
 /**
@@ -27,7 +25,7 @@ import org.eclipse.uide.preferences.SafariPreferencesTab;
 
 
 
-public abstract class SafariFieldEditor extends FieldEditor
+public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEditor
 {
 	/**
 	 *  The preferences page on which the tab that contains this
@@ -39,14 +37,14 @@ public abstract class SafariFieldEditor extends FieldEditor
 	/**
 	 * The preferences tab on which the field is displayed
 	 */ 
-	protected SafariPreferencesTab prefTab = null;
+	protected PreferencesTab prefTab = null;
 	
 	
 	/**
 	 * The preferences service in which the values for this
 	 * field are stored
 	 */ 
-	protected ISafariPreferencesService preferencesService = null;
+	protected IPreferencesService preferencesService = null;
 	
 	/**
 	 * The preferences level with which this field is associated
@@ -146,14 +144,14 @@ public abstract class SafariFieldEditor extends FieldEditor
     /**
      * Parameterless constructor that mimics the one in FieldEditor
      */
-    protected SafariFieldEditor() {
+    protected FieldEditor() {
     	super();
     }
     
     
     /**
      * Creates a field editor, taking the information that is
-     * specific to SAFARI field editors but not that used by
+     * specific to IMP field editors but not that used by
      * field editors in general.  Calls the empty constructor for
      * a field editor.
      * 
@@ -164,9 +162,9 @@ public abstract class SafariFieldEditor extends FieldEditor
      * @param	level	The level at which this preference is assigned
      */
     // Able to do anything useful without a parent?
-    public SafariFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level)
+    public FieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level)
     {
     	super();
     	preferencesService = service;
@@ -179,7 +177,7 @@ public abstract class SafariFieldEditor extends FieldEditor
     
     /**
      * Creates a field editor, taking all of the relevant information
-     * (SAFARI specific and field-editor generic). Calls the non-empty
+     * (IMP specific and field-editor generic). Calls the non-empty
      * constructor for a field editor.
      * 
      * @param	page	The preferences page on which the tab is shown
@@ -191,9 +189,9 @@ public abstract class SafariFieldEditor extends FieldEditor
      * @param	labelText	The text used to label the field on the page
      * @param	parent	The composite control that contains this editor
      */
-    public SafariFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level,
+    public FieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level,
     		String name, String labelText, Composite parent)
     {
     	//super(name, labelText, parent);
@@ -304,7 +302,7 @@ public abstract class SafariFieldEditor extends FieldEditor
 	 */
 	public Object getSpecialValue() { 
 		if (hasSpecialValue) return specialValue;
-		throw new IllegalStateException("SafariFieldEditor.getSpecialValue():  called when field does not have a special value");
+		throw new IllegalStateException("FieldEditor.getSpecialValue():  called when field does not have a special value");
 	}
 	
    
@@ -334,7 +332,7 @@ public abstract class SafariFieldEditor extends FieldEditor
 //	public String getEmptyValue() {
 //		if (isEmptyStringAllowed())
 //			return emptyValue;
-//		throw new IllegalStateException("SafariStringFieldEditor.getEmptyValue:  called when field does not allow an empty value");
+//		throw new IllegalStateException("StringFieldEditor.getEmptyValue:  called when field does not allow an empty value");
 //	}
 	
 	
@@ -406,7 +404,7 @@ public abstract class SafariFieldEditor extends FieldEditor
 	 */
     abstract protected void doLoad();
     
-//    // This is an example implementation from the SAFARI String field editor
+//    // This is an example implementation from the IMP String field editor
 //    // with level-specific and level-independent branches:
 //    {
 //        if (getTextControl() != null) {
@@ -424,7 +422,7 @@ public abstract class SafariFieldEditor extends FieldEditor
 //        		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
 //    			setInherited(true);	
 //        	}
-//            if (ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
+//            if (IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
 //            	setPresentsDefaultValue(true);
 //        	previousValue = value;
 //            setStringValue(value);
@@ -451,10 +449,10 @@ public abstract class SafariFieldEditor extends FieldEditor
      */
     abstract protected void doLoadDefault();
     
-//  // This is an example implementation from the SAFARI String field editor:
+//  // This is an example implementation from the IMP String field editor:
 //    {
 //        if (getTextControl() != null) {
-//            String value = preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName());
+//            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName());
 //            setStringValue(value);
 //        }
 //        // empty in FieldEditor:
@@ -476,7 +474,7 @@ public abstract class SafariFieldEditor extends FieldEditor
         	preferencesService.isaPreferencesLevel(level))
         {
         	doLoadLevel(level);
-        	if (ISafariPreferencesService.DEFAULT_LEVEL.equals(level))
+        	if (IPreferencesService.DEFAULT_LEVEL.equals(level))
         		setPresentsDefaultValue(true);
         	// SMS 25 Nov 2006
         	// still need to signal valueChanged on default level?
@@ -493,7 +491,7 @@ public abstract class SafariFieldEditor extends FieldEditor
      */
     abstract protected void doLoadLevel(String level);
     	
-//      // This is an example implementation from the SAFARI String field editor:
+//      // This is an example implementation from the IMP String field editor:
 //		{
 //        if (getTextControl() != null) {
 //        	String value = null;
@@ -520,7 +518,7 @@ public abstract class SafariFieldEditor extends FieldEditor
     public String loadWithInheritance() {
         if (preferencesService != null) {
         	levelFromWhichLoaded = doLoadWithInheritance();
-        	if (ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
+        	if (IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
             	setPresentsDefaultValue(true);
             refreshValidState();
         }
@@ -543,11 +541,11 @@ public abstract class SafariFieldEditor extends FieldEditor
      */
     abstract protected String doLoadWithInheritance();
     
-//  // This is an example implementation from the SAFARI String field editor:
+//  // This is an example implementation from the IMP String field editor:
 //    {
 //    	String levelLoaded = null;
 //    	
-//    	String[] levels = ISafariPreferencesService.levels;
+//    	String[] levels = IPreferencesService.levels;
 //    	int fieldLevelIndex = 0;
 //
 //    	// If we're loading with inheritance for some field that is
@@ -594,9 +592,9 @@ public abstract class SafariFieldEditor extends FieldEditor
 //       	// Set the background color of the field according to where found
 //        Text text = getTextControl();
 //        if (isInherited())
-//        	text.setBackground(SafariPreferencesUtilities.colorBluish);
+//        	text.setBackground(PreferencesUtilities.colorBluish);
 //        else
-//        	text.setBackground(SafariPreferencesUtilities.colorWhite);
+//        	text.setBackground(PreferencesUtilities.colorWhite);
 //  	
 //        //System.out.println("doLoadWithInheritance:  preferencesName = " + getPreferenceName() + "; preferenceLevel = " + preferencesLevel + "; levelLoaded = " + levelLoaded);
 //        
@@ -663,7 +661,7 @@ public abstract class SafariFieldEditor extends FieldEditor
         
         // Don't store the value if the field's level is the project level
         // but no project is selected
-        if (ISafariPreferencesService.PROJECT_LEVEL.equals(preferencesLevel) &&
+        if (IPreferencesService.PROJECT_LEVEL.equals(preferencesLevel) &&
         	preferencesService.getProject() == null)
         {
        		throw new IllegalStateException("SafairFieldEditor.store():  attempt to store project preference when project is not set"); 
@@ -697,7 +695,7 @@ public abstract class SafariFieldEditor extends FieldEditor
      */
     abstract protected void doStore();
     
-//  // This is an example implementation from the SAFARI String field editor:
+//  // This is an example implementation from the IMP String field editor:
 //  {
 //    	String 	value = getTextControl().getText();
 //    	boolean isEmpty = value.equals(emptyValue);			// Want empty value, but can't call method to retrieve it
@@ -743,13 +741,13 @@ public abstract class SafariFieldEditor extends FieldEditor
 //   		// color indicates that.
 //   		// For text fields, the background color is the backgroud color within
 //   		// the field, so don't have to worry about matching anything else
-//   		getTextControl().setBackground(SafariPreferencesUtilities.colorWhite);
+//   		getTextControl().setBackground(PreferencesUtilities.colorWhite);
 //    	
 //    	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
 //    	try {
 //    		if (node != null) node.flush();
 //    	} catch (BackingStoreException e) {
-//    		System.err.println("SafariStringFieldEditor.	():  BackingStoreException flushing node;  node may not have been flushed:" + 
+//    		System.err.println("StringFieldEditor.	():  BackingStoreException flushing node;  node may not have been flushed:" + 
 //    				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
 //    	}
 //    }
@@ -769,7 +767,7 @@ public abstract class SafariFieldEditor extends FieldEditor
      */
     public	void setPreferencesLevel(String level) {
     	if (!preferencesService.isaPreferencesLevel(level)) {
-		throw new IllegalArgumentException("SafariFieldEditor.setPreferencesLevel():  given level = " + level + " is invalid");
+		throw new IllegalArgumentException("FieldEditor.setPreferencesLevel():  given level = " + level + " is invalid");
     	}
     	preferencesLevel = level;
     }

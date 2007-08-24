@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide">
+<schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="lpgGrammar" name="New LPG Grammar"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="lpgGrammar" name="New LPG Grammar"/>
       </appInfo>
       <documentation>
-         The org.eclipse.uide.lpgGrammar extension point allows extenders to provide new grammar files for a given language.
+         The org.eclipse.imp.lpgGrammar extension point allows extenders to provide new grammar files for a given language.
       </documentation>
    </annotation>
 
@@ -92,12 +92,12 @@
       </appInfo>
       <documentation>
          &lt;extension
-         point=&quot;org.eclipse.uide.parser&quot;&gt;
+         point=&quot;org.eclipse.imp.parser&quot;&gt;
       &lt;parser
-            class=&quot;org.eclipse.uide.DefaultParser&quot;
+            class=&quot;org.eclipse.imp.DefaultParser&quot;
             language=&quot;*&quot;
             name=&quot;Default Parser&quot;
-            id=&quot;org.eclipse.uide.parser.default&quot;/&gt;
+            id=&quot;org.eclipse.imp.parser.default&quot;/&gt;
    &lt;/extension&gt;
       </documentation>
    </annotation>
@@ -116,7 +116,7 @@
          <meta.section type="implementation"/>
       </appInfo>
       <documentation>
-         See org.eclipse.uide.DefaultParser.
+         See org.eclipse.imp.DefaultParser.
       </documentation>
    </annotation>
 

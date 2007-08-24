@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.eclipse.uide.utils;
+package org.eclipse.imp.utils;
 
 import org.eclipse.jface.text.Position;
 

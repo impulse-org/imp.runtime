@@ -1,11 +1,10 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model;
+package org.eclipse.imp.model;
 
 import java.util.List;
 
-import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 

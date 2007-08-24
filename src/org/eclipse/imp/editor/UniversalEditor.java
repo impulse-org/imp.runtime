@@ -1,4 +1,4 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -27,6 +27,36 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.internal.AnnotationCreator;
+import org.eclipse.imp.editor.internal.CompletionProcessor;
+import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
+import org.eclipse.imp.editor.internal.FoldingController;
+import org.eclipse.imp.editor.internal.FormattingController;
+import org.eclipse.imp.editor.internal.HoverHelpController;
+import org.eclipse.imp.editor.internal.HyperlinkDetector;
+import org.eclipse.imp.editor.internal.OutlineController;
+import org.eclipse.imp.editor.internal.PresentationController;
+import org.eclipse.imp.editor.internal.ProblemMarkerManager;
+import org.eclipse.imp.editor.internal.SourceHyperlinkController;
+import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.preferences.PreferenceConstants;
+import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IASTFindReplaceTarget;
+import org.eclipse.imp.services.IFoldingUpdater;
+import org.eclipse.imp.services.IOccurrenceMarker;
+import org.eclipse.imp.services.ISourceFormatter;
+import org.eclipse.imp.services.ISourceHyperlinkDetector;
+import org.eclipse.imp.services.base.DefaultAnnotationHover;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
@@ -35,7 +65,23 @@ import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.text.*;
+import org.eclipse.jface.text.AbstractInformationControlManager;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.IAutoEditStrategy;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IInformationControl;
+import org.eclipse.jface.text.IInformationControlCreator;
+import org.eclipse.jface.text.IRegion;
+import org.eclipse.jface.text.ITextDoubleClickStrategy;
+import org.eclipse.jface.text.ITextHover;
+import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITypedRegion;
+import org.eclipse.jface.text.IUndoManager;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.Region;
+import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.ContentFormatter;
@@ -84,25 +130,6 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.defaults.DefaultAnnotationHover;
-import org.eclipse.uide.internal.editor.FoldingController;
-import org.eclipse.uide.internal.editor.FormattingController;
-import org.eclipse.uide.internal.editor.HyperlinkDetector;
-import org.eclipse.uide.internal.editor.OutlineController;
-import org.eclipse.uide.internal.editor.PresentationController;
-import org.eclipse.uide.internal.editor.SourceHyperlinkController;
-import org.eclipse.uide.model.ISourceProject;
-import org.eclipse.uide.model.ModelFactory;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.preferences.PreferenceConstants;
-import org.eclipse.uide.preferences.SAFARIPreferenceCache;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
 /**
  * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
@@ -113,15 +140,15 @@ import org.eclipse.uide.utils.ExtensionPointFactory;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
-    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.UIDE_RUNTIME + ".toggleComment";
+    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".toggleComment";
 
-    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.UIDE_RUNTIME + ".showOutlineCommand";
+    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".showOutlineCommand";
 
-    public static final String MESSAGE_BUNDLE= "org.eclipse.uide.editor.messages";
+    public static final String MESSAGE_BUNDLE= "org.eclipse.imp.editor.messages";
 
-    public static final String EDITOR_ID= RuntimePlugin.UIDE_RUNTIME + ".safariEditor";
+    public static final String EDITOR_ID= RuntimePlugin.IMP_RUNTIME + ".impEditor";
 
-    public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.uide.editor.parseAnnotation";
+    public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.imp.editor.parseAnnotation";
 
     private static final String ERROR_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.error";
 
@@ -131,9 +158,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private static final String DEBUG_ANNOTATION_TYPE= "org.eclipse.debug.core.breakpoint";
 
-    protected Language fLanguage;
+    public Language fLanguage;
 
-    protected ParserScheduler fParserScheduler;
+    public ParserScheduler fParserScheduler;
 
     protected HoverHelpController fHoverHelpController;
 
@@ -159,12 +186,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private ProblemMarkerManager fProblemMarkerManager;
 
+    private IOccurrenceMarker fOccurrenceMarker;
+
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
-	if (SAFARIPreferenceCache.emitMessages)
+	if (PreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
 	// SMS 4 Apr 2007
 	// Do not set preference store with store obtained from plugin; one is
@@ -303,6 +332,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     // returned and no return seems expected).
     // This change may be specific to Eclipse 3.1 and the method may
     // be removed again in versions of the Editor intended for Eclipse 3.2.
+    // 
+    // SMS 28 Jun 2007:  Yes, indeed, the void return type doesn't work
+    // in Eclipse 3.2.  Converted return type back to Annotation and adapted
+    // procedure to return an annotation in any case.
     
     /**
      * Jumps to the next enabled annotation according to the given direction.
@@ -311,15 +344,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      *
      * @param forward <code>true</code> if search direction is forward, <code>false</code> if backward
      */
-    public /*Annotation*/ void gotoAnnotation(boolean forward) {
+    public Annotation /*void*/ gotoAnnotation(boolean forward) {
 	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
 	Position position= new Position(0, 0);
 
+	// SMS 28 Jun 2007:  declared here for something to return from both
+	// branches
+	 Annotation annotation = null;
+	
 	if (false /* delayed - see bug 18316 */) {
-	    getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+	    annotation = getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
 	    selectAndReveal(position.getOffset(), position.getLength());
 	} else /* no delay - see bug 18316 */{
-	    Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+	    /*Annotation*/ annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
 
 	    setStatusLineErrorMessage(null);
 	    setStatusLineMessage(null);
@@ -329,8 +366,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		setStatusLineMessage(annotation.getText());
 	    }
 	}
+	return annotation;
     }
-
+    
+    
     /**
      * Returns the annotation closest to the given range respecting the given
      * direction. If an annotation is found, the annotations current position
@@ -457,14 +496,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public void createPartControl(Composite parent) {
-	if (SAFARIPreferenceCache.emitMessages)
+	if (PreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
 
 	// Create language service extensions now, for any services that could
 	// get invoked via super.createPartControl().
 	if (fLanguage != null) {
-	    if (SAFARIPreferenceCache.emitMessages)
+	    if (PreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
 	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint(ILanguageService.HYPERLINK_SERVICE);
 	    if (fHyperLinkDetector == null)
@@ -505,14 +544,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
         }
 
-        if (SAFARIPreferenceCache.sourceFont != null)
-	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
+        if (PreferenceCache.sourceFont != null)
+	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
 
 	getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
 
 	if (fLanguage != null) {
 	    try {
-		if (SAFARIPreferenceCache.emitMessages)
+		if (PreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
 		fOutlineController= new OutlineController(this);
 		fPresentationController= new PresentationController(getSourceViewer());
@@ -525,7 +564,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 			((StructuredSourceViewer)sourceViewer).setParseController(getParseController());
 		}
 		if (fFoldingUpdater != null) {
-		    if (SAFARIPreferenceCache.emitMessages)
+		    if (PreferenceCache.emitMessages)
 			RuntimePlugin.getInstance().writeInfoMsg("Enabling source folding for " + fLanguage.getName());
 		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
 		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
@@ -547,6 +586,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		fParserScheduler.addModelListener(fCompletionProcessor);
 		fParserScheduler.addModelListener(fHoverHelpController);
 		
+		// TODO RMF 8/6/2007 - Disable "Mark Occurrences" if no occurrence marker exists for this language
+		// The following doesn't work b/c getAction() doesn't find the Mark Occurrences action (why?)
+//		if (this.fOccurrenceMarker == null)
+//		    getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
+
 		if (fHyperLinkController != null)
 		    fParserScheduler.addModelListener(fHyperLinkController);
 		fParserScheduler.run(new NullProgressMonitor());
@@ -637,26 +681,24 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// parse annotation, delete the marker annotation from the document's
 		// annotation model (but leave the marker on the underlying resource,
 		// which presumably hasn't been changed, despite changes to the document)
-		if (markerAnnotations.size() > 0) {
-			for (int i = 0; i < markerAnnotations.size(); i++) {
-				IMarker marker = ((MarkerAnnotation)markerAnnotations.get(i)).getMarker();
-				try {
-					String markerType = marker.getType();
-					if (!markerType.endsWith(problemMarkerType))
-						continue;
-				} catch (CoreException e) {
-					// If we get a core exception here, probably something is wrong with the
-					// marker, and we probably don't want to keep any annotation that may be
-					// associated with it (I don't think)
-					model.removeAnnotation((MarkerAnnotation)markerAnnotations.get(i));
+		for (int i = 0; i < markerAnnotations.size(); i++) {
+			IMarker marker = ((MarkerAnnotation)markerAnnotations.get(i)).getMarker();
+			try {
+				String markerType = marker.getType();
+				if (!markerType.endsWith(problemMarkerType))
 					continue;
-				}
-				if (markerParseAnnotations.get(marker) != null) {
-					continue;
-				} else {
-					model.removeAnnotation((MarkerAnnotation)markerAnnotations.get(i));
-				}	
+			} catch (CoreException e) {
+				// If we get a core exception here, probably something is wrong with the
+				// marker, and we probably don't want to keep any annotation that may be
+				// associated with it (I don't think)
+				model.removeAnnotation((MarkerAnnotation)markerAnnotations.get(i));
+				continue;
 			}
+			if (markerParseAnnotations.get(marker) != null) {
+				continue;
+			} else {
+				model.removeAnnotation((MarkerAnnotation)markerAnnotations.get(i));
+			}	
 		}
     }
     
@@ -692,7 +734,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     		markerMarkerAnnotations = new HashMap();
     		
     		// Collect the current set of markers and parse annotations;
-    		// also maintain a map of markers to marker annotations (as it
+    		// also maintain a map of markers to marker annotations (as	
     		// there doesn't seem to be a way to get from a marker to the
     		// annotations that may represent it)
     		Iterator annotations = model.getAnnotationIterator();
@@ -811,7 +853,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
 	public int getTabWidth(ISourceViewer sourceViewer) {
-	    return SAFARIPreferenceCache.tabWidth;
+	    return PreferenceCache.tabWidth;
 	}
 
 	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -949,7 +991,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
 
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-	    if (!ExtensionPointFactory.languageServiceExists(RuntimePlugin.UIDE_RUNTIME, OutlineInformationControl.OutlineContentProviderID, fLanguage))
+	    if (!ExtensionPointFactory.languageServiceExists(RuntimePlugin.IMP_RUNTIME, OutlineInformationControl.OutlineContentProviderID, fLanguage))
 		return null;
 
 	    InformationPresenter presenter;
@@ -1060,7 +1102,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    if (damagedToken < 0) {
 			final String msg= "PresentationRepairer.createPresentation(): Could not repair damage @ " + damage.getOffset() + " (invalid damaged token) in " + parseStream.getFileName();
 
-			if (SAFARIPreferenceCache.emitMessages)
+			if (PreferenceCache.emitMessages)
 			    RuntimePlugin.getInstance().writeInfoMsg(msg);
 			else
 			    System.err.println(msg);
@@ -1079,7 +1121,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 				// Problems occur frequently, and this block as originally coded emits a one-line message or,
 				// if not that, prints a long and largely (now) unhelpful exception trace.  I'm removing the
 				// exception trace but, by way of compensation, removing the condition on the message
-				//if (SAFARIPreferenceCache.emitMessages)
+				//if (PreferenceCache.emitMessages)
 				    RuntimePlugin.getInstance().writeInfoMsg(msg);
 				//else
 				    //	ErrorHandler.reportError(msg, e);
@@ -1092,7 +1134,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 				// Problems occur frequently, and this block as originally coded emits a one-line message or,
 				// if not that, prints a long and largely (now) unhelpful exception trace.  I'm removing the
 				// exception trace but, by way of compensation, removing the condition on the message
-				//if (SAFARIPreferenceCache.emitMessages)
+				//if (PreferenceCache.emitMessages)
 				    RuntimePlugin.getInstance().writeInfoMsg(msg);
 				//else
 				    //	ErrorHandler.reportError(msg, e);
@@ -1121,9 +1163,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private final IPropertyChangeListener fPrefStoreListener= new IPropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent event) {
     	if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-    	    getSourceViewer().getTextWidget().setFont(SAFARIPreferenceCache.sourceFont);
+    	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
     	} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
-    	    getSourceViewer().getTextWidget().setTabs(SAFARIPreferenceCache.tabWidth);
+    	    getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
     	}
         }
     };
@@ -1134,8 +1176,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * by the platform's job service.
      */
     // TODO Perhaps this should be driven off of the "IReconcilingStrategy" mechanism?
-    class ParserScheduler extends Job {
-	protected IParseController parseController;
+    public class ParserScheduler extends Job {
+	public IParseController parseController;
 
 	protected List astListeners= new ArrayList();
 
@@ -1173,7 +1215,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    filePath= storageEditorInput.getStorage().getFullPath();
 		}
 
-		if (SAFARIPreferenceCache.emitMessages)
+		if (PreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Parsing language " + fLanguage.getName() + " for input " + getEditorInput().getName());
 
 		// Don't need to retrieve the AST; we don't need it.
@@ -1188,7 +1230,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		//	System.out.println("Bypassed AST listeners (cancelled).");
 	    } catch (Exception e) {
 	    	ErrorHandler.reportError("Error running parser for " + fLanguage.getName() + ":", e);
-		if (SAFARIPreferenceCache.emitMessages)
+		if (PreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Parsing failed for language " + fLanguage.getName() + " and input " + getEditorInput().getName());
                 // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
                 // may have failed at some phase, but there may be enough info to drive IDE services.
@@ -1216,7 +1258,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
 	    // Suppress the notification if there's no AST (e.g. due to a parse error)
 	    if (parseController != null) {
-		if (SAFARIPreferenceCache.emitMessages)
+		if (PreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("Notifying AST listeners of change in " + parseController.getParser().getParseStream().getFileName());
 		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
 		    IModelListener listener= (IModelListener) astListeners.get(n);
@@ -1232,7 +1274,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 			listener.update(parseController, monitor);
 		}
 	    } else
-		if (SAFARIPreferenceCache.emitMessages)
+		if (PreferenceCache.emitMessages)
 		    RuntimePlugin.getInstance().writeInfoMsg("No AST; bypassing listener notification.");
 	}
     }
@@ -1265,6 +1307,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	return fParserScheduler.parseController;
     }
     
+    public IOccurrenceMarker getOccurrenceMarker() {
+        return fOccurrenceMarker;
+    }
+
     // SMS 4 May 2006:
     // Added this as the only way I could think of (so far) to
     // remove parser annotations that I expect to be duplicated

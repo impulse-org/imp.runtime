@@ -1,13 +1,12 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
 
-public class SafariIntegerFieldEditor extends SafariStringFieldEditor {
+public class IntegerFieldEditor extends StringFieldEditor {
 	
 	// From IntegerFieldEditor
     protected int minValidValue = 0;
@@ -31,9 +30,9 @@ public class SafariIntegerFieldEditor extends SafariStringFieldEditor {
      * @param parent the parent of the field editor's control
      * @since 2.0
      */
-    public SafariIntegerFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+    public IntegerFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, int strategy, Composite parent)
     {
     	super(page, tab, service, level, name, labelText, width, strategy, parent);
@@ -50,12 +49,12 @@ public class SafariIntegerFieldEditor extends SafariStringFieldEditor {
      *  or <code>UNLIMITED</code> for no limit
      * @param parent the parent of the field editor's control
      */
-    public SafariIntegerFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+    public IntegerFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
-        super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
+        super(page, tab, service, level, name, labelText, width, org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     }
  
     
@@ -67,9 +66,9 @@ public class SafariIntegerFieldEditor extends SafariStringFieldEditor {
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public SafariIntegerFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-			ISafariPreferencesService service, String level, String name, String labelText,
+    public IntegerFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+			IPreferencesService service, String level, String name, String labelText,
 			Composite parent)
     {
     	// Replaced UNLIMITED text width in the following with default
@@ -138,10 +137,10 @@ public class SafariIntegerFieldEditor extends SafariStringFieldEditor {
 
     
     public String getLevelName() {
-    	if (preferencesLevel.equals(ISafariPreferencesService.DEFAULT_LEVEL)) return "Default";
-    	if (preferencesLevel.equals(ISafariPreferencesService.CONFIGURATION_LEVEL)) return "Configuration";
-    	if (preferencesLevel.equals(ISafariPreferencesService.INSTANCE_LEVEL)) return "Workspace";
-    	if (preferencesLevel.equals(ISafariPreferencesService.PROJECT_LEVEL)) return "Project";
+    	if (preferencesLevel.equals(IPreferencesService.DEFAULT_LEVEL)) return "Default";
+    	if (preferencesLevel.equals(IPreferencesService.CONFIGURATION_LEVEL)) return "Configuration";
+    	if (preferencesLevel.equals(IPreferencesService.INSTANCE_LEVEL)) return "Workspace";
+    	if (preferencesLevel.equals(IPreferencesService.PROJECT_LEVEL)) return "Project";
     	return "";
     }
     

@@ -1,4 +1,4 @@
-package org.eclipse.uide.refactoring;
+package org.eclipse.imp.refactoring;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,15 +9,15 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.model.ISourceProject;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
 public abstract class SourceFileFinder implements IResourceVisitor {
     private final TextFileDocumentProvider fProvider;

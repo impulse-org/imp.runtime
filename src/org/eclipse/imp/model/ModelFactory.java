@@ -1,4 +1,4 @@
-package org.eclipse.uide.model;
+package org.eclipse.imp.model;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,13 +7,13 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.model.IPathEntry.PathEntryType;
-import org.eclipse.uide.model.internal.CompilationUnitRef;
-import org.eclipse.uide.model.internal.PathEntry;
-import org.eclipse.uide.model.internal.SourceProject;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.IPathEntry.PathEntryType;
+import org.eclipse.imp.model.internal.CompilationUnitRef;
+import org.eclipse.imp.model.internal.PathEntry;
+import org.eclipse.imp.model.internal.SourceProject;
 
 /**
  * A factory for implementations of the various common model interfaces, e.g., ISourceProject,

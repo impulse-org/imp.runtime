@@ -1,17 +1,17 @@
 /*
  * Created on Feb 8, 2006
  */
-package org.eclipse.uide.internal.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
-import org.eclipse.uide.editor.ISourceHyperlinkDetector;
-import org.eclipse.uide.editor.UniversalEditor;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
 
 public class SourceHyperlinkController implements IHyperlinkDetector, IModelListener {
     private final ISourceHyperlinkDetector fSourceHyperlinkDetector;

@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 public class Markings {
 

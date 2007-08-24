@@ -1,4 +1,4 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.core;
 
 /**
  * <code>Assert</code> is useful for for embedding runtime sanity checks in code. The static predicate methods all
@@ -89,7 +89,7 @@ public final class Assert {
      */
     public static void isNotNull(Object object, String message) {
         if (object == null)
-            throw new AssertionFailedException(SAFARIMessages.Assert_null_argument + message);
+            throw new AssertionFailedException(IMPMessages.Assert_null_argument + message);
     }
 
     /**
@@ -120,7 +120,7 @@ public final class Assert {
      */
     public static boolean isTrue(boolean expression, String message) {
         if (!expression)
-            throw new AssertionFailedException(SAFARIMessages.Assert_assertion_failed + message);
+            throw new AssertionFailedException(IMPMessages.Assert_assertion_failed + message);
         return expression;
     }
 

@@ -1,4 +1,4 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.language;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.core.ErrorHandler;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -15,7 +16,7 @@ import org.eclipse.core.runtime.CoreException;
 /**
  * @author Claffra
  *
- * The interface to be implemented by contributors of the org.eclipse.uide.runtime.languageDescription extension point.
+ * The interface to be implemented by contributors of the org.eclipse.imp.runtime.languageDescription extension point.
  */
 public abstract class LanguageValidator {
     

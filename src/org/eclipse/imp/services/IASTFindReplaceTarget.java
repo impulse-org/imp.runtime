@@ -1,7 +1,7 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.services;
 
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.uide.parser.IParseController;
 
 public interface IASTFindReplaceTarget {
     String getSelectionText();

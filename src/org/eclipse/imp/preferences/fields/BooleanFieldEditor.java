@@ -1,9 +1,11 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.jface.preference.BooleanFieldEditor;
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.Markings;
+import org.eclipse.imp.preferences.PreferencesTab;
+import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -12,15 +14,10 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.Markings;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
-import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 import org.osgi.service.prefs.BackingStoreException;
 
 
-public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEditor
+public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
 {
 	/*
 	 * Fields copied from BooleanFieldEditor
@@ -64,9 +61,9 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
      * @see #DEFAULT
      * @see #SEPARATE_LABEL
      */
-    public SafariBooleanFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level,
+    public BooleanFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level,
     		String name, String labelText, int style, final Composite parent)
     {
     	super(page, tab, service, level, name, labelText, parent);
@@ -82,9 +79,9 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public SafariBooleanFieldEditor(
-		PreferencePage page, SafariPreferencesTab tab,
-   		ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
+    public BooleanFieldEditor(
+		PreferencePage page, PreferencesTab tab,
+   		IPreferencesService service, String level, String name, String labelText, Composite parent)
     {
         this(page, tab, service, level, name, labelText, DEFAULT, parent);
     }
@@ -127,7 +124,7 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
 	    		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
 				setInherited(true);
 	    	}
-        	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+        	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
         	setBooleanValue(value);
         }
         
@@ -140,8 +137,8 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
      */
     protected void doLoadDefault() {
         if (getChangeControl() != null) {
-            boolean value = preferencesService.getBooleanPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName());
-        	levelFromWhichLoaded = ISafariPreferencesService.DEFAULT_LEVEL;
+            boolean value = preferencesService.getBooleanPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName());
+        	levelFromWhichLoaded = IPreferencesService.DEFAULT_LEVEL;
             setInherited(false);	// We're putting the default value here directly, not inheriting it
             setPresentsDefaultValue(true);
             setBooleanValue(value);	// calls valueChanged();
@@ -163,7 +160,7 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
          	// We're putting the level's value here directly, not inheriting it, so ...
         	levelFromWhichLoaded = level;
         	setInherited(false);
-           	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(level));
+           	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(level));
         	setBooleanValue(value);	// calls valueChanged();
         }
     }
@@ -188,7 +185,7 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
     {
     	String levelLoaded = null;
     	
-    	String[] levels = ISafariPreferencesService.levels;
+    	String[] levels = IPreferencesService.levels;
     	int fieldLevelIndex = preferencesService.getIndexForLevel(preferencesLevel);
     		
     	// If we're loading with inheritance for some field that is
@@ -226,15 +223,15 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
     	// Ok, now have all necessary information to set everyting that needs to be set
     	levelFromWhichLoaded = levelLoaded;
     	setInherited(fieldLevelIndex != levelAtWhichFound);
-       	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+       	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
        	setPreviousBooleanValue(getBooleanValue());
     	setBooleanValue(value);
     	
     	if (!isInherited())
-    		getChangeControl().setBackground(SafariPreferencesUtilities.colorLightGray);
+    		getChangeControl().setBackground(PreferencesUtilities.colorWhite);
     	else
-    		getChangeControl().setBackground(SafariPreferencesUtilities.colorBluish);	
-    	setPresentsDefaultValue(levelAtWhichFound == ISafariPreferencesService.DEFAULT_INDEX);
+    		getChangeControl().setBackground(PreferencesUtilities.colorBluish);	
+    	setPresentsDefaultValue(levelAtWhichFound == IPreferencesService.DEFAULT_INDEX);
     	fieldModified = true;
 
         return levelLoaded;
@@ -261,7 +258,7 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
    		// of the tab.
    		// TODO:  figure out how to determine the actual prevailing background
    		// color and use that here
-   		getChangeControl().setBackground(SafariPreferencesUtilities.colorLightGray);
+   		getChangeControl().setBackground(PreferencesUtilities.colorWhite);
     	
    		
     	// Now write out the node
@@ -375,9 +372,9 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
                 setModifiedMarkOnLabel();
                 valueChanged();
         } else if (button.isDisposed()){
-        	throw new IllegalStateException("SafariBooleanFieldEditor.setBooleanValue:  button is disposed");
+        	throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is disposed");
         } else if (button == null) {
-        	throw new IllegalStateException("SafariBooleanFieldEditor.setBooleanValue:  button is null");
+        	throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is null");
         }
     }
 
@@ -419,8 +416,8 @@ public class SafariBooleanFieldEditor extends SafariFieldEditor //BooleanFieldEd
     /*
      * For boolean fields we override the following two methods because
      * the means of accessing the text to be modified is different.
-     * @see org.eclipse.uide.preferences.fields.SafariFieldEditor#setModifyMarkOnLabel()
-     * @see org.eclipse.uide.preferences.fields.SafariFieldEditor#clearModifyMarkOnLabel()
+     * @see org.eclipse.imp.preferences.fields.FieldEditor#setModifyMarkOnLabel()
+     * @see org.eclipse.imp.preferences.fields.FieldEditor#clearModifyMarkOnLabel()
      */
     
     

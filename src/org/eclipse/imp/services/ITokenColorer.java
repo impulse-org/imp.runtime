@@ -1,10 +1,10 @@
-package org.eclipse.uide.editor;
-
-import org.eclipse.jface.text.TextAttribute;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.parser.IParseController;
+package org.eclipse.imp.services;
 
 import lpg.runtime.IToken;
+
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.TextAttribute;
 
 /*
  * Licensed Materials - Property of IBM,

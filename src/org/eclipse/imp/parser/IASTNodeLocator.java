@@ -1,7 +1,7 @@
 /**
  * 
  */
-package org.eclipse.uide.parser;
+package org.eclipse.imp.parser;
 
 import org.eclipse.core.runtime.IPath;
 

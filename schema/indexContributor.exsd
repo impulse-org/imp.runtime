@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide">
+<schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="index" name="SAFARI Index of shared artifacts"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="index" name="IMP Index of shared artifacts"/>
       </appInfo>
       <documentation>
-         The org.eclipse.uide.indexContributor extension point allows contributors to define and share artifacts through a central index. What is kept in the index, and how to access it, is left up to the implementors of the programming language.
+         The org.eclipse.imp.indexContributor extension point allows contributors to define and share artifacts through a central index. What is kept in the index, and how to access it, is left up to the implementors of the programming language.
       </documentation>
    </annotation>
 
@@ -18,7 +18,7 @@
       </annotation>
       <complexType>
          <sequence>
-            <element ref="indexContributor" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="indexContributor"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -74,7 +74,7 @@ The extension point serves mostly as a central registration location for languag
                   The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.indexing.IndexContributorBase"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.indexing.IndexContributorBase"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -104,7 +104,7 @@ The extension point serves mostly as a central registration location for languag
          <meta.section type="apiInfo"/>
       </appInfo>
       <documentation>
-         Contributor should implement the &lt;tt&gt;org.eclipse.uide.Index&lt;/tt&gt; class.
+         Contributor should implement the &lt;tt&gt;org.eclipse.imp.Index&lt;/tt&gt; class.
       </documentation>
    </annotation>
 
@@ -113,7 +113,7 @@ The extension point serves mostly as a central registration location for languag
          <meta.section type="implementation"/>
       </appInfo>
       <documentation>
-         org.eclipse.uide.Index
+         org.eclipse.imp.Index
       </documentation>
    </annotation>
 

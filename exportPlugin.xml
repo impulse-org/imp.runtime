@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="org.eclipse.uide.runtime" default="build.update.jar" basedir=".">
-	<import file="../org.eclipse.safari.runtime.feature/buildCommon.xml"/>
-	<import file="../org.eclipse.safari.update/buildPluginCommon.xml"/>
+<project name="org.eclipse.imp.runtime" default="build.update.jar" basedir=".">
+	<import file="../org.eclipse.imp.runtime.feature/buildCommon.xml"/>
+	<import file="../org.eclipse.imp.update/buildPluginCommon.xml"/>
 
 	<target name="init" depends="properties">
-		<property name="plugin.name" value="org.eclipse.uide.runtime"/>
-		<property name="plugin.version" value="${runtime.version}"/>
+		<property name="plugin.name" value="org.eclipse.imp.runtime"/>
+		<property name="plugin.version" value="${plugins.version.32}"/>
 		<property name="plugin.jar.name" value="${plugin.name}_${plugin.version}.jar"/>
 		<property name="plugin.zip.name" value="${plugin.name}_${plugin.version}.zip"/>
 		<property name="plugin.src.zip" value="${plugin.name}_src.zip"/>
@@ -34,8 +34,8 @@
 		<javac destdir="${temp.folder}/${plugin.jar.name}.bin" failonerror="${javacFailOnError}" verbose="${javacVerbose}" debug="${javacDebugInfo}" includeAntRuntime="no" bootclasspath="${bootclasspath}" source="${javacSource}" target="${javacTarget}">
 			<compilerarg line="${compilerArg}"/>
 			<classpath>
-				<pathelement location="../lpg.runtime.java/lpg.runtime_2.0.4.jar"/>
-				<pathelement location="../com.ibm.watson.smapi/com.ibm.watson.smapi_${runtime.version}.jar"/>
+				<pathelement location="../lpg.runtime.java/bin"/>
+				<pathelement location="../com.ibm.watson.smapi/bin"/>
 				<pathelement path="${eclipse.build.path}"/>
 			</classpath>
 			<src path="src/"/>

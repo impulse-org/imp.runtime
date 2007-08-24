@@ -1,6 +1,6 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.services;
 
-import org.eclipse.uide.parser.IParseController;
+import org.eclipse.imp.parser.IParseController;
 
 
 /**

@@ -1,15 +1,16 @@
-package org.eclipse.uide.utils;
+package org.eclipse.imp.utils;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IContributor;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.preferences.SAFARIPreferenceCache;
-import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
 /*
@@ -23,7 +24,19 @@ import org.osgi.framework.Bundle;
  */
 public class ExtensionPointFactory {
     public static ILanguageService createExtensionPoint(Language language, String extensionPointID) {
-	return createExtensionPoint(language, RuntimePlugin.UIDE_RUNTIME, extensionPointID);
+	return createExtensionPoint(language, RuntimePlugin.IMP_RUNTIME, extensionPointID);
+    }
+
+    public static String getLanguageID(String pluginID) {
+	IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.IMP_RUNTIME, RuntimePlugin.LANGUAGE_DESCRIPTOR);
+	IConfigurationElement[] configElements= extensionPoint.getConfigurationElements();
+
+	for(int i= 0; i < configElements.length; i++) {
+	    IContributor contrib= configElements[i].getContributor();
+	    if (contrib.getName().equals(pluginID))
+		return configElements[i].getAttribute(Language.LANGUAGE_ID_ATTR);
+	}
+	return null;
     }
 
     public static ILanguageService createExtensionPoint(Language language, String pluginID, String extensionPointId) {
@@ -82,7 +95,7 @@ public class ExtensionPointFactory {
 
 	    service= (ILanguageService) Class.forName(defaultClass).newInstance();
 	} catch (ClassNotFoundException e) {
-	    if (SAFARIPreferenceCache.emitMessages)
+	    if (PreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("No language-specific or default implementation found for service " + extensionPointId + " and language " + language.getName());
 	    //else
 		//ErrorHandler.reportError("No language-specific or default implementation found for service " + extensionPointId + " and language " + language.getName(), false, true);
@@ -106,7 +119,7 @@ public class ExtensionPointFactory {
 		Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
 
 		if (bundle != null) {
-		    final String attrValue= element.getAttribute("language");
+		    final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
 
 		    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase()))
 			return true;
@@ -140,7 +153,7 @@ public class ExtensionPointFactory {
 		Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
 
 		if (bundle != null) {
-		    final String attrValue= element.getAttribute("language");
+		    final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
 
 		    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
 			return (ILanguageService) element.createExecutableExtension("class");

@@ -8,7 +8,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jdt.ui.JavaUI;

@@ -1,14 +1,16 @@
-package org.eclipse.uide.parser;
+package org.eclipse.imp.parser;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
 import lpg.runtime.IMessageHandler;
 import lpg.runtime.IToken;
 import lpg.runtime.Monitor;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.uide.model.ISourceProject;
+import org.eclipse.imp.model.ISourceProject;
 
 /**
  * Base class for an IParseController implementation that encapsulates a simple LPG-based

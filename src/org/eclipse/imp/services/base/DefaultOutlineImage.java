@@ -1,9 +1,9 @@
-package org.eclipse.uide.defaults;
+package org.eclipse.imp.services.base;
 
+import org.eclipse.imp.services.IOutlineImage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.uide.editor.IOutlineImage;
 
 
 
@@ -23,7 +23,7 @@ public class DefaultOutlineImage implements IOutlineImage
 
 	private static final String IMAGE_ROOT= "icons";
 
-	private static ImageDescriptor OUTLINE_ITEM_DESC= AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.uide.runtime", IMAGE_ROOT + "/outline_item.gif");
+	private static ImageDescriptor OUTLINE_ITEM_DESC= AbstractUIPlugin.imageDescriptorFromPlugin("org.eclipse.imp.runtime", IMAGE_ROOT + "/outline_item.gif");
 
 	private static Image OUTLINE_ITEM_IMAGE= OUTLINE_ITEM_DESC.createImage();
 

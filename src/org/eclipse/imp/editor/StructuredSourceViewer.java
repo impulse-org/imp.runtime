@@ -1,5 +1,7 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
+import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
@@ -14,8 +16,6 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.uide.editor.UniversalEditor.StructuredSourceViewerConfiguration;
-import org.eclipse.uide.parser.IParseController;
 
 public class StructuredSourceViewer extends ProjectionViewer {
     /**
@@ -37,6 +37,12 @@ public class StructuredSourceViewer extends ProjectionViewer {
      * Text operation code for toggling the commenting of a selected range of text, or the current line.
      */
     public static final int TOGGLE_COMMENT= 54;
+
+    /**
+     * Text operation code for toggling the display of "occurrences" of the
+     * current selection, whatever that means to the current language.
+     */
+    public static final int MARK_OCCURRENCES= 55;
 
     private IInformationPresenter fOutlinePresenter;
 

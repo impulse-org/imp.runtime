@@ -1,17 +1,17 @@
-package org.eclipse.uide.defaults;
+package org.eclipse.imp.services.base;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.editor.IFoldingUpdater;
-import org.eclipse.uide.parser.IASTNodeLocator;
-import org.eclipse.uide.parser.IParseController;
 
 
 /**

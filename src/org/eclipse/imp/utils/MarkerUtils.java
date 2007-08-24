@@ -1,9 +1,9 @@
-package org.eclipse.uide.utils;
+package org.eclipse.imp.utils;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.uide.runtime.RuntimePlugin;
+import org.eclipse.imp.runtime.RuntimePlugin;
 
 public class MarkerUtils {
     private MarkerUtils() { }

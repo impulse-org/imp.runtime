@@ -1,11 +1,10 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model.internal;
+package org.eclipse.imp.model.internal;
 
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.uide.model.IPathEntry;
-import org.eclipse.uide.model.IPathEntry.PathEntryType;
+import org.eclipse.imp.model.IPathEntry;
 
 public class PathEntry implements IPathEntry {
     private final IPath fPath;

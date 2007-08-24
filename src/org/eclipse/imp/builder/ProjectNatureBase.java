@@ -1,7 +1,7 @@
 /*
  * Created on Nov 1, 2005
  */
-package org.eclipse.uide.core;
+package org.eclipse.imp.builder;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +11,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.uide.runtime.IPluginLog;
+import org.eclipse.imp.runtime.IPluginLog;
 
 public abstract class ProjectNatureBase implements IProjectNature {
     private IProject fProject;
@@ -60,7 +60,7 @@ public abstract class ProjectNatureBase implements IProjectNature {
 	// over prior implementations) then the autostart property may be lost and the
 	// pluin may not be started yet.
 	IPluginLog log = getLog();
-	log.maybeWriteInfoMsg("Attempting to add nature" + natureID);
+	log.maybeWriteInfoMsg("Attempting to add nature " + natureID);
 
 	try {
 	    IProjectDescription	description= project.getDescription();

@@ -1,12 +1,12 @@
-package org.eclipse.uide.defaults;
+package org.eclipse.imp.services.base;
 
 import lpg.runtime.IToken;
 
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.uide.editor.ITokenColorer;
-import org.eclipse.uide.parser.IParseController;
 
 public class TokenColorerBase implements ITokenColorer {
 

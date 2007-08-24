@@ -1,19 +1,19 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide">
+<schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="languageDescription" name="SAFARI Programming Language Description"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="languageDescription" name="IMP Programming Language Description"/>
       </appInfo>
       <documentation>
-         The org.eclipse.uide.languageDescription extension points allows contributors to describe a programming language by providing attributes such as a name for the language, synonyms, a description, and a URL with more information on the programming language.
+         The org.eclipse.imp.runtime.languageDescription extension points allows contributors to describe a programming language by providing attributes such as a name for the language, synonyms, a description, and a URL with more information on the programming language.
       </documentation>
    </annotation>
 
    <element name="extension">
       <complexType>
          <sequence>
-            <element ref="language" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="language"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -98,7 +98,7 @@ In the latter two cases, the input could be ambiguous; multiple languages use th
 &lt;/ul&gt;
 &lt;p&gt;
 Derivation is used in determining inheritance relationships when locating language service implementations for a given language.
-For example, suppose a PHP source file is opened, but no PHP editor is available. Given the inheritance relationships above, SAFARI attempts to locate an HTML editor, and if none is found, an XML editor is located; failing that, a simple text editor is used.
+For example, suppose a PHP source file is opened, but no PHP editor is available. Given the inheritance relationships above, IMP attempts to locate an HTML editor, and if none is found, an XML editor is located; failing that, a simple text editor is used.
 &lt;p&gt;
                </documentation>
             </annotation>
@@ -130,7 +130,7 @@ The class must extend the LanguageValidator class. The validate method will be c
 &lt;p&gt;
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.core.LanguageValidator"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.core.LanguageValidator"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -180,7 +180,7 @@ check for a given unique signature.
          <meta.section type="implementation"/>
       </appInfo>
       <documentation>
-         org.eclipse.uide.code.LanguageValidator
+         org.eclipse.imp.code.LanguageValidator
       </documentation>
    </annotation>
 

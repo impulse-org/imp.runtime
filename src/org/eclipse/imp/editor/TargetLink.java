@@ -1,4 +1,4 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,7 +11,6 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;

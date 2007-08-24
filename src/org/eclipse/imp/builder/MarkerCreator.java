@@ -1,13 +1,13 @@
-package org.eclipse.uide.builder;
-
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.uide.parser.IParseController;
+package org.eclipse.imp.builder;
 
 import lpg.runtime.IMessageHandler;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
+
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.parser.IParseController;
 
 
 /**

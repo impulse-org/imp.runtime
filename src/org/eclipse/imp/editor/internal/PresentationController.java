@@ -1,13 +1,21 @@
-package org.eclipse.uide.internal.editor;
+package org.eclipse.imp.editor.internal;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import lpg.runtime.ErrorToken;
+import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ParseError;
+import org.eclipse.imp.services.ITokenColorer;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
@@ -18,14 +26,12 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.editor.ITokenColorer;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.parser.ParseError;
-import org.eclipse.uide.utils.ExtensionPointFactory;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
+
 
 /**
  * @author Claffra
@@ -36,11 +42,11 @@ public class PresentationController implements IModelListener {
 
     private ITokenColorer colorer;
 
-    private List annotations;
+    private List<Annotation> annotations;
 
     public PresentationController(ISourceViewer sourceViewer) {
 	this.sourceViewer= sourceViewer;
-	annotations= new ArrayList();
+	annotations= new ArrayList<Annotation>();
     }
 
     public AnalysisRequired getAnalysisRequired() {
@@ -80,10 +86,55 @@ public class PresentationController implements IModelListener {
 	}
     }
 
+    private boolean dumpTokens= false;
+    private static final String CONSOLE_NAME= "Source Statistics";
+
+    private MessageConsole findConsole() {
+        MessageConsole myConsole= null;
+        final IConsoleManager consoleManager= ConsolePlugin.getDefault().getConsoleManager();
+        IConsole[] consoles= consoleManager.getConsoles();
+        for(int i= 0; i < consoles.length; i++) {
+            IConsole console= consoles[i];
+            if (console.getName().equals(CONSOLE_NAME))
+                myConsole= (MessageConsole) console;
+        }
+        if (myConsole == null) {
+            myConsole= new MessageConsole(CONSOLE_NAME, null);
+            consoleManager.addConsoles(new IConsole[] { myConsole });
+        }
+        consoleManager.showConsoleView(myConsole);
+        return myConsole;
+    }
+
+    private void dumpToken(IPrsStream prs, int i, MessageConsoleStream mcs) {
+	mcs.print( " (" + prs.getKind(i) + ")");
+	mcs.print(" \t" + prs.getStartOffset(i));
+	mcs.print(" \t" + prs.getTokenLength(i));
+	mcs.print(" \t" + prs.getLineNumberOfTokenAt(i));
+	mcs.print(" \t" + prs.getColumnOfTokenAt(i));
+	mcs.print(" \t" + prs.getTokenText(i));
+	mcs.println();
+    }
+
+    private void dumpTokens(IPrsStream prs, MessageConsoleStream mcs) {
+	if (prs.getSize() > 2) {
+	    mcs.println(" Kind \tOffset \tLen \tLine \tCol \tText");
+	    for(int i = 1; i < prs.getSize() - 1; i++)
+		dumpToken(prs, i, mcs);
+	}
+    }
+
     public void changeTextPresentation(IParseController controller, IProgressMonitor monitor, Region damage) {
 	if (controller == null) {
 	    return;
 	}
+	if (dumpTokens) {
+	    MessageConsole myConsole= findConsole();
+	    MessageConsoleStream consStream= myConsole.newMessageStream();
+
+	    dumpTokens(controller.getParser().getParseStream(), consStream);
+	}
+
 	int startIndex= controller.getTokenIndexAtCharacter(damage.getOffset());
 	int endIndex= controller.getTokenIndexAtCharacter(damage.getOffset() + damage.getLength());
 	final TextPresentation presentation= new TextPresentation();

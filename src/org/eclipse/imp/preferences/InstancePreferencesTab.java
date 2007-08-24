@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 
 import org.eclipse.swt.SWT;
@@ -10,15 +10,15 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
-public class InstancePreferencesTab extends SafariPreferencesTab {
+public class InstancePreferencesTab extends PreferencesTab {
 	
-	public InstancePreferencesTab(ISafariPreferencesService prefService) {
+	public InstancePreferencesTab(IPreferencesService prefService) {
 		this.prefService = prefService;
-		prefUtils = new SafariPreferencesUtilities(prefService);
+		prefUtils = new PreferencesUtilities(prefService);
 	}
 	
 	
-	public Composite createInstancePreferencesTab(SafariTabbedPreferencesPage page, final TabFolder tabFolder) {
+	public Composite createInstancePreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
 		prefPage = page;
 
@@ -37,18 +37,18 @@ public class InstancePreferencesTab extends SafariPreferencesTab {
 		tabItem = new TabItem(tabFolder, SWT.NONE);
 		tabItem.setText("Workspace");
 		tabItem.setControl(composite);
-		SafariPreferencesTab.TabSelectionListener listener = 
-			new SafariPreferencesTab.TabSelectionListener(prefPage, tabItem);
+		PreferencesTab.TabSelectionListener listener = 
+			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
 		tabFolder.addSelectionListener(listener);
 		
 		
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(page, this, ISafariPreferencesService.INSTANCE_LEVEL, composite, prefService);
+		fields = createFields(page, this, IPreferencesService.INSTANCE_LEVEL, composite, prefService);
 
 		
-		SafariPreferencesUtilities.fillGridPlace(composite, 2);
+		PreferencesUtilities.fillGridPlace(composite, 2);
 		
 
 		// Don't want newly created fields to be flagged as modified
@@ -71,7 +71,7 @@ public class InstancePreferencesTab extends SafariPreferencesTab {
         			Markings.MODIFIED_NOTE + "\n\n" +
         			Markings.TAB_ERROR_NOTE);
         
-		SafariPreferencesUtilities.fillGridPlace(bottom, 1);
+		PreferencesUtilities.fillGridPlace(bottom, 1);
 		
 		 
 		// Put bottons on the bottom
@@ -99,7 +99,7 @@ public class InstancePreferencesTab extends SafariPreferencesTab {
 		// Clear all preferences at this level and reload them
 		// using inheritance (so a value will be found at a higher
 		// level if none is set at this level)
-		prefService.clearPreferencesAtLevel(ISafariPreferencesService.INSTANCE_LEVEL);
+		prefService.clearPreferencesAtLevel(IPreferencesService.INSTANCE_LEVEL);
 
 		for (int i = 0; i < fields.length; i++) {
 			fields[i].loadWithInheritance();

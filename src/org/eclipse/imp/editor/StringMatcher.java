@@ -1,6 +1,6 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
-import java.util.*;
+import java.util.Vector;
 
 /**
  * A string pattern matcher. Supports '*' and '?' wildcards. Copied from org.eclipse.jdt.ui.util.

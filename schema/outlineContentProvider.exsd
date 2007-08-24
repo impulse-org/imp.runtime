@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide.runtime">
+<schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide.runtime" id="outlineContentProvider" name="Outline Content Provider"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="outlineContentProvider" name="Outline Content Provider"/>
       </appInfo>
       <documentation>
          [Enter description of this extension point.]
@@ -13,6 +13,7 @@
    <element name="extension">
       <complexType>
          <sequence>
+            <element ref="outlineContentProvider"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>

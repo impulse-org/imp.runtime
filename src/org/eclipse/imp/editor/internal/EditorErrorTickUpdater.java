@@ -1,16 +1,17 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.imp.editor.IProblemChangedListener;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
 /**
  * @author Dr. Robert M. Fuhrer
@@ -40,6 +41,9 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
         IEditorInput input= fEditor.getEditorInput();
 
         if (input != null) { // might run async, tests needed
+            if (!(input instanceof IFileEditorInput)) // The editor might be looking at something outside the workspace (e.g. system include files).
+        	return;
+
             IFileEditorInput fileInput= (IFileEditorInput) input;
             IFile file= fileInput.getFile();
 

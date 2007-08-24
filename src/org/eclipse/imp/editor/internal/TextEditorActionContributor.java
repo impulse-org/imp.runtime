@@ -1,9 +1,9 @@
-/**
- * 
- */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import java.util.ResourceBundle;
+
+import org.eclipse.imp.editor.GotoAnnotationAction;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jdt.ui.actions.JdtActionConstants;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IActionBars;

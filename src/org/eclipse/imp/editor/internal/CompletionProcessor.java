@@ -1,23 +1,20 @@
-/**
- * 
- */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IContentProposer;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
-class CompletionProcessor implements IContentAssistProcessor, IModelListener {
+public class CompletionProcessor implements IContentAssistProcessor, IModelListener {
 	private final IContextInformation[] NO_CONTEXTS= new IContextInformation[0];
 
 	private ICompletionProposal[] NO_COMPLETIONS= new ICompletionProposal[0];

@@ -1,10 +1,16 @@
-package org.eclipse.uide.defaults;
+package org.eclipse.imp.services.base;
 
 import java.util.ArrayList;
 import java.util.Stack;
 
 import lpg.runtime.IToken;
 
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IOutlineImage;
+import org.eclipse.imp.services.IOutliner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -13,12 +19,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.editor.IOutlineImage;
-import org.eclipse.uide.editor.IOutliner;
-import org.eclipse.uide.editor.UniversalEditor;
-import org.eclipse.uide.parser.IASTNodeLocator;
-import org.eclipse.uide.parser.IParseController;
 
 /**
  * OutlinerBase is an abstract base type for a source-text outlining service.
@@ -30,7 +30,7 @@ import org.eclipse.uide.parser.IParseController;
  * a method that sends a visitor to an AST, as both the visitor and AST types
  * are language-specific.
  * 
- * @see org.eclipse.uide.defaults.DefaultOutliner
+ * @see org.eclipse.imp.defaults.DefaultOutliner
  * 
  * @author 	suttons@us.ibm.com
  * Updates:

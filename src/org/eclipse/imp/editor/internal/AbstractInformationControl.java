@@ -1,4 +1,4 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.commands.Command;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -7,7 +7,12 @@ import org.eclipse.core.commands.IExecutionListener;
 import org.eclipse.core.commands.NotHandledException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.jdt.core.IParent;
+import org.eclipse.imp.editor.StringMatcher;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.runtime.PluginImages;
 import org.eclipse.jdt.ui.actions.CustomFiltersActionGroup;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
@@ -22,7 +27,6 @@ import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlExtension;
 import org.eclipse.jface.text.IInformationControlExtension2;
 import org.eclipse.jface.text.IInformationControlExtension3;
-import org.eclipse.jface.text.Position;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.ITreeContentProvider;
@@ -31,7 +35,23 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
+import org.eclipse.swt.events.FocusListener;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseMoveListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.ShellAdapter;
+import org.eclipse.swt.events.ShellEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
@@ -41,7 +61,23 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Layout;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.ToolBar;
+import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tracker;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IKeyBindingService;
 import org.eclipse.ui.IWorkbenchPage;
@@ -52,10 +88,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.commands.ICommandService;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.ide.IDE;
-import org.eclipse.uide.parser.IASTNodeLocator;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.runtime.SAFARIPluginImages;
 
 /**
  * Abstract class for Show hierarchy in light-weight controls.
@@ -67,7 +99,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
      * The NamePatternFilter selects the elements which
      * match the given string patterns.
      */
-    protected class NamePatternFilter extends ViewerFilter {
+    public class NamePatternFilter extends ViewerFilter {
 	public NamePatternFilter() {}
 
 	/* (non-Javadoc)
@@ -518,8 +550,8 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	data.horizontalAlignment= GridData.END;
 	data.verticalAlignment= GridData.BEGINNING;
 	fToolBar.setLayoutData(data);
-	viewMenuButton.setImage(SAFARIPluginImages.get(SAFARIPluginImages.VIEW_MENU_IMAGE));
-	viewMenuButton.setDisabledImage(SAFARIPluginImages.get(SAFARIPluginImages.VIEW_MENU_IMAGE));
+	viewMenuButton.setImage(PluginImages.get(PluginImages.VIEW_MENU_IMAGE));
+	viewMenuButton.setDisabledImage(PluginImages.get(PluginImages.VIEW_MENU_IMAGE));
 	viewMenuButton.setToolTipText("View Menu");
 	viewMenuButton.addSelectionListener(new SelectionAdapter() {
 	    public void widgetSelected(SelectionEvent e) {
@@ -701,11 +733,11 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		else {
 		    IWorkbenchPage p= RuntimePlugin.getInstance().getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		    IEditorPart editor= p.getActiveEditor();
-		    UniversalEditor uide= (UniversalEditor) editor;
-		    IParseController parseController= uide.fParserScheduler.parseController;
+		    UniversalEditor ue= (UniversalEditor) editor;
+		    IParseController parseController= ue.fParserScheduler.parseController;
 		    IASTNodeLocator locator= parseController.getNodeLocator();
 
-		    uide.selectAndReveal(locator.getStartOffset(selectedElement), 0 /*pos.length*/);
+		    ue.selectAndReveal(locator.getStartOffset(selectedElement), 0 /*pos.length*/);
 		}
 	    } catch (CoreException ex) {
 		RuntimePlugin.getInstance().writeErrorMsg(ex.getMessage());

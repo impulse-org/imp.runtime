@@ -1,7 +1,7 @@
 /*
  * Created on Nov 1, 2005
  */
-package org.eclipse.uide.core;
+package org.eclipse.imp.builder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,13 +20,13 @@ import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.uide.runtime.SAFARIPluginBase;
+import org.eclipse.imp.runtime.PluginBase;
 
-public abstract class SAFARIBuilderBase extends IncrementalProjectBuilder {
+public abstract class BuilderBase extends IncrementalProjectBuilder {
     /**
      * @return the plugin associated with this builder instance
      */
-    protected abstract SAFARIPluginBase getPlugin();
+    protected abstract PluginBase getPlugin();
 
     /**
      * @return true iff the given file is a source file that this builder should compile.

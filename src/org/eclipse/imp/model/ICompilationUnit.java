@@ -1,7 +1,7 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model;
+package org.eclipse.imp.model;
 
 import lpg.runtime.IMessageHandler;
 

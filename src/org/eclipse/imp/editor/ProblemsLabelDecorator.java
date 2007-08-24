@@ -1,6 +1,7 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.util.Iterator;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;

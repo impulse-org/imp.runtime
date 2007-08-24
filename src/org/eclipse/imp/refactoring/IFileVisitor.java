@@ -1,4 +1,4 @@
-package org.eclipse.uide.refactoring;
+package org.eclipse.imp.refactoring;
 
 import org.eclipse.core.resources.IFile;
 

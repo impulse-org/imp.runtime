@@ -1,6 +1,10 @@
-package org.eclipse.uide.preferences.fields.details;
+package org.eclipse.imp.preferences.fields.details;
 
 
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesUtilities;
+import org.eclipse.imp.preferences.fields.PreferenceDialogConstants;
+import org.eclipse.imp.preferences.fields.StringFieldEditor;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceColors;
 import org.eclipse.osgi.util.NLS;
@@ -17,26 +21,22 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.internal.dialogs.ProductInfoDialog;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesUtilities;
-import org.eclipse.uide.preferences.fields.PreferenceDialogConstants;
-import org.eclipse.uide.preferences.fields.SafariStringFieldEditor;
 
 
 public class DetailsDialogForStringFields extends ProductInfoDialog {
 
 	Shell parent = null;
-	SafariStringFieldEditor field = null;
+	StringFieldEditor field = null;
 	Composite fieldHolder = null;
-	ISafariPreferencesService preferencesService = null;
+	IPreferencesService preferencesService = null;
 	
-	private SafariPreferencesUtilities prefUtils = null;
+	private PreferencesUtilities prefUtils = null;
 	
 	public DetailsDialogForStringFields (
 			Shell parent,
-			SafariStringFieldEditor field,
+			StringFieldEditor field,
 			Composite fieldHolder,
-			ISafariPreferencesService preferencesService)
+			IPreferencesService preferencesService)
 	{
         super(parent);
         
@@ -44,7 +44,7 @@ public class DetailsDialogForStringFields extends ProductInfoDialog {
         this.field = field;
         this.fieldHolder = fieldHolder;
         this.preferencesService = preferencesService;
-        this.prefUtils = new SafariPreferencesUtilities(this.preferencesService);	
+        this.prefUtils = new PreferencesUtilities(this.preferencesService);	
 	}
 
     	private final static int COPY_ID = IDialogConstants.CLIENT_ID + 1;
@@ -67,7 +67,7 @@ public class DetailsDialogForStringFields extends ProductInfoDialog {
 	     * 
 	     */
 	    protected void buttonPressed(int buttonId) {
-	    	if (field.getPreferencesLevel().equals(ISafariPreferencesService.PROJECT_LEVEL) && 
+	    	if (field.getPreferencesLevel().equals(IPreferencesService.PROJECT_LEVEL) && 
 	    		preferencesService.getProject() == null)
 	    	{
 	    		return;
@@ -133,7 +133,7 @@ public class DetailsDialogForStringFields extends ProductInfoDialog {
        
 	        //	boolean enabled;
         
-	        if (!field.getPreferencesLevel().equals(ISafariPreferencesService.DEFAULT_LEVEL)) {
+	        if (!field.getPreferencesLevel().equals(IPreferencesService.DEFAULT_LEVEL)) {
 	        	copyButton = createButton(parent, COPY_ID, PreferenceDialogConstants.COPY_LABEL, false);
 	        	copyButton.setEnabled(field.getPreferencesLevel() != null &&
 	        			field.isInherited() &&	
@@ -261,13 +261,13 @@ public class DetailsDialogForStringFields extends ProductInfoDialog {
 	        		levelString += " (not including any project preferences):  ";
 	        	}
 	        }
-	        else if (field.getPreferencesLevel().equals(ISafariPreferencesService.INSTANCE_LEVEL))
+	        else if (field.getPreferencesLevel().equals(IPreferencesService.INSTANCE_LEVEL))
 	        	levelString = PreferenceDialogConstants.INSTANCE_LEVEL_STRING;
-	        else if (field.getPreferencesLevel().equals(ISafariPreferencesService.CONFIGURATION_LEVEL))
+	        else if (field.getPreferencesLevel().equals(IPreferencesService.CONFIGURATION_LEVEL))
 	        	levelString = PreferenceDialogConstants.CONFIGURATION_LEVEL_STRING;
-	        else if (field.getPreferencesLevel().equals(ISafariPreferencesService.DEFAULT_LEVEL))
+	        else if (field.getPreferencesLevel().equals(IPreferencesService.DEFAULT_LEVEL))
 	        	levelString = PreferenceDialogConstants.DEFAULT_LEVEL_STRING;
-	        else if (field.getPreferencesLevel().equals(ISafariPreferencesService.PROJECT_LEVEL))
+	        else if (field.getPreferencesLevel().equals(IPreferencesService.PROJECT_LEVEL))
 	        	levelString = PreferenceDialogConstants.PROJECT_LEVEL_STRING;
 	        else
 	        	levelString = PreferenceDialogConstants.UNKNOWN_LEVEL_STRING + field.getPreferencesLevel();

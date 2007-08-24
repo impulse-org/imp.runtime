@@ -1,4 +1,4 @@
-package org.eclipse.uide.parser;
+package org.eclipse.imp.parser;
 
 /*
  * Licensed Materials - Property of IBM,

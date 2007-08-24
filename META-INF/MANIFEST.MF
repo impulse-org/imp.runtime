@@ -1,9 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: UIDE Runtime
-Bundle-SymbolicName: org.eclipse.uide.runtime; singleton:=true
-Bundle-Version: 1.0.56
-Bundle-Activator: org.eclipse.uide.runtime.RuntimePlugin
+Bundle-Name: IMP Runtime
+Bundle-SymbolicName: org.eclipse.imp.runtime; singleton:=true
+Bundle-Version: 3.2.61
+Bundle-Activator: org.eclipse.imp.runtime.RuntimePlugin
 Bundle-Vendor: rfuhrer@watson.ibm.com
 Bundle-Localization: plugin
 Require-Bundle: org.eclipse.ui,
@@ -24,21 +24,23 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.jdt.launching,
  org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring,
- lpg.runtime
-Eclipse-AutoStart: true
-Export-Package: org.eclipse.uide.builder,
- org.eclipse.uide.core,
- org.eclipse.uide.defaults,
- org.eclipse.uide.editor,
- org.eclipse.uide.indexing,
- org.eclipse.uide.model,
- org.eclipse.uide.parser,
- org.eclipse.uide.preferences,
- org.eclipse.uide.preferences.fields,
- org.eclipse.uide.preferences.fields.details,
- org.eclipse.uide.preferences.pageinfo,
- org.eclipse.uide.refactoring,
- org.eclipse.uide.runtime,
- org.eclipse.uide.utils,
- org.eclipse.uide.wizards,
- org.eclipse.uide.wizards.fields
+ lpg.runtime,
+ org.eclipse.ui.console
+Eclipse-LazyStart: true
+Export-Package: org.eclipse.imp.builder,
+ org.eclipse.imp.core,
+ org.eclipse.imp.editor,
+ org.eclipse.imp.indexing,
+ org.eclipse.imp.language,
+ org.eclipse.imp.model,
+ org.eclipse.imp.parser,
+ org.eclipse.imp.preferences,
+ org.eclipse.imp.preferences.fields,
+ org.eclipse.imp.preferences.fields.details,
+ org.eclipse.imp.refactoring,
+ org.eclipse.imp.runtime,
+ org.eclipse.imp.services,
+ org.eclipse.imp.services.base,
+ org.eclipse.imp.utils,
+ org.eclipse.imp.wizards,
+ org.eclipse.imp.wizards.fields

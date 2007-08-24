@@ -1,4 +1,4 @@
-package org.eclipse.uide.wizards.fields;
+package org.eclipse.imp.wizards.fields;
 
 /**
  * Change listener used by <code>DialogField</code>

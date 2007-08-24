@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.swt.SWT;
@@ -7,22 +7,20 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.uide.preferences.fields.SafariBooleanFieldEditor;
 
-public class DefaultPreferencesTab extends SafariPreferencesTab
+public class DefaultPreferencesTab extends PreferencesTab
 {	
 
 	
-	public DefaultPreferencesTab(ISafariPreferencesService prefService) {
+	public DefaultPreferencesTab(IPreferencesService prefService) {
 		this.prefService = prefService;
-		prefUtils = new SafariPreferencesUtilities(prefService);
+		prefUtils = new PreferencesUtilities(prefService);
 	}
 	
 	
-	public Composite createDefaultPreferencesTab(SafariTabbedPreferencesPage page, final TabFolder tabFolder) {
+	public Composite createDefaultPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
 		prefPage = page;
 		
@@ -41,16 +39,16 @@ public class DefaultPreferencesTab extends SafariPreferencesTab
 		tabItem = new TabItem(tabFolder, SWT.NONE);
 		tabItem.setText("Default");
 		tabItem.setControl(composite);
-		SafariPreferencesTab.TabSelectionListener listener = 
-			new SafariPreferencesTab.TabSelectionListener(prefPage, tabItem);
+		PreferencesTab.TabSelectionListener listener = 
+			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
 		tabFolder.addSelectionListener(listener);
 		
 
 		// Don't want newly created fields to be flagged as modified
 		// page, this, prefService, "default", 	
-		fields = createFields(page, this, ISafariPreferencesService.DEFAULT_LEVEL, composite, prefService);
+		fields = createFields(page, this, IPreferencesService.DEFAULT_LEVEL, composite, prefService);
 		
-//		SafariBooleanFieldEditor boolField = prefUtils.makeNewBooleanField(
+//		BooleanFieldEditor boolField = prefUtils.makeNewBooleanField(
 //				prefsPage, prefsTab, prefsService,
 //				tabLevel, fieldInfo.getName(), fieldInfo.getName(),		// tab level, key, text
 //				parent,
@@ -62,7 +60,7 @@ public class DefaultPreferencesTab extends SafariPreferencesTab
 		// that marking.
 		clearModifiedMarksOnLabels();
 		
-		SafariPreferencesUtilities.fillGridPlace(composite, 2);	
+		PreferencesUtilities.fillGridPlace(composite, 2);	
 		
 		// Put notes on bottom
 	
@@ -87,7 +85,7 @@ public class DefaultPreferencesTab extends SafariPreferencesTab
         buttons = prefUtils.createDefaultAndApplyButtons(composite, this);
         Button defaultsButton = (Button) buttons[0];
         Button applyButton = (Button) buttons[1];
-      
+        
 		return composite;
 	}
 
@@ -121,7 +119,7 @@ public class DefaultPreferencesTab extends SafariPreferencesTab
 	public void performDefaults() {
 		// Clear all preferences at this level and reload them into the
 		// preferences store through the initializer
-		prefService.clearPreferencesAtLevel(ISafariPreferencesService.DEFAULT_LEVEL);
+		prefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
 		AbstractPreferenceInitializer preferenceInitializer = getPreferenceInitializer();	//new PreferenceInitializer();
 		preferenceInitializer.initializeDefaultPreferences();
 

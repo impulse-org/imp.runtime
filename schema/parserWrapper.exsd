@@ -1,19 +1,19 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide">
+<schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="parserWrapper" name="New Parser Wrapper"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="parserWrapper" name="New Parser Wrapper"/>
       </appInfo>
       <documentation>
-         The org.eclipse.uide.parserWrapper extension point allows extenders to provide new parser-wrapper and AST node-locator classes for a given language.
+         The org.eclipse.imp.parserWrapper extension point allows extenders to provide new parser-wrapper and AST node-locator classes for a given language.
       </documentation>
    </annotation>
 
-    <element name="extension">
+   <element name="extension">
       <complexType>
          <sequence>
-            <element ref="parserWrapper" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="parserWrapper"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -40,10 +40,6 @@
    </element>
 
    <element name="parserWrapper">
-      <annotation>
-         <documentation>
-         </documentation>
-      </annotation>
       <complexType>
          <attribute name="class" type="string" use="required">
             <annotation>
@@ -51,7 +47,7 @@
                   The name of the implementation class for the parser wrapper.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.wizards.ExtensionPointWizardPage.ClassBrowse"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.wizards.ExtensionPointWizardPage.ClassBrowse"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -80,12 +76,12 @@
       </appInfo>
       <documentation>
          &lt;extension
-         point=&quot;org.eclipse.uide.parser&quot;&gt;
+         point=&quot;org.eclipse.imp.parser&quot;&gt;
       &lt;parser
-            class=&quot;org.eclipse.uide.DefaultParser&quot;
+            class=&quot;org.eclipse.imp.DefaultParser&quot;
             language=&quot;*&quot;
             name=&quot;Default Parser&quot;
-            id=&quot;org.eclipse.uide.parser.default&quot;/&gt;
+            id=&quot;org.eclipse.imp.parser.default&quot;/&gt;
    &lt;/extension&gt;
       </documentation>
    </annotation>
@@ -104,7 +100,7 @@
          <meta.section type="implementation"/>
       </appInfo>
       <documentation>
-         See org.eclipse.uide.DefaultParser.
+         See org.eclipse.imp.DefaultParser.
       </documentation>
    </annotation>
 

@@ -1,8 +1,9 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.language;
 
 import java.util.StringTokenizer;
 
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.imp.core.ErrorHandler;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -12,10 +13,58 @@ import org.eclipse.core.runtime.IConfigurationElement;
 /**
  * @author Claffra
  * 
- * API representation for org.eclipse.uide.runtime.languageDescription contributor. Used by
- * org.eclipse.uide.core.LanguageRegistry to discover and manage a language registry.
+ * API representation for org.eclipse.imp.runtime.languageDescription contributor. Used by
+ * org.eclipse.imp.core.LanguageRegistry to discover and manage a language registry.
  */
 public class Language {
+    /**
+     * Extension element attribute ID for the language ID associated with a given
+     * language descriptor.
+     */
+    public static final String LANGUAGE_ID_ATTR= "language";
+
+    /**
+     * Extension element attribute ID for the base language ID associated with a
+     * given language descriptor.
+     */
+    public static final String DERIVED_FROM_ATTR= "derivedFrom";
+
+    /**
+     * Extension element attribute ID for the list of file-name extensions associated
+     * with a given language descriptor.
+     */
+    public static final String EXTENSIONS_ATTR= "extensions";
+
+    /**
+     * Extension element attribute ID for the validator associated with a given
+     * language descriptor.
+     */
+    public static final String VALIDATOR_ATTR= "validator";
+
+    /**
+     * Extension element attribute ID for the user-readable description of a given
+     * language descriptor.
+     */
+    public static final String DESCRIPTION_ATTR= "description";
+
+    /**
+     * Extension element attribute ID for the optional nature ID associated with a
+     * given language descriptor.
+     */
+    public static final String NATURE_ID_ATTR= "natureID";
+
+    /**
+     * Extension element attribute ID for the optional list of synonyms associated with a
+     * given language descriptor.
+     */
+    public static final String SYNONYMS_ATTR= "synonyms";
+
+    /**
+     * Extension element attribute ID for the optional URL associated with a given
+     * language descriptor.
+     */
+    public static final String URL_ATTR= "url";
+
     protected IConfigurationElement fConfigElement;
 
     private String fFilenameExtensions[];
@@ -38,11 +87,11 @@ public class Language {
      * @return the canonical language name
      */
     public String getName() {
-        return fConfigElement.getAttribute("language");
+        return fConfigElement.getAttribute(LANGUAGE_ID_ATTR);
     }
 
     public String getNatureID() {
-	return fConfigElement.getAttribute("natureID");
+	return fConfigElement.getAttribute(NATURE_ID_ATTR);
     }
 
     /**
@@ -51,7 +100,7 @@ public class Language {
      * @return a description for this language
      */
     public String getDescription() {
-        return fConfigElement.getAttribute("description");
+        return fConfigElement.getAttribute(DESCRIPTION_ATTR);
     }
 
     /**
@@ -60,7 +109,7 @@ public class Language {
      * @return the canonical language name this language is derived from
      */
     public String getDerivedFrom() {
-        return fConfigElement.getAttribute("derivedFrom");
+        return fConfigElement.getAttribute(DERIVED_FROM_ATTR);
     }
 
     /**
@@ -69,7 +118,7 @@ public class Language {
      * @return something like http://www.php.org
      */
     public String getUrl() {
-        return fConfigElement.getAttribute("url");
+        return fConfigElement.getAttribute(URL_ATTR);
     }
 
     /**
@@ -97,7 +146,7 @@ public class Language {
      */
     public String[] getFilenameExtensions() {
         if (fFilenameExtensions == null)
-            fFilenameExtensions= parseList(fConfigElement.getAttribute("extensions"));
+            fFilenameExtensions= parseList(fConfigElement.getAttribute(EXTENSIONS_ATTR));
         return fFilenameExtensions;
     }
 
@@ -109,7 +158,7 @@ public class Language {
      */
     public String[] getSynonyms() {
         if (fSynonyms == null)
-            fSynonyms= parseList(fConfigElement.getAttribute("synonyms"));
+            fSynonyms= parseList(fConfigElement.getAttribute(SYNONYMS_ATTR));
         return fSynonyms;
     }
 
@@ -135,9 +184,9 @@ public class Language {
      */
     public LanguageValidator getValidator() {
         try {
-            if (fConfigElement.getAttribute("validator") == null)
+            if (fConfigElement.getAttribute(VALIDATOR_ATTR) == null)
                 return null;
-            return (LanguageValidator) fConfigElement.createExecutableExtension("validator");
+            return (LanguageValidator) fConfigElement.createExecutableExtension(VALIDATOR_ATTR);
         } catch (Throwable e) {
             return null;
         }
@@ -170,6 +219,6 @@ public class Language {
     }
 
     public String toString() {
-        return "Language[name=" + getName() + ",description=" + getDescription() + ",filename extensions=" + fConfigElement.getAttribute("extensions") + "]";
+        return "Language[name=" + getName() + ",description=" + getDescription() + ",filename extensions=" + fConfigElement.getAttribute(EXTENSIONS_ATTR) + "]";
     }
 }

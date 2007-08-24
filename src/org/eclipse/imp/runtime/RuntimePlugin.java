@@ -1,19 +1,24 @@
-package org.eclipse.uide.runtime;
+package org.eclipse.imp.runtime;
 
-import org.eclipse.ui.IStartup;
-import org.eclipse.ui.plugin.*;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.preferences.PreferenceConstants;
-import org.eclipse.uide.preferences.SAFARIPreferenceCache;
+import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.preferences.PreferenceConstants;
+import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.ui.IStartup;
+import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
  * The main plugin class to be used in the desktop.
  */
-public class RuntimePlugin extends SAFARIPluginBase implements IStartup {
-    public static final String UIDE_RUNTIME= "org.eclipse.uide.runtime"; // must match plugin ID in MANIFEST.MF
+public class RuntimePlugin extends PluginBase implements IStartup {
+    public static final String IMP_RUNTIME= "org.eclipse.imp.runtime"; // must match plugin ID in MANIFEST.MF
+
+    /**
+     * The (unqualified) ID of the language descriptor extension point.
+     */
+    public static String LANGUAGE_DESCRIPTOR= "languageDescription";
 
     // The singleton instance.
     private static RuntimePlugin sPlugin;
@@ -30,7 +35,7 @@ public class RuntimePlugin extends SAFARIPluginBase implements IStartup {
     }
 
     public String getID() {
-	return UIDE_RUNTIME;
+	return IMP_RUNTIME;
     }
 
     /**
@@ -42,7 +47,7 @@ public class RuntimePlugin extends SAFARIPluginBase implements IStartup {
 	// Initialize the Preferences fields with the preference store data.
         IPreferenceStore prefStore= getPreferenceStore();
 
-        SAFARIPreferenceCache.emitMessages= prefStore.getBoolean(PreferenceConstants.P_EMIT_MESSAGES);
+        PreferenceCache.emitMessages= prefStore.getBoolean(PreferenceConstants.P_EMIT_MESSAGES);
     }
 
     /**
@@ -61,7 +66,7 @@ public class RuntimePlugin extends SAFARIPluginBase implements IStartup {
      * @return the image descriptor
      */
     public static ImageDescriptor getImageDescriptor(String path) {
-	return AbstractUIPlugin.imageDescriptorFromPlugin(UIDE_RUNTIME, path);
+	return AbstractUIPlugin.imageDescriptorFromPlugin(IMP_RUNTIME, path);
     }
 
     public void earlyStartup() {

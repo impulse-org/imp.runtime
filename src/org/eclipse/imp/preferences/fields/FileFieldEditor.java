@@ -1,23 +1,23 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
 import java.io.File;
 import java.util.Stack;
 
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
 
-public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
+public class FileFieldEditor extends StringButtonFieldEditor
 {
 	
-	public SafariFileFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+	public FileFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, int strategy, Composite parent)
     {
     	super(page, tab, service, level, name, labelText, width, strategy, parent);
@@ -26,7 +26,7 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
 	
 	
     /**
-     * Creates a SAFARI file field editor.
+     * Creates an IMP file field editor.
      * Use the method <code>setTextLimit</code> to limit the text.
      * 
      * @param name the name of the preference this field editor works on
@@ -35,9 +35,9 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
      *  or <code>UNLIMITED</code> for no limit
      * @param parent the parent of the field editor's control
      */
-    public SafariFileFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+    public FileFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
         super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
@@ -46,16 +46,16 @@ public class SafariFileFieldEditor extends SafariStringButtonFieldEditor
     
     
     /**	
-     * Creates a SAFARI string button field editor.
+     * Creates an IMP string button field editor.
      * Use the method <code>setTextLimit</code> to limit the text.
      * 
      * @param name the name of the preference this field editor works on
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public SafariFileFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
+    public FileFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText, Composite parent)
     {
         super(page, tab, service, level, name, labelText, parent);
     	this.getChangeControl(parent).setText(PreferenceDialogConstants.BROWSE_LABEL);

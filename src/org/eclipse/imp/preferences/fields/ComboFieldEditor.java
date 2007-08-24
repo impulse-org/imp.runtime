@@ -1,7 +1,9 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.jface.preference.FieldEditor;
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesTab;
+import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
@@ -9,19 +11,15 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
-import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
  * A field editor for a combo box that allows the drop-down selection of one of a list of items.
  * 
- * SMS:  This is a copy of ComboFieldEditor, found in org.eclupse.uide.preferences.fields,
+ * SMS:  This is a copy of ComboFieldEditor, found in org.eclupse.imp.preferences.fields,
  * which itself is a copy from org.eclipse.search.internal.ui.util, as indicated by the
  * following comment (copied from the "original"):
  * 
@@ -30,7 +28,7 @@ import org.osgi.service.prefs.BackingStoreException;
  * 
  * 
  */
-public class SafariComboFieldEditor extends SafariFieldEditor {
+public class ComboFieldEditor extends FieldEditor {
     /**
      * The <code>Combo</code> widget.
      */
@@ -61,9 +59,9 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
      * the head of the array of names and values used here to create
      * the combo box entries.
      */
-    public SafariComboFieldEditor(
-   		PreferencePage page, SafariPreferencesTab tab,
-   		ISafariPreferencesService service, String level,
+    public ComboFieldEditor(
+   		PreferencePage page, PreferencesTab tab,
+   		IPreferencesService service, String level,
    		String name, String labelText, String[][] entryNamesAndValues, Composite parent,
    		boolean isEnabled, boolean hasSpecialValue, String specialValue, boolean isRemovable)
     {
@@ -79,7 +77,7 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
 		
 		if (hasSpecialValue) {
 			if (specialValue == null || specialValue.equals(""))
-				specialValue = SafariPreferencesUtilities.comboDefaultName;
+				specialValue = PreferencesUtilities.comboDefaultName;
 			
 			fEntryNamesAndValues = new String[entryNamesAndValues.length+1][2];
 			fEntryNamesAndValues[0][0] = specialValue == null ? "" : specialValue;
@@ -185,7 +183,7 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
         		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
     			setInherited(true);	
         	}
-            if (ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
+            if (IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
             	setPresentsDefaultValue(true);
 
             previousValue = value;
@@ -209,7 +207,7 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
         //updateComboForValue(getPreferenceStore().getDefaultString(getPreferenceName()));
     	
         if (fCombo != null) {
-            String value = preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
+            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
             updateComboForValue(value);
         }
     }
@@ -237,7 +235,7 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
     {
     	String levelLoaded = null;
     	
-    	String[] levels = ISafariPreferencesService.levels;
+    	String[] levels = IPreferencesService.levels;
     	int fieldLevelIndex = 0;
 
     	// If we're loading with inheritance for some field that is
@@ -292,8 +290,8 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
     protected void setFieldColors() {
         Control comboBox = getComboBoxControl(parent);
         Color color = isInherited() ?
-        		SafariPreferencesUtilities.colorBluish :
-        		SafariPreferencesUtilities.colorWhite;
+        		PreferencesUtilities.colorBluish :
+        		PreferencesUtilities.colorWhite;
         comboBox.setBackground(color);
     }
     
@@ -321,13 +319,13 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
    		// If we've stored the field then it's not inherited, so be sure it's
    		// color indicates that.
    		setFieldColors();
-   		//getComboBoxControl(parent).setBackground(SafariPreferencesUtilities.colorWhite);
+   		//getComboBoxControl(parent).setBackground(PreferencesUtilities.colorWhite);
     	
     	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
     	try {
     		if (node != null) node.flush();
     	} catch (BackingStoreException e) {
-    		System.err.println("SafariStringFieldEditor.	():  BackingStoreException flushing node;  node may not have been flushed:" + 
+    		System.err.println("StringFieldEditor.	():  BackingStoreException flushing node;  node may not have been flushed:" + 
     				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
     	}
     }
@@ -413,12 +411,12 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
      * This hook is <em>not</em> called when the text is initialized 
      * (or reset to the default value) from the preference store.
      * (That comment is taken from the original implementation of this
-     * method.  I've tried to follow it consistently for SAFARI preferences,
+     * method.  I've tried to follow it consistently for IMP preferences,
      * but I'm not sure if the original intention translates into the
      * multi-level model.  Still, so far there seems to be no problem
      * with it.  SMS 16 Nov 2006)
      * 
-     * Copied from StringFieldEditor and adapted to use in SAFARI.
+     * Copied from StringFieldEditor and adapted to use in IMP.
      * Added return of a boolean value.  Not intended to set any attributes
      * of the field editor, just to signal changes to listeners.
      */
@@ -511,7 +509,7 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
     
     public String getSpecialStringValue() {
     	if (!hasSpecialValue) {
-			throw new IllegalStateException("SafariComboFieldEditor.getSpecialValue():  field does not have a special value");
+			throw new IllegalStateException("ComboFieldEditor.getSpecialValue():  field does not have a special value");
     	}
     	return (String) specialValue;
     }
@@ -529,9 +527,9 @@ public class SafariComboFieldEditor extends SafariFieldEditor {
 	 */
 	public void setSpecialValue(String specialValue) {
 		if (!hasSpecialValue()) {
-			throw new IllegalStateException("SafariComboField.setSpecialValue(String):  field has no special value");			
+			throw new IllegalStateException("ComboField.setSpecialValue(String):  field has no special value");			
 		} else if (specialValue == null || specialValue == "") {
-			throw new IllegalArgumentException("SafariComboFieldEditor.setSpecialValue(String):  special value cannot be null or empty");
+			throw new IllegalArgumentException("ComboFieldEditor.setSpecialValue(String):  special value cannot be null or empty");
 		}
 		fEntryNamesAndValues[0][0] = specialValue;
 	}

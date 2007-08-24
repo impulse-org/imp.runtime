@@ -1,10 +1,10 @@
-package org.eclipse.uide.internal.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
-import org.eclipse.uide.editor.IFoldingUpdater;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
 
 public class FoldingController implements IModelListener {
     private final ProjectionAnnotationModel fAnnotationModel;

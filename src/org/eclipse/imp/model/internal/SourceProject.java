@@ -1,7 +1,7 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model.internal;
+package org.eclipse.imp.model.internal;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,16 +21,16 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.model.IPathEntry;
+import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.IPathEntry.PathEntryType;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.model.IPathEntry;
-import org.eclipse.uide.model.ISourceProject;
-import org.eclipse.uide.model.ModelFactory;
-import org.eclipse.uide.model.IPathEntry.PathEntryType;
-import org.eclipse.uide.model.ModelFactory.ModelException;
 import org.w3c.dom.Document;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;

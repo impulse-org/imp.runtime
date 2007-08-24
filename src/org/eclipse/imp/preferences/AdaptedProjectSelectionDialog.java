@@ -9,7 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import java.util.Set;
 

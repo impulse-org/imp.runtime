@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,15 +12,15 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
-import org.eclipse.core.runtime.preferences.IPreferencesService;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.imp.preferences.IPreferencesService.ProjectSelectionEvent;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
- * A Preferences Service for SAFARI.  Intended as an adaptation of the
+ * A Preferences Service for IMP.  Intended as an adaptation of the
  * Eclipse PreferencesService and built on top of it, with simplifications
- * appropriate to use in SAFARI.
+ * appropriate to use in IMP.
  * 
  * 
  * @see	org.eclipse.core.internal.PreferencesService.
@@ -29,14 +29,14 @@ import org.osgi.service.prefs.BackingStoreException;
  *
  */
 
-public class SafariPreferencesService implements ISafariPreferencesService
+public class PreferencesService implements IPreferencesService
 {
 
 	private IProject project = null;
 	private String projectName = null;
 	private String languageName = null;
 	
-	IPreferencesService preferencesService = null;
+	org.eclipse.core.runtime.preferences.IPreferencesService preferencesService = null;
 	IEclipsePreferences preferencesRoot = null;
 	
 	// Scopes at the four standard preference levels
@@ -50,20 +50,24 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	 * Constructors
 	 */
 	
-	public SafariPreferencesService() {
+	public PreferencesService() {
 		getPreferencesServiceAndRoot();
 	}
 
-	public SafariPreferencesService(String projectName) {
+	public PreferencesService(String projectName) {
+		this();
 		setProjectName(projectName);
-		getPreferencesServiceAndRoot();
 	}
 	
-	public SafariPreferencesService(IProject project) {
+	public PreferencesService(IProject project) {
+		this();
 		setProject(project);
-		getPreferencesServiceAndRoot();
 	}
 
+	public PreferencesService(IProject project, String languageName) {
+		this(project);
+		setLanguageName(languageName);
+	}
 	
 	/*
 	 * Utilities for constructors and (re)initializations
@@ -85,7 +89,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	
 	/*
 	 * Methods to get and set project, project name, and language name
-	 * @see org.eclipse.uide.preferences.service.ISafariPreferencesService#setLanguageName(java.lang.String)
+	 * @see org.eclipse.imp.preferences.service.IPreferencesService#setLanguageName(java.lang.String)
 	 */
 
 	// TODO:  Add (or refine) error checks!
@@ -99,7 +103,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	
 	public void setProjectName(String projectName) {
 		if (projectName == null || projectName.equals("")) {
-			System.out.println("SafariPreferencesService.setProjectName:  name is null or empty; clearing project, project name, and project scope");
+			System.out.println("PreferencesService.setProjectName:  name is null or empty; clearing project, project name, and project scope");
 		}
 		if (projectName.equals("")) projectName = null; 
 		this.projectName = projectName;
@@ -148,7 +152,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 			projectScope = new ProjectScope(project);
 			//toggleProject(oldProjectScope, projectScope, projectName);
 		} else {
-			//System.out.println("SafariPreferencesService.setProject:  project is null; clearing project, project name, and project scope");
+			//System.out.println("PreferencesService.setProject:  project is null; clearing project, project name, and project scope");
 			projectName = null;
 			projectScope = null;
 		}
@@ -167,10 +171,10 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	public IEclipsePreferences getPreferences(String level)
 	{
 		if (level == null) {
-			throw new IllegalArgumentException("SafariPreferencesService.getPreferences:  given level is null");
+			throw new IllegalArgumentException("PreferencesService.getPreferences:  given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException("SafariPreferencesService.getPreferences:  given level is not valid (level = " + level);
+			throw new IllegalArgumentException("PreferencesService.getPreferences:  given level is not valid (level = " + level);
 		}
 		
 		IEclipsePreferences preferences = null;
@@ -197,22 +201,22 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	 * just clear the existing preferences.
 	 * 
 	 * @param level				the level at which preferences are to be set; must be
-	 * 							one of the values defined in ISafariPreferencesService
+	 * 							one of the values defined in IPreferencesService
 	 * @param newPreferences	the new preferences to be set at the given level (or
 	 * 							null if the existing preferences are just to be cleared)
 	 * @throws IllegalArgumentException
 	 * 							if the given level is null or not one of the values
-	 * 							defined in ISafariPreferencesService
+	 * 							defined in IPreferencesService
 	 */
 	public void setPreferences(String level, IEclipsePreferences newPreferences)
 	{
 		if (level == null) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.getPreferences:  given level is null");
+				"PreferencesService.getPreferences:  given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.getPreferences:  given level is not valid (level = " + level);
+				"PreferencesService.getPreferences:  given level is not valid (level = " + level);
 		}
 
 		IEclipsePreferences node = clearPreferencesAtLevel(level);
@@ -223,7 +227,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		try {
 			keys = newPreferences.keys();
 		} catch (BackingStoreException e) {
-			System.out.println("SafariPreferencesService.setPreferences():  " +
+			System.out.println("PreferencesService.setPreferences():  " +
 				"BackingStoreException getting keys; returning (note:  preferences for this node may have been cleared)");
 			return;
 		}
@@ -236,7 +240,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("SafariPreferencesService.setPreferences():  " +
+			System.out.println("PreferencesService.setPreferences():  " +
 				"BackingStoreException flushing new preferences; returning (note:  preferences for this node may have been cleared and not set)");
 			return;
 		}
@@ -320,7 +324,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 
 	private IScopeContext[] specificProjectScope() {
 		if (projectScope == null) return new IScopeContext[0];
-		return new IScopeContext[] { getScopeForLevel(ISafariPreferencesService.PROJECT_LEVEL)};
+		return new IScopeContext[] { getScopeForLevel(IPreferencesService.PROJECT_LEVEL)};
 	}
 	
 	
@@ -338,31 +342,31 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	 *   decoded when read from the node but not from the Eclipse Preferences
 	 *   Service; that is addressed here by getting the value from the
 	 *   preferences node rather than from the preferences service
-	 * - The Safari Preferences Service and the Eclipse Preferences Service
+	 * - The IMP Preferences Service and the Eclipse Preferences Service
 	 *   both have the same four standard levels and these are by default
 	 *   in the same standard order
 	 * - But the Eclipse levels may have been reordered (although I'm not
 	 *   doing that), so this implementation does not assume that they're
 	 *   in the same order
 	 * - The levels are named in different ways in the two services, e.g.,
-	 *   "project" in Eclipse and "PROJECT_LEVEL" in SAFARI, so that has to
+	 *   "project" in Eclipse and "PROJECT_LEVEL" in IMP, so that has to
 	 *   be accommodated
 	 * Things not considered:
 	 * - Additional levels that may have been added to the preferences model
 	 *   (but I'm certainly not adding any!)
 	 *
-	 * @see org.eclipse.uide.preferences.service.ISafariPreferencesService#getByteArrayPreference(java.lang.String)
+	 * @see org.eclipse.imp.preferences.service.IPreferencesService#getByteArrayPreference(java.lang.String)
 	 */
 	public byte[] getByteArrayPreference(String key)
 	{
 		byte[] result = null;
 		String[] lookupOrder = preferencesService.getLookupOrder(languageName, key);
-		String[] safariLevels = ISafariPreferencesService.levels;
+		String[] levels = IPreferencesService.levels;
 		outer:  for (int i = 0; i < lookupOrder.length; i++) {
-			for (int j = 0; j < safariLevels.length; j++) {
+			for (int j = 0; j < levels.length; j++) {
 				String level = null;
-				if (safariLevels[j].startsWith(lookupOrder[i].toUpperCase())) {
-					level = safariLevels[j];
+				if (levels[j].startsWith(lookupOrder[i].toUpperCase())) {
+					level = levels[j];
 					IScopeContext context = getScopeForLevel(level);
 					IEclipsePreferences node = context.getNode(languageName);
 					result = node.getByteArray(key, new byte[0]);
@@ -429,18 +433,18 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	 * and preferences nodes.  See the version of getByteArrayPreference(..) that only takes
 	 * a key for more detailed comments.
 	 * 
-	 * @see org.eclipse.uide.preferences.ISafariPreferencesService#getByteArrayPreference(org.eclipse.core.resources.IProject, java.lang.String)
+	 * @see org.eclipse.imp.preferences.IPreferencesService#getByteArrayPreference(org.eclipse.core.resources.IProject, java.lang.String)
 	 */
 	public byte[]  getByteArrayPreference(IProject project, String key)
 	{
 		byte[] result = null;
 		String[] lookupOrder = preferencesService.getLookupOrder(languageName, key);
-		String[] safariLevels = ISafariPreferencesService.levels;
+		String[] levels = IPreferencesService.levels;
 		outer:  for (int i = 0; i < lookupOrder.length; i++) {
-			for (int j = 0; j < safariLevels.length; j++) {
+			for (int j = 0; j < levels.length; j++) {
 				String level = null;
-				if (safariLevels[j].startsWith(lookupOrder[i].toUpperCase())) {
-					level = safariLevels[j];
+				if (levels[j].startsWith(lookupOrder[i].toUpperCase())) {
+					level = levels[j];
 					IScopeContext context = null;
 					if (level.equals(PROJECT_LEVEL)) {
 						context = getScopeForProject(project);
@@ -659,42 +663,84 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.putBoolean(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setByteArrayPreference(String, String, boolean):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setByteArrayPreference(String level, String key, byte[] value) {
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.putByteArray(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setByteArrayPreference(String, String, byte[]):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setDoublePreference(String level, String key, double value) {
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.putDouble(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setDoublePreference(String, String, double):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setFloatPreference(String level, String key, float value) {
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.putFloat(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setFloatPreference(String, String, float):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setIntPreference(String level, String key, int value) {
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.putInt(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setIntPreference(String, String, int):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setLongPreference(String level, String key, long value) {
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.putLong(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.set	LongPreference(String, String, long):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setStringPreference(String level, String key, String value) {
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		node.put(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setStringPreference(String, String, String):  BackingStoreException");
+			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 		
 	
@@ -758,55 +804,97 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	{
 		IEclipsePreferences node = getNodeForParameters("setBooleanPreference", languageName, level, projectName, key);
 		node.putBoolean(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setBooleanPreference(String, String, String, String, boolean):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}		
 	
 	public void setByteArrayPreference(String languageName, String projectName, String level, String key, byte[] value)
 	{
 		IEclipsePreferences node = getNodeForParameters("setByteArrayPreference", languageName, level, projectName, key);
 		node.putByteArray(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setByteArrayPreference(String, String, String, String, byte[]):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}	
 	
 	public void setDoublePreference(String languageName, String projectName, String level, String key, double value)
 	{
 		IEclipsePreferences node = getNodeForParameters("setDoublePreference", languageName, level, projectName, key);
 		node.putDouble(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setDoublePreference(String, String, String, String, double):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}	
 	
 	public void setFloatPreference(String languageName, String projectName, String level, String key, float value)
 	{
 		IEclipsePreferences node = getNodeForParameters("setFloatPreference", languageName, level, projectName, key);
 		node.putFloat(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setFloatPreference(String, String, String, String, float):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setIntPreference(String languageName, String projectName, String level, String key, int value)
 	{
 		IEclipsePreferences node = getNodeForParameters("setIntPreference", languageName, level, projectName, key);
 		node.putInt(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setIntPreference(String, String, String, String, int):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 		
 	public void setLongPreference(String languageName, String projectName, String level, String key, long value)
 	{
 		IEclipsePreferences node = getNodeForParameters("setLongPreference", languageName, level, projectName, key);
 		node.putLong(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setLongPreference(String, String, String, String, long):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	public void setStringPreference(String languageName, String projectName, String level, String key, String value)
 	{
 		IEclipsePreferences node = getNodeForParameters("setStringPreference", languageName, level, projectName, key);	
 		node.put(key, value);
+		try {
+			node.flush();
+		} catch (BackingStoreException e) {
+			System.out.println("PreferencesService.setStringPreference(String, String, String, String, String):  BackingStoreException");
+			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+		}
 	}
 	
 	
 	
 	public IScopeContext getPreferencesScope(String level, IProject proj)
 	{
-		if (level.equals(SafariPreferencesService.CONFIGURATION_LEVEL)) {
+		if (level.equals(PreferencesService.CONFIGURATION_LEVEL)) {
 			return configurationScope;
-		} else if (level.equals(SafariPreferencesService.INSTANCE_LEVEL)) {
+		} else if (level.equals(PreferencesService.INSTANCE_LEVEL)) {
 			return instanceScope;
-		} else if (level.equals(SafariPreferencesService.DEFAULT_LEVEL)) {
+		} else if (level.equals(PreferencesService.DEFAULT_LEVEL)) {
 			return defaultScope;
-		} else if (level.equals(SafariPreferencesService.PROJECT_LEVEL)) {
+		} else if (level.equals(PreferencesService.PROJECT_LEVEL)) {
 			return new ProjectScope(proj);
 		}
 		return null;
@@ -817,27 +905,27 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	{
 		if (!isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService." + methodName + ":  given level is not a valid preferences level:  " + level);
+				"PreferencesService." + methodName + ":  given level is not a valid preferences level:  " + level);
 		}
 		if (languageName == null || languageName.equals("")) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService." + methodName + ":  given language name is null or empty");
+				"PreferencesService." + methodName + ":  given language name is null or empty");
 		}
-		if (level.equals(SafariPreferencesService.PROJECT_LEVEL)) {
+		if (level.equals(PreferencesService.PROJECT_LEVEL)) {
 				if ((projectName == null) || projectName.equals("")) {
 					throw new IllegalArgumentException(
-						"SafariPreferencesService." + methodName + ":  level is 'project' but project name is null or empty");
+						"PreferencesService." + methodName + ":  level is 'project' but project name is null or empty");
 				}
 				IProject proj = getProjectFromName(projectName);
 				if (proj == null) {
 					throw new IllegalArgumentException(
-						"SafariPreferencesService." + methodName +
+						"PreferencesService." + methodName +
 						":  level is 'project' but project name '" + projectName + "' does not denote an existing project");
 				}
 		} 
 		if (key == null || key.equals("")) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.setStringPreference:  key is null or empty");
+				"PreferencesService.setStringPreference:  key is null or empty");
 		}
 	}
 	
@@ -850,13 +938,13 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		IScopeContext scope = getPreferencesScope(level, proj);
 		if (scope == null) {
 			throw new IllegalStateException(
-					"SafariPreferencesService." + methodName + ":  unable to obtain valid preferences scope");
+					"PreferencesService." + methodName + ":  unable to obtain valid preferences scope");
 		}
 
 		IEclipsePreferences node = scope.getNode(languageName);
 		if (node == null) {
 			throw new IllegalStateException(
-					"SafariPreferencesService." + methodName + ":  unable to obtain valid preferences node");
+					"PreferencesService." + methodName + ":  unable to obtain valid preferences node");
 		}
 
 		return node;
@@ -887,15 +975,15 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	{
 		if (level == null) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.clearPreferencesAtLevel (with project):  given level is null");
+				"PreferencesService.clearPreferencesAtLevel (with project):  given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.clearPreferencesAtLevel (with project):  given level '" + level + "' is not a valid level");
+				"PreferencesService.clearPreferencesAtLevel (with project):  given level '" + level + "' is not a valid level");
 		}
 		if (project == null && level.equals(PROJECT_LEVEL)) {
 			//throw new IllegalStateException(
-			//	"SafariPreferencesService.clearPreferencesAtLevel (with project): given project is null when given level is 'project'");
+			//	"PreferencesService.clearPreferencesAtLevel (with project): given project is null when given level is 'project'");
 			return null;
 		}
 
@@ -919,7 +1007,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 				node.flush();	// SMS 28 Nov 2006
 			}
 		} catch (BackingStoreException e) {
-			System.out.println("SafariPreferencesService.setPreferences():  " +
+			System.out.println("PreferencesService.setPreferences():  " +
 				"BackingStoreException clearing existing preferences; attempting to add new preferences anyway");
 		}
 		
@@ -950,15 +1038,15 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	{
 		if (level == null) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.clearPreferenceAtLevel (with project):  given level is null");
+				"PreferencesService.clearPreferenceAtLevel (with project):  given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException(
-				"SafariPreferencesService.clearPreferenceAtLevel (with project):  given level '" + level + "' is not a valid level");
+				"PreferencesService.clearPreferenceAtLevel (with project):  given level '" + level + "' is not a valid level");
 		}
 		if (project == null && level.equals(PROJECT_LEVEL)) {
 			throw new IllegalStateException(
-				"SafariPreferencesService.clearPreferenceAtLevel (with project): given project is null when given level is 'project'");
+				"PreferencesService.clearPreferenceAtLevel (with project): given project is null when given level is 'project'");
 		}
 
 		IScopeContext context = null;
@@ -974,7 +1062,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e){
-			System.err.println("SafariPreferencesService.clearPreferenceAtLevel(..):  BackingStoreException trying to flush node with cleared preference;\n" +
+			System.err.println("PreferencesService.clearPreferenceAtLevel(..):  BackingStoreException trying to flush node with cleared preference;\n" +
 				"\tproject = " + project + "; level = " + level + "; key = " + key + "\n" +	
 				"\tclearing may not have a persistent effect");
 		}
@@ -988,9 +1076,9 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	 */
 	
 	/**
-	 * The standard search order of preference levels in the SAFARI preferences
+	 * The standard search order of preference levels in the IMP preferences
 	 * service.  This is the default search order in the Eclipse PreferencesService
-	 * and it is presumed not to change during the operation of the SAFARI service.
+	 * and it is presumed not to change during the operation of the IMP service.
 	 *  
 	 */
 	public final static String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
@@ -1028,13 +1116,13 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		// Level == null okay, as we can start at the bottom in that case
 		
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException("SafariPreferencesService.getApplicableLevel (with project):  given level '" + level + "' is not a real level");
+			throw new IllegalArgumentException("PreferencesService.getApplicableLevel (with project):  given level '" + level + "' is not a real level");
 		}
 		if (key == null) {
-			throw new IllegalArgumentException("SafariPreferencesService.getApplicableLevel (with project):  given key is null");
+			throw new IllegalArgumentException("PreferencesService.getApplicableLevel (with project):  given key is null");
 		}
 		if (level.equals(PROJECT_LEVEL) && projectScope == null) {
-			throw new IllegalStateException("SafariPreferencesService.getApplicableLevel (with project):  node for project requested when project scope is null");
+			throw new IllegalStateException("PreferencesService.getApplicableLevel (with project):  node for project requested when project scope is null");
 		}
 		
 
@@ -1103,13 +1191,13 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	public IEclipsePreferences getNodeForLevel(String level)
 	{
 		if (level == null) {
-			throw new IllegalArgumentException("SafariPreferencesService.getNodeForLevel:  given level is null");
+			throw new IllegalArgumentException("PreferencesService.getNodeForLevel:  given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException("SafariPreferencesService.getNodeForLevel:  given level '" + level + "' is not a real level");
+			throw new IllegalArgumentException("PreferencesService.getNodeForLevel:  given level '" + level + "' is not a real level");
 		}
 		if (level.equals(PROJECT_LEVEL) && projectScope == null) {
-			throw new IllegalStateException("SafariPreferencesService.getNodeForLevel:  node for project requested when project scope is null");
+			throw new IllegalStateException("PreferencesService.getNodeForLevel:  node for project requested when project scope is null");
 		}
 		
 		IEclipsePreferences node = null;
@@ -1130,7 +1218,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	public IEclipsePreferences[] getNodesForLevels()
 	{
 		if (languageName == null || languageName.equals("")) {
-			throw new IllegalStateException("SafariPreferencesService.getNodesForLevels:  language name is invalid (null or empty); no associated preferences nodes");
+			throw new IllegalStateException("PreferencesService.getNodesForLevels:  language name is invalid (null or empty); no associated preferences nodes");
 		}
 		IEclipsePreferences[] nodes = new IEclipsePreferences[4];
 
@@ -1152,10 +1240,10 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	public IScopeContext getScopeForLevel(String level)
 	{
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException("SafariPreferencesService.getScopeForLevel:  level = '" + level + "' is not a valid level");
+			throw new IllegalArgumentException("PreferencesService.getScopeForLevel:  level = '" + level + "' is not a valid level");
 		}
 		//if (level.equals(PROJECT_LEVEL) && projectScope == null) {
-		//	throw new IllegalStateException("SafariPreferencesService.scopeForLevel:  scope for project requested when project scope is null");
+		//	throw new IllegalStateException("PreferencesService.scopeForLevel:  scope for project requested when project scope is null");
 		//}
 			
 		IScopeContext result = null;
@@ -1178,7 +1266,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	
 	public IScopeContext getScopeForProject(IProject project) {
 		if (project == null) {
-			throw new IllegalArgumentException("SafariPreferencesService.getScopeForProject:  given project is null");
+			throw new IllegalArgumentException("PreferencesService.getScopeForProject:  given project is null");
 		}
 		return new ProjectScope(project);
 	}
@@ -1186,7 +1274,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	
 	public IEclipsePreferences[] getNodesForLevels(IProject project) {
 		if (project == null) {
-			throw new IllegalArgumentException("SafariPreferencesService.getNodesForLevels:  given project is null");
+			throw new IllegalArgumentException("PreferencesService.getNodesForLevels:  given project is null");
 		}
 		
 		IEclipsePreferences[] nodes = 	new IEclipsePreferences[4];
@@ -1202,7 +1290,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 	
 	public IEclipsePreferences getNodeForProject(IProject project) {
 		if (project == null) {
-			throw new IllegalArgumentException("SafariPreferencesService.getNodeForProject:  given project is null");
+			throw new IllegalArgumentException("PreferencesService.getNodeForProject:  given project is null");
 		}
 		
 		return new ProjectScope(project).getNode(languageName);
@@ -1215,12 +1303,12 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		if (level == null) return 0;
 		
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException("SafariPreferencesService.getIndexForLevel:  level = '" + level + "' is not a valid level");
+			throw new IllegalArgumentException("PreferencesService.getIndexForLevel:  level = '" + level + "' is not a valid level");
 		}
 		// Maybe better let people get the index for the project level
 		// even if there is not project assigned (index considered not harmful)
 		//if (level.equals(PROJECT_LEVEL) && projectScope == null) {
-		//	throw new IllegalStateException("SafariPreferencesService.getIndexForLevel:  scope for project requested when project scope is null");
+		//	throw new IllegalStateException("PreferencesService.getIndexForLevel:  scope for project requested when project scope is null");
 		//}
 
 		if (level.equals(PROJECT_LEVEL))return 0;
@@ -1228,7 +1316,7 @@ public class SafariPreferencesService implements ISafariPreferencesService
 		else if (level.equals(CONFIGURATION_LEVEL)) return 2;
 		else if (level.equals(DEFAULT_LEVEL)) return 3;
 
-		throw new IllegalStateException("SafariPreferencesService.getIndexForLevel:  found no index to return for level = " + level);
+		throw new IllegalStateException("PreferencesService.getIndexForLevel:  found no index to return for level = " + level);
 	}
 	
 	

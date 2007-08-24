@@ -1,8 +1,9 @@
-package org.eclipse.uide.runtime;
+package org.eclipse.imp.runtime;
 
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
+
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -12,7 +13,7 @@ import org.eclipse.jface.resource.ImageRegistry;
 import org.eclipse.swt.graphics.Image;
 import org.osgi.framework.Bundle;
 
-public class SAFARIPluginImages {
+public class PluginImages {
     // The plug-in registry
     private static ImageRegistry fgImageRegistry= null;
 
@@ -20,7 +21,7 @@ public class SAFARIPluginImages {
 
     public static final IPath ICONS_PATH= new Path("/icons"); //$NON-NLS-1$
 
-    private static final String NAME_PREFIX= "com.ibm.watson.safari."; //$NON-NLS-1$
+    private static final String NAME_PREFIX= "org.eclipse.imp."; //$NON-NLS-1$
     private static final int NAME_PREFIX_LENGTH= NAME_PREFIX.length();
 
     public static final String VIEW_MENU_IMAGE= NAME_PREFIX + "view_menu.gif"; //$NON-NLS-1$

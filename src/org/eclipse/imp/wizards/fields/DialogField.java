@@ -1,16 +1,15 @@
 /*
  * Created on Feb 6, 2006
  */
-package org.eclipse.uide.wizards.fields;
+package org.eclipse.imp.wizards.fields;
 
+import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
-
-import org.eclipse.jface.util.Assert;
 
 /**
  * Base class of all dialog fields.

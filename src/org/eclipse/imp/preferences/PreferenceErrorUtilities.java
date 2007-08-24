@@ -1,14 +1,14 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 
 
 
-public class SafariPreferenceErrorUtilities {
+public class PreferenceErrorUtilities {
 
 	
 	public static void setErrorMessage(
 			PreferencePage page,
-			SafariPreferencesTab tab,
+			PreferencesTab tab,
 			String msg)
 	{
 		

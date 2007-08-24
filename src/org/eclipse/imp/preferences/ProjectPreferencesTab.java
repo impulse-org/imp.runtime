@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,11 +7,14 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
+import org.eclipse.imp.preferences.fields.ComboFieldEditor;
+import org.eclipse.imp.preferences.fields.RadioGroupFieldEditor;
+import org.eclipse.imp.preferences.fields.StringFieldEditor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.preferences.ProjectSelectionDialog;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -26,27 +29,23 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.uide.preferences.fields.SafariBooleanFieldEditor;
-import org.eclipse.uide.preferences.fields.SafariComboFieldEditor;
-import org.eclipse.uide.preferences.fields.SafariRadioGroupFieldEditor;
-import org.eclipse.uide.preferences.fields.SafariStringFieldEditor;
 import org.osgi.service.prefs.Preferences;
 
 
-public class ProjectPreferencesTab extends SafariPreferencesTab {
+public class ProjectPreferencesTab extends PreferencesTab {
 	
-	protected StringFieldEditor selectedProjectName = null;
+	protected org.eclipse.jface.preference.StringFieldEditor selectedProjectName = null;
 	protected List detailsLinks = new ArrayList();
 
 	protected IJavaProject javaProject = null;	
 
 	
-	public ProjectPreferencesTab(ISafariPreferencesService prefService) {
+	public ProjectPreferencesTab(IPreferencesService prefService) {
 		this.prefService = prefService;
-		prefUtils = new SafariPreferencesUtilities(prefService);
+		prefUtils = new PreferencesUtilities(prefService);
 	}
 
-	public Composite createProjectPreferencesTab(SafariTabbedPreferencesPage page, final TabFolder tabFolder) {
+	public Composite createProjectPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
 		prefPage = page;
 
@@ -72,18 +71,18 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		tabItem = new TabItem(tabFolder, SWT.NONE);	
 		tabItem.setText("Project");
 		tabItem.setControl(composite);	
-		SafariPreferencesTab.TabSelectionListener listener = 
-			new SafariPreferencesTab.TabSelectionListener(prefPage, tabItem);
+		PreferencesTab.TabSelectionListener listener = 
+			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
 		tabFolder.addSelectionListener(listener);
 		
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(page, this, ISafariPreferencesService.PROJECT_LEVEL, composite, prefService);
+		fields = createFields(page, this, IPreferencesService.PROJECT_LEVEL, composite, prefService);
 
 
 		// Clear some space
-		SafariPreferencesUtilities.fillGridPlace(composite, 2);
+		PreferencesUtilities.fillGridPlace(composite, 2);
 
 		
 		// Disable the details links since no project is selected at the start	
@@ -91,7 +90,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 			((Link)detailsLinks.get(i)).setEnabled(false);
 		}	
 		
-		SafariPreferencesUtilities.fillGridPlace(composite, 2);
+		PreferencesUtilities.fillGridPlace(composite, 2);
 
 		// Being newly loaded, the fields may be displayed with some
 		// indication that they have been modified.  This should reset
@@ -118,11 +117,11 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 
 		
 		selectedProjectName = 
-			new StringFieldEditor("SelectedProjectName", "Selected project:  ", projectFieldHolder);
+			new org.eclipse.jface.preference.StringFieldEditor("SelectedProjectName", "Selected project:  ", projectFieldHolder);
 		selectedProjectName.setStringValue("none selected");
 		// Clear these here in case there are any saved from a previous interaction with the page
 		// (assuming that we should start each  new page with no project selected)
-		prefService.clearPreferencesAtLevel(ISafariPreferencesService.PROJECT_LEVEL);
+		prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 		// Set the project name field to be non-editable
 		selectedProjectName.getTextControl(projectFieldHolder).setEditable(false);
 		// Set the attribute fields to be non-editable, since without a project selected
@@ -131,7 +130,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		createSelectProjectButton(groupHolder, composite, "Select Project");
 		addProjectSelectionListener(projectFieldHolder);
 				
-		SafariPreferencesUtilities.fillGridPlace(composite, 3);
+		PreferencesUtilities.fillGridPlace(composite, 3);
 		
 		/*
 		 * Put explanatory notes toward the bottom
@@ -154,7 +153,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
         			Markings.MODIFIED_NOTE + "\n\n" +
         			Markings.TAB_ERROR_NOTE);
         
-		SafariPreferencesUtilities.fillGridPlace(bottom, 1);
+		PreferencesUtilities.fillGridPlace(bottom, 1);
 
 		/*
 		 * Put Restore Defaults and Apply buttons at the very bottom,
@@ -172,17 +171,17 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 	
 	private void addProjectSelectionListener(Composite composite)
 	{
-		prefService.addProjectSelectionListener(new SafariProjectSelectionListener(composite));
+		prefService.addProjectSelectionListener(new ProjectSelectionListener(composite));
 	}
 	
 
 
-	private class SafariProjectSelectionListener implements SafariPreferencesService.IProjectSelectionListener
+	private class ProjectSelectionListener implements PreferencesService.IProjectSelectionListener
 	{
 		Composite composite = null;
 		IEclipsePreferences.IPreferenceChangeListener currentListener = null;
 
-		SafariProjectSelectionListener(Composite composite) {
+		ProjectSelectionListener(Composite composite) {
 			this.composite = composite;
 		}
 			
@@ -195,7 +194,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		 * @see IEclipsePreferences#addNodeChangeListener(IEclipsePreferences.INodeChangeListener)
 		 * @see IEclipsePreferences#removeNodeChangeListener(IEclipsePreferences.INodeChangeListener)
 		 */
-		public void selection(ISafariPreferencesService.ProjectSelectionEvent event) {
+		public void selection(IPreferencesService.ProjectSelectionEvent event) {
 			addressProjectSelection(event, composite);
 		}
 	}
@@ -205,7 +204,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 	protected List 	currentListenerNodes = new ArrayList();
 	
 	
-	protected void addressProjectSelection(ISafariPreferencesService.ProjectSelectionEvent event, Composite composite) {
+	protected void addressProjectSelection(IPreferencesService.ProjectSelectionEvent event, Composite composite) {
 		// TODO:  Override in subtype with a real implementation
 		System.err.println("ProjectPreferencesTab.addressProjectSelection(..):  unimplemented");
 
@@ -305,7 +304,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 			selectedProjectName.setStringValue("none selected");
 			
 			// Clear the preferences from the store
-			prefService.clearPreferencesAtLevel(ISafariPreferencesService.PROJECT_LEVEL);
+			prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 			
 			// Disable fields and make them non-editable
 			if (!composite.isDisposed()) {
@@ -324,13 +323,13 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 	
 
 	
-	protected void addProjectPreferenceChangeListeners(SafariBooleanFieldEditor field, String key, Composite composite)
+	protected void addProjectPreferenceChangeListeners(BooleanFieldEditor field, String key, Composite composite)
 	{
 		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
-		for (int i = ISafariPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
+		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
-				SafariPreferencesUtilities.SafariBooleanPreferenceChangeListener listener = 
-					prefUtils.new SafariBooleanPreferenceChangeListener(field, key, composite);
+				PreferencesUtilities.BooleanPreferenceChangeListener listener = 
+					prefUtils.new BooleanPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -341,13 +340,13 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 	}
 	
 	
-	protected void addProjectPreferenceChangeListeners(SafariComboFieldEditor field, String key, Composite composite)
+	protected void addProjectPreferenceChangeListeners(ComboFieldEditor field, String key, Composite composite)
 	{
 		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
-		for (int i = ISafariPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
+		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
-				SafariPreferencesUtilities.SafariComboPreferenceChangeListener listener = 
-					prefUtils.new SafariComboPreferenceChangeListener(field, key, composite);
+				PreferencesUtilities.ComboPreferenceChangeListener listener = 
+					prefUtils.new ComboPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -358,13 +357,13 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 	}
 	
 	
-	protected void addProjectPreferenceChangeListeners(SafariRadioGroupFieldEditor field, String key, Composite composite)
+	protected void addProjectPreferenceChangeListeners(RadioGroupFieldEditor field, String key, Composite composite)
 	{
 		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
-		for (int i = ISafariPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
+		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
-				SafariPreferencesUtilities.SafariRadioGroupPreferenceChangeListener listener = 
-					prefUtils.new SafariRadioGroupPreferenceChangeListener(field, key, composite);
+				PreferencesUtilities.RadioGroupPreferenceChangeListener listener = 
+					prefUtils.new RadioGroupPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -374,15 +373,15 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		}	
 	}
 	
-	protected void addProjectPreferenceChangeListeners(SafariStringFieldEditor field, String key, Composite composite)
+	protected void addProjectPreferenceChangeListeners(StringFieldEditor field, String key, Composite composite)
 	{
 		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
-		for (int i = ISafariPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
+		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
 				// SMS 31 Oct 2006
-				//SafariProjectPreferenceChangeListener listener = new SafariProjectPreferenceChangeListener(field, key, composite);
-				SafariPreferencesUtilities.SafariStringPreferenceChangeListener listener = 
-					prefUtils.new SafariStringPreferenceChangeListener(field, key, composite);
+				//ProjectPreferenceChangeListener listener = new ProjectPreferenceChangeListener(field, key, composite);
+				PreferencesUtilities.StringPreferenceChangeListener listener = 
+					prefUtils.new StringPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -534,7 +533,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 		// Clear all preferences at this level and reload them
 		// using inheritance (so a value will be found at a higher
 		// level if none is set at this level)
-		prefService.clearPreferencesAtLevel(ISafariPreferencesService.PROJECT_LEVEL);
+		prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 		for (int i = 0; i < fields.length; i++) {
 			fields[i].loadWithInheritance();
 		}
@@ -552,7 +551,7 @@ public class ProjectPreferencesTab extends SafariPreferencesTab {
 			// Clear preferences because we're closing up dialog;
 			// note that a project preferences node will exist, if only
 			// in a leftover state, even when no project is selected
-			prefService.clearPreferencesAtLevel(ISafariPreferencesService.PROJECT_LEVEL);
+			prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 			//return true;
 		}
 

@@ -1,23 +1,21 @@
 /*
  * Created on Feb 9, 2006
  */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.util.List;
 
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IDocumentationProvider;
+import org.eclipse.imp.services.IHoverHelper;
+import org.eclipse.imp.services.IReferenceResolver;
+import org.eclipse.imp.utils.ExtensionPointFactory;
+import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.uide.core.IDocumentationProvider;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.editor.IHoverHelper;
-import org.eclipse.uide.editor.IReferenceResolver;
-import org.eclipse.uide.parser.IASTNodeLocator;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
-import org.eclipse.uide.utils.HTMLPrinter;
 
 /**
  * Helper class for implementing "hover help" which encapsulates the process of locating
@@ -37,14 +35,14 @@ public class HoverHelper implements IHoverHelper {
     }
 
     public String getHoverHelpAt(IParseController parseController, ISourceViewer srcViewer, int offset) {
-	try {
-	    List/*<Annotation>*/ annotations= AnnotationHoverBase.getSourceAnnotationsForLine(srcViewer, srcViewer.getDocument().getLineOfOffset(offset));
-
-	    if (annotations != null && annotations.size() > 0)
-		return AnnotationHoverBase.formatAnnotationList(annotations);
-	} catch (BadLocationException e) {
-	    return "???";
-	}
+		try {
+		    List/*<Annotation>*/ annotations= AnnotationHoverBase.getSourceAnnotationsForLine(srcViewer, srcViewer.getDocument().getLineOfOffset(offset));
+	
+		    if (annotations != null && annotations.size() > 0)
+			return AnnotationHoverBase.formatAnnotationList(annotations);
+		} catch (BadLocationException e) {
+		    return "???";
+		}
 
     	IReferenceResolver refResolver = (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.REFERENCE_RESOLVER_SERVICE);
         Object root= parseController.getCurrentAst();
@@ -61,16 +59,16 @@ public class HoverHelper implements IHoverHelper {
        	if (target == null) return null;
 
        	IDocumentationProvider docProvider= (IDocumentationProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.DOCUMENTATION_PROVIDER_SERVICE);
-       	String doc= (docProvider != null) ? docProvider.getDocumentation(target, parseController) : null;
+       	String doc;
 
+       	if (docProvider != null)
+       	    doc= docProvider.getDocumentation(target, parseController);
+       	else {
+       	    StringBuffer buffer= new StringBuffer();
+
+       	    HTMLPrinter.addSmallHeader(buffer, target.toString());
+       	    doc= buffer.toString();
+       	}
        	return doc;
-//       	StringBuffer buffer= new StringBuffer();
-//
-//	HTMLPrinter.addSmallHeader(buffer, target.toString());
-//
-//	if (doc != null)
-//       	    HTMLPrinter.addParagraph(buffer, doc);
-//
-//       	return buffer.toString();
     }
 }

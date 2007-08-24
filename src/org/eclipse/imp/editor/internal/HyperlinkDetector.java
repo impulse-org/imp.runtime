@@ -1,21 +1,19 @@
-package org.eclipse.uide.internal.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.editor.TargetLink;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IReferenceResolver;
+import org.eclipse.imp.services.ISourceHyperlinkDetector;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.editor.IReferenceResolver;
-import org.eclipse.uide.editor.ISourceHyperlinkDetector;
-import org.eclipse.uide.editor.TargetLink;
-import org.eclipse.uide.editor.UniversalEditor;
-import org.eclipse.uide.parser.IASTNodeLocator;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
 /**
  * Provides a method to detect hyperlinks originating from a
@@ -36,9 +34,13 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
 	if (fResolver == null)
 	    fResolver= (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.REFERENCE_RESOLVER_SERVICE);
 
+	// SMS 17 Aug 2007
 	if (fResolver == null)
 	    return null;
 
+	if (parseController == null)
+		return null;
+	
 	// Get stuff for getting link source node
         Object ast= parseController.getCurrentAst();
         if (ast == null) return null;

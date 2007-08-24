@@ -1,13 +1,15 @@
 /*
  * Created on Oct 27, 2006
  */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
@@ -18,8 +20,6 @@ import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.ISourceViewerExtension2;
 import org.eclipse.jface.text.source.projection.AnnotationBag;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.utils.HTMLPrinter;
 
 public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
 

@@ -1,4 +1,4 @@
-package org.eclipse.uide.parser;
+package org.eclipse.imp.parser;
 
 import java.util.List;
 
@@ -7,8 +7,8 @@ import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.model.ISourceProject;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.model.ISourceProject;
 
 public interface IParseController extends ILanguageService {
     void initialize(IPath projRelFilePath, ISourceProject project, IMessageHandler handler);

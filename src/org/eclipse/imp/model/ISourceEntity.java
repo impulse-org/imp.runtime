@@ -1,7 +1,7 @@
 /*
  * Created on Mar 30, 2007
  */
-package org.eclipse.uide.model;
+package org.eclipse.imp.model;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 

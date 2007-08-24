@@ -1,6 +1,6 @@
-package org.eclipse.uide.indexing;
+package org.eclipse.imp.indexing;
 
-import org.eclipse.uide.core.ILanguageService;
+import org.eclipse.imp.language.ILanguageService;
 
 
 /**

@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide.runtime">
+<schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide.runtime" id="refactoringContributions" name="Refactoring Contributions"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="refactoringContributions" name="Refactoring Contributions"/>
       </appInfo>
       <documentation>
          Contributors provide refactorings (behavior-preserving source-to-source transformations) for the given language.
@@ -13,6 +13,7 @@
    <element name="extension">
       <complexType>
          <sequence>
+            <element ref="refactoringContributor"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>

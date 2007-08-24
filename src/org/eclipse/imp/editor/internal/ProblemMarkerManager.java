@@ -1,4 +1,4 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import java.util.HashSet;
 
@@ -12,14 +12,14 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.editor.IProblemChangedListener;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.text.source.AnnotationModelEvent;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
 import org.eclipse.jface.util.ListenerList;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.wizards.fields.SWTUtil;
 
 /**
  * Listens to resource deltas and filters for marker changes of type IMarker.PROBLEM Viewers showing error ticks should
@@ -158,7 +158,11 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
     }
 
     private void fireChanges(final IResource[] changes, final boolean isMarkerChange) {
-        Display display= SWTUtil.getStandardDisplay();
+        //Display display= SWTUtil.getStandardDisplay();
+	Display display = Display.getCurrent();
+	if (display == null)
+	    display= Display.getDefault();
+
 
         if (display != null && !display.isDisposed()) {
             display.asyncExec(new Runnable() {

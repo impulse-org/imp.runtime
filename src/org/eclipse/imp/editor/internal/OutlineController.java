@@ -1,8 +1,15 @@
-package org.eclipse.uide.internal.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IOutliner;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.swt.SWT;
@@ -14,15 +21,6 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.editor.IOutliner;
-import org.eclipse.uide.editor.UniversalEditor;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -64,7 +62,7 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
     	tree.addSelectionListener(new SelectionAdapter() {
 			    public void widgetSelected(SelectionEvent e) {
 			    	try {
-					    // RMF 11/4/2005 - Disabled, since not every parser yields a UIDE AST
+					    // RMF 11/4/2005 - Disabled, since not every parser yields a imp AST
 			//		    TreeItem item= tree.getSelection()[0];
 			//		    Ast node= (Ast) item.getData();
 			//		    if (node != null) {

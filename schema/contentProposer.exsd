@@ -1,19 +1,19 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide">
+<schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="contentProposer" name="Universal IDE Content Proposer"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="contentProposer" name="Universal IDE Content Proposer"/>
       </appInfo>
       <documentation>
-         The org.eclips.uide.editor.contentProposer extension point allows contributors to provide content assist proposals. The provider specifies what languages it can provide content proposals for. The provider has to implement the IContentProposer interface. The proposer will be presented with an IModel and a location, and from this combination returns a list of relevant content proposals.
+         The org.eclips.imp.editor.contentProposer extension point allows contributors to provide content assist proposals. The provider specifies what languages it can provide content proposals for. The provider has to implement the IContentProposer interface. The proposer will be presented with an IModel and a location, and from this combination returns a list of relevant content proposals.
       </documentation>
    </annotation>
 
    <element name="extension">
       <complexType>
          <sequence>
-            <element ref="proposer" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="proposer"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -47,7 +47,7 @@
                   The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.editor.IContentProposer"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.IContentProposer"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -104,7 +104,7 @@ consume ASTs created for the Common Lisp language.
          <meta.section type="implementation"/>
       </appInfo>
       <documentation>
-         See org.eclipse.uide.DefaultContentProposer.
+         See org.eclipse.imp.DefaultContentProposer.
       </documentation>
    </annotation>
 

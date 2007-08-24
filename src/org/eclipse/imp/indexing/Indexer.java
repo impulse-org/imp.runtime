@@ -1,4 +1,4 @@
-package org.eclipse.uide.indexing;
+package org.eclipse.imp.indexing;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -19,15 +19,15 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.core.LanguageValidator;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
-import org.eclipse.uide.utils.StreamUtils;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.language.LanguageValidator;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.utils.ExtensionPointFactory;
+import org.eclipse.imp.utils.StreamUtils;
 
 /*
  * Licensed Materials - Property of IBM,

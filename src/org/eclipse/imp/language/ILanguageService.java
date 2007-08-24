@@ -1,4 +1,4 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.language;
 
 
 /*
@@ -39,4 +39,5 @@ public interface ILanguageService {
 
     String DOCUMENTATION_PROVIDER_SERVICE= "documentationProvider";
     String VIEWER_FILTER_SERVICE= "viewerFilter";
+    String OCCURRENCE_MARKER= "markOccurrences";
 }

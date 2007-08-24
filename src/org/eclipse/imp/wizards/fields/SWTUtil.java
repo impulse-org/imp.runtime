@@ -1,8 +1,8 @@
-/*
- * Created on Feb 6, 2006
- */
-package org.eclipse.uide.wizards.fields;
+package org.eclipse.imp.wizards.fields;
 
+import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
@@ -16,10 +16,6 @@ import org.eclipse.swt.widgets.ScrollBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Widget;
-
-import org.eclipse.jface.dialogs.IDialogConstants;
-import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.util.Assert;
 
 /**
  * Utility class to simplify access to some SWT resources. 

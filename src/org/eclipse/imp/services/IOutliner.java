@@ -1,8 +1,9 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.services;
 
+import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.parser.IParseController;
 import org.eclipse.swt.widgets.Tree;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.parser.IParseController;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -11,7 +12,7 @@ import org.eclipse.uide.parser.IParseController;
 
 
 /**
- * This interface is to be implemented by contributors to the org.eclipse.uide.runtime.outliner extension point.
+ * This interface is to be implemented by contributors to the org.eclipse.imp.runtime.outliner extension point.
  * The Universal IDE Editor will locate a suitable parser for the language being edited.
  * The result of the parser, an Ast describing the syntactical elements in the input, is cached
  * and used to show an outline view of the elements in the editor.

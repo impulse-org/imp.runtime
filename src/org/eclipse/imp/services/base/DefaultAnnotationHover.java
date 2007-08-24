@@ -1,9 +1,10 @@
-package org.eclipse.uide.defaults;
+package org.eclipse.imp.services.base;
 
 import java.util.List;
+
+import org.eclipse.imp.utils.AnnotationUtils;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.uide.utils.AnnotationUtils;
 
 public class DefaultAnnotationHover implements IAnnotationHover {
     /**

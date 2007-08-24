@@ -1,19 +1,19 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.core;
 
 import org.eclipse.osgi.util.NLS;
 
-public class SAFARIMessages extends NLS {
+public class IMPMessages extends NLS {
 
-    private static final String BUNDLE_NAME= "org.eclipse.safari.core.core";//$NON-NLS-1$
+    private static final String BUNDLE_NAME= "org.eclipse.imp.core.core";//$NON-NLS-1$
 
     public static String Assert_assertion_failed;
 
     public static String Assert_null_argument;
 
-    private SAFARIMessages() {
+    private IMPMessages() {
     }
 
     static {
-        NLS.initializeMessages(BUNDLE_NAME, SAFARIMessages.class);
+        NLS.initializeMessages(BUNDLE_NAME, IMPMessages.class);
     }
 }

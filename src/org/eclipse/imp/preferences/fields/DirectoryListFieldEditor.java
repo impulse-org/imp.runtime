@@ -1,8 +1,10 @@
-	package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
 import java.io.File;
 import java.util.Stack;
 
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.swt.SWT;
@@ -10,18 +12,16 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
 
-public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEditor {
+public class DirectoryListFieldEditor extends StringButtonFieldEditor {
 
 	
 	protected PreferencePage prefPage = null;
-	protected SafariPreferencesTab prefTab = null;
+	protected PreferencesTab prefTab = null;
 	
-	public SafariDirectoryListFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+	public DirectoryListFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, int strategy, Composite parent)
     {
     	super(page, tab, service, level, name, labelText, width, strategy, parent);
@@ -32,7 +32,7 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
 	
 	
     /**
-     * Creates a SAFARI directory-list field editor.
+     * Creates an IMP directory-list field editor.
      * Use the method <code>setTextLimit</code> to limit the text.
      * 
      * @param name the name of the preference this field editor works on
@@ -41,9 +41,9 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
      *  or <code>UNLIMITED</code> for no limit
      * @param parent the parent of the field editor's control
      */
-    public SafariDirectoryListFieldEditor(
-    		PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+    public DirectoryListFieldEditor(
+    		PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, Composite parent)
     {
         super(page, tab, service, level, name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
@@ -54,16 +54,16 @@ public class SafariDirectoryListFieldEditor extends SafariStringButtonFieldEdito
     
     
     /**
-     * Creates a SAFARI directory-list field editor.
+     * Creates an IMP directory-list field editor.
      * Use the method <code>setTextLimit</code> to limit the text.
      * 
      * @param name the name of the preference this field editor works on
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public SafariDirectoryListFieldEditor(
-    		PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText, Composite parent)
+    public DirectoryListFieldEditor(
+    		PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText, Composite parent)
     {
         super(page, tab, service, level, name, labelText, parent);
     	prefPage = page;

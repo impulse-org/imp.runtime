@@ -1,5 +1,6 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FontFieldEditor;
@@ -11,18 +12,17 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.uide.runtime.RuntimePlugin;
 
 public class PreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
     public PreferencePage() {
 	super(GRID);
 	setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
-	setDescription("Preferences for the SAFARI framework");
+	setDescription("Preferences for the IMP framework");
     }
 
     public void createFieldEditors() {
 	final BooleanFieldEditor emitMessagesField= new BooleanFieldEditor(PreferenceConstants.P_EMIT_MESSAGES,
-		"E&mit diagnostic messages from SAFARI UI", getFieldEditorParent());
+		"E&mit diagnostic messages from IMP UI", getFieldEditorParent());
 	addField(emitMessagesField);
 
 	final IntegerFieldEditor tabWidthField= new IntegerFieldEditor(PreferenceConstants.P_TAB_WIDTH,
@@ -40,13 +40,13 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
 	getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 	    public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES))
-		    SAFARIPreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
+		    PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
 		else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH))
-		    SAFARIPreferenceCache.tabWidth= ((Integer) event.getNewValue()).intValue();
+		    PreferenceCache.tabWidth= ((Integer) event.getNewValue()).intValue();
 		else if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-		    if (SAFARIPreferenceCache.sourceFont != null)
-			SAFARIPreferenceCache.sourceFont.dispose();
-		    SAFARIPreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), ((FontData[]) event.getNewValue())[0]);
+		    if (PreferenceCache.sourceFont != null)
+			PreferenceCache.sourceFont.dispose();
+		    PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), ((FontData[]) event.getNewValue())[0]);
 		}
 	    }
 	});

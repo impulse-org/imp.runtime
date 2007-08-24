@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide.runtime">
+<schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide.runtime" id="referenceResolvers" name="SAFARI Reference Resolver"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="referenceResolvers" name="IMP Reference Resolver"/>
       </appInfo>
       <documentation>
          [Enter description of this extension point.]
@@ -57,7 +57,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.editor.IReferenceResolver"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.IReferenceResolver"/>
                </appInfo>
             </annotation>
          </attribute>

@@ -1,9 +1,10 @@
 /**
  * 
  */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.util.ArrayList;
+
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.util.ListenerList;
 import org.eclipse.jface.viewers.IColorProvider;

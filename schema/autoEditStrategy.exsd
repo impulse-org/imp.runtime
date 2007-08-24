@@ -1,9 +1,9 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide.runtime">
+<schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide.runtime" id="autoEditStrategy" name="Auto-Edit Strategy"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="autoEditStrategy" name="Auto-Edit Strategy"/>
       </appInfo>
       <documentation>
          Implementors of this extension provide an &quot;auto-edit strategy&quot;, which is used to do things like automatically indenting a new line when a newline is entered.

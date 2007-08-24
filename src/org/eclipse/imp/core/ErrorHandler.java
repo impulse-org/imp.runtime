@@ -1,9 +1,9 @@
-package org.eclipse.uide.core;
+package org.eclipse.imp.core;
 
+import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.uide.preferences.SAFARIPreferenceCache;
-import org.eclipse.uide.runtime.RuntimePlugin;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -47,7 +47,7 @@ public class ErrorHandler {
 	    System.err.println(message);
 	if (!noDump)
 	    new Error(message).printStackTrace();
-	if (LOG || SAFARIPreferenceCache.emitMessages)
+	if (LOG || PreferenceCache.emitMessages)
 	    logError(message, new Error(message));
 	if (showDialog) {
 	    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {

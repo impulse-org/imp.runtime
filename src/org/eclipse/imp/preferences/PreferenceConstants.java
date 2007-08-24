@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 public class PreferenceConstants {
     public static final String P_EMIT_MESSAGES= "emitMessages";

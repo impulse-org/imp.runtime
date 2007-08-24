@@ -1,8 +1,9 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import java.util.HashMap;
 import java.util.Iterator;
 
+import org.eclipse.imp.preferences.fields.FieldEditor;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -10,9 +11,8 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.TabItem;
-import org.eclipse.uide.preferences.fields.SafariFieldEditor;
 
-public abstract class SafariPreferencesTab
+public abstract class PreferencesTab
 {
 	// The following fields are shared among specific
 	// subtypes of preferences tab, which generally represent
@@ -21,16 +21,16 @@ public abstract class SafariPreferencesTab
 	// impementations, so they are not set here.
 	
 	// The page on which this tab occurs
-	protected SafariTabbedPreferencesPage prefPage = null;
+	protected TabbedPreferencesPage prefPage = null;
 	
 	// Utilities for creating and managing preference fields
-	protected SafariPreferencesUtilities prefUtils;
+	protected PreferencesUtilities prefUtils;
 	
 	// The service for storing and accessing preference values
-	protected ISafariPreferencesService prefService;
+	protected IPreferencesService prefService;
 	
 	// The fields that occur on this tab
-	protected SafariFieldEditor[] fields = null;
+	protected FieldEditor[] fields = null;
 	
 	// Whether this tab is valid, that is, whether
 	// all of its fields are valid
@@ -55,9 +55,9 @@ public abstract class SafariPreferencesTab
 	 * To be overridden.
 	 *
 	 */
-	protected SafariFieldEditor[] createFields(Composite composite) {
+	protected FieldEditor[] createFields(Composite composite) {
 		// TODO:  create specific preferences fields here
-		System.out.println("SafariPreferencesTab.createFields():  unimplemented");
+		System.out.println("PreferencesTab.createFields():  unimplemented");
 		return null;
 	}
 	
@@ -68,15 +68,15 @@ public abstract class SafariPreferencesTab
 	 * 
 	 * This version is adapted for use in automatically generating the tabs.
 	 */
-	protected SafariFieldEditor[] createFields(
-			SafariTabbedPreferencesPage page,
-			SafariPreferencesTab tab,
+	protected FieldEditor[] createFields(
+			TabbedPreferencesPage page,
+			PreferencesTab tab,
 			String level,
 			Composite parent,
-			ISafariPreferencesService prefsService)
+			IPreferencesService prefsService)
     {
 		// TODO:  create specific preferences fields here
-		System.out.println("SafariPreferencesTab.createFields():  unimplemented");
+		System.out.println("PreferencesTab.createFields():  unimplemented");
 		return null;
 	}
 	
@@ -126,25 +126,25 @@ public abstract class SafariPreferencesTab
 
 	public void clearErrorMessages(Object key) {
 		String currentMessage = (String) errorMessages.get(key);
-//		System.out.println("Tab = " + tabItem.getText() + ", field = " + ((SafariFieldEditor)key).getPreferenceName() + ":  clearErrorMessages(), clearing message = " + currentMessage);
+//		System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  clearErrorMessages(), clearing message = " + currentMessage);
 		errorMessages.remove(key);
 		if (prefPage == null) return;
 		if (errorMessages.size() == 0) {
-//			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((SafariFieldEditor)key).getPreferenceName() + ":  clearErrorMessages(), setting message to null");
+//			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  clearErrorMessages(), setting message to null");
 			prefPage.setErrorMessage(null);	// to clear
 			return;
 		}
 		Iterator it = errorMessages.keySet().iterator();
 		Object nextKey = it.next();
 		String nextMessage = (String) errorMessages.get(nextKey);
-//		System.out.println("Tab = " + tabItem.getText() + ", field = " + ((SafariFieldEditor)key).getPreferenceName() + "clearErrorMessages(), setting message to:  " + nextMessage);
+//		System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + "clearErrorMessages(), setting message to:  " + nextMessage);
 		prefPage.setErrorMessage(nextMessage);
 	}
 	
 	
 	public void setErrorMessage(Object key, String msg) {
 		if (key != null && msg != null) {
-//			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((SafariFieldEditor)key).getPreferenceName() + ":  setErrorMessage(), setting message to:  " + msg);
+//			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  setErrorMessage(), setting message to:  " + msg);
 			errorMessages.remove(key);
 			errorMessages.put(key, msg);
 			prefPage.setErrorMessage(msg);

@@ -1,8 +1,16 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
+import org.eclipse.imp.editor.internal.AbstractInformationControl;
+import org.eclipse.imp.editor.internal.AbstractInformationControl.NamePatternFilter;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -29,16 +37,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.Widget;
-import org.eclipse.ui.IDecoratorManager;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.editor.OutlineLabelProvider.IElementImageProvider;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
 public class OutlineInformationControl extends AbstractInformationControl {
     // These must agree with the SAFARI extension point ID's defined in plugin.xml
@@ -360,7 +361,7 @@ public class OutlineInformationControl extends AbstractInformationControl {
      * @since 3.0
      */
     protected String getId() {
-	return "org.eclipse.uide.QuickOutline"; //$NON-NLS-1$
+	return "org.eclipse.imp.QuickOutline"; //$NON-NLS-1$
     }
 
     /**

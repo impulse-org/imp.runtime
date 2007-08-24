@@ -1,11 +1,11 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.uide.runtime.RuntimePlugin;
 
 /**
- * Initializes SAFARI framework-wide preferences to reasonable default values.
+ * Initializes Imp framework-wide preferences to reasonable default values.
  * @author rfuhrer@watson.ibm.com
  */
 public class PreferenceInitializer extends AbstractPreferenceInitializer {

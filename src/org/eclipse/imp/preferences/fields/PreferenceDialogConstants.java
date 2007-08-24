@@ -1,6 +1,6 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
-import org.eclipse.uide.preferences.ISafariPreferencesService;
+import org.eclipse.imp.preferences.IPreferencesService;
 
 public class PreferenceDialogConstants {
 
@@ -34,9 +34,9 @@ public class PreferenceDialogConstants {
 	public static String getLevelName(String level) {
         if (level == null) {
         	return "unspecified";
-        } else if (level.equals(ISafariPreferencesService.INSTANCE_LEVEL))
+        } else if (level.equals(IPreferencesService.INSTANCE_LEVEL))
         	return "workspace instance";
-        else if (level.equals(ISafariPreferencesService.CONFIGURATION_LEVEL))
+        else if (level.equals(IPreferencesService.CONFIGURATION_LEVEL))
         	return "workspace configuration";
         else
         	return level;

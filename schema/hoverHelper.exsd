@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.uide">
+<schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.uide" id="HoverHelper" name="Universal IDE Hover Helper"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="HoverHelper" name="Universal IDE Hover Helper"/>
       </appInfo>
       <documentation>
-         The org.eclips.uide.editor.hoverHelper extension point allows providers to provide hover help. The provider specifies what languages it can provide hover help for. The provider has to implement the IHoverHelper interface. It will be presented with an IModel and a location, and from this combination
+         The org.eclips.imp.editor.hoverHelper extension point allows providers to provide hover help. The provider specifies what languages it can provide hover help for. The provider has to implement the IHoverHelper interface. It will be presented with an IModel and a location, and from this combination
 returns the appropriate context-sensitive hover help.
       </documentation>
    </annotation>
@@ -14,7 +14,7 @@ returns the appropriate context-sensitive hover help.
    <element name="extension">
       <complexType>
          <sequence>
-            <element ref="hoverhelper" minOccurs="1" maxOccurs="unbounded"/>
+            <element ref="hoverhelper"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -48,7 +48,7 @@ returns the appropriate context-sensitive hover help.
                   The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.uide.editor.IHoverHelper"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.IHoverHelper"/>
                </appInfo>
             </annotation>
          </attribute>
@@ -77,12 +77,12 @@ returns the appropriate context-sensitive hover help.
       </appInfo>
       <documentation>
          &lt;extension
-         point=&quot;org.eclipse.uide.hoverHelper&quot;&gt;
+         point=&quot;org.eclipse.imp.hoverHelper&quot;&gt;
       &lt;hoverhelper
-            class=&quot;org.eclipse.uide.DefaultHoverHelper&quot;
+            class=&quot;org.eclipse.imp.DefaultHoverHelper&quot;
             language=&quot;*&quot;
             name=&quot;Default Hover Helper&quot;
-            id=&quot;org.eclipse.uide.hoverhelper.default&quot;/&gt;
+            id=&quot;org.eclipse.imp.hoverhelper.default&quot;/&gt;
    &lt;/extension&gt;
       </documentation>
    </annotation>
@@ -101,7 +101,7 @@ returns the appropriate context-sensitive hover help.
          <meta.section type="implementation"/>
       </appInfo>
       <documentation>
-         See org.eclipse.uide.DefaultHoverHelper.
+         See org.eclipse.imp.DefaultHoverHelper.
       </documentation>
    </annotation>
 

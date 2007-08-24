@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -12,16 +12,16 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 
 /**
- * A multi-tab preferences page for Safari-supported languages.
+ * A multi-tab preferences page for Imp-supported languages.
  * The various tabs nominally represent the same sets of preferences
  * as set on different levels (default, workspace configuration,
  * workspace instance, and project).
  * 
  * @author suttons@us.ibm.com
  */
-public abstract class SafariAlternativePreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
+public abstract class AlternativePreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 	
-	public SafariAlternativePreferencesPage() {
+	public AlternativePreferencesPage() {
 		this.noDefaultAndApplyButton();
 	}
 

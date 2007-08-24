@@ -1,4 +1,4 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;

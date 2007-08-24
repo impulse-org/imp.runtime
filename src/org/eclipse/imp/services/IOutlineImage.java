@@ -1,9 +1,8 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.services;
 
 
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
-//import org.eclipse.ui.plugin.AbstractUIPlugin;
 
 public interface IOutlineImage {
 

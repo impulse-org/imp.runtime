@@ -1,4 +1,4 @@
-package org.eclipse.uide.indexing;
+package org.eclipse.imp.indexing;
 
 import org.eclipse.core.resources.IFile;
 

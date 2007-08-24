@@ -1,9 +1,11 @@
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import org.eclipse.uide.parser.IParseController;
+
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IReferenceResolver;
 
 /**
  * Provides a default implementation for (most of) the the IReferenceResolver interface,

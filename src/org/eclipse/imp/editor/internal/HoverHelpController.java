@@ -1,24 +1,23 @@
-/**
- * 
- */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.HoverHelper;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IHoverHelper;
+import org.eclipse.imp.services.base.HoverHelperBase;
+import org.eclipse.imp.utils.AnnotationUtils;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.source.ISourceViewer;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.parser.IModelListener;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.runtime.RuntimePlugin;
-import org.eclipse.uide.utils.AnnotationUtils;
-import org.eclipse.uide.utils.ExtensionPointFactory;
 
-class HoverHelpController implements ITextHover, IModelListener {
+public class HoverHelpController implements ITextHover, IModelListener {
     private IParseController controller;
 
     private IHoverHelper hoverHelper;
@@ -53,7 +52,11 @@ class HoverHelpController implements ITextHover, IModelListener {
     }
 
     public void setLanguage(Language language) {
-//        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.HOVER_HELPER_SERVICE);
-	hoverHelper= new HoverHelper(language);
+        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.HOVER_HELPER_SERVICE);
+        if (hoverHelper == null)
+            hoverHelper= new HoverHelper(language);
+        else if (hoverHelper instanceof HoverHelperBase) {
+            ((HoverHelperBase)hoverHelper).setLanguage(language);
+        }
     }
 }

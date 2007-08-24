@@ -1,8 +1,10 @@
-package org.eclipse.uide.preferences.fields;
+package org.eclipse.imp.preferences.fields;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesTab;
+import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
@@ -16,11 +18,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-import org.eclipse.uide.preferences.ISafariPreferencesService;
-import org.eclipse.uide.preferences.SafariPreferencesTab;
-import org.eclipse.uide.preferences.SafariPreferencesUtilities;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -30,7 +28,7 @@ import org.osgi.service.prefs.BackingStoreException;
  *
  */
 
-public class SafariStringFieldEditor extends SafariFieldEditor
+public class StringFieldEditor extends FieldEditor
 {
     
 	/**
@@ -52,12 +50,12 @@ public class SafariStringFieldEditor extends SafariFieldEditor
     /**
      * Width of text field in characters; initially unlimited.
      */
-    protected int widthInChars = StringFieldEditor.UNLIMITED;
+    protected int widthInChars = org.eclipse.jface.preference.StringFieldEditor.UNLIMITED;
 
     /**
      * Text limit of text field in characters; initially unlimited.
      */
-    protected int textLimit = StringFieldEditor.UNLIMITED;
+    protected int textLimit = org.eclipse.jface.preference.StringFieldEditor.UNLIMITED;
 
     /**
      * The error message, or <code>null</code> if none.
@@ -79,7 +77,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      * The validation strategy; 
      * <code>VALIDATE_ON_KEY_STROKE</code> by default.
      */
-    protected int validateStrategy = StringFieldEditor.VALIDATE_ON_KEY_STROKE;
+    protected int validateStrategy = org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE;
 
  
 	
@@ -98,14 +96,14 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      * @param parent the parent of the field editor's control
      * @since 2.0
      */
-    public SafariStringFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level, String name, String labelText,
+    public StringFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level, String name, String labelText,
     		int width, int strategy, Composite parent)
     {
     	super(page, tab, service, level, name, labelText, parent);
 
-    	// Relating to SAFARI things
+    	// Relating to IMP things
 //    	preferencesService = service;
 //    	preferencesLevel = level;
 //    	this.parent = parent;
@@ -120,7 +118,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
         isValid = false;
         // Why set this in a local field rather than in the page?
         errorMessage = JFaceResources
-                .getString("SafariStringFieldEditor.errorMessage");//$NON-NLS-1$
+                .getString("StringFieldEditor.errorMessage");//$NON-NLS-1$
         createControl(parent);	
     }
 	
@@ -135,13 +133,13 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      *  or <code>UNLIMITED</code> for no limit
      * @param parent the parent of the field editor's control
      */
-    public SafariStringFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-    		ISafariPreferencesService service, String level,
+    public StringFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+    		IPreferencesService service, String level,
     		String name, String labelText, int width, Composite parent)
     {
         this(page, tab, service, level,
-        	 name, labelText, width, StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
+        	 name, labelText, width, org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     }
     
     /**
@@ -152,12 +150,12 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      * @param labelText the label text of the field editor
      * @param parent the parent of the field editor's control
      */
-    public SafariStringFieldEditor(
-			PreferencePage page, SafariPreferencesTab tab,
-			ISafariPreferencesService service, String level,
+    public StringFieldEditor(
+			PreferencePage page, PreferencesTab tab,
+			IPreferencesService service, String level,
 			String name, String labelText, Composite parent)
     {
-        this(page, tab, service, level, name, labelText, StringFieldEditor.UNLIMITED, parent);
+        this(page, tab, service, level, name, labelText, org.eclipse.jface.preference.StringFieldEditor.UNLIMITED, parent);
     }
 
    
@@ -186,8 +184,8 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      *  Copied from StringFieldEditor and adapted to this location.
      */
     public void setValidateStrategy(int value) {
-        Assert.isTrue(value == StringFieldEditor.VALIDATE_ON_FOCUS_LOST
-                || value == StringFieldEditor.VALIDATE_ON_KEY_STROKE);
+        Assert.isTrue(value == org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_FOCUS_LOST
+                || value == org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE);
         validateStrategy = value;
     }
 
@@ -206,9 +204,9 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      */
 	public String getSpecialStringValue() { 
 		if (!hasSpecialValue) {
-			throw new IllegalStateException("SafariStringField.getSpecialValue():  field does not have a special value");
+			throw new IllegalStateException("StringField.getSpecialValue():  field does not have a special value");
 		} else if (!(specialValue instanceof String)) {
-			throw new IllegalStateException("SafariStringField.getSpecialValue():  special value is not a String");
+			throw new IllegalStateException("StringField.getSpecialValue():  special value is not a String");
 		} else {
 			return (String) specialValue;
 		}
@@ -226,7 +224,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
 	 */
 	public void setSpecialValue(String specialValue) {
 		if (!(specialValue instanceof String)) {
-			throw new IllegalStateException("SafariStringField.setSpecialValue():  given value is not a String");
+			throw new IllegalStateException("StringField.setSpecialValue():  given value is not a String");
 		}
 		hasSpecialValue = true;
 		this.specialValue = specialValue;
@@ -326,16 +324,16 @@ public class SafariStringFieldEditor extends SafariFieldEditor
         		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
     			setInherited(!levelFromWhichLoaded.equals(preferencesLevel));
         	}
-           	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+           	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
             setStringValue(value);
         }
         // SMS 28 Nov 2006 added here
        	// Set the background color of the field according to where found
         Text text = getTextControl(parent);
         if (isInherited())
-        	text.setBackground(SafariPreferencesUtilities.colorBluish);
+        	text.setBackground(PreferencesUtilities.colorBluish);
         else
-        	text.setBackground(SafariPreferencesUtilities.colorWhite);
+        	text.setBackground(PreferencesUtilities.colorWhite);
     }
 
  
@@ -346,8 +344,8 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      */
     protected void doLoadDefault() {
         if (getTextControl(parent) != null) {
-            String value = preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
-            levelFromWhichLoaded = ISafariPreferencesService.DEFAULT_LEVEL;
+            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
+            levelFromWhichLoaded = IPreferencesService.DEFAULT_LEVEL;
             setInherited(false);	// We're putting the default value here directly, not inheriting it
             setPresentsDefaultValue(true);	// Need this really?
             setStringValue(value);	// calls valueChanged();
@@ -355,7 +353,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
             // SMS 28 Nov 2006 added here
             // Value is default but is not inherited
             Text text = getTextControl(parent);
-           	text.setBackground(SafariPreferencesUtilities.colorWhite);
+           	text.setBackground(PreferencesUtilities.colorWhite);
         }
     }
 
@@ -376,7 +374,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
          	// We're putting the level's value here directly, not inheriting it, so ...
         	levelFromWhichLoaded = level;
         	setInherited(false);
-           	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(level));
+           	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(level));
         	setStringValue(value);	// calls valueChanged();
         }
     }
@@ -400,7 +398,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
     {
     	String levelLoaded = null;
     	
-    	String[] levels = ISafariPreferencesService.levels;
+    	String[] levels = IPreferencesService.levels;
     	int fieldLevelIndex = 0;
 
     	// If we're loading with inheritance for some field that is
@@ -434,15 +432,15 @@ public class SafariStringFieldEditor extends SafariFieldEditor
     	
     	levelFromWhichLoaded = levelLoaded;
     	setInherited(fieldLevelIndex != levelAtWhichFound);
-       	setPresentsDefaultValue(ISafariPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+       	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
         setStringValue(value);		// sets fieldModified and previousValue
        	
        	// Set the background color of the field according to where found
         Text text = getTextControl(parent);
         if (isInherited())
-        	text.setBackground(SafariPreferencesUtilities.colorBluish);
+        	text.setBackground(PreferencesUtilities.colorBluish);
         else
-        	text.setBackground(SafariPreferencesUtilities.colorWhite);
+        	text.setBackground(PreferencesUtilities.colorWhite);
         
         return levelLoaded;
     }
@@ -487,20 +485,20 @@ public class SafariStringFieldEditor extends SafariFieldEditor
    		levelFromWhichLoaded = preferencesLevel;
    		isInherited = false;
    		setPresentsDefaultValue(
-   				value.equals(preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
+   				value.equals(preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
             
    		
    		// If we've stored the field then it's not inherited, so be sure it's
    		// color indicates that.
    		// For text fields, the background color is the backgroud color within
    		// the field, so don't have to worry about matching anything else
-   		getTextControl(parent).setBackground(SafariPreferencesUtilities.colorWhite);
+   		getTextControl(parent).setBackground(PreferencesUtilities.colorWhite);
     	
     	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
     	try {
     		if (node != null) node.flush();
     	} catch (BackingStoreException e) {
-    		System.err.println("SafariStringFieldEditor.doStore():  BackingStoreException flushing node;  node may not have been flushed:" + 
+    		System.err.println("StringFieldEditor.doStore():  BackingStoreException flushing node;  node may not have been flushed:" + 
     				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
     	}
     }
@@ -590,7 +588,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
         	// and presents default value
 	//            }
 //       		setPresentsDefaultValue(
-//       				value.equals(preferencesService.getStringPreference(ISafariPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
+//       				value.equals(preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
         }
     }
 
@@ -607,12 +605,12 @@ public class SafariStringFieldEditor extends SafariFieldEditor
      * This hook is <em>not</em> called when the text is initialized 
      * (or reset to the default value) from the preference store.
      * (That comment is taken from the original implementation of this
-     * method.  I've tried to follow it consistently for SAFARI preferences,
+     * method.  I've tried to follow it consistently for IMP preferences,
      * but I'm not sure if the original intention translates into the
      * multi-level model.  Still, so far there seems to be no problem
      * with it.  SMS 16 Nov 2006)
      * 
-     * Copied from StringFieldEditor and adapted to use in SAFARI.
+     * Copied from StringFieldEditor and adapted to use in IMP.
      * Added return of a boolean value.  Not intended to set any attributes
      * of the field editor, just to signal changes to listeners.
      */
@@ -719,7 +717,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
             textField = new Text(parent, SWT.SINGLE | SWT.BORDER);
             textField.setFont(parent.getFont());
             switch (validateStrategy) {
-            case StringFieldEditor.VALIDATE_ON_KEY_STROKE:
+            case org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE:
                 textField.addKeyListener(new KeyAdapter() {
 
                     /* (non-Javadoc)
@@ -738,7 +736,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
                 });
 
                 break;
-            case StringFieldEditor.VALIDATE_ON_FOCUS_LOST:
+            case org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_FOCUS_LOST:
                 textField.addKeyListener(new KeyAdapter() {
                     public void keyPressed(KeyEvent e) {
                         clearErrorMessage();
@@ -760,7 +758,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
                 Assert.isTrue(false, "Unknown validate strategy");//$NON-NLS-1$
             }
             // SMS 16 Nov 2006
-            // The original SafariStringFieldEditor just had a text-field modify listener,
+            // The original StringFieldEditor just had a text-field modify listener,
             // as copied below.  But that would be redundant with the listeners copied
             // from StringFieldEditor above.  The use of more than one listener for the
             // same event is problematic if they all check for changes in the text value,
@@ -800,7 +798,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
     
     /**
      * Does something with the columns
-     * (but the SAFARI templates adjust columns separately)
+     * (but the IMP templates adjust columns separately)
      */
     protected void adjustForNumColumns(int numColumns) {
         GridData gd = (GridData) textField.getLayoutData();
@@ -826,7 +824,7 @@ public class SafariStringFieldEditor extends SafariFieldEditor
         textField = getTextControl(parent);
         GridData gd = new GridData();
         gd.horizontalSpan = numColumns - 1;
-        if (widthInChars != StringFieldEditor.UNLIMITED) {
+        if (widthInChars != org.eclipse.jface.preference.StringFieldEditor.UNLIMITED) {
             GC gc = new GC(textField);
             try {
                 Point extent = gc.textExtent("X");//$NON-NLS-1$

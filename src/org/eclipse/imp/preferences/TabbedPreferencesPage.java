@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 
 import org.eclipse.jface.dialogs.Dialog;
@@ -13,25 +13,25 @@ import org.eclipse.ui.IWorkbenchPreferencePage;
 
 
 /**
- * A multi-tab preferences page for Safari-supported languages.
+ * A multi-tab preferences page for IMP-supported languages.
  * The various tabs nominally represent the same sets of preferences
  * as set on different levels (default, workspace configuration,
  * workspace instance, and project).
  * 
  * @author suttons@us.ibm.com
  */
-public abstract class SafariTabbedPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
+public abstract class TabbedPreferencesPage extends PreferencePage implements IWorkbenchPreferencePage {
 	
 	// To hold tabs created by specializations of this class;
 	// used below in methods that respond to buttons
-	SafariPreferencesTab[] tabs = new SafariPreferencesTab[4];
+	PreferencesTab[] tabs = new PreferencesTab[4];
 
 	// To be provided by a language-specific preferences page
 	// that is specialized from this one
-	protected ISafariPreferencesService prefService = null;
+	protected IPreferencesService prefService = null;
 
 	
-	public SafariTabbedPreferencesPage() {
+	public TabbedPreferencesPage() {
 		this.noDefaultAndApplyButton();
 	}
 
@@ -47,6 +47,10 @@ public abstract class SafariTabbedPreferencesPage extends PreferencePage impleme
 
         // Create the tabs that go into the tab folder	
         tabs = createTabs(prefService, this, tabFolder);
+        setConditionalFieldEnabledState();
+        
+        
+
         
         // The validity of the page depends on the validity of its tabs,
         // so refresh the valid state of the page now that all of the
@@ -61,6 +65,62 @@ public abstract class SafariTabbedPreferencesPage extends PreferencePage impleme
 
 	
 	/**
+	 * Assure that the enabled state of conditionally enabled
+	 * tabs is set appropriately.
+	 * 
+	 * When a tab is newly created with some fields that are supposed to
+	 * be enabled depending on the value of other (boolean) fields, it
+	 * seems that the enabled state of the conditional fields does not
+	 * get set properly.  This happens despite explicit attempts to set
+	 * the appropriate enabled state (perhaps due to race conditions?).
+	 * Toggling of the condition fields once the tab has been created
+	 * does cause the enabled state of conditional fields to be set
+	 * correctly.  This method automates that activity, which can be
+	 * emulated on the default tab by restoring and applying the default
+	 * field values.  However, changes on the default tab can affect
+	 * lower levels in the preferences hierarchy--values inherited from
+	 * the default level do not change, but the fact that the default
+	 * values have been restored causes inherited values to be marked as
+	 * modified.  To clear the modified marks from lower levels of the
+	 * preferences hierarchy, the tabs for those levels are also applied,
+	 * in a top-down order.  On the project level default values are
+	 * restored before being applied; this assures that the fields are
+	 * empty, as they should be, because there should be no project
+	 * selected at this point.
+	 *
+	 */
+	protected void setConditionalFieldEnabledState() {
+	    // Assure that all tabs are initialized properly
+	    // and reflect an unmodified state
+	    for (int i = 0; i < tabs.length; i++) {
+	    	if (tabs[i] instanceof DefaultPreferencesTab) {
+	    		tabs[i].performDefaults();
+	    		tabs[i].performApply();
+	    		break;
+	    	}
+	    }
+	    for (int i = 0; i < tabs.length; i++) {
+	    	if (tabs[i] instanceof ConfigurationPreferencesTab) {
+	    		tabs[i].performApply();
+	    		break;
+	    	}
+	    }
+	    for (int i = 0; i < tabs.length; i++) {
+	    	if (tabs[i] instanceof InstancePreferencesTab) {
+	    		tabs[i].performApply();
+	    		break;
+	    	}
+	    }
+	    for (int i = 0; i < tabs.length; i++) {
+	    	if (tabs[i] instanceof ProjectPreferencesTab) {
+	    		tabs[i].performDefaults();
+	    		tabs[i].performApply();
+	    		break;
+	    	}
+	    }
+	}
+	
+	/**
 	 * Create the tabs that represent the different levels of preferences
 	 * shown on this page.  Nominally these are the default, workspace configuraiton,
 	 * workspace instance, and project levels.
@@ -70,8 +130,8 @@ public abstract class SafariTabbedPreferencesPage extends PreferencePage impleme
 	 * @param tabFolder		The tab folder, on this page, that will contain the created tabs
 	 * @return				An array containing the created tabs
 	 */
-	protected abstract SafariPreferencesTab[] createTabs(
-			ISafariPreferencesService prefService, SafariTabbedPreferencesPage page, TabFolder tabFolder);	 
+	protected abstract PreferencesTab[] createTabs(
+			IPreferencesService prefService, TabbedPreferencesPage page, TabFolder tabFolder);	 
 	
 
 	
@@ -197,7 +257,7 @@ public abstract class SafariTabbedPreferencesPage extends PreferencePage impleme
 	 * 
 	 * @return	The tabs used on this preference page
 	 */
-	protected SafariPreferencesTab[] getTabs() {
+	protected PreferencesTab[] getTabs() {
 		return tabs;
 	}
 

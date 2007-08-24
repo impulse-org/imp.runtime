@@ -1,4 +1,4 @@
-<project name="org.eclipse.uide.runtime" default="all">
+<project name="org.eclipse.imp.runtime" default="all">
     <target name="all" depends="compile, test, publish"/>
 
     <target name="compile">

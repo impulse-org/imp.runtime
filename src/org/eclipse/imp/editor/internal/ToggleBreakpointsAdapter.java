@@ -1,13 +1,11 @@
 /*
  * Created on Mar 1, 2006
  */
-package org.eclipse.uide.editor;
+package org.eclipse.imp.editor.internal;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -24,6 +22,7 @@ import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -211,7 +210,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
         }
     }
     
-    private static boolean validateLineNumber(IFile origSrcFile, Integer origSrcLineNumber) {
+    public static boolean validateLineNumber(IFile origSrcFile, Integer origSrcLineNumber) {
     	LineMapBuilder lmb= new LineMapBuilder(origSrcFile.getRawLocation().removeFileExtension().toString());
         Map lineMap= lmb.getLineMap();
 
@@ -234,7 +233,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
     	return null;
     }
 
-    private static  IFile javaFileForRootSourceFile(IFile rootSrcFile) {
+    public static  IFile javaFileForRootSourceFile(IFile rootSrcFile) {
     	IProject project = rootSrcFile.getProject();
     	String rootSrcName= rootSrcFile.getName();
 
@@ -294,79 +293,6 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 	
 	//MV -- This method is called from smapifier to reset the breakpoint in the
 	//Java file when a new build has been done.
-	
-	public static void resetJavaBreakpoints(IFile origSrcFile){
-		IFile javaFile = javaFileForRootSourceFile(origSrcFile);
-		//first record which lines in original source file need to have a breakpoint
-		//this is needed because when we remove the breakpoints from the java file,
-		//the markers in the original file get deleted.
-		
-		Set lineNumbers = new HashSet();
-		try {
-			IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, false, IResource.DEPTH_INFINITE);
-			for (int i = 0; i < markers.length; i++) {
-				Integer num = (Integer) markers[i].getAttribute(IMarker.LINE_NUMBER);
-				if (validateLineNumber(origSrcFile,num))
-					lineNumbers.add(num);
-			}
-		} catch (CoreException e){
-			System.err.println(e);
-		}
-		
-		//remove all breakpoints from java file, this also removes the original markers
-		IBreakpoint[] breakpoints = DebugPlugin.getDefault().getBreakpointManager().getBreakpoints();
-		for (int i = 0; i < breakpoints.length ; i++){
-			IResource res = breakpoints[i].getMarker().getResource();
-			if (res.equals((IResource)javaFile)){
-				try {
-					DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(breakpoints[i], true);
-				} catch (CoreException e) {
-					e.printStackTrace();
-				}
-         
-			}
-		}
-		
-		//now add new breakpoints to the java file, and create corresponding marker in orig source file
-		try {
-			for(Iterator t = lineNumbers.iterator(); t.hasNext(); ) {
-				Integer origSrcLineNumber = (Integer) t.next();
-				String typeName = getTypeName(origSrcFile);
-				Map bkptAttributes= new HashMap();
-                bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
-                final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
-                      bkptAttributes);
-                final IMarker javaMarker= bkpt.getMarker();
-
-                // create the marker
-                IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
-                
-          
-                Map javaMarkerAttrs= javaMarker.getAttributes();
-                for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {
-                    String key= (String) iter.next();
-                    Object value= javaMarkerAttrs.get(key);
-                    if (key.equals(IMarker.LINE_NUMBER)) {
-                        value= origSrcLineNumber;
-                    }
-                    if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
-                        continue;
-                    origSrcMarker.setAttribute(key, value);
-                    
-                    
-                }
-                origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
-                
-			}
-		} catch (CoreException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		//finally recreate the markers
-		
-    	
-	}
 	
 	public static String getTypeName(IFile origSrcFile){
 		

@@ -1,4 +1,4 @@
-package org.eclipse.uide.preferences;
+package org.eclipse.imp.preferences;
 
 	
 import org.eclipse.swt.SWT;
@@ -10,16 +10,16 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 
-public class ConfigurationPreferencesTab  extends SafariPreferencesTab
+public class ConfigurationPreferencesTab  extends PreferencesTab
 {
 
-	public ConfigurationPreferencesTab(ISafariPreferencesService prefService) {
+	public ConfigurationPreferencesTab(IPreferencesService prefService) {
 		this.prefService = prefService;
-		prefUtils = new SafariPreferencesUtilities(prefService);
+		prefUtils = new PreferencesUtilities(prefService);
 	}
 	
 	
-	public Composite createConfigurationPreferencesTab(SafariTabbedPreferencesPage page, final TabFolder tabFolder) {
+	public Composite createConfigurationPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
 		prefPage = page;
 
@@ -38,8 +38,8 @@ public class ConfigurationPreferencesTab  extends SafariPreferencesTab
 		tabItem = new TabItem(tabFolder, SWT.NONE);
 		tabItem.setText("Configuration");
 		tabItem.setControl(composite);
-		SafariPreferencesTab.TabSelectionListener listener = 
-			new SafariPreferencesTab.TabSelectionListener(prefPage, tabItem);
+		PreferencesTab.TabSelectionListener listener = 
+			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
 		tabFolder.addSelectionListener(listener);
 		
 		
@@ -47,9 +47,9 @@ public class ConfigurationPreferencesTab  extends SafariPreferencesTab
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
 		//fields = createFields(composite);
-		fields = createFields(page, this, ISafariPreferencesService.CONFIGURATION_LEVEL, composite, prefService);
+		fields = createFields(page, this, IPreferencesService.CONFIGURATION_LEVEL, composite, prefService);
 		
-		SafariPreferencesUtilities.fillGridPlace(composite, 2);
+		PreferencesUtilities.fillGridPlace(composite, 2);
 		
 		// Don't want newly created fields to be flagged as modified
 		clearModifiedMarksOnLabels();
@@ -71,7 +71,7 @@ public class ConfigurationPreferencesTab  extends SafariPreferencesTab
         			Markings.MODIFIED_NOTE + "\n\n" +
         			Markings.TAB_ERROR_NOTE);
         
-		SafariPreferencesUtilities.fillGridPlace(bottom, 1);
+		PreferencesUtilities.fillGridPlace(bottom, 1);
 		
 		
 		// Put buttons on bottom
@@ -98,7 +98,7 @@ public class ConfigurationPreferencesTab  extends SafariPreferencesTab
 		// Clear all preferences at this level and reload them
 		// using inheritance (so a value will be found at a higher
 		// level if none is set at this level)
-		prefService.clearPreferencesAtLevel(ISafariPreferencesService.CONFIGURATION_LEVEL);
+		prefService.clearPreferencesAtLevel(IPreferencesService.CONFIGURATION_LEVEL);
 
 		for (int i = 0; i < fields.length; i++) {
 			fields[i].loadWithInheritance();

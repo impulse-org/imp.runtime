@@ -1,8 +1,8 @@
-package org.eclipse.uide.internal.editor;
+package org.eclipse.imp.editor.internal;
 
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.jface.text.formatter.IFormattingStrategy;
-import org.eclipse.uide.editor.ISourceFormatter;
-import org.eclipse.uide.parser.IParseController;
 
 /**
  * A controller interposed between the Eclipse text framework's IFormattingStrategy

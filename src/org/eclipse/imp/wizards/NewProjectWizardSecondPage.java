@@ -1,12 +1,13 @@
 /*
  * Created on Feb 6, 2006
  */
-package org.eclipse.uide.wizards;
+package org.eclipse.imp.wizards;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
@@ -17,6 +18,7 @@ import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.imp.builder.ProjectNatureBase;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -31,7 +33,6 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.uide.core.ProjectNatureBase;
 
 public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigurationPage {
     private final NewProjectWizardFirstPage fFirstPage;

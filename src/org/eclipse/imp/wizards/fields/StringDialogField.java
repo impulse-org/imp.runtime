@@ -1,8 +1,9 @@
 /*
  * Created on Feb 6, 2006
  */
-package org.eclipse.uide.wizards.fields;
+package org.eclipse.imp.wizards.fields;
 
+import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -11,8 +12,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
-
-import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 
 /**
  * Dialog field containing a label and a text control.

@@ -1,13 +1,12 @@
 /*
  * Created on Feb 6, 2006
  */
-package org.eclipse.uide.wizards.fields;
+package org.eclipse.imp.wizards.fields;
 
+import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.swt.graphics.FontMetrics;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.widgets.Control;
-
-import org.eclipse.jface.dialogs.Dialog;
 
 public class PixelConverter {
 

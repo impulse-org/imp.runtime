@@ -1,32 +1,28 @@
 /*
  * Created on Mar 13, 2007
  */
-package org.eclipse.uide.model.internal;
+package org.eclipse.imp.model.internal;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.List;
 
 import lpg.runtime.IMessageHandler;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.uide.core.ErrorHandler;
-import org.eclipse.uide.core.ILanguageService;
-import org.eclipse.uide.core.Language;
-import org.eclipse.uide.core.LanguageRegistry;
-import org.eclipse.uide.model.ICompilationUnit;
-import org.eclipse.uide.model.ISourceProject;
-import org.eclipse.uide.parser.IParseController;
-import org.eclipse.uide.utils.ExtensionPointFactory;
+import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ICompilationUnit;
+import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.utils.ExtensionPointFactory;
 
 public class CompilationUnitRef implements ICompilationUnit {
     /**
@@ -91,7 +87,8 @@ public class CompilationUnitRef implements ICompilationUnit {
 
 	    fParseCtrlr= (IParseController) ExtensionPointFactory.createExtensionPoint(lang, ILanguageService.PARSER_SERVICE);
 	}
-	fParseCtrlr.initialize(fPath, fProject, msgHandler);
+	IPath projRelPath= fPath.isAbsolute() ? fPath.removeFirstSegments(1) : fPath;
+	fParseCtrlr.initialize(projRelPath, fProject, msgHandler);
 	return fParseCtrlr.parse(getSource(), false, monitor);
     }
 
@@ -105,29 +102,22 @@ public class CompilationUnitRef implements ICompilationUnit {
             throw new IllegalArgumentException(
                 "CompilationUnitRef.getSource(): file does not exist or cannot be read: " + this);
         }
-		
+
         // Get a buffered reader for the input file
-        FileReader fileReader = null;
-        BufferedReader bufferedReader = null;
+        FileReader fileReader= null;
+        long fileLen= inFile.length();
         try {
             fileReader = new FileReader(inFile);
-            bufferedReader = new BufferedReader(fileReader);
+            char[] buffer= new char[(int) fileLen];
+            fileReader.read(buffer);
+            return new String(buffer);
         } catch(FileNotFoundException e) {
             ErrorHandler.reportError("CompilationUnitRef.getSource(): file not found: " + this);
             return null;
-        }
-
-        StringBuffer result = new StringBuffer();
-        try {
-            String line1 = null;
-            while ((line1= bufferedReader.readLine()) != null) {
-                result.append(line1).append("\n");
-            }
         } catch (IOException e) {
-            ErrorHandler.reportError("CompilationUnitRef.getSource:() IOException reading file; returning what text there is");
-        }
-
-        return result.toString();
+            ErrorHandler.reportError("CompilationUnitRef.getSource(): cannot read file: " + this);
+            return null;
+	}
     }
 
     public void commit(IProgressMonitor mon) {

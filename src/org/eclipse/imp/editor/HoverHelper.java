@@ -18,7 +18,6 @@ import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.utils.ExtensionPointFactory;
-import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.source.ISourceViewer;
 
@@ -64,16 +63,19 @@ public class HoverHelper implements IHoverHelper {
        	if (target == null) return null;
 
        	IDocumentationProvider docProvider= (IDocumentationProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.DOCUMENTATION_PROVIDER_SERVICE);
-       	String doc;
+       	String doc= (docProvider != null) ? docProvider.getDocumentation(target, parseController) : null;			
 
-       	if (docProvider != null)
-       	    doc= docProvider.getDocumentation(target, parseController);
-       	else {
-       	    StringBuffer buffer= new StringBuffer();
-
-       	    HTMLPrinter.addSmallHeader(buffer, target.toString());
-       	    doc= buffer.toString();
-       	}
        	return doc;
+       	
+       	
+       	
+//       	StringBuffer buffer= new StringBuffer();
+//
+//	HTMLPrinter.addSmallHeader(buffer, target.toString());
+//
+//	if (doc != null)
+//       	    HTMLPrinter.addParagraph(buffer, doc);
+//
+//       	return buffer.toString();
     }
 }

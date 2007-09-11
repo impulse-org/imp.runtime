@@ -41,6 +41,7 @@ public interface ILanguageService {
     String REFERENCE_RESOLVER_SERVICE= "referenceResolvers";
     String EDITOR_ACTION_SERVICE= "editorActionContributions";
     String PREFERENCES_SERVICE= "preferencesDialog";
+    String PREFERENCES_SPECIFICATION= "preferencesSpecification";
 
     String DOCUMENTATION_PROVIDER_SERVICE= "documentationProvider";
     String VIEWER_FILTER_SERVICE= "viewerFilter";

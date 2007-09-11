@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.runtime" id="foldingUpdater" name="Universal IDE Source Folding Updater"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="foldingUpdater" name="IMP IDE Source Folding Updater"/>
       </appInfo>
       <documentation>
          [Enter description of this extension point.]

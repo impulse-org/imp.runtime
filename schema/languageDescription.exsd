@@ -71,7 +71,7 @@
 &lt;li&gt;If the language is &quot;Python&quot;, the description might be &quot;The script language designed by Guido van Rossum&quot;
 &lt;li&gt;If the language is &quot;ActiveJava&quot;, the description might be &quot;An extension of Java with Actors&quot;
 &lt;/ul&gt;
-Descriptions are not directly used by the Universal IDE, but can be used by humans to resolve ambiguities for common programming language names.
+Descriptions are not directly used by the IMP IDE, but can be used by humans to resolve ambiguities for common programming language names.
 &lt;p&gt;
                </documentation>
             </annotation>

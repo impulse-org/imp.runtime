@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.runtime">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.runtime" id="hyperLink" name="Universal IDE Hyperlink Detector"/>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="hyperLink" name="IMP IDE Hyperlink Detector"/>
       </appInfo>
       <documentation>
          [Enter description of this extension point.]

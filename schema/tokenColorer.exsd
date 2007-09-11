@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.metatooling" id="tokenColorer" name="Universal IDE Token Colorer"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="tokenColorer" name="IMP IDE Token Colorer"/>
       </appInfo>
       <documentation>
          This extension point allows providers to provide coloring hints for syntax-driven coloring of a document. The provider specifies what languages it can provide colorings for. The provider has to implement the ITokenColorer interface. It will be presented with a token, and should return its suggested text color and font.

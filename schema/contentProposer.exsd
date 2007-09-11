@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.metatooling" id="contentProposer" name="Universal IDE Content Proposer"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="contentProposer" name="IMP IDE Content Proposer"/>
       </appInfo>
       <documentation>
          The org.eclips.imp.editor.contentProposer extension point allows contributors to provide content assist proposals. The provider specifies what languages it can provide content proposals for. The provider has to implement the IContentProposer interface. The proposer will be presented with an IModel and a location, and from this combination returns a list of relevant content proposals.

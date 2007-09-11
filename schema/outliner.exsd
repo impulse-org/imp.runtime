@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.metatooling" id="Outliner" name="Universal IDE Outliner"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="Outliner" name="IMP IDE Outliner"/>
       </appInfo>
       <documentation>
          The org.eclips.imp.editor.outliner extension point allows providers to provide outline view contents. The provider specifies what languages it can provide an outline for. The provider has to implement the IOutliner interface. It will be presented with an IModel, and from this update the Outline view to show the appropriate outline.

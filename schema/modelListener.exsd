@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.metatooling" id="modelListener" name="Universal IDE Model Listener"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="modelListener" name="IMP IDE Model Listener"/>
       </appInfo>
       <documentation>
          The org.eclipse.imp.modelListener extension point allows providers to provide a model listener.

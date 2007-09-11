@@ -3,7 +3,7 @@
 <schema targetNamespace="org.eclipse.imp.metatooling">
 <annotation>
       <appInfo>
-         <meta.schema plugin="org.eclipse.imp.metatooling" id="HoverHelper" name="Universal IDE Hover Helper"/>
+         <meta.schema plugin="org.eclipse.imp.metatooling" id="HoverHelper" name="IMP IDE Hover Helper"/>
       </appInfo>
       <documentation>
          The org.eclips.imp.editor.hoverHelper extension point allows providers to provide hover help. The provider specifies what languages it can provide hover help for. The provider has to implement the IHoverHelper interface. It will be presented with an IModel and a location, and from this combination

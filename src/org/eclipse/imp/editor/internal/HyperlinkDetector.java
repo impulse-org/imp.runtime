@@ -76,6 +76,11 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // Use the file path info to determine whether the target editor is the same as
         // the source editor, and initialize the TargetLink accordingly.
         final IPath targetPath= nodeLocator.getPath(target);
+        // SMS 10 Sep 2007
+        if (targetPath == null) {
+        	//System.out.println("HyperlinkDetector.detectHyperlinks(..):  targetPath == null, returning null");
+        	return null;
+        }
         final String linkText = fResolver.getLinkText(source);
 
         IPath srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation();

@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Set;
 
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
@@ -52,8 +53,8 @@ import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IFoldingUpdater;
@@ -261,33 +262,59 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
         super.editorContextMenuAboutToShow(menu);
 
-        IRefactoringContributor contributor= (IRefactoringContributor) createExtensionPoint(ILanguageService.REFACTORING_CONTRIBUTIONS_SERVICE);
+        Set<ILanguageService> contributors= getExtensions(ILanguageService.REFACTORING_CONTRIBUTIONS_SERVICE);
 
-        if (contributor != null) {
-            IAction[] editorActions= contributor.getEditorRefactoringActions(this);
+        if (!contributors.isEmpty()) {
+            List<IAction> editorActions= new ArrayList<IAction>();
+
+            for(Iterator iter= contributors.iterator(); iter.hasNext(); ) {
+		IRefactoringContributor con= (IRefactoringContributor) iter.next();
+
+		try {
+		    IAction[] conActions= con.getEditorRefactoringActions(this);
+
+		    for(int i=0; i < conActions.length; i++)
+			editorActions.add(conActions[i]);
+		} catch(Exception e) {
+		    RuntimePlugin.getInstance().logException("Unable to create refactoring actions for contributor " + con, e);
+		}
+	    }
             Separator refGroup= new Separator("group.refactor");
             IMenuManager refMenu= new MenuManager("Refac&tor");
 
             menu.add(refGroup);
             menu.appendToGroup("group.refactor", refMenu);
 
-            for(int i= 0; i < editorActions.length; i++) {
-                refMenu.add(editorActions[i]);
+            for(Iterator<IAction> actionIter= editorActions.iterator(); actionIter.hasNext(); ) {
+                refMenu.add(actionIter.next());
 	    }
         }
 
-        ILanguageActionsContributor actionContributor= (ILanguageActionsContributor) createExtensionPoint(ILanguageService.EDITOR_ACTION_SERVICE);
+        Set<ILanguageService> actionContributors= getExtensions(ILanguageService.EDITOR_ACTION_SERVICE);
 
-        if (actionContributor != null) {
-            IAction[] editorActions= actionContributor.getEditorActions(this);
+        if (!actionContributors.isEmpty()) {
+            List<IAction> editorActions= new ArrayList<IAction>();
+
+            for(Iterator iter= actionContributors.iterator(); iter.hasNext(); ) {
+		ILanguageActionsContributor con= (ILanguageActionsContributor) iter.next();
+
+		try {
+		    IAction[] conActions= con.getEditorActions(this);
+
+		    for(int i=0; i < conActions.length; i++)
+			editorActions.add(conActions[i]);
+		} catch(Exception e) {
+		    RuntimePlugin.getInstance().logException("Unable to create editor actions for contributor " + con, e);
+		}
+	    }
             Separator refGroup= new Separator("group.languageActions");
             IMenuManager refMenu= new MenuManager(fLanguage.getName());
 
             menu.add(refGroup);
             menu.appendToGroup("group.languageActions", refMenu);
 
-            for(int i= 0; i < editorActions.length; i++) {
-                refMenu.add(editorActions[i]);
+            for(Iterator<IAction> actionIter= editorActions.iterator(); actionIter.hasNext(); ) {
+                refMenu.add(actionIter.next());
 	    }
         }
     }
@@ -845,6 +872,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      */
     private Object createExtensionPoint(String extensionPointID) {
 	return ExtensionPointFactory.createExtensionPoint(fLanguage, extensionPointID);
+    }
+
+    /**
+     * Convenience method to create language extensions whose extension point is
+     * defined by this plugin.
+     * @param extensionPoint the extension point ID of the language service
+     * @return the extension implementation
+     */
+    private Set<ILanguageService> getExtensions(String extensionPointID) {
+	return ExtensionPointFactory.createExtensions(fLanguage, extensionPointID);
     }
 
     /**

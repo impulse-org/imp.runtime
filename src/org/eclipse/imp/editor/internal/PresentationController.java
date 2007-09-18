@@ -161,8 +161,12 @@ public class PresentationController implements IModelListener {
 	    // or related types (e.g., StyledText).  Some of the cases in which the
 	    // exception gets thrown may be new in Eclipse 3.2, but the modifications
 	    // made to address them are probably appropriate independent of Eclipse version.
+	    //
+	    // PC 18 Sep 2007. Changed condition described above to also process tokens of
+	    // length 1 (startOffset == endOffset). Otherwise, such tokens are not colored
+	    // properly.
 	    if (token.getKind() != controller.getParser().getEOFTokenKind()) {
-	    	if (token.getEndOffset() > token.getStartOffset()) {
+	    	if (token.getEndOffset() >= token.getStartOffset()) {
 	    		changeTokenPresentation(controller, presentation, token);
 	    	}
 

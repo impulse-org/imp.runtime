@@ -30,6 +30,8 @@ public abstract class SimpleLPGParseController implements IParseController
 
     protected IPath fFilePath;
 
+    protected IMessageHandler handler;
+    
     protected Object fCurrentAst;
 
     private char fKeywords[][];
@@ -68,6 +70,7 @@ public abstract class SimpleLPGParseController implements IParseController
     public void initialize(IPath filePath, ISourceProject project, IMessageHandler handler) {
 		this.fProject= project;
 		this.fFilePath= filePath;	
+		this.handler = handler;
     }
     
     
@@ -78,6 +81,10 @@ public abstract class SimpleLPGParseController implements IParseController
     public IPath getPath() {
 	return fFilePath;
     }
+
+    public IMessageHandler getHandler() {
+    	return handler;
+        }
 
     public Object getCurrentAst() {
 	return fCurrentAst;

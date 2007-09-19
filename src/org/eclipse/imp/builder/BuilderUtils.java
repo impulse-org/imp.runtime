@@ -5,17 +5,17 @@
  */
 package org.eclipse.imp.builder;
 
-import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.utils.StreamUtils;
+
 
 public class BuilderUtils {
 
@@ -45,6 +45,7 @@ public class BuilderUtils {
                 "(name = " + inFileName + ")");
         }
         return getFileContents(inFile);
+
     }
 
     /**
@@ -52,26 +53,18 @@ public class BuilderUtils {
      * translating line terminating characters.
      */
     public static String getFileContents(IFile file) throws CoreException {
-	// Files know their length, so read the whole thing in one shot.
-        File javaFile= new File(file.getLocation().toOSString());
-        return getFileContents(javaFile);
+    	return StreamUtils.readStreamContents(file.getContents());
     }
 
     public static String getFileContents(File file) {
-	try {
-            FileReader fileReader= new FileReader(file);
-            int len= (int) file.length();
-            char[] buf= new char[len];
-
-            fileReader.read(buf, 0, len);
-            return new String(buf);
+    	InputStream fileStream = null;
+        try {
+        	fileStream = new FileInputStream(file);
         } catch(FileNotFoundException fnf) {
             System.err.println(fnf.getMessage());
             return "";
-        } catch(IOException io) {
-            System.err.println(io.getMessage());
-            return "";
         }
+    	return StreamUtils.readStreamContents(fileStream);
     }
 
     /**
@@ -79,6 +72,9 @@ public class BuilderUtils {
      * line terminating characters.
      */
     public static String getFileContents(Reader reader) {
+
+    	
+    	
 	// In this case we don't know the length in advance, so we have to
 	// accumulate the reader's contents one buffer at a time.
 	StringBuilder sb= new StringBuilder(4096);

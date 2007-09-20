@@ -52,8 +52,13 @@ public class BuilderUtils {
      * @return the text contents of the given file as a String, without
      * translating line terminating characters.
      */
-    public static String getFileContents(IFile file) throws CoreException {
-    	return StreamUtils.readStreamContents(file.getContents());
+    public static String getFileContents(IFile file) {
+    	try {
+    		return StreamUtils.readStreamContents(file.getContents());
+    	} catch (CoreException e) {
+            System.err.println(e.getMessage());
+            return "";
+    	}
     }
 
     public static String getFileContents(File file) {

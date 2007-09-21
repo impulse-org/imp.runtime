@@ -46,13 +46,13 @@ public class ProjectPreferencesTab extends PreferencesTab {
 
 	
 	public ProjectPreferencesTab(IPreferencesService prefService) {
-		this.prefService = prefService;
-		prefUtils = new PreferencesUtilities(prefService);
+		this.fPrefService = prefService;
+		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 
 	public Composite createProjectPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
-		prefPage = page;
+		fPrefPage = page;
 
 		/*
 		 * Prepare the body of the tab
@@ -73,17 +73,17 @@ public class ProjectPreferencesTab extends PreferencesTab {
 		composite.setLayout(layout);
 		
 		// The "tab" on the tab folder
-		tabItem = new TabItem(tabFolder, SWT.NONE);	
-		tabItem.setText("Project");
-		tabItem.setControl(composite);	
+		fTabItem = new TabItem(tabFolder, SWT.NONE);	
+		fTabItem.setText("Project");
+		fTabItem.setControl(composite);	
 		PreferencesTab.TabSelectionListener listener = 
-			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
+			new PreferencesTab.TabSelectionListener(fPrefPage, fTabItem);
 		tabFolder.addSelectionListener(listener);
 		
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(page, this, IPreferencesService.PROJECT_LEVEL, composite, prefService);
+		fFields = createFields(page, this, IPreferencesService.PROJECT_LEVEL, composite);
 
 
 		// Clear some space
@@ -126,7 +126,7 @@ public class ProjectPreferencesTab extends PreferencesTab {
 		selectedProjectName.setStringValue("none selected");
 		// Clear these here in case there are any saved from a previous interaction with the page
 		// (assuming that we should start each  new page with no project selected)
-		prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
+		fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 		// Set the project name field to be non-editable
 		selectedProjectName.getTextControl(projectFieldHolder).setEditable(false);
 		// Set the attribute fields to be non-editable, since without a project selected
@@ -165,10 +165,10 @@ public class ProjectPreferencesTab extends PreferencesTab {
 		 * disabled if (as expected) there is no project selected and
 		 * the tab is otherwise mainly disabled
 		 */
-        buttons = prefUtils.createDefaultAndApplyButtons(composite, this);
-        if (prefService.getProject() == null) {
-        	for (int i = 0; i < buttons.length; i++) 
-        		buttons[i].setEnabled(false);
+        fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
+        if (fPrefService.getProject() == null) {
+        	for (int i = 0; i < fButtons.length; i++) 
+        		fButtons[i].setEnabled(false);
         }
 		return composite;
 	}
@@ -176,7 +176,7 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	
 	private void addProjectSelectionListener(Composite composite)
 	{
-		prefService.addProjectSelectionListener(new ProjectSelectionListener(composite));
+		fPrefService.addProjectSelectionListener(new ProjectSelectionListener(composite));
 	}
 	
 
@@ -309,7 +309,7 @@ public class ProjectPreferencesTab extends PreferencesTab {
 			selectedProjectName.setStringValue("none selected");
 			
 			// Clear the preferences from the store
-			prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
+			fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 			
 			// Disable fields and make them non-editable
 			if (!composite.isDisposed()) {
@@ -330,11 +330,11 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	
 	protected void addProjectPreferenceChangeListeners(BooleanFieldEditor field, String key, Composite composite)
 	{
-		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
+		IEclipsePreferences[] nodes = fPrefService.getNodesForLevels();
 		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
 				PreferencesUtilities.BooleanPreferenceChangeListener listener = 
-					prefUtils.new BooleanPreferenceChangeListener(field, key, composite);
+					fPrefUtils.new BooleanPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -347,11 +347,11 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	
 	protected void addProjectPreferenceChangeListeners(ComboFieldEditor field, String key, Composite composite)
 	{
-		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
+		IEclipsePreferences[] nodes = fPrefService.getNodesForLevels();
 		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
 				PreferencesUtilities.ComboPreferenceChangeListener listener = 
-					prefUtils.new ComboPreferenceChangeListener(field, key, composite);
+					fPrefUtils.new ComboPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -364,11 +364,11 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	
 	protected void addProjectPreferenceChangeListeners(RadioGroupFieldEditor field, String key, Composite composite)
 	{
-		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
+		IEclipsePreferences[] nodes = fPrefService.getNodesForLevels();
 		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
 				PreferencesUtilities.RadioGroupPreferenceChangeListener listener = 
-					prefUtils.new RadioGroupPreferenceChangeListener(field, key, composite);
+					fPrefUtils.new RadioGroupPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -380,13 +380,13 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	
 	protected void addProjectPreferenceChangeListeners(StringFieldEditor field, String key, Composite composite)
 	{
-		IEclipsePreferences[] nodes = prefService.getNodesForLevels();
+		IEclipsePreferences[] nodes = fPrefService.getNodesForLevels();
 		for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
 			if (nodes[i] != null) {
 				// SMS 31 Oct 2006
 				//ProjectPreferenceChangeListener listener = new ProjectPreferenceChangeListener(field, key, composite);
 				PreferencesUtilities.StringPreferenceChangeListener listener = 
-					prefUtils.new StringPreferenceChangeListener(field, key, composite);
+					fPrefUtils.new StringPreferenceChangeListener(field, key, composite);
 				nodes[i].addPreferenceChangeListener(listener);
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
@@ -477,7 +477,7 @@ public class ProjectPreferencesTab extends PreferencesTab {
 			if (javaProject != null) {
 				IProject project = javaProject.getProject();
 				if (project.exists())
-					prefService.setProject(project);
+					fPrefService.setProject(project);
 				else {
 					System.err.println("ProjectPreferencesTab:  Selected project does not exist; no project selected");
 					return;
@@ -490,16 +490,16 @@ public class ProjectPreferencesTab extends PreferencesTab {
 			}
 			
 			// Also enable the Restore Defaults and Apply buttons (if they should be enabled)
-			for (int i = 0; i < buttons.length; i++) {
-				if (((Button)buttons[i]).getText().equals(JFaceResources.getString("defaults"))) {
-					buttons[i].setEnabled(true);
-				} else if (((Button)buttons[i]).getText().equals(JFaceResources.getString("apply"))) {
-					buttons[i].setEnabled(isValid());
+			for (int i = 0; i < fButtons.length; i++) {
+				if (((Button)fButtons[i]).getText().equals(JFaceResources.getString("defaults"))) {
+					fButtons[i].setEnabled(true);
+				} else if (((Button)fButtons[i]).getText().equals(JFaceResources.getString("apply"))) {
+					fButtons[i].setEnabled(isValid());
 				}
 			}
 			// This will set the enabled state of buttons on the
 			// preference page appropriately
-	        prefPage.setValid(isValid());
+	        fPrefPage.setValid(isValid());
 			
 			
 			//return javaProject.getElementName();
@@ -510,27 +510,27 @@ public class ProjectPreferencesTab extends PreferencesTab {
 
 	public void performApply()
 	{
-		if (prefService.getProject() == null) {
+		if (fPrefService.getProject() == null) {
 			// No preferences node into which to store anything
 			clearModifiedMarksOnLabels();	// just in case fields still show modified
 			return;
 		}
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].store();
-			fields[i].clearModifiedMarkOnLabel();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].store();
+			fFields[i].clearModifiedMarkOnLabel();
 		}
 	}	
 	
 	 
 	public boolean performCancel() {
 		// Nullify the project in any case
-		prefService.setProject(null);
+		fPrefService.setProject(null);
 		return true;
 	}
 
 	
 	public void performDefaults() {
-		if (prefService.getProject() == null) {
+		if (fPrefService.getProject() == null) {
 			// If no project set then there's no preferences
 			// file from which to load anything	
 			return;
@@ -538,30 +538,30 @@ public class ProjectPreferencesTab extends PreferencesTab {
 		// Clear all preferences at this level and reload them
 		// using inheritance (so a value will be found at a higher
 		// level if none is set at this level)
-		prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].loadWithInheritance();
+		fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].loadWithInheritance();
 		}
 	}
 
 	
 	public boolean performOk()
 	{
-		if (prefService.getProject() != null) {
+		if (fPrefService.getProject() != null) {
 			// Store each field
-			for (int i = 0; i < fields.length; i++) {
-				fields[i].store();
+			for (int i = 0; i < fFields.length; i++) {
+				fFields[i].store();
 			}
 		} else {
 			// Clear preferences because we're closing up dialog;
 			// note that a project preferences node will exist, if only
 			// in a leftover state, even when no project is selected
-			prefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
+			fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 			//return true;
 		}
 
 		// Nullify the project in any case
-		prefService.setProject(null);
+		fPrefService.setProject(null);
 		
 		return true;
 	}

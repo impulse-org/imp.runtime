@@ -20,14 +20,14 @@ public class DefaultPreferencesTab extends PreferencesTab
 
 	
 	public DefaultPreferencesTab(IPreferencesService prefService) {
-		this.prefService = prefService;
-		prefUtils = new PreferencesUtilities(prefService);
+		this.fPrefService = prefService;
+		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 	
 	
 	public Composite createDefaultPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
-		prefPage = page;
+		fPrefPage = page;
 		
         final Composite composite = new Composite(tabFolder, SWT.NONE);
         composite.setFont(tabFolder.getFont());
@@ -41,17 +41,17 @@ public class DefaultPreferencesTab extends PreferencesTab
 		gl.numColumns = 2;
 		composite.setLayout(gl);
 		
-		tabItem = new TabItem(tabFolder, SWT.NONE);
-		tabItem.setText("Default");
-		tabItem.setControl(composite);
+		fTabItem = new TabItem(tabFolder, SWT.NONE);
+		fTabItem.setText("Default");
+		fTabItem.setControl(composite);
 		PreferencesTab.TabSelectionListener listener = 
-			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
+			new PreferencesTab.TabSelectionListener(fPrefPage, fTabItem);
 		tabFolder.addSelectionListener(listener);
 		
 
 		// Don't want newly created fields to be flagged as modified
 		// page, this, prefService, "default", 	
-		fields = createFields(page, this, IPreferencesService.DEFAULT_LEVEL, composite, prefService);
+		fFields = createFields(page, this, IPreferencesService.DEFAULT_LEVEL, composite);
 		
 //		BooleanFieldEditor boolField = prefUtils.makeNewBooleanField(
 //				prefsPage, prefsTab, prefsService,
@@ -84,12 +84,12 @@ public class DefaultPreferencesTab extends PreferencesTab
         			Markings.MODIFIED_NOTE + "\n\n" +
         			Markings.TAB_ERROR_NOTE);
         
-        prefUtils.fillGridPlace(bottom, 1);
+        fPrefUtils.fillGridPlace(bottom, 1);
  
         // Put buttons on the bottom
-        buttons = prefUtils.createDefaultAndApplyButtons(composite, this);
-        Button defaultsButton = (Button) buttons[0];
-        Button applyButton = (Button) buttons[1];
+        fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
+        Button defaultsButton = (Button) fButtons[0];
+        Button applyButton = (Button) fButtons[1];
         
 		return composite;
 	}
@@ -124,13 +124,13 @@ public class DefaultPreferencesTab extends PreferencesTab
 	public void performDefaults() {
 		// Clear all preferences at this level and reload them into the
 		// preferences store through the initializer
-		prefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
+		fPrefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
 		AbstractPreferenceInitializer preferenceInitializer = getPreferenceInitializer();	//new PreferenceInitializer();
 		preferenceInitializer.initializeDefaultPreferences();
 
 		// Example:  reload each preferences field
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].load();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].load();
 		}
 	}
 

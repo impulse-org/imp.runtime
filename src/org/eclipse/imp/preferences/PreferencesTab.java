@@ -26,31 +26,31 @@ public abstract class PreferencesTab
 	// impementations, so they are not set here.
 	
 	// The page on which this tab occurs
-	protected TabbedPreferencesPage prefPage = null;
+	protected TabbedPreferencesPage fPrefPage = null;
 	
 	// Utilities for creating and managing preference fields
-	protected PreferencesUtilities prefUtils;
+	protected PreferencesUtilities fPrefUtils;
 	
 	// The service for storing and accessing preference values
-	protected IPreferencesService prefService;
+	protected IPreferencesService fPrefService;
 	
 	// The fields that occur on this tab
-	protected FieldEditor[] fields = null;
+	protected FieldEditor[] fFields = null;
 	
 	// Whether this tab is valid, that is, whether
 	// all of its fields are valid
-	protected boolean isValid = true;
+	protected boolean fIsValid = true;
 	
 	// The buttons on this tab
-	protected Control[] buttons = null;
+	protected Control[] fButtons = null;
 	
 	
 	
 	// SMS 17 Nov 2006
-	protected TabItem tabItem = null;
+	protected TabItem fTabItem = null;
 	
 	public TabItem getTabItem() {
-		return tabItem;
+		return fTabItem;
 	}
 	
 	
@@ -77,8 +77,7 @@ public abstract class PreferencesTab
 			TabbedPreferencesPage page,
 			PreferencesTab tab,
 			String level,
-			Composite parent,
-			IPreferencesService prefsService)
+			Composite parent)
     {
 		// TODO:  create specific preferences fields here
 		System.out.println("PreferencesTab.createFields():  unimplemented");
@@ -95,28 +94,28 @@ public abstract class PreferencesTab
 		if (errorMessages.isEmpty()) {
 			return;
 		}
-	   	String label = tabItem.getText();
+	   	String label = fTabItem.getText();
 	   	if (!label.startsWith(Markings.TAB_ERROR_MARK)) {
 	   		label = Markings.TAB_ERROR_MARK + label;
 	   	}
 	   	if (!label.endsWith(Markings.TAB_ERROR_MARK)) {
 	   		label = label + Markings.TAB_ERROR_MARK;
 	   	}
-	   	tabItem.setText(label);
+	   	fTabItem.setText(label);
 	}
 
 	public void clearErrorMarkOnTab() {
 		if (!errorMessages.isEmpty()) {
 			return;
 		}
-	   	String label = tabItem.getText();
+	   	String label = fTabItem.getText();
 	   	if (label.startsWith(Markings.TAB_ERROR_MARK)) {
 	   		label = label.substring(2);
 	   	}
 	   	if (label.endsWith(Markings.TAB_ERROR_MARK)) {
 	   		label = label.substring(0, label.length()-2);
 	   	}
-	   	tabItem.setText(label);
+	   	fTabItem.setText(label);
 	}
 	
 	
@@ -133,17 +132,17 @@ public abstract class PreferencesTab
 		String currentMessage = (String) errorMessages.get(key);
 //		System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  clearErrorMessages(), clearing message = " + currentMessage);
 		errorMessages.remove(key);
-		if (prefPage == null) return;
+		if (fPrefPage == null) return;
 		if (errorMessages.size() == 0) {
 //			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  clearErrorMessages(), setting message to null");
-			prefPage.setErrorMessage(null);	// to clear
+			fPrefPage.setErrorMessage(null);	// to clear
 			return;
 		}
 		Iterator it = errorMessages.keySet().iterator();
 		Object nextKey = it.next();
 		String nextMessage = (String) errorMessages.get(nextKey);
 //		System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + "clearErrorMessages(), setting message to:  " + nextMessage);
-		prefPage.setErrorMessage(nextMessage);
+		fPrefPage.setErrorMessage(nextMessage);
 	}
 	
 	
@@ -152,7 +151,7 @@ public abstract class PreferencesTab
 //			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  setErrorMessage(), setting message to:  " + msg);
 			errorMessages.remove(key);
 			errorMessages.put(key, msg);
-			prefPage.setErrorMessage(msg);
+			fPrefPage.setErrorMessage(msg);
 		}
 	}
 	
@@ -164,8 +163,8 @@ public abstract class PreferencesTab
 	
 	public void clearModifiedMarksOnLabels()
 	{	
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].clearModifiedMarkOnLabel();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].clearModifiedMarkOnLabel();
 		}
 	}
 	
@@ -192,17 +191,17 @@ public abstract class PreferencesTab
 		}
 		
 		public void widgetSelected(SelectionEvent e) {
-			if (prefPage == null) return;
+			if (fPrefPage == null) return;
 			if (e.item != item) return;
 			if (errorMessages.size() == 0) {
-				prefPage.setErrorMessage(null);
+				fPrefPage.setErrorMessage(null);
 				return;
 			}
 			
 			Iterator it = errorMessages.keySet().iterator();
 			Object nextKey = it.next();
 			String nextMessage = (String) errorMessages.get(nextKey);
-			prefPage.setErrorMessage(nextMessage);
+			fPrefPage.setErrorMessage(nextMessage);
 		}
 		
 		public void widgetDefaultSelected(SelectionEvent e) {}
@@ -229,9 +228,9 @@ public abstract class PreferencesTab
 	 */
 	public void performApply()
 	{
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].store();
-			fields[i].clearModifiedMarkOnLabel();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].store();
+			fFields[i].clearModifiedMarkOnLabel();
 		}
 	}	
 	
@@ -260,9 +259,9 @@ public abstract class PreferencesTab
 	 * 
 	 */
 	public boolean performOk() {
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].store();
-			fields[i].clearModifiedMarkOnLabel();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].store();
+			fFields[i].clearModifiedMarkOnLabel();
 		}
 		return true;
 	}
@@ -289,28 +288,28 @@ public abstract class PreferencesTab
 	 */
 	public void setValid(boolean state) {
 		// SMS 8 Dec 2006:  added second conjunct
-        isValid = /*state &&*/ errorMessages.size() == 0;
-        if (!isValid) {
+        fIsValid = /*state &&*/ errorMessages.size() == 0;
+        if (!fIsValid) {
         	setErrorMarkOnTab();
         } else {
         	clearErrorMarkOnTab();
         }
-        prefPage.notifyState(isValid);
+        fPrefPage.notifyState(fIsValid);
         updateButtons();
 	}
 	
 
 	public boolean isValid() {
 		//int numMessages = errorMessages.size();
-		return isValid;
+		return fIsValid;
 	}
 	
 	
 	public void updateButtons() {
-		if (buttons != null) {
+		if (fButtons != null) {
         	//System.out.println("SPT.updateButtons():  buttons not null");
-			for (int i = 0; i < buttons.length; i++) {
-				Button button = (Button) buttons[i];
+			for (int i = 0; i < fButtons.length; i++) {
+				Button button = (Button) fButtons[i];
 				if (button != null)
 					// TODO:  define string constants for button texts
 					if (button.getText().startsWith("Restore"))

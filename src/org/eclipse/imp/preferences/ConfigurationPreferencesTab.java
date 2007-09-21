@@ -19,14 +19,14 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 {
 
 	public ConfigurationPreferencesTab(IPreferencesService prefService) {
-		this.prefService = prefService;
-		prefUtils = new PreferencesUtilities(prefService);
+		this.fPrefService = prefService;
+		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 	
 	
 	public Composite createConfigurationPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
-		prefPage = page;
+		fPrefPage = page;
 
         final Composite composite= new Composite(tabFolder, SWT.NONE);
         composite.setFont(tabFolder.getFont());
@@ -40,11 +40,11 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 		gl.numColumns = 2;
 		composite.setLayout(gl);
 		
-		tabItem = new TabItem(tabFolder, SWT.NONE);
-		tabItem.setText("Configuration");
-		tabItem.setControl(composite);
+		fTabItem = new TabItem(tabFolder, SWT.NONE);
+		fTabItem.setText("Configuration");
+		fTabItem.setControl(composite);
 		PreferencesTab.TabSelectionListener listener = 
-			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
+			new PreferencesTab.TabSelectionListener(fPrefPage, fTabItem);
 		tabFolder.addSelectionListener(listener);
 		
 		
@@ -52,7 +52,7 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
 		//fields = createFields(composite);
-		fields = createFields(page, this, IPreferencesService.CONFIGURATION_LEVEL, composite, prefService);
+		fFields = createFields(page, this, IPreferencesService.CONFIGURATION_LEVEL, composite);
 		
 		PreferencesUtilities.fillGridPlace(composite, 2);
 		
@@ -80,7 +80,7 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 		
 		
 		// Put buttons on bottom
-        buttons = prefUtils.createDefaultAndApplyButtons(composite, this);
+        fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
         //Button defaultButton = (Button) buttons[0];
         //Button applyButton = (Button) buttons[1];
 
@@ -103,10 +103,10 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 		// Clear all preferences at this level and reload them
 		// using inheritance (so a value will be found at a higher
 		// level if none is set at this level)
-		prefService.clearPreferencesAtLevel(IPreferencesService.CONFIGURATION_LEVEL);
+		fPrefService.clearPreferencesAtLevel(IPreferencesService.CONFIGURATION_LEVEL);
 
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].loadWithInheritance();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].loadWithInheritance();
 		}
 	}
 

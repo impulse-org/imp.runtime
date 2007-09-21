@@ -18,14 +18,14 @@ import org.eclipse.swt.widgets.TabItem;
 public class InstancePreferencesTab extends PreferencesTab {
 	
 	public InstancePreferencesTab(IPreferencesService prefService) {
-		this.prefService = prefService;
-		prefUtils = new PreferencesUtilities(prefService);
+		this.fPrefService = prefService;
+		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 	
 	
 	public Composite createInstancePreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
-		prefPage = page;
+		fPrefPage = page;
 
         final Composite composite= new Composite(tabFolder, SWT.NONE);
         composite.setFont(tabFolder.getFont());
@@ -39,18 +39,18 @@ public class InstancePreferencesTab extends PreferencesTab {
 		gl.numColumns = 2;
 		composite.setLayout(gl);
 		
-		tabItem = new TabItem(tabFolder, SWT.NONE);
-		tabItem.setText("Workspace");
-		tabItem.setControl(composite);
+		fTabItem = new TabItem(tabFolder, SWT.NONE);
+		fTabItem.setText("Workspace");
+		fTabItem.setControl(composite);
 		PreferencesTab.TabSelectionListener listener = 
-			new PreferencesTab.TabSelectionListener(prefPage, tabItem);
+			new PreferencesTab.TabSelectionListener(fPrefPage, fTabItem);
 		tabFolder.addSelectionListener(listener);
 		
 		
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fields = createFields(page, this, IPreferencesService.INSTANCE_LEVEL, composite, prefService);
+		fFields = createFields(page, this, IPreferencesService.INSTANCE_LEVEL, composite);
 
 		
 		PreferencesUtilities.fillGridPlace(composite, 2);
@@ -80,9 +80,9 @@ public class InstancePreferencesTab extends PreferencesTab {
 		
 		 
 		// Put bottons on the bottom
-        buttons = prefUtils.createDefaultAndApplyButtons(composite, this);
-        Button defaultsButton = (Button) buttons[0];
-        Button applyButton = (Button) buttons[1];
+        fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
+        Button defaultsButton = (Button) fButtons[0];
+        Button applyButton = (Button) fButtons[1];
 		
 		return composite;
 	}
@@ -104,10 +104,10 @@ public class InstancePreferencesTab extends PreferencesTab {
 		// Clear all preferences at this level and reload them
 		// using inheritance (so a value will be found at a higher
 		// level if none is set at this level)
-		prefService.clearPreferencesAtLevel(IPreferencesService.INSTANCE_LEVEL);
+		fPrefService.clearPreferencesAtLevel(IPreferencesService.INSTANCE_LEVEL);
 
-		for (int i = 0; i < fields.length; i++) {
-			fields[i].loadWithInheritance();
+		for (int i = 0; i < fFields.length; i++) {
+			fFields[i].loadWithInheritance();
 		}
 	}
 

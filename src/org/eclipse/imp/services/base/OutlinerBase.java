@@ -19,6 +19,7 @@ import org.eclipse.imp.services.IOutliner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorPart;
@@ -132,6 +133,12 @@ public abstract class OutlinerBase implements IOutliner
 	}
 	
 
+	public void pushTopItem(String itemName, Object node, IOutlineImage image, int style) {
+		fItemStack.push(createTopItem(itemName, node, image, style));
+	}
+	
+	
+
 	public void pushSubItem(String itemName, Object node) {
 		fItemStack.push(createSubItem(itemName, node));
 	}
@@ -139,6 +146,12 @@ public abstract class OutlinerBase implements IOutliner
 	
 	public void pushSubItem(String itemName, Object node, IOutlineImage image) {
 		fItemStack.push(createSubItem(itemName, node, image));
+	}
+	
+	
+	
+	public void pushSubItem(String itemName, Object node, IOutlineImage image, int style) {
+		fItemStack.push(createSubItem(itemName, node, image, style));
 	}
 	
 	
@@ -152,6 +165,10 @@ public abstract class OutlinerBase implements IOutliner
 	
 	public void addSubItem(String label, Object node, IOutlineImage image) {
   		createSubItem(label, node, image);
+	}
+	
+	public void addSubItem(String label, Object node, IOutlineImage image, int style) {
+  		createSubItem(label, node, image, style);
 	}
 	
 	/*
@@ -186,6 +203,17 @@ public abstract class OutlinerBase implements IOutliner
 	}
 	
 	
+	public TreeItem createTopItem(String label, Object n, IOutlineImage image, int style) {
+		TreeItem treeItem= new TreeItem(tree, style);
+		treeItem.setText(label);
+		treeItem.setImage(image.getOutlineItemImage());
+		if (n != null)
+		  treeItem.setData(n);
+		return treeItem;
+}
+
+	
+	
 	public TreeItem createSubItem(String label, Object n) {
 			TreeItem treeItem= new TreeItem((TreeItem) fItemStack.peek(), SWT.NONE);
 			treeItem.setText(label);
@@ -206,6 +234,17 @@ public abstract class OutlinerBase implements IOutliner
 	}
 
   
+	public TreeItem createSubItem(String label, Object n, IOutlineImage image, int style) {
+		TreeItem treeItem= new TreeItem((TreeItem) fItemStack.peek(), style);
+		treeItem.setText(label);
+		  if (n != null)
+			  treeItem.setData(n);
+		treeItem.setImage(image.getOutlineItemImage());
+		int itemStyle = treeItem.getStyle();
+		return treeItem;
+	}
+	
+	
 	
 	/**
 	 * Create the outline tree representing the AST associated with a given

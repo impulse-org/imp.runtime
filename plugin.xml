@@ -8,9 +8,6 @@
    <extension-point id="languageDescription" name="Description of a programming language" schema="schema/languageDescription.exsd"/>
    <extension-point id="indexContributor" name="Shared index of language-specific items, such as types" schema="schema/indexContributor.exsd"/>
    <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
-   <extension-point id="lpgGrammar" name="LPG Grammar" schema="schema/lpgGrammar.exsd"/>
-   <extension-point id="lpgGrammarWithParserWrapper" name="LPG Grammar with Parser Wrapper" schema="schema/lpgGrammarWithParserWrapper.exsd"/>
-   <extension-point id="parserWrapper" name="IMP Parser Wrapper" schema="schema/parserWrapper.exsd"/>
    <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
    <extension-point id="hyperLink" name="IMP Hyperlink Detector" schema="schema/hyperLink.exsd"/>
    <extension-point id="autoEditStrategy" name="Auto-Edit Strategy" schema="schema/autoEditStrategy.exsd"/>

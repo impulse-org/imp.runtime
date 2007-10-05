@@ -26,6 +26,14 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.runtime.PluginBase;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.MessageConsole;
 
 public abstract class BuilderBase extends IncrementalProjectBuilder {
     /**
@@ -86,7 +94,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     protected DependencyInfo fDependencyInfo;
 
-    private final Collection/*<IFile>*/ fSourcesToCompile= new ArrayList();
+    private final Collection<IFile> fSourcesToCompile= new ArrayList<IFile>();
 
     private final class DeltaVisitor implements IResourceDeltaVisitor {
         public boolean visit(IResourceDelta delta) throws CoreException {
@@ -206,7 +214,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     }
 
     private void collectChangeDependents() {
-        Collection changeDependents= new ArrayList();
+        Collection<IFile> changeDependents= new ArrayList<IFile>();
 
         System.out.println("Changed files:");
         dumpSourceList(fSourcesToCompile);
@@ -216,7 +224,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
         dumpSourceList(fSourcesToCompile);
     }
 
-    private void scanSourceList(Collection srcList, Collection changeDependents) {
+    private void scanSourceList(Collection<IFile> srcList, Collection<IFile> changeDependents) {
 	for(Iterator iter= srcList.iterator(); iter.hasNext(); ) {
             IFile srcFile= (IFile) iter.next();
             Set/*<String path>*/ fileDependents= fDependencyInfo.getDependentsOf(srcFile.getFullPath().toString());
@@ -292,5 +300,58 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Unable to create marker: " + e.getMessage());
         }
+    }
+
+    /**
+     * Posts a dialog displaying the given message as soon as "conveniently possible".
+     * This is not a synchronous call, since this method will get called from a
+     * different thread than the UI thread, which is the only thread that can
+     * post the dialog box.
+     */
+    protected void postMsgDialog(final String title, final String msg) {
+        PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+            public void run() {
+                Shell shell= RuntimePlugin.getInstance().getWorkbench().getActiveWorkbenchWindow().getShell();
+    
+                MessageDialog.openInformation(shell, title, msg);
+            }
+        });
+    }
+
+    /**
+     * Posts a dialog displaying the given message as soon as "conveniently possible".
+     * This is not a synchronous call, since this method will get called from a
+     * different thread than the UI thread, which is the only thread that can
+     * post the dialog box.
+     */
+    protected void postQuestionDialog(final String title, final String query, final Runnable runIfYes, final Runnable runIfNo) {
+        PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+            public void run() {
+                Shell shell= RuntimePlugin.getInstance().getWorkbench().getActiveWorkbenchWindow().getShell();
+                boolean response= MessageDialog.openQuestion(shell, title, query);
+    
+                if (response)
+                    runIfYes.run();
+                else if (runIfNo != null)
+                    runIfNo.run();
+            }
+        });
+    }
+
+    protected MessageConsole findConsole(String consoleName) {
+        MessageConsole myConsole= null;
+        final IConsoleManager consoleManager= ConsolePlugin.getDefault().getConsoleManager();
+        IConsole[] consoles= consoleManager.getConsoles();
+        for(int i= 0; i < consoles.length; i++) {
+            IConsole console= consoles[i];
+            if (console.getName().equals(consoleName))
+                myConsole= (MessageConsole) console;
+        }
+        if (myConsole == null) {
+            myConsole= new MessageConsole(consoleName, null);
+            consoleManager.addConsoles(new IConsole[] { myConsole });
+        }
+        consoleManager.showConsoleView(myConsole);
+        return myConsole;
     }
 }

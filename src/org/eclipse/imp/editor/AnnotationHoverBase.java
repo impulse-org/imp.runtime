@@ -60,7 +60,7 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
             return null;
 
         IDocument document= viewer.getDocument();
-        List/*<Annotation>*/javaAnnotations= new ArrayList();
+        List<Annotation> srcAnnotations= new ArrayList<Annotation>();
         HashMap messagesAtPosition= new HashMap();
         Iterator iterator= model.getAnnotationIterator();
     
@@ -81,16 +81,16 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
         	    annotation= (Annotation) e.next();
         	    position= model.getPosition(annotation);
         	    if (position != null && includeAnnotation(annotation, position, messagesAtPosition))
-        		javaAnnotations.add(annotation);
+        		srcAnnotations.add(annotation);
         	}
         	continue;
             }
     
             if (includeAnnotation(annotation, position, messagesAtPosition))
-        	javaAnnotations.add(annotation);
+        	srcAnnotations.add(annotation);
         }
     
-        return javaAnnotations;
+        return srcAnnotations;
     }
 
     /**

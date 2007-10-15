@@ -35,7 +35,7 @@
 			<compilerarg line="${compilerArg}"/>
 			<classpath>
 				<pathelement location="../lpg.runtime.java/bin"/>
-				<pathelement location="../com.ibm.watson.smapi/bin"/>
+				<pathelement location="../org.eclipse.imp.smapi/bin"/>
 				<pathelement path="${eclipse.build.path}"/>
 			</classpath>
 			<src path="src/"/>

@@ -39,7 +39,7 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 
-import com.ibm.watson.smapi.LineMapBuilder;
+import org.eclipse.imp.smapi.LineMapBuilder;
 
 
 /**
@@ -164,7 +164,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 
                     // At this point, we know there is no existing breakpoint at this line #.
 
-                    Map bkptAttributes= new HashMap();
+                    Map<String,String> bkptAttributes= new HashMap<String, String>();
                     bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
                     final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
                           bkptAttributes);

@@ -193,6 +193,7 @@ public class PresentationController implements IModelListener {
 	}
     }
 
+    // TODO This method is unnecessary - shouldn't even get this far if there's no colorer implementation!
     private TextAttribute getColoring(IParseController controller, IToken token) {
 	if (colorer != null)
 	    return colorer.getColoring(controller, token);

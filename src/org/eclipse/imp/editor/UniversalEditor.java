@@ -588,7 +588,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		fOutlineController= new OutlineController(this);
 		fPresentationController= new PresentationController(getSourceViewer());
 		fPresentationController.damage(0, getSourceViewer().getDocument().getLength());
-		fParserScheduler= new ParserScheduler("Universal Editor Parser");
+		fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser");
 		fFormattingController.setParseController(fParserScheduler.parseController);
 		// SMS 29 May 2007 (to get viewer access to single-line comment prefix)
 		ISourceViewer sourceViewer = getSourceViewer();
@@ -1227,8 +1227,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    super(name);
 	    setSystem(true); // do not show this job in the Progress view
 	    parseController= (IParseController) createExtensionPoint(ILanguageService.PARSER_SERVICE);
-	    if (parseController == null)
-		ErrorHandler.reportError("Unable to instantiate parser; parser-related services disabled.");
+	    if (parseController == null) {
+		  ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName() + "; parser-related services disabled.");
+	    }
 	}
 
 	protected IStatus run(IProgressMonitor monitor) {

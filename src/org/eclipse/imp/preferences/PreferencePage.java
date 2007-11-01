@@ -30,22 +30,27 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
 		"E&mit diagnostic messages from IMP UI", getFieldEditorParent());
 	addField(emitMessagesField);
 
+        final BooleanFieldEditor dumpTokensField= new BooleanFieldEditor(PreferenceConstants.P_DUMP_TOKENS,
+                "&Dump tokens after scanning", getFieldEditorParent());
+        addField(dumpTokensField);
+
 	final IntegerFieldEditor tabWidthField= new IntegerFieldEditor(PreferenceConstants.P_TAB_WIDTH,
 		"&Tab width:", getFieldEditorParent());
 	tabWidthField.setValidRange(1, 16);
 	tabWidthField.setTextLimit(2);
 	tabWidthField.setEmptyStringAllowed(false);
+        addField(tabWidthField);
 
 	final FontFieldEditor fontField= new FontFieldEditor(PreferenceConstants.P_SOURCE_FONT,
 		"Source font:", getFieldEditorParent());
-
-	addField(tabWidthField);
 	addField(fontField);
 
 	getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
 	    public void propertyChange(PropertyChangeEvent event) {
 		if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES))
 		    PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
+                else if (event.getProperty().equals(PreferenceConstants.P_DUMP_TOKENS))
+                    PreferenceCache.dumpTokens= ((Boolean) event.getNewValue()).booleanValue();
 		else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH))
 		    PreferenceCache.tabWidth= ((Integer) event.getNewValue()).intValue();
 		else if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {

@@ -14,5 +14,7 @@ public class PreferenceCache {
 
     public static Font sourceFont;
 
+    public static boolean dumpTokens= false;
+
     private PreferenceCache() { }
 }

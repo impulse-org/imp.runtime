@@ -12,5 +12,7 @@ public class PreferenceConstants {
 
     public static final String P_SOURCE_FONT= "sourceFont";
 
+    public static final String P_DUMP_TOKENS= "dumpTokens";
+
     private PreferenceConstants() { }
 }

@@ -19,6 +19,7 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ParseError;
+import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.Position;
@@ -91,7 +92,6 @@ public class PresentationController implements IModelListener {
 	}
     }
 
-    private boolean dumpTokens= false;
     private static final String CONSOLE_NAME= "Source Statistics";
 
     private MessageConsole findConsole() {
@@ -133,7 +133,7 @@ public class PresentationController implements IModelListener {
 	if (controller == null) {
 	    return;
 	}
-	if (dumpTokens) {
+	if (PreferenceCache.dumpTokens) {
 	    MessageConsole myConsole= findConsole();
 	    MessageConsoleStream consStream= myConsole.newMessageStream();
 

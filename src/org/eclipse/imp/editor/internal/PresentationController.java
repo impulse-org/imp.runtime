@@ -165,7 +165,7 @@ public class PresentationController implements IModelListener {
 	    // PC 18 Sep 2007. Changed condition described above to also process tokens of
 	    // length 1 (startOffset == endOffset). Otherwise, such tokens are not colored
 	    // properly.
-	    if (token.getKind() != controller.getParser().getEOFTokenKind()) {
+	    if (token.getKind() != 0 && token.getKind() != controller.getParser().getEOFTokenKind()) {
 	    	if (token.getEndOffset() >= token.getStartOffset()) {
 	    		changeTokenPresentation(controller, presentation, token);
 	    	}

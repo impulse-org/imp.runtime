@@ -1,6 +1,5 @@
 package org.eclipse.imp.editor;
 
-import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -22,7 +21,6 @@ public class SourceFormattingAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void run(IAction action) {
-		System.err.println("Hello I will format your source code beyond recognition");
 		getActiveEditor();
 		IAction format = fActiveEditor.getAction("Format");
 		format.run();

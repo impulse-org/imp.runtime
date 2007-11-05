@@ -112,6 +112,11 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
+      <key
+            commandId="org.eclipse.jdt.ui.edit.text.java.format"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+-"/>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -125,6 +130,11 @@
             description="Comments/uncomments the current selection or the current source line"
             id="org.eclipse.imp.runtime.toggleComment"
             name="Toggle Comment"/>
+      <command
+            categoryId="org.eclipse.jdt.ui.category.source"
+            description="Format the source code"
+            id="org.eclipse.jdt.ui.edit.text.java.format"
+            name="Format"/>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">
@@ -146,6 +156,26 @@
                style="toggle"
                toolbarPath="sampleGroup"
                tooltip="Toggles marking occurrences of the given entity"/>
+      </actionSet>
+   </extension>
+    <extension
+         point="org.eclipse.ui.actionSets">
+      <actionSet
+            id="org.eclipse.imp.runtime.editorActions"
+            label="IMP Source Actions"
+            visible="true">
+         <menu
+               id="org.eclipse.imp.editor"
+               label="Source">
+            <separator name="org.eclipse.imp.source"/>
+         </menu>
+         <action
+               class="org.eclipse.imp.editor.SourceFormattingAction"
+               icon="bla.gif"
+               id="org.eclipse.imp.runtime.actions.SourceFormattingAction"
+               label="Format Source"
+               toolbarPath="sampleGroup"
+               tooltip="Format the source code in this file"/>
       </actionSet>
    </extension>
    <extension

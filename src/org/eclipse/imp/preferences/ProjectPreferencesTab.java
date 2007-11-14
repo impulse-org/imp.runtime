@@ -115,7 +115,7 @@ public class ProjectPreferencesTab extends PreferencesTab {
 
 		
 		// To hold the text selection label + field
-		Composite projectFieldHolder = new Composite(groupHolder, SWT.EMBEDDED);
+		Composite projectFieldHolder = new Composite(groupHolder, SWT.NONE);
 		//layout = new GridLayout();
 		//projectFieldHolder.setLayout(layout);
 		projectFieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

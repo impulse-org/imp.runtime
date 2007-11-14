@@ -31,6 +31,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -453,10 +454,9 @@ public class PreferencesUtilities {
 			boolean isRemovable)
 	{
 		//System.err.println("SPU.makeNewBooleanField() starting for key = " + key);
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);	
+		Composite fieldHolder = new Composite(parent, SWT.NONE); 
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-	    
 		BooleanFieldEditor field =
 			new BooleanFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		if (level != null && level.equals(IPreferencesService.PROJECT_LEVEL) && service.getProject() != null) {
@@ -498,7 +498,7 @@ public class PreferencesUtilities {
 		// role of fieldHolder, and that is created by the Radio Group.
 		// It appears to work to use the parent as the container of the field here.
 		// Not sure if this may still be unnecessary 
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		Composite fieldHolder = new Composite(parent, SWT.NONE);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	    boolean onProjectLevelWithNullProject =
@@ -547,7 +547,7 @@ public class PreferencesUtilities {
 	{
 		//System.err.println("SPU.makeNewDirectoryField() starting for key = " + key);
 		
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		Composite fieldHolder = new Composite(parent, SWT.NONE);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	    boolean onProjectLevelWithNullProject =
@@ -615,7 +615,7 @@ public class PreferencesUtilities {
 	{
 		//System.err.println("SPU.makeNewFileField() starting for key = " + key);
 		
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		Composite fieldHolder = new Composite(parent, SWT.NONE);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	    boolean onProjectLevelWithNullProject =
@@ -677,7 +677,7 @@ public class PreferencesUtilities {
 			boolean isRemovable)
 	{
 		//System.err.println("SPU.makeNewIntegerField() starting for key = " + key);
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		Composite fieldHolder = new Composite(parent, SWT.NONE);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	    boolean onProjectLevelWithNullProject =
@@ -733,7 +733,7 @@ public class PreferencesUtilities {
 		// role of fieldHolder, and that is created by the Radio Group.
 		// It appears to work to use the parent as the container of the field here.
 		//
-		//Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		//Composite fieldHolder = new Composite(parent, SWT.NONE);
 		//fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	    boolean onProjectLevelWithNullProject =
@@ -798,7 +798,7 @@ public class PreferencesUtilities {
 			boolean isRemovable)
 	{
 		//System.err.println("SPU.makeNewStringField() starting for key = " + key);
-		Composite fieldHolder = new Composite(parent, SWT.EMBEDDED);
+		Composite fieldHolder = new Composite(parent, SWT.NONE);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 	    boolean onProjectLevelWithNullProject =
@@ -1117,7 +1117,7 @@ public class PreferencesUtilities {
 	
 	public Link createDetailsLink(Composite parent, final BooleanFieldEditor field, final Composite fieldHolder, String text)
 	{
-		Composite detailsHolder = new Composite(parent, SWT.EMBEDDED);
+		Composite detailsHolder = new Composite(parent, SWT.NONE);
 	    GridLayout gl = new GridLayout();
 	    detailsHolder.setLayout(gl);
 	    

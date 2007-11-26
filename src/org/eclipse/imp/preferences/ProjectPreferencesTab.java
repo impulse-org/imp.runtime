@@ -16,10 +16,11 @@ import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
 import org.eclipse.imp.preferences.fields.ComboFieldEditor;
 import org.eclipse.imp.preferences.fields.RadioGroupFieldEditor;
 import org.eclipse.imp.preferences.fields.StringFieldEditor;
+import org.eclipse.imp.ui.dialogs.ListSelectionDialog;
+import org.eclipse.imp.ui.dialogs.providers.ContentProviderForAllProjects;
+import org.eclipse.imp.ui.dialogs.providers.ContentProviderForGivenProjects;
+import org.eclipse.imp.ui.dialogs.providers.LabelProviderForProjects;
 import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.internal.ui.preferences.ProjectSelectionDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -34,6 +35,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.osgi.service.prefs.Preferences;
 
 
@@ -42,7 +44,10 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	protected org.eclipse.jface.preference.StringFieldEditor selectedProjectName = null;
 	protected List detailsLinks = new ArrayList();
 
-	protected IJavaProject javaProject = null;	
+	protected IJavaProject javaProject = null;
+	
+	// SMS 14 Nov 2007
+	protected IProject fProject = null;
 
 	
 	public ProjectPreferencesTab(IPreferencesService prefService) {
@@ -448,42 +453,57 @@ public class ProjectPreferencesTab extends PreferencesTab {
 		button.addSelectionListener(linkSelectionListener);
 		return button;
 	}
-
 	
 	
-	private class ProjectSelectionButtonResponder {
-	
+	private class ProjectSelectionButtonResponder
+	{		
 		public void doProjectSelectionActivated(Button button, Composite composite)
 		{
 			HashSet projectsWithSpecifics = new HashSet();
 			try {
-				IJavaProject[] projects = JavaCore.create(ResourcesPlugin.getWorkspace().getRoot()).getJavaProjects();
+				IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 				for (int i= 0; i < projects.length; i++) {
-					IJavaProject curr = projects[i];
+					IProject curr = projects[i];
 					//if (hasProjectSpecificOptions(curr.getProject())) {
-					//	projectsWithSpecifics.add(curr);
+					projectsWithSpecifics.add(curr);
 					//}
 				}
-			} catch (JavaModelException e) {
-				System.err.println("ProjectPreferencesTab:  JavaModelException obtaining Java projects; no project selected");
+			} catch (Exception e) {
+				System.err.println("ProjectPreferencesTab:  Exception thrown when obtaining projects; no project selected");
 				return;
 			}
+    
+		    // SMS 20 Nov 2007:  Original
+//			ProjectSelectionDialog dialog = new ProjectSelectionDialog(
+//				button.getShell(),
+//				ResourcesPlugin.getWorkspace().getRoot(),
+//				projectContentProvider,
+//				new LabelProviderForProjects(),
+//				"Select Project");
+			// SMS 24 Nov 2007:  Replaced with ...
+			ContentProviderForAllProjects projectContentProvider = new ContentProviderForAllProjects();
+		    ListSelectionDialog dialog = new ListSelectionDialog(
+		    		button.getShell(), ResourcesPlugin.getWorkspace().getRoot(),
+		            projectContentProvider,
+		            new LabelProviderForProjects(), "Select a project");
 			
-			ProjectSelectionDialog dialog = new ProjectSelectionDialog(button.getShell(), projectsWithSpecifics);
+			
 			if (dialog.open() == Window.OK) {
-				javaProject = (IJavaProject) dialog.getFirstResult();
-			}
-	
-			if (javaProject != null) {
-				IProject project = javaProject.getProject();
-				if (project.exists())
-					fPrefService.setProject(project);
-				else {
-					System.err.println("ProjectPreferencesTab:  Selected project does not exist; no project selected");
+				Object[] results = dialog.getResult();
+				if (results.length > 0) {
+					fProject = (IProject) results[0]; 		//dialog.getFirstResult();
+					if (fProject.exists())	
+						fPrefService.setProject(fProject);
+					else {
+						System.err.println("ProjectPreferencesTab:  Selected project does not exist; no project selected");
+						return;
+					}
+				} else {
+					System.err.println("ProjectPreferencesTab:  No project available for selection");
 					return;
 				}
 			}
-			
+
 			// Enable the details links since now a project is selected
 			for (int i = 0; i < detailsLinks.size(); i++) {
 				((Link)detailsLinks.get(i)).setEnabled(true);
@@ -500,14 +520,17 @@ public class ProjectPreferencesTab extends PreferencesTab {
 			// This will set the enabled state of buttons on the
 			// preference page appropriately
 	        fPrefPage.setValid(isValid());
-			
-			
-			//return javaProject.getElementName();
 		}	
 	}
+	
+    // SMS 20 Nov 2007:  
+    protected void setProjectSelectionValidator(
+        	ContainerSelectionDialog dialog, boolean validateForPluginProject, boolean validateForIDEProject)
+    {
+//	    dialog.setValidator(new ValidationUtils.ProjectSelectionValidator());
+    }
 
-
-
+    
 	public void performApply()
 	{
 		if (fPrefService.getProject() == null) {

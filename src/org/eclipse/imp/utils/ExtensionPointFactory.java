@@ -60,8 +60,8 @@ public class ExtensionPointFactory {
 		return null;
 	}
 
-	public static ILanguageService createExtensionPoint(Language language,
-			String pluginID, String extensionPointId) {
+	public static ILanguageService createExtensionPointForElement(Language language,
+			String pluginID, String extensionPointId, String elementName) {
 		if (language == null) {
 			ErrorHandler.reportError("Cannot obtain service '"
 					+ extensionPointId + "' on null language.");
@@ -74,8 +74,7 @@ public class ExtensionPointFactory {
 					.getExtensionPoint(pluginID, extensionPointId);
 
 			if (extensionPoint != null)
-				service = getLanguageContributor(extensionPoint, language
-						.getName());
+				service = getLanguageContributorForElement(extensionPoint, language.getName(), elementName);
 			else
 				ErrorHandler
 						.reportError("No such language service extension point defined: "
@@ -105,9 +104,9 @@ public class ExtensionPointFactory {
 			if (LanguageRegistry.findLanguage(language.getDerivedFrom()) == null) {
 				service = null;
 			} else {
-				service = createExtensionPoint(LanguageRegistry
+				service = createExtensionPointForElement(LanguageRegistry
 						.findLanguage(language.getDerivedFrom()), pluginID,
-						extensionPointId);
+						extensionPointId, elementName);
 			}
 		}
 
@@ -117,6 +116,11 @@ public class ExtensionPointFactory {
 		// if (service != null)
 		// service.setLanguage(language.getName());
 		return service;
+	}
+	
+	public static ILanguageService createExtensionPoint(Language language,
+			String pluginID, String extensionPointId) {
+	  return createExtensionPointForElement(language, pluginID, extensionPointId, "class");
 	}
 
 	public static Set<ILanguageService> createExtensions(Language language,
@@ -296,9 +300,8 @@ public class ExtensionPointFactory {
 		return result;
 	}
 
-	public static ILanguageService getLanguageContributor(
-			IExtensionPoint extensionPoint, String language)
-			throws CoreException {
+	public static ILanguageService getLanguageContributorForElement(
+			IExtensionPoint extensionPoint, String language, String elementName) throws CoreException {
 		IConfigurationElement[] elements = extensionPoint
 				.getConfigurationElements();
 		String lowerLang = language.toLowerCase();
@@ -316,12 +319,18 @@ public class ExtensionPointFactory {
 					if (attrValue != null
 							&& lowerLang.equals(attrValue.toLowerCase())) {
 						return (ILanguageService) element
-								.createExecutableExtension("class");
+								.createExecutableExtension(elementName);
 					}
 				}
 			}
 		}
 		return null;
+	}
+	
+	public static ILanguageService getLanguageContributor(
+			IExtensionPoint extensionPoint, String language)
+			throws CoreException {
+	  return getLanguageContributorForElement(extensionPoint, language, "class");
 	}
 
 	public static URL getResourceURL(IExtensionPoint extensionPoint,

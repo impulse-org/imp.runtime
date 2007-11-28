@@ -2,12 +2,8 @@ package org.eclipse.imp.ui.dialogs.filters;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.pde.core.plugin.IExtensions;
-import org.eclipse.pde.core.plugin.IPluginExtension;
-import org.eclipse.pde.core.plugin.IPluginModel;
 
 public class ViewerFilterForPluginProjects extends ViewerFilter {
 	

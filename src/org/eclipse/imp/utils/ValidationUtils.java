@@ -13,7 +13,7 @@ public class ValidationUtils {
 	public static boolean isJavaProject(IProject project) {
 	    if (project == null) return false;
 	    try {
-	    	return (project.exists() && project.hasNature("org.eclipse.jdt.core.javanature"));	
+	    	return (project.exists() && project.isOpen() && project.hasNature("org.eclipse.jdt.core.javanature"));	
 	    } catch (CoreException e) {
 	    	ErrorHandler.reportError(
 	    		"ValidatorUtils.isPluginProject:  Core exception validating project = " + project.getName()

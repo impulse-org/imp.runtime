@@ -333,11 +333,12 @@ public class ExtensionPointFactory {
 	  return getLanguageContributorForElement(extensionPoint, language, "class");
 	}
 
-	public static URL getResourceURL(IExtensionPoint extensionPoint,
-			String label) {
+	public static URL getResourceURL(String language,
+			IExtensionPoint extensionPoint, String label) {
 		IConfigurationElement[] elements = extensionPoint
 				.getConfigurationElements();
 		String lowerLabel = label.toLowerCase();
+		String lowerLang = language.toLowerCase();
 
 		if (elements != null) {
 			for (int n = 0; n < elements.length; n++) {
@@ -346,12 +347,18 @@ public class ExtensionPointFactory {
 						.getDeclaringExtension().getNamespace());
 
 				if (bundle != null) {
-					String resourceName = element.getAttribute(lowerLabel);
-					return bundle.getResource(resourceName);
+					final String attrValue = element
+							.getAttribute(Language.LANGUAGE_ID_ATTR);
+
+					if (attrValue != null
+							&& lowerLang.equals(attrValue.toLowerCase())) {
+						String resourceName = element.getAttribute(lowerLabel);
+						return bundle.getResource(resourceName);
+					}
 				}
 			}
 		}
-		
+
 		return null;
 	}
 }

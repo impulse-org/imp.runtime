@@ -28,6 +28,11 @@ public interface IParser {
     public PrsStream getParseStream();
 
     /**
+     * @return array of keywords in the order in which they are mapped to integers.
+     */
+    public String[] orderedTerminalSymbols();
+
+    /**
      * @return the token kind for the EOF token
      */
     public int getEOFTokenKind();

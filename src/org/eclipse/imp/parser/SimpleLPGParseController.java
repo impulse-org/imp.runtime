@@ -138,14 +138,14 @@ public abstract class SimpleLPGParseController implements IParseController
 			// SMS 25 Jun 2007
 			// Added try-catch block in case parser is null
 			try {
-			    String tokenKindNames[]= getParser().getParseStream().orderedTerminalSymbols();
+			    String tokenKindNames[]= getParser().orderedTerminalSymbols();
 			    this.fIsKeyword= new boolean[tokenKindNames.length];
 			    this.fKeywords= new char[tokenKindNames.length][];
 			    int[] keywordKinds= getLexer().getKeywordKinds();
 			    for(int i= 1; i < keywordKinds.length; i++) {
 					int index= getParser().getParseStream().mapKind(keywordKinds[i]);
 					fIsKeyword[index]= true;
-					fKeywords[index]= getParser().getParseStream().orderedTerminalSymbols()[index].toCharArray();
+					fKeywords[index]= getParser().orderedTerminalSymbols()[index].toCharArray();
 			    }
 			}catch (NullPointerException e) {
 	    		System.err.println("SimpleLPGParseController.cacheKeywordsOnce():  NullPointerException; trapped and discarded");

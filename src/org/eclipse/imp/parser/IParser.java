@@ -33,6 +33,11 @@ public interface IParser {
     public String[] orderedTerminalSymbols();
 
     /**
+     * @return array of keywords in the order in which they are mapped to integers.
+     */
+    public int numTokenKinds();
+
+    /**
      * @return the token kind for the EOF token
      */
     public int getEOFTokenKind();

@@ -95,7 +95,7 @@ public abstract class SimpleLPGParseController implements IParseController
     }
 
     public boolean isKeyword(int kind) {
-	return kind < getParser().orderedTerminalSymbols().length && fIsKeyword[kind];
+	return kind < getParser().numTokenKinds() && fIsKeyword[kind];
     }
 
     public int getTokenIndexAtCharacter(int offset) {

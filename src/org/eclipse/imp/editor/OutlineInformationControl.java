@@ -11,7 +11,6 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
 import org.eclipse.imp.editor.internal.AbstractInformationControl;
-import org.eclipse.imp.editor.internal.AbstractInformationControl.NamePatternFilter;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.runtime.RuntimePlugin;
@@ -25,7 +24,6 @@ import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.SWTKeySupport;
 import org.eclipse.jface.viewers.AbstractTreeViewer;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -47,12 +45,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 
 public class OutlineInformationControl extends AbstractInformationControl {
-    // These must agree with the SAFARI extension point ID's defined in plugin.xml
-    public static final String OutlineContentProviderID= "outlineContentProvider";
-    public static final String LabelProviderID= "labelProvider";
-    public static final String ImageDecoratorID= "imageDecorator";
-    public static final String ViewerFilterID= "viewerFilter";
-
     private KeyAdapter fKeyAdapter;
     private OutlineContentProviderBase fOutlineContentProvider;
     private Object fInput= null;
@@ -61,7 +53,7 @@ public class OutlineInformationControl extends AbstractInformationControl {
     protected Color fForegroundColor;
 //    private boolean fShowOnlyMainType; // RMF what would this mean in general?
     private LexicalSortingAction fLexicalSortingAction;
-    private Map fTypeHierarchies= new HashMap();
+    Map fTypeHierarchies= new HashMap();
 
     private Language fLanguage;
 
@@ -113,95 +105,6 @@ public class OutlineInformationControl extends AbstractInformationControl {
 //	    }
 //	    return false;
 //	}
-    }
-
-    public abstract static class OutlineContentProviderBase implements ITreeContentProvider {
-	private OutlineInformationControl fInfoControl;
-	private boolean fShowInheritedMembers;
-
-	protected OutlineContentProviderBase(OutlineInformationControl oic) {
-	    this(oic, false);
-	}
-
-	/**
-	 * Creates a new Outline content provider.
-	 *
-	 * @param showInheritedMembers <code>true</code> iff inherited members are shown
-	 */
-	protected OutlineContentProviderBase(OutlineInformationControl oic, boolean showInheritedMembers) {
-	    fShowInheritedMembers= showInheritedMembers;
-	    fInfoControl= oic;
-	}
-
-	public void setInfoControl(OutlineInformationControl infoControl) {
-	    fInfoControl= infoControl;
-	}
-
-	public boolean isShowingInheritedMembers() {
-	    return fShowInheritedMembers;
-	}
-
-	public void toggleShowInheritedMembers() {
-	    if (fInfoControl == null) return;
-	    Tree tree= fInfoControl.getTreeViewer().getTree();
-	    tree.setRedraw(false);
-	    fShowInheritedMembers= !fShowInheritedMembers;
-	    fInfoControl.getTreeViewer().refresh();
-	    fInfoControl.getTreeViewer().expandToLevel(2);
-	    // reveal selection
-	    Object selectedElement= fInfoControl.getSelectedElement();
-	    if (selectedElement != null)
-		fInfoControl.getTreeViewer().reveal(selectedElement);
-	    tree.setRedraw(true);
-	}
-
-	public Object[] getChildren(Object element) { // left here as a placeholder for the commented-out code below
-//	    if (fShowOnlyMainType) {
-//		if (element instanceof ICompilationUnit) {
-//		    element= getMainType((ICompilationUnit) element);
-//		} else if (element instanceof IClassFile) {
-//		    element= getMainType((IClassFile) element);
-//		}
-//		if (element == null)
-//		    return NO_CHILDREN;
-//	    }
-//	    if (fShowInheritedMembers && element instanceof IType) {
-//		IType type= (IType) element;
-//		if (type.getDeclaringType() == null) {
-//		    ITypeHierarchy th= getSuperTypeHierarchy(type);
-//		    if (th != null) {
-//			List children= new ArrayList();
-//			IType[] superClasses= th.getAllSupertypes(type);
-//			children.addAll(Arrays.asList(super.getChildren(type)));
-//			for(int i= 0, scLength= superClasses.length; i < scLength; i++)
-//			    children.addAll(Arrays.asList(super.getChildren(superClasses[i])));
-//			return children.toArray();
-//		    }
-//		}
-//	    }
-//	    return super.getChildren(element);
-	    return NO_CHILDREN;
-	}
-
-	public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-	    if (fInfoControl != null)
-		fInfoControl.fTypeHierarchies.clear();
-	}
-
-	public void dispose() {
-	    if (fInfoControl != null)
-		fInfoControl.fTypeHierarchies.clear();
-	}
-
-	public boolean hasChildren(Object element) {
-	    Object[] children= getChildren(element);
-	
-	    return (children != null) && children.length > 0;
-	}
-
-	public Object[] getElements(Object inputElement) {
-	    return getChildren(inputElement);
-	}
     }
 
     private class OutlineSorter extends ViewerSorter {
@@ -327,7 +230,8 @@ public class OutlineInformationControl extends AbstractInformationControl {
 
 	// RMF 7/7/2006 - oops, fLanguage is still null at this point, b/c createTreeViewer() gets called from super ctor and field inits haven't happened yet...
 	fLanguage= ((UniversalEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()).fLanguage;
-	fOutlineContentProvider= (OutlineContentProviderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.OUTLINE_CONTENT_PROVIDER_SERVICE);
+        fOutlineContentProvider= new ModelTreeContentProvider(null);
+
 	fOutlineContentProvider.setInfoControl(this);
 	fLangLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
 	fElemImageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.IMAGE_DECORATOR_SERVICE);
@@ -348,6 +252,16 @@ public class OutlineInformationControl extends AbstractInformationControl {
 	treeViewer.setAutoExpandLevel(AbstractTreeViewer.ALL_LEVELS);
 	treeViewer.getTree().addKeyListener(getKeyAdapter());
 	return treeViewer;
+    }
+
+    @Override
+    public TreeViewer getTreeViewer() { // make visible to OutlineContentProviderBase
+        return super.getTreeViewer();
+    }
+
+    @Override
+    public Object getSelectedElement() { // make visible to OutlineContentProviderBase
+        return super.getSelectedElement();
     }
 
     protected String getStatusFieldText() {
@@ -441,7 +355,8 @@ public class OutlineInformationControl extends AbstractInformationControl {
 	super.fillViewMenu(viewMenu);
 //	viewMenu.add(fShowOnlyMainTypeAction); //$NON-NLS-1$
 	viewMenu.add(new Separator("Sorters")); //$NON-NLS-1$
-	viewMenu.add(fLexicalSortingAction);
+        if (fLexicalSortingAction != null)
+            viewMenu.add(fLexicalSortingAction);
 //	viewMenu.add(fSortByDefiningTypeAction);
     }
 

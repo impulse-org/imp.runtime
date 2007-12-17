@@ -23,6 +23,7 @@
    <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
    <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
    <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
+   <extension-point id="modelTreeBuilder" name="Model Tree Builder" schema="schema/modelTreeBuilder.exsd"/>
 
    <extension
          point="org.eclipse.ui.editors">

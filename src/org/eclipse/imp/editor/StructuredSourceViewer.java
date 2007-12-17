@@ -6,6 +6,7 @@
 package org.eclipse.imp.editor;
 
 import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
+import org.eclipse.imp.language.ILanguageSyntaxProperties;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentRewriteSession;
@@ -101,18 +102,15 @@ public class StructuredSourceViewer extends ProjectionViewer {
     }
 
     private void doToggleComment() {
-	IDocument doc= this.getDocument();
+        ILanguageSyntaxProperties syntaxProps= fParseController.getSyntaxProperties();
+
+        if (syntaxProps == null)
+            return;
+
+        IDocument doc= this.getDocument();
 	DocumentRewriteSession rewriteSession= null;
 	Point p= this.getSelectedRange();
-	//final String lineCommentStart= "//"; // RMF this needs to be language-specific
-	// SMS 29 May 2007
-	// Short term solution to getting language-specific single-line
-	// comment prefix (i.e., from parse controller)
-	final String lineCommentStart;
-	if (fParseController != null)
-		lineCommentStart = fParseController.getSingleLineCommentPrefix();
-	else
-		lineCommentStart = "";
+	final String lineCommentStart= syntaxProps.getSingleLineCommentPrefix();
 
 	if (doc instanceof IDocumentExtension4) {
 	    IDocumentExtension4 extension= (IDocumentExtension4) doc;

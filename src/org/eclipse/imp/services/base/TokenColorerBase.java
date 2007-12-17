@@ -13,17 +13,20 @@ import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
-public class TokenColorerBase implements ITokenColorer {
+public abstract class TokenColorerBase implements ITokenColorer {
 
     protected TextAttribute keywordAttribute;
 
+//  protected abstract boolean isKeyword(int kind, IParseController parseController);
+
     public TextAttribute getColoring(IParseController controller, IToken token) {
-        switch (token.getKind()) {
-            default:
-                if (controller.isKeyword(token.getKind()))
-                     return keywordAttribute;
-               else return null;
-        }
+//        switch (token.getKind()) {
+//            default:
+//                if (isKeyword(token.getKind(), controller))
+//                     return keywordAttribute;
+//               else
+        return null;
+//        }
     }
 
     public TokenColorerBase() {

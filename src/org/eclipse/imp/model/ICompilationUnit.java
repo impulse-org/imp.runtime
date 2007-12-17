@@ -8,11 +8,10 @@
  */
 package org.eclipse.imp.model;
 
-import lpg.runtime.IMessageHandler;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.parser.IMessageHandler;
 
 public interface ICompilationUnit extends ISourceEntity {
     String getName();

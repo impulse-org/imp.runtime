@@ -8,13 +8,10 @@
  */
 package org.eclipse.imp.model.internal;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
-import lpg.runtime.IMessageHandler;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -26,6 +23,7 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ICompilationUnit;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.utils.ExtensionPointFactory;
 

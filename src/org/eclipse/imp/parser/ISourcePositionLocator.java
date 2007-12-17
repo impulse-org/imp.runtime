@@ -10,7 +10,7 @@ package org.eclipse.imp.parser;
 
 import org.eclipse.core.runtime.IPath;
 
-public interface IASTNodeLocator
+public interface ISourcePositionLocator
 {
     /**
      * @param ast the root of the AST
@@ -28,17 +28,24 @@ public interface IASTNodeLocator
     Object findNode(Object ast, int startOffset, int endOffset);
 
     /**
-     * @param node the AST node
-     * @return the offset, in characters, of the beginning of the textual extent spanned by the given AST node
+     * @param entity the program entity, e.g. AST node, token, or some
+     * kind of type system object
+     * @return the offset, in characters, of the beginning of the textual extent
+     * spanned by the given entity
      */
-    int getStartOffset(Object node);
+    int getStartOffset(Object entity);
 
     /**
-     * @return the offset, in characters, of the end of the textual extent spanned by the given AST node
+     * @param entity the program entity, e.g. AST node, token, or some
+     * kind of type system object
+     * @return the offset, in characters, of the end of the textual extent
+     * spanned by the given entity
      */
     int getEndOffset(Object node);
 
     /**
+     * @param entity the program entity, e.g. AST node, token, or some
+     * kind of type system object
      * @return the length, in characters, of the textual extent spanned by the given AST node
      */
     int getLength(Object node);

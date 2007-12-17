@@ -27,6 +27,15 @@ public class HoverHelpController implements ITextHover, IModelListener {
 
     private IHoverHelper hoverHelper;
 
+    public HoverHelpController(Language language) {
+        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.HOVER_HELPER_SERVICE);
+        if (hoverHelper == null)
+            hoverHelper= new HoverHelper(language);
+        else if (hoverHelper instanceof HoverHelperBase) {
+            ((HoverHelperBase)hoverHelper).setLanguage(language);
+        }
+    }
+
     public AnalysisRequired getAnalysisRequired() {
 	return AnalysisRequired.NAME_ANALYSIS;
     }
@@ -54,14 +63,5 @@ public class HoverHelpController implements ITextHover, IModelListener {
 
     public void update(IParseController controller, IProgressMonitor monitor) {
         this.controller= controller;
-    }
-
-    public void setLanguage(Language language) {
-        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.HOVER_HELPER_SERVICE);
-        if (hoverHelper == null)
-            hoverHelper= new HoverHelper(language);
-        else if (hoverHelper instanceof HoverHelperBase) {
-            ((HoverHelperBase)hoverHelper).setLanguage(language);
-        }
     }
 }

@@ -20,60 +20,65 @@ import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
 public class CompletionProcessor implements IContentAssistProcessor, IModelListener {
-	private final IContextInformation[] NO_CONTEXTS= new IContextInformation[0];
+    private final IContextInformation[] NO_CONTEXTS= new IContextInformation[0];
 
-	private ICompletionProposal[] NO_COMPLETIONS= new ICompletionProposal[0];
+    private ICompletionProposal[] NO_COMPLETIONS= new ICompletionProposal[0];
 
-	private IParseController parseController;
+    private IParseController parseController;
 
-	private IContentProposer contentProposer;
+    private final Language fLanguage;
 
-//	private HippieProposalProcessor hippieProcessor= new HippieProposalProcessor();
+    private IContentProposer contentProposer;
 
-	public CompletionProcessor() {}
+    // private HippieProposalProcessor hippieProcessor= new HippieProposalProcessor();
 
-	public void setLanguage(Language language) {
-	    contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.CONTENT_PROPOSER_SERVICE);
-	}
-
-	public AnalysisRequired getAnalysisRequired() {
-	    return AnalysisRequired.TYPE_ANALYSIS;
-	}
-
-	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-	    try {
-		if (parseController != null && contentProposer != null) {
-		    return contentProposer.getContentProposals(parseController, offset, viewer);
-		}
-		// TODO Once we move to 3.2, delegate to the HippieProposalProcessor
-//		return hippieProcessor.computeCompletionProposals(viewer, offset);
-	    } catch (Throwable e) {
-		ErrorHandler.reportError("Universal Editor Error", e);
-	    }
-	    return NO_COMPLETIONS;
-	}
-
-	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
-	    return NO_CONTEXTS;
-	}
-
-	public char[] getCompletionProposalAutoActivationCharacters() {
-	    return null;
-	}
-
-	public char[] getContextInformationAutoActivationCharacters() {
-	    return null;
-	}
-
-	public IContextInformationValidator getContextInformationValidator() {
-	    return null;
-	}
-
-	public String getErrorMessage() {
-	    return null;
-	}
-
-	public void update(IParseController parseResult, IProgressMonitor monitor) {
-	    this.parseController= parseResult;
-	}
+    public CompletionProcessor(Language language) {
+        contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.CONTENT_PROPOSER_SERVICE);
+        fLanguage= language;
     }
+
+    public AnalysisRequired getAnalysisRequired() {
+        return AnalysisRequired.TYPE_ANALYSIS;
+    }
+
+    public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
+        try {
+            if (parseController != null && contentProposer != null) {
+                return contentProposer.getContentProposals(parseController, offset, viewer);
+            }
+            // TODO Once we move to 3.2, delegate to the HippieProposalProcessor
+            // return hippieProcessor.computeCompletionProposals(viewer, offset);
+        } catch (Throwable e) {
+            ErrorHandler.reportError("Universal Editor Error", e);
+        }
+        return NO_COMPLETIONS;
+    }
+
+    public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
+        return NO_CONTEXTS;
+    }
+
+    public char[] getCompletionProposalAutoActivationCharacters() {
+        return null;
+    }
+
+    public char[] getContextInformationAutoActivationCharacters() {
+        return null;
+    }
+
+    public IContextInformationValidator getContextInformationValidator() {
+        return null;
+    }
+
+    public String getErrorMessage() {
+        return null;
+    }
+
+    public void update(IParseController parseController, IProgressMonitor monitor) {
+        this.parseController= parseController;
+    }
+
+    public String toString() {
+        return "Completion processor for " + fLanguage.getName() + " on " + parseController.getPath().toPortableString();
+    }
+}

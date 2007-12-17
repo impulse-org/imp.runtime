@@ -5,17 +5,17 @@
  */
 package org.eclipse.imp.parser;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.Iterator;
 
-import lpg.runtime.IMessageHandler;
 import lpg.runtime.IToken;
 import lpg.runtime.Monitor;
+import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.language.IAnnotationTypeInfo;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Base class for an IParseController implementation that encapsulates a simple LPG-based
@@ -37,6 +37,8 @@ public abstract class SimpleLPGParseController implements IParseController
     private char fKeywords[][];
 
     private boolean fIsKeyword[];
+
+    private final SimpleAnnotationTypeInfo fSimpleAnnotationTypeInfo= new SimpleAnnotationTypeInfo();
 
     /**
      * An adapter from an Eclipse IProgressMonitor to an LPG Monitor
@@ -84,92 +86,97 @@ public abstract class SimpleLPGParseController implements IParseController
 
     public IMessageHandler getHandler() {
     	return handler;
-        }
+    }
 
     public Object getCurrentAst() {
 	return fCurrentAst;
     }
 
-    public char[][] getKeywords() {
-	return fKeywords;
+    public Iterator getTokenIterator(IRegion region) {
+        final int offset= region.getOffset();
+        final int length= region.getLength();
+
+        return new Iterator() {
+            final PrsStream stream= SimpleLPGParseController.this.getParser().getParseStream();
+            final int firstTokIdx= getTokenIndexAtCharacter(offset);
+            final int lastTokIdx= getTokenIndexAtCharacter(offset + length - 1);
+            int curTokIdx= Math.max(1, firstTokIdx); // skip bogus initial token
+            IToken[] adjuncts;
+            int adjunctIdx= -1;
+
+            {
+                loadPrecedingAdjuncts();
+            }
+
+            private int getTokenIndexAtCharacter(int offset) {
+                int result= stream.getTokenIndexAtCharacter(offset);
+                // getTokenIndexAtCharacter() answers the negative of the
+                // index of the preceding token if the given offset is not
+                // actually within a token.
+                if (result < 0) {
+                    result= -result + 1;
+                }
+                return result;
+            }
+            private void loadPrecedingAdjuncts() {
+                adjuncts= stream.getPrecedingAdjuncts(curTokIdx);
+                for(adjunctIdx=0; adjunctIdx < adjuncts.length && adjuncts[adjunctIdx].getEndOffset() < offset; adjunctIdx++)
+                    ;
+                if (adjunctIdx >= adjuncts.length)
+                    adjuncts= null;
+            }
+            private void loadFollowingAdjuncts() {
+                adjuncts= stream.getFollowingAdjuncts(curTokIdx);
+                if (adjuncts != null && (adjuncts.length == 0 || adjuncts[0].getStartOffset() >= offset + length))
+                    adjuncts= null;
+            }
+            public boolean hasNext() {
+                return curTokIdx < lastTokIdx - 1 || (curTokIdx == lastTokIdx - 1 && adjunctIdx >= 0);
+            }
+            public Object next() {
+                if (adjunctIdx >= 0) {
+                    if (adjuncts != null && adjunctIdx < adjuncts.length && adjuncts[adjunctIdx].getStartOffset() < offset + length && adjuncts[adjunctIdx].getEndOffset() > offset)
+                        return adjuncts[adjunctIdx++];
+                    adjunctIdx= -1;
+                }
+                Object o= stream.getIToken(curTokIdx++);
+                if (curTokIdx == stream.getSize() - 1)
+                    loadFollowingAdjuncts();
+                else
+                    loadPrecedingAdjuncts();
+                return o;
+            }
+            public void remove() {
+                throw new IllegalArgumentException("Unimplemented");
+            }
+        };
+    }
+
+    public IAnnotationTypeInfo getAnnotationTypeInfo() {
+        return fSimpleAnnotationTypeInfo;
     }
 
     public boolean isKeyword(int kind) {
 	return kind < getParser().numTokenKinds() && fIsKeyword[kind];
     }
 
-    public int getTokenIndexAtCharacter(int offset) {
-    	// SMS 25 Jun 2007
-    	// Added try-catch block in case parser is null
-    	//	int index= getParser().getParseStream().getTokenIndexAtCharacter(offset);
-    	//	return (index < 0 ? -index : index);
-    	try {
-    		int index= getParser().getParseStream().getTokenIndexAtCharacter(offset);
-    		return (index < 0 ? -index : index);
-    	} catch (NullPointerException e) {
-    		System.err.println("SimpleLPGParseController.getTokenIndexAtCharacter(offset):  NullPointerException; returning 0");
-    	}
-    	return 0;
-    }
-
-    public IToken getTokenAtCharacter(int offset) {
-    	// SMS 25 Jun 2007
-    	// Added try-catch block in case parser is null
-    	try {
-    		return getParser().getParseStream().getTokenAtCharacter(offset);
-    	} catch (NullPointerException e) {
-    		System.err.println("SimpleLPGParseController.getTokenAtCharacter(offset):  NullPointerException; returning null");
-    	}
-    	return null;
-    }
-
-    public boolean hasErrors() {
-	return fCurrentAst == null;
-    }
-
-    public List getErrors() {
-	return Collections.singletonList(new ParseError("parse error", null));
-    }
-
-    public String getSingleLineCommentPrefix() { return ""; }
-    
     protected void cacheKeywordsOnce() {
-		if (fKeywords == null) {
-			// SMS 25 Jun 2007
-			// Added try-catch block in case parser is null
-			try {
-			    String tokenKindNames[]= getParser().orderedTerminalSymbols();
-			    this.fIsKeyword= new boolean[tokenKindNames.length];
-			    this.fKeywords= new char[tokenKindNames.length][];
-			    int[] keywordKinds= getLexer().getKeywordKinds();
-			    for(int i= 1; i < keywordKinds.length; i++) {
-					int index= getParser().getParseStream().mapKind(keywordKinds[i]);
-					fIsKeyword[index]= true;
-					fKeywords[index]= getParser().orderedTerminalSymbols()[index].toCharArray();
-			    }
-			}catch (NullPointerException e) {
-	    		System.err.println("SimpleLPGParseController.cacheKeywordsOnce():  NullPointerException; trapped and discarded");
-		    }
-		}
+        if (fKeywords == null) {
+            // SMS 25 Jun 2007
+            // Added try-catch block in case parser is null
+            try {
+                String tokenKindNames[]= getParser().orderedTerminalSymbols();
+                this.fIsKeyword= new boolean[tokenKindNames.length];
+                this.fKeywords= new char[tokenKindNames.length][];
+                int[] keywordKinds= getLexer().getKeywordKinds();
+                for(int i= 1; i < keywordKinds.length; i++) {
+                    int index= getParser().getParseStream().mapKind(keywordKinds[i]);
+                    fIsKeyword[index]= true;
+                    fKeywords[index]= getParser().orderedTerminalSymbols()[index].toCharArray();
+                }
+            } catch (NullPointerException e) {
+                System.err.println("SimpleLPGParseController.cacheKeywordsOnce():  NullPointerException; trapped and discarded");
+            }
+        }
     }
-
-    
-    
-    /*
-     * For the management of associated problem-marker types
-     */
-    
-    private static List problemMarkerTypes = new ArrayList();
-    
-    public List getProblemMarkerTypes() {
-    	return problemMarkerTypes;
-    }
-    
-    public void addProblemMarkerType(String problemMarkerType) {
-    	problemMarkerTypes.add(problemMarkerType);
-    }
-    
-	public void removeProblemMarkerType(String problemMarkerType) {
-		problemMarkerTypes.remove(problemMarkerType);
-	}
 }

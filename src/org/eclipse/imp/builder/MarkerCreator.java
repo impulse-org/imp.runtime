@@ -5,15 +5,14 @@
  */
 package org.eclipse.imp.builder;
 
-import lpg.runtime.IMessageHandler;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
-
 
 /**
  * This class provides a message handler that creates markers in
@@ -28,57 +27,50 @@ import org.eclipse.imp.parser.IParseController;
  * token provided with each message, and attaches the marker to
  * the given file at the computed line.
  */
-
-    
 public class MarkerCreator implements IMessageHandler {
 	
-	private IParseController parseController = null;
-	private IFile file = null;
-	private String problemType = IMarker.PROBLEM;
-	
-	public MarkerCreator(
-		IFile file, IParseController parseController)
-	{
-		this.parseController = parseController;
-		this.file = file;
-	}
+    private IParseController parseController = null;
+    private IFile file = null;
+    private String problemType = IMarker.PROBLEM;
 
-	public MarkerCreator(
-			IFile file,
-			IParseController parseController,
-			String problemType)
-	{
-		this.file = file;
-		this.parseController = parseController;
-		this.problemType = problemType;
-	}
-	
-	
-	public void handleMessage(int errorCode, int [] msgLocation, int[] errorLocation, String filename, String [] errorInfo) {
-        int offset = msgLocation[IMessageHandler.OFFSET_INDEX],
-            length = msgLocation[IMessageHandler.LENGTH_INDEX];
-        String message = "";
-        for (int i = 0; i < errorInfo.length; i++)
-            message += (errorInfo[i] + (i < errorInfo.length - 1 ? " " : ""));
-        IPrsStream  ps = parseController.getParser().getParseStream();
-        IToken token = ps.getTokenAtCharacter(offset);
-        int line = token.getLine();
+    public MarkerCreator(
+            IFile file, IParseController parseController)
+    {
+        this.parseController = parseController;
+        this.file = file;
+    }
 
-		try {
-			// Based closely on the Eclipse "FAQ How do I create problem markers for my compiler?"
-			IMarker m = file.createMarker(problemType);
-			m.setAttribute(IMarker.LINE_NUMBER, line);
-			// SMS 23 Apr 2007
-			// Removed previously added adjustment to start offset that seems
-			// to have been rendered unnecessary by a fix somewhere else
-			int start = offset;
-			m.setAttribute(IMarker.CHAR_START, start);
-			m.setAttribute(IMarker.CHAR_END, start + length);
-			m.setAttribute(IMarker.MESSAGE, message);
-			m.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
-			m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
-		} catch (CoreException e) {
-			System.err.println("MarkerCreator.handleMessage:  CoreException trying to create marker");
-		}
-	}
+    public MarkerCreator(
+            IFile file,
+            IParseController parseController,
+            String problemType)
+    {
+        this.file = file;
+        this.parseController = parseController;
+        this.problemType = problemType;
+    }
+
+    public void handleSimpleMessage(String msg, int startOffset, int endOffset,
+            int startCol, int endCol,
+            int startLine, int endLine) {
+        try {
+            // Based closely on the Eclipse "FAQ How do I create problem markers for my compiler?"
+            IMarker m = file.createMarker(problemType);
+            m.setAttribute(IMarker.LINE_NUMBER, startLine);
+            // SMS 23 Apr 2007
+            // Removed previously added adjustment to start offset that seems
+            // to have been rendered unnecessary by a fix somewhere else
+            m.setAttribute(IMarker.CHAR_START, startOffset);
+            m.setAttribute(IMarker.CHAR_END, endOffset);
+            m.setAttribute(IMarker.MESSAGE, msg);
+            m.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
+            m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+        } catch (CoreException e) {
+            System.err.println("MarkerCreator.handleMessage:  CoreException trying to create marker");
+        }
+    }
+
+    public void endMessageGroup() { }
+
+    public void startMessageGroup(String groupName) { }
 }

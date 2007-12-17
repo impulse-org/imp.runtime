@@ -6,7 +6,7 @@
          <meta.schema plugin="org.eclipse.imp.runtime" id="foldingUpdater" name="IMP IDE Source Folding Updater"/>
       </appInfo>
       <documentation>
-         [Enter description of this extension point.]
+         Implementors of this extension point identify the AST nodes that should be foldable.
       </documentation>
    </annotation>
 

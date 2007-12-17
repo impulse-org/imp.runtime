@@ -16,41 +16,79 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 
 public class SourceProposal implements ICompletionProposal {
-	private final String fName;
+    /**
+     * The text shown to the user in the popup view
+     */
+    private final String fProposal;
 
-	private final String fProposal;
+    /**
+     * The new text being added/substituted if the user accepts this proposal
+     */
+    private final String fNewText;
 
+    /**
+     * The prefix being completed.
+     */
     private final String fPrefix;
 
+    /**
+     * The offset into the text of the text being replaced.
+     */
     private final int fOffset;
 
-    public SourceProposal(String name, String prefix, int offset) {
-        super();
-        fProposal= name;
-        fName= name;
-        fPrefix= prefix;
-        fOffset= offset;
+    /**
+     * The offset at which the insertion point should be placed after completing
+     * using this proposal
+     */
+    private final int fCursorLoc;
+
+    /**
+     * Create a new completion proposal.
+     * @param newText the actual replacement text for this proposal
+     * @param prefix the prefix being completed
+     * @param offset the starting character offset of the text to be replaced
+     */
+    public SourceProposal(String newText, String prefix, int offset) {
+        this(newText, newText, prefix, offset);
     }
 
-    public SourceProposal(String proposal, String name, String prefix, int offset) {
-        super();
+    /**
+     * Create a new completion proposal.
+     * @param proposal the text to be shown in the popup view listing the proposals
+     * @param newText the actual replacement text for this proposal
+     * @param prefix the prefix being completed
+     * @param offset the starting character offset of the text to be replaced
+     */
+    public SourceProposal(String proposal, String newText, String prefix, int offset) {
+        this(proposal, newText, prefix, offset, offset + newText.length() - prefix.length());
+    }
+
+    /**
+     * Create a new completion proposal.
+     * @param proposal the text to be shown in the popup view listing the proposals
+     * @param newText the actual replacement text for this proposal
+     * @param prefix the prefix being completed
+     * @param offset the starting character offset of the text to be replaced
+     * @param cursorLoc the point at which to place the cursor after the replacement
+     */
+    public SourceProposal(String proposal, String newText, String prefix, int offset, int cursorLoc) {
         fProposal= proposal;
-        fName= name;
+        fNewText= newText;
         fPrefix= prefix;
         fOffset= offset;
+        fCursorLoc= cursorLoc;
     }
 
     public void apply(IDocument document) {
         try {
-            document.replace(fOffset, 0, fName.substring(fPrefix.length()));
+            document.replace(fOffset, 0, fNewText.substring(fPrefix.length()));
         } catch (BadLocationException e) {
             e.printStackTrace();
         }
     }
 
     public Point getSelection(IDocument document) {
-        int newOffset= fOffset + fName.length() - fPrefix.length();
-        return new Point(newOffset, 0);
+        return new Point(fCursorLoc, 0);
     }
 
     public String getAdditionalProposalInfo() {

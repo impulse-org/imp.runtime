@@ -10,7 +10,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IOccurrenceMarker;
@@ -198,7 +198,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     private Position[] convertRefNodesToPositions(List<Object> refs) {
 	Position[] positions= new Position[refs.size()];
 	int i= 0;
-	IASTNodeLocator locator= fParseController.getNodeLocator();
+	ISourcePositionLocator locator= fParseController.getNodeLocator();
 
 	for(Iterator iter= refs.iterator(); iter.hasNext(); i++) {
 	    Object node= iter.next();

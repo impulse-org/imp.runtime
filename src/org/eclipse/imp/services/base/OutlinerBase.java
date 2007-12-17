@@ -12,7 +12,7 @@ import lpg.runtime.IToken;
 
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IOutlineImage;
 import org.eclipse.imp.services.IOutliner;
@@ -85,7 +85,7 @@ public abstract class OutlinerBase implements IOutliner
 			}
 			UniversalEditor uE = (UniversalEditor) textEditor;
 
-			IASTNodeLocator nodeLocator = uE.getParseController().getNodeLocator();
+			ISourcePositionLocator nodeLocator = uE.getParseController().getNodeLocator();
 			int startOffset = 0;
 			int endOffset = 0;
 		
@@ -303,7 +303,6 @@ public abstract class OutlinerBase implements IOutliner
 	public void createOutlinePresentation(IParseController controller, int offset)
 	{
 		if (controller == null || tree == null) return;
-		if (controller.hasErrors()) return;
 		if (!significantChange(controller)) return;
 		
 		boolean redrawSetFalse = false;

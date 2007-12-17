@@ -10,7 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.jface.text.Position;
@@ -52,7 +52,7 @@ public abstract class FolderBase implements IFoldingUpdater
     {	
 		// Use the parse controller to get a node locator
     	// (assume that parse controller will have been set)
-		IASTNodeLocator nodeLocator = parseController.getNodeLocator();
+		ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
 		
 		// Use the node locator to get the starting and ending offsets of the node
 		int startOffset = 0;

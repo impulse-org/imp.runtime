@@ -10,7 +10,7 @@ import org.eclipse.imp.editor.TargetLink;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
@@ -50,7 +50,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         Object ast= parseController.getCurrentAst();
         if (ast == null) return null;
         int offset= region.getOffset();
-        IASTNodeLocator nodeLocator = parseController.getNodeLocator();
+        ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
 
         // Get link source node
         Object source = nodeLocator.findNode(ast, offset);

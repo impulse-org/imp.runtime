@@ -12,7 +12,7 @@ import java.util.List;
 
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IHoverHelper;
@@ -50,7 +50,7 @@ public class HoverHelper implements IHoverHelper {
 
     	IReferenceResolver refResolver = (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.REFERENCE_RESOLVER_SERVICE);
         Object root= parseController.getCurrentAst();
-        IASTNodeLocator nodeLocator = parseController.getNodeLocator();
+        ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
 
         if (root == null) return null;
 

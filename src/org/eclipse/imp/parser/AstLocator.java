@@ -13,7 +13,7 @@ import org.eclipse.core.runtime.IPath;
  * Locator implementation that works for LPG-generated AST's using the base IAst interface.
  * @author rfuhrer
  */
-public class AstLocator implements IASTNodeLocator {
+public class AstLocator implements ISourcePositionLocator {
     public Object findNode(Object node, int offset) {
 	if (!(node instanceof IAst))
 	    return node;

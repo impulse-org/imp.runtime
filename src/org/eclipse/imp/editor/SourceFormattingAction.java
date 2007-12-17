@@ -16,8 +16,8 @@ public class SourceFormattingAction implements IWorkbenchWindowActionDelegate {
 	}
 
 	public void init(IWorkbenchWindow window) {
-		System.err.println(((UniversalEditor) window).fFormattingStrategy
-				.getClass().getName());
+//		System.err.println(((UniversalEditor) window).fFormattingStrategy
+//				.getClass().getName());
 	}
 
 	public void run(IAction action) {

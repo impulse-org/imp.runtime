@@ -12,9 +12,10 @@ import org.eclipse.core.commands.IExecutionListener;
 import org.eclipse.core.commands.NotHandledException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.editor.StringMatcher;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.parser.IASTNodeLocator;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.runtime.PluginImages;
@@ -740,9 +741,12 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		    IEditorPart editor= p.getActiveEditor();
 		    UniversalEditor ue= (UniversalEditor) editor;
 		    IParseController parseController= ue.fParserScheduler.parseController;
-		    IASTNodeLocator locator= parseController.getNodeLocator();
+		    ISourcePositionLocator locator= parseController.getNodeLocator();
+                    Object element= selectedElement;
 
-		    ue.selectAndReveal(locator.getStartOffset(selectedElement), 0 /*pos.length*/);
+                    if (element instanceof ModelTreeNode)
+                        element= ((ModelTreeNode) selectedElement).getASTNode();
+		    ue.selectAndReveal(locator.getStartOffset(element), 0 /*pos.length*/);
 		}
 	    } catch (CoreException ex) {
 		RuntimePlugin.getInstance().writeErrorMsg(ex.getMessage());

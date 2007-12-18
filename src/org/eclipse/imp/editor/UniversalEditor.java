@@ -1299,6 +1299,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public String toString() {
-        return "Universal Editor for " + fLanguage.getName() + (fParserScheduler.parseController.getPath() != null ? " on source " + fParserScheduler.parseController.getPath().toPortableString() : " on " + getEditorInput());
+        return "Universal Editor for " + fLanguage.getName() + (fParserScheduler.parseController != null && fParserScheduler.parseController.getPath() != null ? " on source " + fParserScheduler.parseController.getPath().toPortableString() : " on " + getEditorInput());
     }
 }

@@ -1,13 +1,9 @@
 package org.eclipse.imp.ui.dialogs.filters;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.imp.utils.ExtensionUtils;
 import org.eclipse.imp.utils.ValidationUtils;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
-import org.eclipse.pde.core.plugin.IExtensions;
-import org.eclipse.pde.core.plugin.IPluginExtension;
-import org.eclipse.pde.core.plugin.IPluginModel;
 
 public class ViewerFilterForJavaProjects extends ViewerFilter {
 	

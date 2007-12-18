@@ -7,7 +7,6 @@ package org.eclipse.imp.services.base;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.services.IOutliner;
 
 /**
 

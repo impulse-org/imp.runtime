@@ -5,10 +5,7 @@
  */
 package org.eclipse.imp.services.base;
 
-import java.util.ArrayList;
 import java.util.Stack;
-
-import lpg.runtime.IToken;
 
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.UniversalEditor;
@@ -19,7 +16,6 @@ import org.eclipse.imp.services.IOutliner;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorPart;
@@ -306,22 +302,25 @@ public abstract class OutlinerBase implements IOutliner
 		if (!significantChange(controller)) return;
 		
 		boolean redrawSetFalse = false;
-			try {
-				Object root= controller.getCurrentAst();
-				if (root == null) return;
-							
+		try {
+			Object root= controller.getCurrentAst();
+			if (root == null) return;
+			
+			// SMS 4 Dec 2007:  added guard
+			if (!tree.isDisposed()) {
 				tree.setRedraw(false);
 				redrawSetFalse = true;
 				tree.removeAll();
-				fItemStack.clear();
-				sendVisitorToAST(root);
-			} catch (Throwable e) {
-			  ErrorHandler.reportError("Exception generating outlinel", e);
-			} finally {
-			  if (redrawSetFalse) {
-			  	tree.setRedraw(true);
-				}
 			}
+			fItemStack.clear();
+			sendVisitorToAST(root);
+		} catch (Throwable e) {
+		  ErrorHandler.reportError("Exception generating outlinel", e);
+		} finally {
+		  if (redrawSetFalse) {
+		  	tree.setRedraw(true);
+			}
+		}
 	}
   
 	
@@ -337,8 +336,15 @@ public abstract class OutlinerBase implements IOutliner
 	 * change in the AST represented by the given controller (presumably such
 	 * that the outline should be redrawn).
 	 * 
-	 * The default implementation here simply returns true; this method should
-	 * be overridden in subclasses to implement language-specific tests.
+	 * The default implementation returns true if and only if the parse controller
+	 * has changed (implying a different parse stream and token stream in any case)
+	 * or, for an unchanged parse controller, if there has been a change in the
+	 * number, size, or content of tokens in the current token stream.  Note that,
+	 * by this definition, changes in white space between tokens are not considered
+	 * significant.
+	 * 
+	 * This method should be overridden in subclasses to implement
+	 * language-specific tests.
 	 * 
 	 * @param controller	Provides access to the AST represented in the outline
 	 * @return			Whether there has been a significant change in the

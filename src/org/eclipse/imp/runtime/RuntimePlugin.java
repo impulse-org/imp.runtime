@@ -6,8 +6,8 @@
 package org.eclipse.imp.runtime;
 
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IStartup;

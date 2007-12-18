@@ -1,12 +1,9 @@
 package org.eclipse.imp.utils;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.ui.dialogs.providers.ContentProviderForIDEProjects;
-import org.eclipse.ui.dialogs.ISelectionValidator;
 
 public class ValidationUtils {
 

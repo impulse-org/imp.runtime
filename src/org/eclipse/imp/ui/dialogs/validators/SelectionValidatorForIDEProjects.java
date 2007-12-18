@@ -2,7 +2,6 @@ package org.eclipse.imp.ui.dialogs.validators;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.imp.utils.ValidationUtils;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.ui.dialogs.ISelectionValidator;
 
 public class SelectionValidatorForIDEProjects implements ISelectionValidator {

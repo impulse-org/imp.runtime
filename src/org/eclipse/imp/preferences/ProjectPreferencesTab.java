@@ -18,7 +18,6 @@ import org.eclipse.imp.preferences.fields.RadioGroupFieldEditor;
 import org.eclipse.imp.preferences.fields.StringFieldEditor;
 import org.eclipse.imp.ui.dialogs.ListSelectionDialog;
 import org.eclipse.imp.ui.dialogs.providers.ContentProviderForAllProjects;
-import org.eclipse.imp.ui.dialogs.providers.ContentProviderForGivenProjects;
 import org.eclipse.imp.ui.dialogs.providers.LabelProviderForProjects;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.resource.JFaceResources;
@@ -558,10 +557,12 @@ public class ProjectPreferencesTab extends PreferencesTab {
 			// file from which to load anything	
 			return;
 		}
-		// Clear all preferences at this level and reload them
-		// using inheritance (so a value will be found at a higher
-		// level if none is set at this level)
-		fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
+	
+		// Clear all preferences for this page at this level;
+		// "default" values will be set by inheritance from a higher level
+		PreferencesInitializer initializer = fPrefPage.getPreferenceInitializer();
+		initializer.clearPreferencesOnLevel(IPreferencesService.PROJECT_LEVEL);
+		
 		for (int i = 0; i < fFields.length; i++) {
 			fFields[i].loadWithInheritance();
 		}

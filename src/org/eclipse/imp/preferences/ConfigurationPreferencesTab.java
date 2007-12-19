@@ -100,10 +100,11 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 	
 	
 	public void performDefaults() {
-		// Clear all preferences at this level and reload them
-		// using inheritance (so a value will be found at a higher
-		// level if none is set at this level)
-		fPrefService.clearPreferencesAtLevel(IPreferencesService.CONFIGURATION_LEVEL);
+		// Clear all preferences for this page at this level;
+		// "default" values will be set by inheritance from a higher level
+		//fPrefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
+		PreferencesInitializer initializer = fPrefPage.getPreferenceInitializer();
+		initializer.clearPreferencesOnLevel(IPreferencesService.CONFIGURATION_LEVEL);
 
 		for (int i = 0; i < fFields.length; i++) {
 			fFields[i].loadWithInheritance();

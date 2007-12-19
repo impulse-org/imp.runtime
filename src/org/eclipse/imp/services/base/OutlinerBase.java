@@ -5,12 +5,15 @@
  */
 package org.eclipse.imp.services.base;
 
+import java.util.ArrayList;
 import java.util.Stack;
+
+import lpg.runtime.IToken;
 
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IOutlineImage;
 import org.eclipse.imp.services.IOutliner;
 import org.eclipse.swt.SWT;

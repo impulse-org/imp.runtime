@@ -103,12 +103,12 @@ public class DefaultPreferencesTab extends PreferencesTab
 	 * @return 	The preference initializer to be used to initialize
 	 * 			preferences in this tab
 	 */
-	public AbstractPreferenceInitializer getPreferenceInitializer() {
-		// TODO:  Override in subclass where the language-specific
-		// initializer should be known
-		System.out.println("DefaultPreferencesTab.getPreferenceInitializar():  unimplemented; should be overridden with language-specific implementation");
-		return null;
-	}
+//	public AbstractPreferenceInitializer getPreferenceInitializer() {
+//		// TODO:  Override in subclass where the language-specific
+//		// initializer should be known
+//		System.out.println("DefaultPreferencesTab.getPreferenceInitializar():  unimplemented; should be overridden with language-specific implementation");
+//		return null;
+//	}
 
 	
 
@@ -122,11 +122,12 @@ public class DefaultPreferencesTab extends PreferencesTab
 	
 		
 	public void performDefaults() {
-		// Clear all preferences at this level and reload them into the
-		// preferences store through the initializer
-		fPrefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
-		AbstractPreferenceInitializer preferenceInitializer = getPreferenceInitializer();	//new PreferenceInitializer();
-		preferenceInitializer.initializeDefaultPreferences();
+		// Clear all preferences for this page at this level and reload
+		// them into the preferences store
+		//fPrefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
+		PreferencesInitializer initializer = fPrefPage.getPreferenceInitializer();
+		initializer.clearPreferencesOnLevel(IPreferencesService.DEFAULT_LEVEL);
+		initializer.initializeDefaultPreferences();
 
 		// Example:  reload each preferences field
 		for (int i = 0; i < fFields.length; i++) {

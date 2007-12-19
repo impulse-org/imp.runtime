@@ -6,6 +6,7 @@
 package org.eclipse.imp.preferences;
 
 
+import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -52,7 +53,7 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
 
         // Create the tabs that go into the tab folder	
         tabs = createTabs(prefService, this, tabFolder);
-        setConditionalFieldEnabledState();
+        setInitialStateForTabs();
         
         
 
@@ -94,7 +95,7 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
 	 * selected at this point.
 	 *
 	 */
-	protected void setConditionalFieldEnabledState() {
+	protected void setInitialStateForTabs() {
 	    // Assure that all tabs are initialized properly
 	    // and reflect an unmodified state
 	    for (int i = 0; i < tabs.length; i++) {
@@ -264,6 +265,23 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
 	 */
 	protected PreferencesTab[] getTabs() {
 		return tabs;
+	}
+
+	
+	
+	/**
+	 * Should be overridden in language-specific tabbed preferences page
+	 * to make use of language-specific preference initializer.
+	 * 
+	 * @return 	The preference initializer to be used to initialize
+	 * 			preferences in this tab
+	 */
+	// TODO:  Probably should make this an abstract method
+	public PreferencesInitializer getPreferenceInitializer() {
+		// TODO:  Override in subclass where the language-specific
+		// initializer should be known
+		System.out.println("TabbedPreferencesPage.getPreferenceInitializar():  unimplemented; should be overridden with language-specific implementation");
+		return null;
 	}
 
 

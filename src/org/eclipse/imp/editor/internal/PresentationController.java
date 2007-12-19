@@ -174,7 +174,9 @@ public class PresentationController implements IModelListener {
 		    // Note:  It doesn't work to just eat the exception here; if there is a problematic token
 		    // then an exception is likely to arise downstream in the computation anyway
 		    try {
-		        sourceViewer.changeTextPresentation(presentation, true);	
+		    	// SMS 04 Dec 2007:
+		    	if (sourceViewer != null)
+		    		sourceViewer.changeTextPresentation(presentation, true);	
 		    } catch (IllegalArgumentException e) {
 		        // One possible cause is a negative length in a styleRange in the presentation
 		        ErrorHandler.logError("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; rethrowing", e);

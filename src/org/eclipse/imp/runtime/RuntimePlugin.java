@@ -66,12 +66,23 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     /**
      * Returns an image descriptor for the image file at the given plug-in relative path.
      * 
-     * @param path
-     *                the path
+     * @param path the path
      * @return the image descriptor
      */
     public static ImageDescriptor getImageDescriptor(String path) {
 	return AbstractUIPlugin.imageDescriptorFromPlugin(IMP_RUNTIME, path);
+    }
+
+    private ImageDescriptorRegistry fImageDescriptorRegistry;
+
+    private synchronized ImageDescriptorRegistry internalGetImageDescriptorRegistry() {
+        if (fImageDescriptorRegistry == null)
+            fImageDescriptorRegistry= new ImageDescriptorRegistry();
+        return fImageDescriptorRegistry;
+    }
+
+    public static ImageDescriptorRegistry getImageDescriptorRegistry() {
+        return getInstance().internalGetImageDescriptorRegistry();
     }
 
     public void earlyStartup() {

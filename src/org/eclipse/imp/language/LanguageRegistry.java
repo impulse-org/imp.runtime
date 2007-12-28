@@ -151,12 +151,11 @@ public class LanguageRegistry {
 	return null;
     }
 
-    public static List/*<Language>*/ getLanguages() {
+    public static List<Language> getLanguages() {
     	if (sLanguages == null) {
     	    findLanguages();
     	}
-    	
-	    return Collections.unmodifiableList(Arrays.asList(sLanguages));
+    	return Collections.unmodifiableList(Arrays.asList(sLanguages));
     }
 
     public static Language findLanguage(String languageName) {

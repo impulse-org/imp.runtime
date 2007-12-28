@@ -7,9 +7,13 @@ package org.eclipse.imp.model;
 
 import java.util.HashMap;
 import java.util.Map;
-
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.core.ErrorHandler;
@@ -18,7 +22,9 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.IPathEntry.PathEntryType;
 import org.eclipse.imp.model.internal.CompilationUnitRef;
 import org.eclipse.imp.model.internal.PathEntry;
+import org.eclipse.imp.model.internal.SourceFolder;
 import org.eclipse.imp.model.internal.SourceProject;
+import org.eclipse.imp.model.internal.WorkspaceModel;
 
 /**
  * A factory for implementations of the various common model interfaces, e.g., ISourceProject,
@@ -78,6 +84,8 @@ public class ModelFactory {
 
     private ModelFactory() {}
 
+    private IWorkspaceModel fModelRoot= new WorkspaceModel(ResourcesPlugin.getWorkspace().getRoot());
+
     private Map<IProject, ISourceProject> fProjectMap= new HashMap<IProject, ISourceProject>();
 
     private Map<Language, IFactoryExtender> fExtenderMap= new HashMap<Language, IFactoryExtender>();
@@ -85,6 +93,21 @@ public class ModelFactory {
     public void installExtender(IFactoryExtender extender, Language language) {
 	fExtenderMap.put(language, extender);
     }
+
+    public static IWorkspaceModel getModelRoot() {
+        return getInstance().fModelRoot;
+    }
+
+//    public static IWorkspaceModel open(IWorkspaceRoot wsRoot) throws ModelException {
+//        return getInstance().doOpen(wsRoot);
+//    }
+//
+//    private IWorkspaceModel doOpen(IWorkspaceRoot wsRoot) throws ModelException {
+//        if (!wsRoot.exists())
+//            throw new ModelException(NO_SUCH_ELEMENT);
+//
+//        return new WorkspaceModel(wsRoot);
+//    }
 
     public static ISourceProject open(IProject project) throws ModelException {
 	return getInstance().doOpen(project);
@@ -122,12 +145,96 @@ public class ModelFactory {
 	return sp;
     }
 
+    // TODO needs a progress monitor
     public static ISourceProject create(IProject project) throws ModelException {
 	return getInstance().doCreate(project);
     }
 
+    // TODO needs a progress monitor
     private ISourceProject doCreate(IProject project) throws ModelException {
 	throw new ModelException(ELEMENT_ALREADY_EXISTS);
+    }
+
+    public static ISourceEntity open(IContainer container) throws ModelException {
+        return getInstance().doOpen(container);
+    }
+
+    public static ISourceEntity open(IResource resource) throws ModelException {
+        if (resource instanceof IContainer) {
+            return getInstance().doOpen((IContainer) resource);
+        } else if (resource instanceof IFile) {
+            ISourceProject srcProject= getInstance().doOpen(resource.getProject());
+            return getInstance().doOpen((IFile) resource, srcProject);
+        }
+        return null;
+    }
+
+    private ISourceEntity doOpen(IContainer container) throws ModelException {
+        if (container instanceof IProject) {
+            return doOpen((IProject) container);
+        } else if (container instanceof IFolder) {
+            return doOpen((IFolder) container);
+        } else if (container instanceof IWorkspaceRoot) {
+            return fModelRoot; // doOpen((IWorkspaceRoot) container);
+        }
+        throw new ModelException("Inappropriate argument type " + container.getClass() + " to ModelFactory.doOpen(IContainer).");
+    }
+
+    // TODO needs a progress monitor
+    public static ISourceEntity create(IContainer container) throws ModelException {
+        return getInstance().doCreate(container);
+    }
+
+    // TODO needs a progress monitor
+    private ISourceEntity doCreate(IContainer container) throws ModelException {
+        if (container instanceof IProject) {
+            return doCreate((IProject) container);
+        } else if (container instanceof IFolder) {
+            return doOpen((IFolder) container);
+        } else if (container instanceof IWorkspaceRoot) {
+            return fModelRoot; // doOpen((IWorkspaceRoot) container);
+        }
+        throw new ModelException("Inappropriate argument type " + container.getClass() + " to ModelFactory.doOpen(IContainer).");
+    }
+
+    public static ISourceFolder open(IFolder folder) throws ModelException {
+        return getInstance().doOpen(folder);
+    }
+
+    private ISourceFolder doOpen(IFolder folder) throws ModelException {
+        if (!folder.exists()) {
+            throw new ModelException(NO_SUCH_ELEMENT);
+        }
+        ISourceProject sp= doOpen(folder.getProject());
+        SourceFolder sf= new SourceFolder(sp, folder.getProjectRelativePath());
+
+        return sf;
+    }
+
+    /**
+     * Creates a source folder. Must not already exist. Containing project
+     * must already exist.
+     */
+    // TODO needs a progress monitor
+    public static ISourceFolder create(IFolder folder) throws ModelException {
+        return getInstance().doCreate(folder);
+    }
+
+    // TODO needs a progress monitor
+    private ISourceFolder doCreate(IFolder folder) throws ModelException {
+        ISourceProject sp= doOpen(folder.getProject());
+
+        if (!folder.exists()) {
+            try {
+                folder.create(true, false, null);
+            } catch (CoreException e) {
+                throw new ModelException("Unable to create underlying folder for source folder " + folder.getLocation().toPortableString(), e);
+            }
+        }
+
+        SourceFolder sf= new SourceFolder(sp, folder.getProjectRelativePath());
+
+        return sf;
     }
 
     public static ICompilationUnit open(IPath path, ISourceProject srcProject) {
@@ -186,10 +293,12 @@ public class ModelFactory {
      * @param srcProject
      * @return never returns null
      */
+    // TODO needs a progress monitor
     public static ICompilationUnit create(IPath projRelPath, ISourceProject srcProject) throws ModelException {
 	return getInstance().doCreate(projRelPath, srcProject);
     }
 
+    // TODO needs a progress monitor
     private ICompilationUnit doCreate(IPath projRelPath, ISourceProject srcProject) throws ModelException {
 	throw new ModelException(ELEMENT_ALREADY_EXISTS);
     }
@@ -199,14 +308,17 @@ public class ModelFactory {
      * @param srcProject
      * @return the new ICompilationUnit corresponding to the given file
      */
+    // TODO needs a progress monitor
     public static ICompilationUnit create(IFile file, ISourceProject srcProject) throws ModelException {
 	return getInstance().doCreate(file, srcProject);
     }
 
+    // TODO needs a progress monitor
     private ICompilationUnit doCreate(IFile file, ISourceProject srcProject) throws ModelException {
 	return doCreate(file.getProjectRelativePath(), srcProject);
     }
 
+    // TODO needs a progress monitor
     public static IPathEntry createPathEntry(PathEntryType type, IPath path) {
 	return new PathEntry(type, path);
     }

@@ -12,8 +12,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -22,9 +23,15 @@ import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ICompilationUnit;
+import org.eclipse.imp.model.ISourceEntity;
+import org.eclipse.imp.model.ISourceFolder;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.model.IWorkspaceModel;
+import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.utils.ExtensionPointFactory;
 
 public class CompilationUnitRef implements ICompilationUnit {
@@ -66,9 +73,38 @@ public class CompilationUnitRef implements ICompilationUnit {
     }
 
     public String getName() {
-	if (fPath.isAbsolute())
-	    return fPath.toPortableString();
-	return fProject.getRawProject().getName() + ":" + fPath;
+        return fPath.lastSegment();
+//	if (fPath.isAbsolute())
+//	    return fPath.toPortableString();
+//	return fProject.getRawProject().getName() + ":" + fPath;
+    }
+
+    public ISourceEntity getParent() {
+        IContainer parent= (IContainer) fProject.getRawProject().findMember(fPath.removeLastSegments(1));
+
+        try {
+            return ModelFactory.open(parent);
+        } catch (ModelException e) {
+            RuntimePlugin.getInstance().logException("Error obtaining parent of " + getName(), e);
+            return null;
+        }
+    }
+
+    public ISourceEntity getAncestor(Class ofType) {
+        if (ofType == ICompilationUnit.class) {
+            return this;
+        } else if (ofType == ISourceProject.class) {
+            return fProject;
+        } else if (ofType == IWorkspaceModel.class) {
+            return ModelFactory.getModelRoot();
+        } else if (ofType == ISourceFolder.class) {
+            return getParent();
+        }
+        return null;
+    }
+
+    public IResource getResource() {
+        return getFile();
     }
 
     public IFile getFile() {
@@ -127,7 +163,23 @@ public class CompilationUnitRef implements ICompilationUnit {
 	// do nothing
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof CompilationUnitRef))
+            return false;
+        CompilationUnitRef other= (CompilationUnitRef) obj;
+        return fProject.equals(other.fProject) && fPath.equals(other.fPath);
+    }
+
+    @Override
+    public int hashCode() {
+        int result= 4831;
+        result= result * 4933 + fProject.hashCode();
+        result= result * 1627 + fPath.hashCode();
+        return result;
+    }
+
     public String toString() {
-	return "<compilation unit " + getName() + ">";
+	return "<compilation unit " + getPath().toPortableString() + ">";
     }
 }

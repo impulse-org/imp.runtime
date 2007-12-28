@@ -13,14 +13,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringBufferInputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
-
+import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -28,10 +30,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.model.IPathEntry;
+import org.eclipse.imp.model.ISourceEntity;
+import org.eclipse.imp.model.ISourceFolder;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.model.IWorkspaceModel;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.IPathEntry.PathEntryType;
 import org.eclipse.imp.model.ModelFactory.ModelException;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -91,9 +97,8 @@ public class SourceProject implements ISourceProject {
 	}
     }
 
-    // Presumably this will get called by the "New Project" wizard and the Project Properties pages
-    public void commit(IProgressMonitor monitor) {
-	saveMetaData(monitor);
+    public String getName() {
+        return fProject.getName();
     }
 
     private void saveMetaData(IProgressMonitor monitor) {
@@ -263,10 +268,78 @@ public class SourceProject implements ISourceProject {
     }
 
     public IProject getRawProject() {
-        return fProject.getProject();
+        return fProject;
+    }
+
+    public IResource getResource() {
+        return fProject;
+    }
+
+    public ISourceFolder[] getSourceRoots() {
+        // TODO Bogus: considers ALL folders as source roots; need to read project config
+        final Set<ISourceFolder> result= new HashSet<ISourceFolder>();
+        Set<IResource> children= ResourceUtility.getImmediateChildren(fProject);
+
+        for(IResource child : children) {
+            if (child instanceof IFolder) {
+                try {
+                    result.add(ModelFactory.open((IFolder) child));
+                } catch (ModelException e) {
+                    RuntimePlugin.getInstance().logException(e.getMessage(), e);
+                }
+            }
+        }
+        return result.toArray(new ISourceFolder[result.size()]);
+    }
+
+    public ISourceEntity getParent() {
+        return ModelFactory.getModelRoot();
+    }
+
+    public ISourceEntity getAncestor(Class ofType) {
+        if (ofType == ISourceProject.class) {
+            return this;
+        } else if (ofType == IWorkspaceModel.class) {
+            return ModelFactory.getModelRoot();
+        }
+        return null;
+    }
+
+    public ISourceEntity[] getChildren() {
+        final Set<ISourceEntity> result= new HashSet<ISourceEntity>();
+        Set<IResource> children= ResourceUtility.getImmediateChildren(fProject);
+
+        for(IResource child : children) {
+            try {
+                result.add(ModelFactory.open(child));
+            } catch (ModelException e) {
+                RuntimePlugin.getInstance().logException(e.getMessage(), e);
+            }
+        }
+        return result.toArray(new ISourceEntity[result.size()]);
+    }
+
+    // Presumably this will get called by the "New Project" wizard and the Project Properties pages
+    public void commit(IProgressMonitor monitor) {
+        saveMetaData(monitor);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof SourceProject))
+            return false;
+        SourceProject other= (SourceProject) obj;
+        return fProject.equals(other.fProject);
+    }
+
+    @Override
+    public int hashCode() {
+        int result= 6607;
+        result= result * 7451 + fProject.hashCode();
+        return result;
     }
 
     public String toString() {
-	return "<project: " + fProject.getName() + ">";
+        return "<project: " + fProject.getName() + ">";
     }
 }

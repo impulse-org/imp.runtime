@@ -8,9 +8,18 @@
  */
 package org.eclipse.imp.model;
 
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IProgressMonitor;
 
 public interface ISourceEntity {
+    String getName();
+
+    ISourceEntity getParent();
+
+    ISourceEntity getAncestor(Class ofType);
+
+    IResource getResource();
+
     /**
      * Commit any pending changes to the given entity to disk.
      * @param monitor

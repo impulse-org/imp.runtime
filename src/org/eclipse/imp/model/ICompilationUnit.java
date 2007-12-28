@@ -14,8 +14,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IMessageHandler;
 
 public interface ICompilationUnit extends ISourceEntity {
-    String getName();
-
     ISourceProject getProject();
 
     IPath getPath();

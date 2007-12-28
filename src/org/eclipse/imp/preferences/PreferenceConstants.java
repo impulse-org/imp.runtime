@@ -14,5 +14,13 @@ public class PreferenceConstants {
 
     public static final String P_DUMP_TOKENS= "dumpTokens";
 
+    /**
+     * A named preference that controls whether the project explorer's selection is linked to the active editor.
+     * <p>
+     * Value is of type <code>Boolean</code>.
+     * </p>
+     */
+    public static final String LINK_EXPLORER_TO_EDITOR= "org.eclipse.imp.ui.projects.linktoeditor"; //$NON-NLS-1$
+
     private PreferenceConstants() { }
 }

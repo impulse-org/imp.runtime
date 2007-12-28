@@ -8,10 +8,10 @@ package org.eclipse.imp.runtime;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Iterator;
-
+import java.util.Map;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.resource.ImageRegistry;
@@ -22,16 +22,28 @@ public class PluginImages {
     // The plug-in registry
     private static ImageRegistry fgImageRegistry= null;
 
-    private static HashMap fgAvoidSWTErrorMap= null;
+    private static Map<String,ImageDescriptor> fgAvoidSWTErrorMap= null;
 
     public static final IPath ICONS_PATH= new Path("/icons"); //$NON-NLS-1$
 
-    private static final String NAME_PREFIX= "org.eclipse.imp."; //$NON-NLS-1$
+    private static final String NAME_PREFIX= ""; //$NON-NLS-1$
     private static final int NAME_PREFIX_LENGTH= NAME_PREFIX.length();
 
     public static final String VIEW_MENU_IMAGE= NAME_PREFIX + "view_menu.gif"; //$NON-NLS-1$
 
     public static final ImageDescriptor viewMenuImageDesc= createManaged(NAME_PREFIX, VIEW_MENU_IMAGE);
+
+    public static final String FILE_IMAGE= NAME_PREFIX + "file.gif"; //$NON-NLS-1$
+
+    public static final ImageDescriptor fileImageDesc= createManaged(NAME_PREFIX, FILE_IMAGE);
+
+    public static final String FOLDER_IMAGE= NAME_PREFIX + "folder.gif"; //$NON-NLS-1$
+
+    public static final ImageDescriptor folderImageDesc= createManaged(NAME_PREFIX, FOLDER_IMAGE);
+
+    public static final String PROJECT_IMAGE= NAME_PREFIX + "project.gif"; //$NON-NLS-1$
+
+    public static final ImageDescriptor projectImageDesc= createManaged(NAME_PREFIX, PROJECT_IMAGE);
 
     /**
      * Returns the image managed under the given key in this registry.
@@ -51,7 +63,7 @@ public class PluginImages {
      */
     public static ImageDescriptor getDescriptor(String key) {
 	if (fgImageRegistry == null) {
-	    return (ImageDescriptor) fgAvoidSWTErrorMap.get(key);
+	    return fgAvoidSWTErrorMap.get(key);
 	}
 	return getImageRegistry().getDescriptor(key);
     }
@@ -86,7 +98,7 @@ public class PluginImages {
 	    fgImageRegistry= new ImageRegistry();
 	    for(Iterator iter= fgAvoidSWTErrorMap.keySet().iterator(); iter.hasNext();) {
 		String key= (String) iter.next();
-		fgImageRegistry.put(key, (ImageDescriptor) fgAvoidSWTErrorMap.get(key));
+		fgImageRegistry.put(key, fgAvoidSWTErrorMap.get(key));
 	    }
 	    fgAvoidSWTErrorMap= null;
 	}
@@ -111,7 +123,7 @@ public class PluginImages {
     private static ImageDescriptor createManaged(String prefix, String name) {
 	ImageDescriptor result= create(prefix, name.substring(NAME_PREFIX_LENGTH), true);
 	if (fgAvoidSWTErrorMap == null) {
-	    fgAvoidSWTErrorMap= new HashMap();
+	    fgAvoidSWTErrorMap= new HashMap<String, ImageDescriptor>();
 	}
 	fgAvoidSWTErrorMap.put(name, result);
 	if (fgImageRegistry != null) {
@@ -123,7 +135,7 @@ public class PluginImages {
     private static ImageDescriptor createManaged(String prefix, String name, String key) {
 	ImageDescriptor result= create(prefix, name.substring(NAME_PREFIX_LENGTH), true);
 	if (fgAvoidSWTErrorMap == null) {
-	    fgAvoidSWTErrorMap= new HashMap();
+	    fgAvoidSWTErrorMap= new HashMap<String, ImageDescriptor>();
 	}
 	fgAvoidSWTErrorMap.put(key, result);
 	if (fgImageRegistry != null) {
@@ -161,7 +173,7 @@ public class PluginImages {
      * Added for 3.1.1.
      */
     public static ImageDescriptor createImageDescriptor(Bundle bundle, IPath path, boolean useMissingImageDescriptor) {
-	URL url= Platform.find(bundle, path);
+	URL url= FileLocator.find(bundle, path, null);
 	if (url != null) {
 	    return ImageDescriptor.createFromURL(url);
 	}

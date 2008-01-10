@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -235,8 +234,8 @@ public class LanguageRegistry {
 	    ErrorHandler.logError("Unable to locate universal editor descriptor", null);
 	else if (PreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
-	else
-	    System.out.println("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
+//	else
+//	    System.out.println("Universal editor descriptor: " + universalEditor.getId() + ":" + universalEditor.getLabel());
 	return universalEditor;
     }
 

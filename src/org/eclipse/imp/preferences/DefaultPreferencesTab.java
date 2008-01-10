@@ -126,9 +126,10 @@ public class DefaultPreferencesTab extends PreferencesTab
 		// them into the preferences store
 		//fPrefService.clearPreferencesAtLevel(IPreferencesService.DEFAULT_LEVEL);
 		PreferencesInitializer initializer = fPrefPage.getPreferenceInitializer();
-		initializer.clearPreferencesOnLevel(IPreferencesService.DEFAULT_LEVEL);
-		initializer.initializeDefaultPreferences();
-
+		if (initializer != null) {
+			initializer.clearPreferencesOnLevel(IPreferencesService.DEFAULT_LEVEL);
+			initializer.initializeDefaultPreferences();
+		}
 		// Example:  reload each preferences field
 		for (int i = 0; i < fFields.length; i++) {
 			fFields[i].load();

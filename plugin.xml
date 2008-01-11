@@ -205,7 +205,7 @@
       <view
             class="org.eclipse.imp.ui.explorer.ProjectExplorerPart"
             id="org.eclipse.imp.runtime.projectExplorerView"
-            name="Project Explorer"/>
+            name="IMP Project Explorer"/>
    </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">

@@ -39,10 +39,6 @@ public interface IParseController extends ILanguageService {
      */
     IPath getPath();
 
-    IParser getParser();
-
-    ILexer getLexer();
-
     /**
      * @return the AST corresponding to the most recently-parsed source text,
      * if an AST was successfully produced. In general, there may be an AST
@@ -51,8 +47,17 @@ public interface IParseController extends ILanguageService {
      */
     Object getCurrentAst();
 
+    /**
+     * @return an ISourcePositionLocator that can be used to correlate
+     * program entities (AST nodes, tokens, etc.) to source positions
+     */
     ISourcePositionLocator getNodeLocator();
 
+    /**
+     * @return an Iterator that iterates over the tokens contained within
+     * the given region, including any tokens that are only partially
+     * contained
+     */
     Iterator getTokenIterator(IRegion region);
 
     Object parse(String input, boolean scanOnly, IProgressMonitor monitor);

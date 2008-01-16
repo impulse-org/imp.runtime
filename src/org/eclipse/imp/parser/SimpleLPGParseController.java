@@ -74,8 +74,11 @@ public abstract class SimpleLPGParseController implements IParseController
 		this.fFilePath= filePath;	
 		this.handler = handler;
     }
-    
-    
+
+    public abstract IParser getParser();
+
+    public abstract ILexer getLexer();
+
     public ISourceProject getProject() {
 	return fProject;
     }

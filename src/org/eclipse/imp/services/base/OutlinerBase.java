@@ -14,6 +14,7 @@ import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.parser.SimpleLPGParseController;
 import org.eclipse.imp.services.IOutlineImage;
 import org.eclipse.imp.services.IOutliner;
 import org.eclipse.swt.SWT;
@@ -41,6 +42,7 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
  * Updates:
  * SMS 21 Jun 2007:  Added guards on array indices computed in comparing
  * 	individual tokens
+ * @deprecated Please consider providing a TreeContentProvider
  */
 public abstract class OutlinerBase implements IOutliner
 {
@@ -392,8 +394,8 @@ public abstract class OutlinerBase implements IOutliner
     	// (for simplicity assume that current values are not null)
     	
     	// Get current values for comparison to previous
-    	ArrayList tokens = controller.getParser().getParseStream().getTokens();
-    	char[] chars = controller.getLexer().getLexStream().getInputChars();
+    	ArrayList tokens = ((SimpleLPGParseController) controller).getParser().getParseStream().getTokens();
+    	char[] chars = ((SimpleLPGParseController) controller).getLexer().getLexStream().getInputChars();
     	
     	// Get previous values for comparison to current
     	IParseController previousController = (IParseController) previous[0];

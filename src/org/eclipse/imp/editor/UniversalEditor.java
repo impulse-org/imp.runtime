@@ -587,12 +587,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
                 fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser");
 
-                if (ExtensionPointFactory.languageServiceExists(RuntimePlugin.IMP_RUNTIME, ILanguageService.MODEL_BUILDER_SERVICE, fLanguage)) {
-                    ILabelProvider labelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
-                    IElementImageProvider imageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.IMAGE_DECORATOR_SERVICE);
-                    TreeModelBuilderBase modelBuilder= (TreeModelBuilderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.MODEL_BUILDER_SERVICE);
+        if (ExtensionPointFactory.languageServiceExists(RuntimePlugin.IMP_RUNTIME, ILanguageService.MODEL_BUILDER_SERVICE, fLanguage)) {
+            ILabelProvider labelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
+            IElementImageProvider imageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.IMAGE_DECORATOR_SERVICE);
+            TreeModelBuilderBase modelBuilder= (TreeModelBuilderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.MODEL_BUILDER_SERVICE);
 
-                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider);
+            fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider);
 		} else {
 		    fOutlineController= new OutlineController(this, fLanguage);
                 }

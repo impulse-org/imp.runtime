@@ -93,7 +93,8 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 		// fLanguage may be null, especially if language is no longer
 		// available in workspace, so check for that	
 		if (editor.fLanguage != null) {
-			origExten = editor.fLanguage.getFilenameExtensions()[0];
+			// TODO: do not pick an arbitrary extension, figure out which it should be really
+			origExten = editor.fLanguage.getFilenameExtensions().iterator().next();
 		} else {
 			// And, if null, then the "original extension" should
 			// be meaningless (since that would only be defined and
@@ -113,7 +114,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
             IFileEditorInput fileInput= (IFileEditorInput) editorPart.getEditorInput();
             final IFile origSrcFile= fileInput.getFile();	
             
-            origExten= ((UniversalEditor) editorPart).fLanguage.getFilenameExtensions()[0];
+            origExten= ((UniversalEditor) editorPart).fLanguage.getFilenameExtensions().iterator().next();
            
             final String origSrcFileName= origSrcFile.getName();
             

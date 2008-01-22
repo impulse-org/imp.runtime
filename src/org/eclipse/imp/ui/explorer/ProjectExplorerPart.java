@@ -3,6 +3,7 @@ package org.eclipse.imp.ui.explorer;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -155,7 +156,7 @@ public class ProjectExplorerPart extends ViewPart implements ISetSelectionTarget
     private void buildProviderMaps() {
         // Ask the LanguageRegistry for the set of languages, and instantiate
         // ILabelProviders for all languages that define one.
-        List<Language> languages= LanguageRegistry.getLanguages();
+        Collection<Language> languages= LanguageRegistry.getLanguages();
         for(Language language : languages) {
             ILabelProvider labelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.LABEL_PROVIDER_SERVICE);
             if (labelProvider != null) {

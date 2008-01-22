@@ -46,9 +46,8 @@ public abstract class SourceFileFinder implements IResourceVisitor {
 
         // Do we really want to include base language source files? I don't think so...
         while (lang != null) {
-            String[] extens= lang.getFilenameExtensions();
-            for(int i= 0; i < extens.length; i++) {
-                fFileNameExtensions.add(extens[i]);
+            for (String ext : lang.getFilenameExtensions()) {
+                fFileNameExtensions.add(ext);
             }
             lang= lang.getBaseLanguage();
         }

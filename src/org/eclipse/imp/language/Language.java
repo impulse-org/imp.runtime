@@ -197,7 +197,6 @@ public class Language {
 	 * @return comma-separated list of synonyms
 	 */
 	@Deprecated public Collection<String> getSynonyms() {
-		// TODO: return a Collection<String> instead
 		return fSynonyms;
 	}
 

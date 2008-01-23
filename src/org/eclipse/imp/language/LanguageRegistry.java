@@ -48,6 +48,7 @@ import org.osgi.framework.Bundle;
  * 
  * Registry for IMP language contributors.
  */
+@SuppressWarnings("restriction")
 public class LanguageRegistry {
 	private static Map<String, Language> fRegister;
 
@@ -55,13 +56,49 @@ public class LanguageRegistry {
 
 	private static IEditorDescriptor universalEditor;
 
-	@SuppressWarnings("restriction")
 	private static EditorRegistry editorRegistry;
 
+	/**
+	 * Initialize the registry. Discover all contributors to the
+	 * languageDescription extension point. The registry will not be fully
+	 * initialized until the earlyStartup method has been called.
+	 */
 	static {
-		initialize();
-	}
+		try {
+			fRegister = new HashMap<String, Language>();
 
+			editorRegistry = (EditorRegistry) PlatformUI.getWorkbench()
+					.getEditorRegistry();
+			initializeUniversalEditorDescriptor(editorRegistry);
+
+			IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
+					.getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
+
+			if (extensionPoint == null) {
+				ErrorHandler
+						.reportError("Nonexistent extension point called \""
+								+ RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
+			} else {
+				IConfigurationElement[] elements = extensionPoint
+						.getConfigurationElements();
+
+				if (elements != null) {
+					for (IConfigurationElement element : elements) {
+						Bundle bundle = Platform.getBundle(element
+								.getDeclaringExtension()
+								.getNamespaceIdentifier());
+
+						if (bundle != null) {
+							register(new Language(element));
+						}
+					}
+				}
+			}
+		} catch (InvalidRegistryObjectException e) {
+			ErrorHandler.reportError("IMP LanguageRegistry error", e);
+		}
+	}
+	
 	/**
 	 * Returns the language description for a given editor input. First the file
 	 * extension is used to discover registered languages. Then each language is
@@ -75,7 +112,7 @@ public class LanguageRegistry {
 	 */
 	public static Language findLanguage(IEditorInput editorInput) {
 		Language result = null;
-		
+
 		if (editorInput instanceof IFileEditorInput) {
 			IFileEditorInput fileEditorInput = (IFileEditorInput) editorInput;
 			result = doFindLanguage(fileEditorInput);
@@ -93,7 +130,8 @@ public class LanguageRegistry {
 		return result;
 	}
 
-	private static Language doFindLanguage(IStorageEditorInput storageEditorInput) {
+	private static Language doFindLanguage(
+			IStorageEditorInput storageEditorInput) {
 		try {
 			IPath path = storageEditorInput.getStorage().getFullPath();
 			return findLanguage(path, null);
@@ -206,16 +244,20 @@ public class LanguageRegistry {
 	public static void registerLanguage(Language language) {
 		register(language);
 
-		ArrayList<String> extensions = new ArrayList<String>();
+		List<IFileEditorMapping> mappings = new ArrayList<IFileEditorMapping>();
 
-		for (String s : language.getFilenameExtensions()) {
-			extensions.add(s);
-		}
-
-		bindExtensionsToEditor(extensions);
-		
+		Collections.addAll(mappings, editorRegistry.getFileEditorMappings());
+		addUniversalEditorMappings(language.getFilenameExtensions(), mappings);
+		updateEditorRegistry(mappings);
 	}
 
+	/**
+	 * Removes stale registrations and then registers all languages declared
+	 * using the IMP languageDescription extension point. The file extensions of
+	 * all registered languages are bound to the IMP universal editor.
+	 * 
+	 * This methods is called at earlyStartup time to initialize the registry.
+	 */
 	public static void registerLanguages() {
 		if (PreferenceCache.emitMessages) {
 			RuntimePlugin.getInstance().writeInfoMsg(
@@ -223,22 +265,14 @@ public class LanguageRegistry {
 		}
 
 		List<String> langExtens = collectAllLanguageFileNameExtensions();
-
-		bindExtensionsToEditor(langExtens);
+		List<IFileEditorMapping> newMap = new ArrayList<IFileEditorMapping>();
+		
+		addNonUniversalEditorMappings(newMap);
+		addUniversalEditorMappings(langExtens, newMap);
+		updateEditorRegistry(newMap);
 	}
 
-	/**
-	 * Binds the given extensions to the Universal Editor.
-	 * 
-	 * @param langExtens
-	 */
-	@SuppressWarnings("restriction")
-	private static void bindExtensionsToEditor(List<String> langExtens) {
-		List<IFileEditorMapping> newMap = new ArrayList<IFileEditorMapping>();
-
-		// First, add the mappings that don't point to the
-		// universal editor, i.e. remove all old bindings to the universal
-		// editor
+	private static void addNonUniversalEditorMappings(List<IFileEditorMapping> newMap) {
 		for (IFileEditorMapping mapping : editorRegistry
 				.getFileEditorMappings()) {
 			IEditorDescriptor defaultEditor = mapping.getDefaultEditor();
@@ -247,19 +281,26 @@ public class LanguageRegistry {
 				newMap.add(mapping);
 			}
 		}
+	}
 
-		// Now add all current IMP languages to the bindings
-		for (String exten : langExtens) {
-			FileEditorMapping newMapping = new FileEditorMapping(exten);
-
+	/**
+	 * Adds new mappings to the unversial editor for a set of extensions
+	 * @param extensions
+	 * @param newMap
+	 */
+	private static void addUniversalEditorMappings(Iterable<String> extensions,
+			List<IFileEditorMapping> newMap) {
+		for (String ext : extensions) {
+			FileEditorMapping newMapping = new FileEditorMapping(ext);
 			newMapping.setDefaultEditor((EditorDescriptor) universalEditor);
 			newMap.add(newMapping);
 		}
-
-		updateEditorRegistry(newMap);
 	}
 
-	@SuppressWarnings("restriction")
+	/**
+	 * Commits a new list of editor mappings to the editorRegistry
+	 * @param newMap
+	 */
 	private static void updateEditorRegistry(List<IFileEditorMapping> newMap) {
 		editorRegistry.setFileEditorMappings(newMap
 				.toArray(new FileEditorMapping[newMap.size()]));
@@ -270,15 +311,12 @@ public class LanguageRegistry {
 		List<String> allExtens = new ArrayList<String>();
 
 		for (Language lang : fRegister.values()) {
-			for (String ext : lang.getFilenameExtensions()) {
-				allExtens.add(ext);
-			}
+			allExtens.addAll(lang.getFilenameExtensions());
 		}
 
 		return allExtens;
 	}
 
-	@SuppressWarnings("restriction")
 	private static void initializeUniversalEditorDescriptor(
 			EditorRegistry editorRegistry) {
 		final IEditorDescriptor[] allEditors = editorRegistry
@@ -302,47 +340,6 @@ public class LanguageRegistry {
 		if (universalEditor == null) {
 			ErrorHandler.logError(
 					"Unable to locate universal editor descriptor", null);
-		}
-	}
-
-	/**
-	 * Initialize the registry. Discover all contributors to the
-	 * languageDescription extension point.
-	 */
-	@SuppressWarnings("restriction")
-	static void initialize() {
-		try {
-			fRegister = new HashMap<String, Language>();
-
-			editorRegistry = (EditorRegistry) PlatformUI.getWorkbench()
-					.getEditorRegistry();
-			initializeUniversalEditorDescriptor(editorRegistry);
-
-			IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
-					.getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
-
-			if (extensionPoint == null) {
-				ErrorHandler
-						.reportError("Nonexistent extension point called \""
-								+ RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
-				return;
-			}
-
-			IConfigurationElement[] elements = extensionPoint
-					.getConfigurationElements();
-
-			if (elements != null) {
-				for (IConfigurationElement element : elements) {
-					Bundle bundle = Platform.getBundle(element
-							.getDeclaringExtension().getNamespaceIdentifier());
-
-					if (bundle != null) {
-						register(new Language(element));
-					}
-				}
-			} 
-		} catch (InvalidRegistryObjectException e) {
-			ErrorHandler.reportError("IMP LanguageRegistry error", e);
 		}
 	}
 

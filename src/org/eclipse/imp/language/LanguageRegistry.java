@@ -61,7 +61,7 @@ public class LanguageRegistry {
 	/**
 	 * Initialize the registry. Discover all contributors to the
 	 * languageDescription extension point. The registry will not be fully
-	 * initialized until the earlyStartup method has been called.
+	 * initialized until the registerLanguages() method has been called.
 	 */
 	static {
 		try {

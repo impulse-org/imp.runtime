@@ -216,12 +216,13 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     private void collectChangeDependents() {
         Collection<IFile> changeDependents= new ArrayList<IFile>();
 
-        System.out.println("Changed files:");
-        dumpSourceList(fSourcesToCompile);
+        // TODO RMF 1/28/2008 - Should enable the following messages based on a debugging flag visible in a prefs page
+//      System.out.println("Changed files:");
+//      dumpSourceList(fSourcesToCompile);
         scanSourceList(fSourcesToCompile, changeDependents);
         fSourcesToCompile.addAll(changeDependents);
-        System.out.println("Changed files + dependents:");
-        dumpSourceList(fSourcesToCompile);
+//      System.out.println("Changed files + dependents:");
+//      dumpSourceList(fSourcesToCompile);
     }
 
     private void scanSourceList(Collection<IFile> srcList, Collection<IFile> changeDependents) {

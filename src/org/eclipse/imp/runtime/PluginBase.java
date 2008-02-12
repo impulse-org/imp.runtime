@@ -24,12 +24,16 @@ public abstract class PluginBase extends AbstractUIPlugin implements IPluginLog 
     public void maybeWriteInfoMsg(String msg) {
         if (!fEmitInfoMessages)
             return;
-
+        if (msg == null) {
+        	msg = "No message given";
+        }
         writeInfoMsg(msg);
     }
 
     public void writeInfoMsg(String msg) {
-	Status status= new Status(Status.INFO, getID(), 0, msg, null);
+    	if (msg == null)
+    		msg = "No message given";
+    	Status status= new Status(Status.INFO, getID(), 0, msg, null);
 
         if (sLog == null)
             sLog= getLog();
@@ -38,6 +42,8 @@ public abstract class PluginBase extends AbstractUIPlugin implements IPluginLog 
     }
 
     public void writeErrorMsg(String msg) {
+    	if (msg == null)
+    		msg = "No message given";
         Status status= new Status(Status.ERROR, getID(), 0, msg, null);
 
         if (sLog == null)
@@ -47,6 +53,13 @@ public abstract class PluginBase extends AbstractUIPlugin implements IPluginLog 
     }
 
     public void logException(String msg, Throwable t) {
+    	if (msg == null) {
+    		if (t.getMessage() == null)
+        		msg = "No message given";
+    		else
+    			msg = t.getMessage();
+    	}
+
         Status status= new Status(Status.ERROR, getID(), 0, msg, t);
 
         if (sLog == null)

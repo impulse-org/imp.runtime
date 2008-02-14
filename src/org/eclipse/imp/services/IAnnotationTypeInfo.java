@@ -1,4 +1,4 @@
-package org.eclipse.imp.language;
+package org.eclipse.imp.services;
 
 import java.util.List;
 

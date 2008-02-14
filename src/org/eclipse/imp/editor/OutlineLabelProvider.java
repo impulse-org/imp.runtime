@@ -11,6 +11,7 @@ package org.eclipse.imp.editor;
 import java.util.ArrayList;
 
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.jface.util.ListenerList;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
@@ -19,7 +20,7 @@ import org.eclipse.jface.viewers.ILabelProviderListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Image;
 
-public class OutlineLabelProvider implements ILabelProvider, IColorProvider /*, IPropertyChangeListener (to react to preference changes) */{
+public class OutlineLabelProvider implements ILabelProvider, IColorProvider, ILanguageService /*, IPropertyChangeListener (to react to preference changes) */{
     boolean fShowDefiningType;
 
     private boolean fIsShowingInheritedMembers;
@@ -36,7 +37,7 @@ public class OutlineLabelProvider implements ILabelProvider, IColorProvider /*, 
 
     private Color fForegroundColor;
 
-    public interface IElementImageProvider {
+    public interface IElementImageProvider extends ILanguageService {
 	Image getImageLabel(Object element, long imageFlags);
     }
 

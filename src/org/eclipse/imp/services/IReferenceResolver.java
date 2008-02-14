@@ -5,6 +5,7 @@
  */
 package org.eclipse.imp.services;
 
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 
 
@@ -15,7 +16,7 @@ import org.eclipse.imp.parser.IParseController;
  * @author sutton
  *
  */
-public interface IReferenceResolver {
+public interface IReferenceResolver extends ILanguageService {
 	
 	/**
 	 * Returns the AST node that represents the target of a hyperlink that

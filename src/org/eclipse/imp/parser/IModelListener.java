@@ -6,6 +6,7 @@
 package org.eclipse.imp.parser;
 
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.language.ILanguageService;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -18,7 +19,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
  * @author Claffra
  * @author rfuhrer@watson.ibm.com
  */
-public interface IModelListener {
+public interface IModelListener extends ILanguageService {
     // BROKEN!!!
     // The following has no notion of the scope of analysis. E.g., providing a language
     // service may require analysis within a much wider scope than a compilation unit

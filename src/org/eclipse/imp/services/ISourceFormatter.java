@@ -5,6 +5,7 @@
  */
 package org.eclipse.imp.services;
 
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 
 /**
@@ -13,7 +14,7 @@ import org.eclipse.imp.parser.IParseController;
  * formatter has access to an AST to drive formatting decisions.
  * @author Dr. Robert M. Fuhrer
  */
-public interface ISourceFormatter {
+public interface ISourceFormatter extends ILanguageService {
     void formatterStarts(String initialIndentation);
 
     String format(IParseController parseController, String content, boolean isLineStart, String indentation, int[] positions);

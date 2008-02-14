@@ -10,14 +10,13 @@ package org.eclipse.imp.editor;
 
 import java.util.List;
 
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.IReferenceResolver;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.source.ISourceViewer;
@@ -49,7 +48,7 @@ public class HoverHelper implements IHoverHelper {
 		    return "???";
 		}
 
-    	IReferenceResolver refResolver = (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.REFERENCE_RESOLVER_SERVICE);
+    	IReferenceResolver refResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
         Object root= parseController.getCurrentAst();
         ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
 
@@ -63,7 +62,7 @@ public class HoverHelper implements IHoverHelper {
 
        	if (target == null) return null;
 
-       	IDocumentationProvider docProvider= (IDocumentationProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.DOCUMENTATION_PROVIDER_SERVICE);
+       	IDocumentationProvider docProvider= ServiceFactory.getInstance().getDocumentationProvider(fLanguage);
        	String doc= (docProvider != null) ? docProvider.getDocumentation(target, parseController) : null;			
 
        	if (doc != null)

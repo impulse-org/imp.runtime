@@ -7,12 +7,11 @@ package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IContentProposer;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
@@ -33,7 +32,7 @@ public class CompletionProcessor implements IContentAssistProcessor, IModelListe
     // private HippieProposalProcessor hippieProcessor= new HippieProposalProcessor();
 
     public CompletionProcessor(Language language) {
-        contentProposer= (IContentProposer) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.CONTENT_PROPOSER_SERVICE);
+        contentProposer= ServiceFactory.getInstance().getContentProposer(language);
         fLanguage= language;
     }
 

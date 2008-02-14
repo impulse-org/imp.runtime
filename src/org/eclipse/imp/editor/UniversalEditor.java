@@ -46,10 +46,9 @@ import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
 import org.eclipse.imp.editor.internal.SourceHyperlinkController;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
-import org.eclipse.imp.language.IAnnotationTypeInfo;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.parser.IModelListener;
@@ -58,6 +57,7 @@ import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
+import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.IOccurrenceMarker;
@@ -66,7 +66,6 @@ import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jdt.internal.ui.text.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
@@ -168,6 +167,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private static final String DEBUG_ANNOTATION_TYPE= "org.eclipse.debug.core.breakpoint";
 
+    private ServiceFactory fServiceRegistry = ServiceFactory.getInstance();
+    
     public Language fLanguage;
 
     public ParserScheduler fParserScheduler;
@@ -258,13 +259,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
         super.editorContextMenuAboutToShow(menu);
 
-        Set<ILanguageService> contributors= getExtensions(ILanguageService.REFACTORING_CONTRIBUTIONS_SERVICE);
+        Set<IRefactoringContributor> contributors= fServiceRegistry.getRefactoringContributors(fLanguage);
 
         if (contributors != null && !contributors.isEmpty()) {
             List<IAction> editorActions= new ArrayList<IAction>();
 
-            for(Iterator iter= contributors.iterator(); iter.hasNext(); ) {
-		IRefactoringContributor con= (IRefactoringContributor) iter.next();
+            for(Iterator<IRefactoringContributor> iter= contributors.iterator(); iter.hasNext(); ) {
+		IRefactoringContributor con=  iter.next();
 
 		try {
 		    IAction[] conActions= con.getEditorRefactoringActions(this);
@@ -286,13 +287,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    }
         }
 
-        Set<ILanguageService> actionContributors= getExtensions(ILanguageService.EDITOR_ACTION_SERVICE);
+        Set<ILanguageActionsContributor> actionContributors= fServiceRegistry.getLanguageActionsContributors(fLanguage);
 
         if (actionContributors != null && !actionContributors.isEmpty()) {
             List<IAction> editorActions= new ArrayList<IAction>();
 
-            for(Iterator iter= actionContributors.iterator(); iter.hasNext(); ) {
-		ILanguageActionsContributor con= (ILanguageActionsContributor) iter.next();
+            for(Iterator<ILanguageActionsContributor> iter= actionContributors.iterator(); iter.hasNext(); ) {
+		ILanguageActionsContributor con=  iter.next();
 
 		try {
 		    IAction[] conActions= con.getEditorActions(this);
@@ -533,14 +534,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	if (fLanguage != null) {
 	    if (PreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
-	    fHyperLinkDetector= (ISourceHyperlinkDetector) createExtensionPoint(ILanguageService.HYPERLINK_SERVICE);
+	    fHyperLinkDetector= fServiceRegistry.getSourceHyperlinkDetector(fLanguage);
 	    if (fHyperLinkDetector == null)
 		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
 	    if (fHyperLinkDetector != null)
 	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
 	    fHoverHelpController= new HoverHelpController(fLanguage);
-	    fFoldingUpdater= (IFoldingUpdater) createExtensionPoint(ILanguageService.FOLDING_SERVICE);
-	    fFormattingStrategy= (ISourceFormatter) createExtensionPoint(ILanguageService.FORMATTER_SERVICE);
+	    fFoldingUpdater= fServiceRegistry.getFoldingUpdater(fLanguage);
+	    fFormattingStrategy= fServiceRegistry.getSourceFormatter(fLanguage);
 	    fFormattingController= new FormattingController(fFormattingStrategy);
 	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
             fCompletionProcessor= new CompletionProcessor(fLanguage);
@@ -557,7 +558,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
         {
-            ILabelProvider lp= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
+            ILabelProvider lp= fServiceRegistry.getLabelProvider(fLanguage);
 
             // Only set the editor's title bar icon if the language has a label provider
             if (lp != null) {
@@ -582,16 +583,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	if (fLanguage != null) {
 	    try {
-		if (PreferenceCache.emitMessages)
+		if (PreferenceCache.emitMessages) {
 		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
+		}
 
                 fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser");
 
-        if (ExtensionPointFactory.languageServiceExists(RuntimePlugin.IMP_RUNTIME, ILanguageService.MODEL_BUILDER_SERVICE, fLanguage)) {
-            ILabelProvider labelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
-            IElementImageProvider imageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.IMAGE_DECORATOR_SERVICE);
-            TreeModelBuilderBase modelBuilder= (TreeModelBuilderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.MODEL_BUILDER_SERVICE);
+       
+        TreeModelBuilderBase modelBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
 
+        if (modelBuilder != null) { 
+            ILabelProvider labelProvider= fServiceRegistry.getLabelProvider(fLanguage);
+            IElementImageProvider imageProvider= fServiceRegistry.getElementImageProvider(fLanguage);
+         
             fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider);
 		} else {
 		    fOutlineController= new OutlineController(this, fLanguage);
@@ -838,26 +842,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     /**
-     * Convenience method to create language extensions whose extension point is
-     * defined by this plugin.
-     * @param extensionPoint the extension point ID of the language service
-     * @return the extension implementation
-     */
-    private Object createExtensionPoint(String extensionPointID) {
-	return ExtensionPointFactory.createExtensionPoint(fLanguage, extensionPointID);
-    }
-
-    /**
-     * Convenience method to create language extensions whose extension point is
-     * defined by this plugin.
-     * @param extensionPoint the extension point ID of the language service
-     * @return the extension implementation
-     */
-    private Set<ILanguageService> getExtensions(String extensionPointID) {
-	return ExtensionPointFactory.createExtensions(fLanguage, extensionPointID);
-    }
-
-    /**
      * Add a Model listener to this editor. Anytime the underlying AST is recomputed, the listener is notified.
      * 
      * @param listener the listener to notify of Model changes
@@ -867,6 +851,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
+	
+
 	public int getTabWidth(ISourceViewer sourceViewer) {
             return PreferenceCache.tabWidth;
 //	    return fPreferenceStore.getInt(PreferenceConstants.P_TAB_WIDTH);
@@ -890,7 +876,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    IAnnotationHover hover= null;
 
 	    if (fLanguage != null)
-		hover= (IAnnotationHover) createExtensionPoint(ILanguageService.ANNOTATION_HOVER_SERVICE);
+		hover= fServiceRegistry.getAnnotationHover(fLanguage);
 	    if (hover == null)
 		hover= new DefaultAnnotationHover();
 	    return hover;
@@ -898,7 +884,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
 	    if (fLanguage != null)
-		fAutoEditStrategy= (IAutoEditStrategy) createExtensionPoint(ILanguageService.AUTO_EDIT_SERVICE);
+		fAutoEditStrategy= fServiceRegistry.getAutoEditStrategy(fLanguage);
 
 	    if (fAutoEditStrategy == null)
 		fAutoEditStrategy= super.getAutoEditStrategies(sourceViewer, contentType)[0];
@@ -1000,8 +986,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		return "never called?!?"; // shouldn't be called, given IInformationProviderExtension???
 	    }
 	    public Object getInformation2(ITextViewer textViewer, IRegion subject) {
-                if (fBuilder == null)
-                    fBuilder= (TreeModelBuilderBase) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.MODEL_BUILDER_SERVICE);
+                if (fBuilder == null) {
+                    fBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
+                }
 		return fBuilder.buildTree(fParserScheduler.parseController.getCurrentAst());
 	    }
 	}
@@ -1009,8 +996,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
 
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-	    if (!ExtensionPointFactory.languageServiceExists(RuntimePlugin.IMP_RUNTIME, ILanguageService.MODEL_BUILDER_SERVICE, fLanguage))
-		return null;
+		TreeModelBuilderBase modelBuilder = fServiceRegistry.getTreeModelBuilder(fLanguage);
+	    if (modelBuilder == null) {
+		  return null;
+	    }
 
 	    InformationPresenter presenter;
 
@@ -1145,7 +1134,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	ParserScheduler(String name) {
 	    super(name);
 	    setSystem(true); // do not show this job in the Progress view
-	    parseController= (IParseController) createExtensionPoint(ILanguageService.PARSER_SERVICE);
+	    parseController= fServiceRegistry.getParseController(fLanguage);
 	    if (parseController == null) {
 		  ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName() + "; parser-related services disabled.");
 	    }

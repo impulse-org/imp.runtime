@@ -6,9 +6,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -21,9 +21,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.core.IMPMessages;
 import org.eclipse.imp.editor.EditorUtility;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.model.ICompilationUnit;
 import org.eclipse.imp.model.ISourceEntity;
 import org.eclipse.imp.model.ISourceFolder;
@@ -34,7 +34,6 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.runtime.PluginImages;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.viewsupport.AppearanceAwareLabelProvider;
 import org.eclipse.jdt.internal.ui.workingsets.WorkingSetModel;
@@ -158,7 +157,7 @@ public class ProjectExplorerPart extends ViewPart implements ISetSelectionTarget
         // ILabelProviders for all languages that define one.
         Collection<Language> languages= LanguageRegistry.getLanguages();
         for(Language language : languages) {
-            ILabelProvider labelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.LABEL_PROVIDER_SERVICE);
+            ILabelProvider labelProvider= ServiceFactory.getInstance().getLabelProvider(language);
             if (labelProvider != null) {
                 fLabelProviderMap.put(language, labelProvider);
             }

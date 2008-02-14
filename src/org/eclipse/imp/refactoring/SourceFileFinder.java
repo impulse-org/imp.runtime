@@ -14,11 +14,10 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.editors.text.TextFileDocumentProvider;
@@ -66,7 +65,7 @@ public abstract class SourceFileFinder implements IResourceVisitor {
 
     private void visitFile(IFile file) {
         System.out.println("Visiting file " + file.getName() + ".");
-        IParseController parseCtrlr= (IParseController) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.PARSER_SERVICE);
+        IParseController parseCtrlr= ServiceFactory.getInstance().getParseController(fLanguage);
         IPath declFilePath= file.getLocation().removeFirstSegments(fProject.getRawProject().getLocation().segmentCount());
         IFileEditorInput fileInput= new FileEditorInput(file);
 

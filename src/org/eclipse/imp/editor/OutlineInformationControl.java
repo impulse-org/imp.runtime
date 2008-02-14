@@ -11,10 +11,9 @@ import java.util.Map;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
 import org.eclipse.imp.editor.internal.AbstractInformationControl;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -58,7 +57,7 @@ public class OutlineInformationControl extends AbstractInformationControl {
     private Language fLanguage;
 
     // All of the following should be provided by language-specific extensions.
-    private ViewerFilter fElementFilter;
+//    private ViewerFilter fElementFilter;
     private ILabelProvider fLangLabelProvider;
     private IElementImageProvider fElemImageProvider;
     private final boolean fShowStorage= false;
@@ -224,8 +223,9 @@ public class OutlineInformationControl extends AbstractInformationControl {
 	final TreeViewer treeViewer= new OutlineTreeViewer(tree);
 	// Hard-coded filters
 	fLexicalSortingAction= new LexicalSortingAction(treeViewer);
-	if (fElementFilter != null)
-	    treeViewer.addFilter(fElementFilter);
+ // JJV: this code is broken:
+	//	if (fElementFilter != null)
+//	    treeViewer.addFilter(fElementFilter);
 	fForegroundColor= parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);
 
 	// RMF 7/7/2006 - oops, fLanguage is still null at this point, b/c createTreeViewer() gets called from super ctor and field inits haven't happened yet...
@@ -233,9 +233,10 @@ public class OutlineInformationControl extends AbstractInformationControl {
         fOutlineContentProvider= new ModelTreeContentProvider(null);
 
 	fOutlineContentProvider.setInfoControl(this);
-	fLangLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
-	fElemImageProvider= (IElementImageProvider) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.IMAGE_DECORATOR_SERVICE);
-	fElementFilter= (ViewerFilter) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.VIEWER_FILTER_SERVICE);
+	fLangLabelProvider= ServiceFactory.getInstance().getLabelProvider(fLanguage);
+	fElemImageProvider= ServiceFactory.getInstance().getElementImageProvider(fLanguage);
+	// JJV; commented out because untested
+//	fElementFilter= (ViewerFilter) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.VIEWER_FILTER_SERVICE);
 
 	fInnerLabelProvider= new OutlineLabelProvider(fLangLabelProvider, fElemImageProvider, fOutlineContentProvider.fShowInheritedMembers, fShowStorage, fForegroundColor);
 	fInnerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator());

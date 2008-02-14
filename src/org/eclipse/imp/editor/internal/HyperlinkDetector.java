@@ -10,11 +10,11 @@ import org.eclipse.imp.editor.TargetLink;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
-import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
@@ -36,8 +36,9 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
     		final IRegion region, UniversalEditor editor, final ITextViewer textViewer, IParseController parseController)
     {
     	// This is the only language-specific bit ...
-	if (fResolver == null)
-	    fResolver= (IReferenceResolver) ExtensionPointFactory.createExtensionPoint(fLanguage, ILanguageService.REFERENCE_RESOLVER_SERVICE);
+	if (fResolver == null) {
+		fResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
+	}
 
 	// SMS 17 Aug 2007
 	if (fResolver == null)

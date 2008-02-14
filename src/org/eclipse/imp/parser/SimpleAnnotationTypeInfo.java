@@ -3,7 +3,7 @@ package org.eclipse.imp.parser;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.imp.language.IAnnotationTypeInfo;
+import org.eclipse.imp.services.IAnnotationTypeInfo;
 
 public class SimpleAnnotationTypeInfo implements IAnnotationTypeInfo {
 

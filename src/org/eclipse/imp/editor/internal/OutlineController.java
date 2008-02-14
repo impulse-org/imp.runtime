@@ -11,10 +11,10 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IOutliner;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.swt.SWT;
@@ -48,11 +48,12 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     private int DELAY= 50; //500;
 
-    public OutlineController(UniversalEditor editor, Language language) {
+    public OutlineController(UniversalEditor editor, Language language)  {
     	this.editor= editor;	// SMS 5 Apr 2007
-        outliner= (IOutliner) ExtensionPointFactory.createExtensionPoint(language, "outliner");
-        if (outliner != null)
+    	outliner = ServiceFactory.getInstance().getOutliner(language);
+        if (outliner != null) {
                 outliner.setEditor(editor);     // SMS 5 Apr 2007
+        }
     }
 
     public AnalysisRequired getAnalysisRequired() {

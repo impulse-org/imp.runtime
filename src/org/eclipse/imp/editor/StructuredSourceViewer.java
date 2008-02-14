@@ -6,8 +6,8 @@
 package org.eclipse.imp.editor;
 
 import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
-import org.eclipse.imp.language.ILanguageSyntaxProperties;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;

@@ -1,6 +1,8 @@
-package org.eclipse.imp.language;
+package org.eclipse.imp.services;
 
-public interface ILanguageSyntaxProperties {
+import org.eclipse.imp.language.ILanguageService;
+
+public interface ILanguageSyntaxProperties extends ILanguageService {
     /**
      * if null, the language has no single-line comment syntax
      * @return

@@ -3,11 +3,12 @@
  */
 package org.eclipse.imp.editor;
 
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.widgets.Tree;
 
-public abstract class OutlineContentProviderBase implements ITreeContentProvider {
+public abstract class OutlineContentProviderBase implements ITreeContentProvider, ILanguageService {
 	private OutlineInformationControl fInfoControl;
 	boolean fShowInheritedMembers;
 

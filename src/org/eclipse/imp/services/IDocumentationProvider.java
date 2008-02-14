@@ -8,8 +8,9 @@
  */
 package org.eclipse.imp.services;
 
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 
-public interface IDocumentationProvider {
+public interface IDocumentationProvider extends ILanguageService {
     String getDocumentation(Object target, IParseController parseController);
 }

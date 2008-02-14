@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+
 import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
@@ -19,9 +20,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.model.ICompilationUnit;
 import org.eclipse.imp.model.ISourceEntity;
 import org.eclipse.imp.model.ISourceFolder;
@@ -32,7 +33,6 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 
 public class CompilationUnitRef implements ICompilationUnit {
     /**
@@ -124,7 +124,7 @@ public class CompilationUnitRef implements ICompilationUnit {
 	if (fParseCtrlr == null) {
 	    Language lang= LanguageRegistry.findLanguage(fPath, file);
 
-	    fParseCtrlr= (IParseController) ExtensionPointFactory.createExtensionPoint(lang, ILanguageService.PARSER_SERVICE);
+	    fParseCtrlr= ServiceFactory.getInstance().getParseController(lang);
 	}
 	IPath projRelPath= fPath.isAbsolute() ? fPath.removeFirstSegments(1) : fPath;
 	fParseCtrlr.initialize(projRelPath, fProject, msgHandler);

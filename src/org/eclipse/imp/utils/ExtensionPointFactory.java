@@ -14,11 +14,10 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IContributor;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.language.ServiceException;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
@@ -29,13 +28,14 @@ import org.osgi.framework.Bundle;
 /**
  * @author Claffra
  * @author rfuhrer@watson.ibm.com
+ * @author jurgen@vinju.org
  */
 public class ExtensionPointFactory {
-    public static ILanguageService createExtensionPoint(Language language, String extensionPointID) {
+    public static ILanguageService createExtensionPoint(Language language, String extensionPointID) throws ServiceException {
         return createExtensionPoint(language, RuntimePlugin.IMP_RUNTIME, extensionPointID);
     }
 
-    public static Set<ILanguageService> createExtensions(Language language, String extensionPointID) {
+    public static Set<ILanguageService> createExtensions(Language language, String extensionPointID) throws ServiceException {
         return createExtensions(language, RuntimePlugin.IMP_RUNTIME, extensionPointID);
     }
 
@@ -45,131 +45,63 @@ public class ExtensionPointFactory {
 
         for(int i= 0; i < configElements.length; i++) {
             IContributor contrib= configElements[i].getContributor();
-            if (contrib.getName().equals(pluginID))
+            
+            if (contrib.getName().equals(pluginID)) {
                 return configElements[i].getAttribute(Language.LANGUAGE_ID_ATTR);
+            }
         }
+        
         return null;
     }
 
-    public static ILanguageService createExtensionPointForElement(Language language, String pluginID, String extensionPointId, String elementName) {
-        if (language == null) {
-            ErrorHandler.reportError("Cannot obtain service '" + extensionPointId + "' on null language.");
-            return null;
-        }
-        ILanguageService service= null;
+    public static ILanguageService createExtensionPointForElement(Language language, String pluginID, String extensionPointId, String elementName) throws ServiceException {
+        IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointId);
 
-        try {
-            IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointId);
+        if (extensionPoint == null) {
+        	throw new ServiceException("No such language service extension point defined: " + pluginID + "." + extensionPointId);
+        }  
+            	
+        ILanguageService service= getLanguageContributorForElement(extensionPoint, language.getName(), elementName);
 
-            if (extensionPoint != null)
-                service= getLanguageContributorForElement(extensionPoint, language.getName(), elementName);
-            else
-                ErrorHandler.reportError("No such language service extension point defined: " + pluginID + "." + extensionPointId);
-        } catch (Throwable e) {
-            ErrorHandler.reportError("Error finding or creating \"" + extensionPointId + "\" service for \"" + language + "\"", e);
+		if (service == null && languageIsDerived(language)) {
+            service= createExtensionPointForElement(LanguageRegistry.findLanguage(language.getDerivedFrom()), pluginID, extensionPointId, elementName);
         }
 
-        // Check for a base language implementation and use that if available
-        if (service == null && language.getDerivedFrom() != null) {
-            // SMS 9 Aug 2006
-            // When a user is defining a new language, if the user fills in a value for
-            // "derived from" that does not correspond to a SAFARI-supported language, then a
-            // call to LanguageRegistry.findLanguage(language.getDerivedFrom()) will return null,
-            // so check for that before using the return value in a call to languageServiceExists(..)
-            // (that was not done originally)
-            // Note: Check the explanatory text for that attribute in the NewLanguage wizard
-            // to assure that it provides a warning to provide only IMP-supported languages.
-            if (LanguageRegistry.findLanguage(language.getDerivedFrom()) == null) {
-                service= null;
-            } else {
-                service= createExtensionPointForElement(LanguageRegistry.findLanguage(language.getDerivedFrom()), pluginID, extensionPointId, elementName);
-            }
-        }
-
-        if (service == null)
-            service= createDefaultImpl(language, pluginID, extensionPointId);
-
-        // if (service != null)
-        // service.setLanguage(language.getName());
         return service;
     }
 
-    public static ILanguageService createExtensionPoint(Language language, String pluginID, String extensionPointId) {
+	private static boolean languageIsDerived(Language language) {
+		final boolean hasParent = language.getDerivedFrom() != null && LanguageRegistry.findLanguage(language.getDerivedFrom()) != null;
+		return hasParent;
+	}
+
+    public static ILanguageService createExtensionPoint(Language language, String pluginID, String extensionPointId) throws ServiceException {
         return createExtensionPointForElement(language, pluginID, extensionPointId, "class");
     }
 
-    public static Set<ILanguageService> createExtensions(Language language, String pluginID, String extensionPointId) {
-        if (language == null) {
-            ErrorHandler.reportError("Cannot obtain service '" + extensionPointId + "' on null language.");
-            return null;
-        }
-        Set<ILanguageService> services= new HashSet<ILanguageService>();
+    public static Set<ILanguageService> createExtensions(Language language, String pluginID, String extensionPointId) throws ServiceException {
+        IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointId);
 
-        try {
-            IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointId);
-
-            if (extensionPoint != null)
-                services.addAll(getLanguageContributors(extensionPoint, language.getName()));
-            else
-                ErrorHandler.reportError("No such language service extension point defined: " + pluginID + "." + extensionPointId);
-        } catch (Throwable e) {
-            ErrorHandler.reportError("Error finding or creating \"" + extensionPointId + "\" service for \"" + language + "\"", e);
+        if (extensionPoint == null) {
+        	throw new ServiceException("No such language service extension point defined: " + pluginID + "." + extensionPointId);
         }
+        
+        Set<ILanguageService> services = getLanguageContributors(extensionPoint, language.getName());
 
-        // Not sensible to use the base language implementation unless none are
-        // available for the derived language
-        if (services.isEmpty() && language.getDerivedFrom() != null) {
-            // SMS 9 Aug 2006
-            // When a user is defining a new language, if the user fills in a value for
-            // "derived from" that does not correspond to a IMP-supported language, then
-            // a call to LanguageRegistry.findLanguage(language.getDerivedFrom()) will return
-            // null, so check for that before using the return value in a call to
-            // languageServiceExists(..) (that was not done originally).
-            // Note: Check the explanatory text for that attribute in the NewLanguage wizard
-            // to assure that it provides a warning to provide only IMP-supported languages.
-            if (LanguageRegistry.findLanguage(language.getDerivedFrom()) != null) {
-                final ILanguageService baseServiceImpl= createExtensionPoint(LanguageRegistry.findLanguage(language.getDerivedFrom()), pluginID,
-                        extensionPointId);
-                if (baseServiceImpl != null) {
-                    services.add(baseServiceImpl);
-                }
-            }
-        }
-
-        if (services.isEmpty()) {
-            final ILanguageService defaultServiceImpl= createDefaultImpl(language, pluginID, extensionPointId);
-            if (defaultServiceImpl != null) {
-                services.add(defaultServiceImpl);
-            }
-        }
+        if (services.isEmpty() && languageIsDerived(language)) {
+			final ILanguageService baseServiceImpl = createExtensionPoint(
+					LanguageRegistry.findLanguage(language.getDerivedFrom()),
+					pluginID, extensionPointId);
+			if (baseServiceImpl != null) {
+				services.add(baseServiceImpl);
+			}
+		}
 
         return services;
     }
 
-    /**
-     * Uses reflection and the language name to find and return a default implementation for the given language service, if it exists. Otherwise, returns null.
-     */
-    private static ILanguageService createDefaultImpl(Language language, String pluginID, String extensionPointId) {
-        ILanguageService service= null;
-        try {
-            String className= "Default" + Character.toUpperCase(extensionPointId.charAt(0)) + extensionPointId.substring(1);
-            String defaultClass= pluginID + ".defaults." + className;
-
-            service= (ILanguageService) Class.forName(defaultClass).newInstance();
-        } catch (ClassNotFoundException e) {
-            if (PreferenceCache.emitMessages)
-                RuntimePlugin.getInstance().writeInfoMsg(
-                        "No language-specific or default implementation found for service " + extensionPointId + " and language " + language.getName());
-            // else
-            // ErrorHandler.reportError("No language-specific or default implementation found for service " +
-            //           extensionPointId + " and language " + language.getName(), false, true);
-        } catch (Throwable ee) {
-            ErrorHandler.reportError("Universal Editor Error", ee);
-        }
-        return service;
-    }
-
-    public static boolean languageServiceExists(String pluginID, String extensionPointID, Language language) {
+    @SuppressWarnings("deprecation")
+	public static boolean languageServiceExists(String pluginID, String extensionPointID, Language language) {
         if (language == null)
             return false;
 
@@ -185,29 +117,22 @@ public class ExtensionPointFactory {
                 if (bundle != null) {
                     final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
 
-                    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase()))
+                    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
                         return true;
+                    }
                 }
             }
         }
-        if (language.getDerivedFrom() != null) {
-            // SMS 9 Aug 2006
-            // When a user is defining a new language, if the user fills in a value for
-            // "derived from" that does not correspond to a IMP-supported language, then a
-            // call to LanguageRegistry.findLanguage(language.getDerivedFrom()) will
-            // return null, so check for that before using the return value in a call to
-            // languageServiceExists(..) (that was not done originally)
-            // Note: Check the explanatory text for that attribute in the NewLanguage wizard
-            // to assure that it provides a warning to provide only IMP-supported languages.
-            if (LanguageRegistry.findLanguage(language.getDerivedFrom()) == null) {
-                return false;
-            }
+        
+        if (languageIsDerived(language)) {
             return languageServiceExists(pluginID, extensionPointID, LanguageRegistry.findLanguage(language.getDerivedFrom()));
         }
+        
         return false;
     }
 
-    public static Set<ILanguageService> getLanguageContributors(IExtensionPoint extensionPoint, String language) throws CoreException {
+    @SuppressWarnings("deprecation")
+	public static Set<ILanguageService> getLanguageContributors(IExtensionPoint extensionPoint, String language) throws ServiceException {
         IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
         Set<ILanguageService> result= new HashSet<ILanguageService>();
         String lowerLang= language.toLowerCase();
@@ -223,20 +148,22 @@ public class ExtensionPointFactory {
                     if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
                         try {
                             final ILanguageService executable= (ILanguageService) element.createExecutableExtension("class");
-                            if (executable != null)
-                                result.add(executable);
-                        } catch (Exception e) {
-                            RuntimePlugin.getInstance().logException(
-                                    "Unable to instantiate implementation of " + extensionPoint + " for language '" + language + "'.", e);
+                            result.add(executable);
+                        } catch (CoreException e) {
+                            throw new ServiceException("Unable to instantiate implementation of " + extensionPoint + " for language '" + language + "'.", e);
+                        } catch (ClassCastException e) {
+                        	throw new ServiceException("Unable to instantiate implementation of " + extensionPoint + " for language '" + language + "' because it does not implement ILanguageService.", e);
                         }
                     }
                 }
             }
         }
+        
         return result;
     }
 
-    public static ILanguageService getLanguageContributorForElement(IExtensionPoint extensionPoint, String language, String elementName) throws CoreException {
+    @SuppressWarnings("deprecation")
+	public static ILanguageService getLanguageContributorForElement(IExtensionPoint extensionPoint, String language, String elementName) throws ServiceException {
         IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
         String lowerLang= language.toLowerCase();
 
@@ -249,19 +176,29 @@ public class ExtensionPointFactory {
                     final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
 
                     if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
-                        return (ILanguageService) element.createExecutableExtension(elementName);
+                    	try {
+                          return (ILanguageService) element.createExecutableExtension(elementName);
+                    	} 
+                    	catch (ClassCastException e) {
+                    		throw new ServiceException("Extension does not point to a class that implements an ILanguageService:" + element, e);
+                    	} 
+                    	catch (CoreException e) {
+							throw new ServiceException("Extension is totally invalid:" + element,e );
+						}
                     }
                 }
             }
         }
+        
         return null;
     }
 
-    public static ILanguageService getLanguageContributor(IExtensionPoint extensionPoint, String language) throws CoreException {
+    public static ILanguageService getLanguageContributor(IExtensionPoint extensionPoint, String language) throws ServiceException  {
         return getLanguageContributorForElement(extensionPoint, language, "class");
     }
 
-    public static URL getResourceURL(String language, IExtensionPoint extensionPoint, String label) {
+    @SuppressWarnings("deprecation")
+	public static URL getResourceURL(String language, IExtensionPoint extensionPoint, String label) {
         IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
         String lowerLabel= label.toLowerCase();
         String lowerLang= language.toLowerCase();

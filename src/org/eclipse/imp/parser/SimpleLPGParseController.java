@@ -13,8 +13,8 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.language.IAnnotationTypeInfo;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.jface.text.IRegion;
 
 /**

@@ -5,31 +5,23 @@
  */
 package org.eclipse.imp.editor.internal;
 
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Stack;
-
-import lpg.runtime.IPrsStream;
-import lpg.runtime.IToken;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.services.ITokenColorer;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.jface.text.TextPresentation;
-import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -57,7 +49,7 @@ public class PresentationController implements IModelListener {
     public PresentationController(ISourceViewer sourceViewer, Language language) {
 	this.sourceViewer= sourceViewer;
 //	annotations= new ArrayList<Annotation>();
-        colorer= (ITokenColorer) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.TOKEN_COLORER_SERVICE);
+        colorer= ServiceFactory.getInstance().getTokenColorer(language);
     }
 
     public AnalysisRequired getAnalysisRequired() {

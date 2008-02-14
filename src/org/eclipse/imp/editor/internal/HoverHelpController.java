@@ -8,14 +8,13 @@ package org.eclipse.imp.editor.internal;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.HoverHelper;
-import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.base.HoverHelperBase;
 import org.eclipse.imp.utils.AnnotationUtils;
-import org.eclipse.imp.utils.ExtensionPointFactory;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextViewer;
@@ -28,7 +27,7 @@ public class HoverHelpController implements ITextHover, IModelListener {
     private IHoverHelper hoverHelper;
 
     public HoverHelpController(Language language) {
-        hoverHelper= (IHoverHelper) ExtensionPointFactory.createExtensionPoint(language, ILanguageService.HOVER_HELPER_SERVICE);
+    	hoverHelper = ServiceFactory.getInstance().getHoverHelper(language);
         if (hoverHelper == null)
             hoverHelper= new HoverHelper(language);
         else if (hoverHelper instanceof HoverHelperBase) {

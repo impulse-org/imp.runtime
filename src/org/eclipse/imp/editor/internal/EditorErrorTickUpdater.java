@@ -9,8 +9,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.imp.editor.IProblemChangedListener;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.language.ILanguageService;
-import org.eclipse.imp.utils.ExtensionPointFactory;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.graphics.Image;
@@ -29,7 +28,7 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
     public EditorErrorTickUpdater(UniversalEditor editor) {
         Assert.isNotNull(editor);
         fEditor= editor;
-        fLabelProvider= (ILabelProvider) ExtensionPointFactory.createExtensionPoint(fEditor.fLanguage, ILanguageService.LABEL_PROVIDER_SERVICE);
+        fLabelProvider= ServiceFactory.getInstance().getLabelProvider(editor.fLanguage);
 //        fLabelProvider.addLabelDecorator(new ProblemsLabelDecorator(null));
         fEditor.getProblemMarkerManager().addListener(this);
     }

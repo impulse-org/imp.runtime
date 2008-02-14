@@ -36,7 +36,7 @@ public class ErrorHandler {
 	if (LOG)
 	    logError(message, e);
 	if (showDialog)
-	    MessageDialog.openError(null, "SAFARI Error", message);
+	    MessageDialog.openError(null, "IMP Error", message);
     }
 
     public static void reportError(String message) {

@@ -260,7 +260,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         Set<ILanguageService> contributors= getExtensions(ILanguageService.REFACTORING_CONTRIBUTIONS_SERVICE);
 
-        if (!contributors.isEmpty()) {
+        if (contributors != null && !contributors.isEmpty()) {
             List<IAction> editorActions= new ArrayList<IAction>();
 
             for(Iterator iter= contributors.iterator(); iter.hasNext(); ) {
@@ -288,7 +288,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         Set<ILanguageService> actionContributors= getExtensions(ILanguageService.EDITOR_ACTION_SERVICE);
 
-        if (!actionContributors.isEmpty()) {
+        if (actionContributors != null && !actionContributors.isEmpty()) {
             List<IAction> editorActions= new ArrayList<IAction>();
 
             for(Iterator iter= actionContributors.iterator(); iter.hasNext(); ) {

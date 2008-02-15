@@ -139,6 +139,7 @@ public class DirectoryListFieldEditor extends StringButtonFieldEditor {
         // this may very well be checked at a higher level
         // (so we might not ever get here with this problem)
         String path = getTextControl(parent).getText();
+        path= preferencesService.performSubstitutions(path);
         if (path != null)
             path = path.trim();
         else

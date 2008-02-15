@@ -6,7 +6,11 @@
 package org.eclipse.imp.preferences;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -19,6 +23,7 @@ import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
@@ -82,7 +87,7 @@ public class PreferencesService implements IPreferencesService
 	    preferencesRoot = preferencesService.getRootNode();
 	}	
 	
-	private IProject getProjectFromName(String name) {
+	private static IProject getProjectFromName(String name) {
 		if (name == null || name.equals("")) return null;
 		IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
 		IProject project = workspaceRoot.getProject(name);
@@ -403,7 +408,7 @@ public class PreferencesService implements IPreferencesService
 		//if (result.equals("")) {
 		//	result = null;
 		//}
-		return result;
+		return performSubstitutions(result);
 	}
 	
 
@@ -482,12 +487,82 @@ public class PreferencesService implements IPreferencesService
 		return preferencesService.getLong(languageName, key, 0, new IScopeContext[] { new ProjectScope(project) } );
 	}
 	
-	public String getStringPreference(IProject project, String key) {
+	public String getRawStringPreference(IProject project, String key) {
 		return preferencesService.getString(languageName, key, null, new IScopeContext[] { new ProjectScope(project) } );
 	}
-	
 
-	
+        public String getStringPreference(IProject project, String key) {
+            String value= getRawStringPreference(project, key);
+            String result= performSubstitutions(value, project);
+
+            return result;
+        }
+        
+        /**
+         * An evaluator for a certain kind of parameterized value reference.
+         */
+        private interface Evaluator {
+            String getValue(String param);
+        }
+
+        private static final Map<String,Evaluator> sParamMap= new HashMap<String, Evaluator>();
+
+        static {
+            sParamMap.put("pluginLoc", new Evaluator() {
+                public String getValue(String pluginID) {
+                    // TODO Decode what the platform spits out here: it's not a file system path
+                    Bundle bundle= Platform.getBundle(pluginID);
+                    return bundle.getLocation();
+                }
+            });
+            sParamMap.put("pluginVersion", new Evaluator() {
+                public String getValue(String pluginID) {
+                    Bundle bundle= Platform.getBundle(pluginID);
+                    return (String) bundle.getHeaders().get("Bundle-Version");
+                }
+            });
+            sParamMap.put("projectLoc", new Evaluator() {
+                public String getValue(String projectName) {
+                    IProject project= getProjectFromName(projectName);
+                    return project.getLocation().toPortableString();
+                }
+            });
+        }
+
+        private static final Pattern sSimpleSubstRegexp= Pattern.compile("\\$\\{([a-zA-Z][a-zA-Z0-9_]*)\\}");
+        private static final Pattern sParamSubstRegexp= Pattern.compile("\\$\\{([a-zA-Z][a-zA-Z0-9_]*):([^}]+)\\}");
+
+        public String performSubstitutions(String value) {
+            return performSubstitutions(value, null);
+        }
+
+        public String performSubstitutions(String value, IProject project) {
+            if (value == null) {
+                return value;
+            }
+            do {
+                Matcher pm= sParamSubstRegexp.matcher(value);
+                if (pm.find(0)) {
+                    String id= pm.group(1);
+                    String param= pm.group(2);
+
+                    Evaluator e= sParamMap.get(id);
+
+                    value= value.substring(0, pm.start()) + e.getValue(param) + value.substring(pm.end());
+                } else {
+                    Matcher sm= sSimpleSubstRegexp.matcher(value);
+                    if (sm.find(0)) {
+                        String id= sm.group(1);
+                        String prefValue= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
+
+                        value= value.substring(0, sm.start()) + prefValue + value.substring(sm.end());
+                    } else {
+                        break;
+                    }
+                }
+            } while (true);
+            return value;
+        }
 	
 	/*	
 	 * Get preferences at a given level by type
@@ -581,7 +656,7 @@ public class PreferencesService implements IPreferencesService
 		IScopeContext scope = getScopeForLevel(level);
 		IEclipsePreferences node = scope.getNode(languageName);
 		String result = node.get(key, null);
-		return result;
+		return performSubstitutions(result);
 	}
 	
 	
@@ -654,7 +729,7 @@ public class PreferencesService implements IPreferencesService
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		String result = node.get(key, null);
-		return result;
+		return performSubstitutions(result, project);
 	}	
 	
 	
@@ -796,7 +871,7 @@ public class PreferencesService implements IPreferencesService
 	public String  getStringPreference(String languageName, String projectName, String level, String key, String def)
 	{
 		IEclipsePreferences node = getNodeForParameters("getStringPreference", languageName, level, projectName, key);	
-		return node.get(key, def);
+		return performSubstitutions(node.get(key, def), getProjectFromName(projectName));
 	}
 
 	

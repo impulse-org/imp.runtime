@@ -223,6 +223,22 @@ public interface IPreferencesService {
 	public void setLongPreference(String languageName, String projectName, String level, String key, long value);
 	public void setStringPreference(String languageName, String projectName, String level, String key, String value);
 
+        /**
+         * @return the result of performing all preference substitutions on the
+         * given value, which can include references of the form "${prefKey}" or
+         * "${pluginLoc:pluginID}". The values of any preference references are
+         * obtained in the context of the project associated with this
+         * {@link IPreferencesService}, if any.
+         */
+        public String performSubstitutions(String value);
+
+        /**
+         * @return the result of performing all preference substitutions on the
+         * given value, which can include references of the form "${prefKey}" or
+         * "${pluginLoc:pluginID}". Use the given project as the context for
+         * obtaining the values of referenced preferences.
+         */
+        public String performSubstitutions(String value, IProject project);
 	
 	/*
 	 * Clear preferences at a given level

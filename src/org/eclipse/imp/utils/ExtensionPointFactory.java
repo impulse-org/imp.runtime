@@ -22,7 +22,8 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
 /*
- * Licensed Materials - Property of IBM, (c) Copyright IBM Corp. 2005 All Rights Reserved
+ * Licensed Materials - Property of IBM, (c) Copyright IBM Corp. 2005 All Rights
+ * Reserved
  */
 
 /**
@@ -31,134 +32,191 @@ import org.osgi.framework.Bundle;
  * @author jurgen@vinju.org
  */
 public class ExtensionPointFactory {
-    public static ILanguageService createExtensionPoint(Language language, String extensionPointID) throws ServiceException {
-        return createExtensionPoint(language, RuntimePlugin.IMP_RUNTIME, extensionPointID);
+    public static ILanguageService createExtensionPoint(Language language,
+            String extensionPointID) throws ServiceException {
+        return createExtensionPoint(language, RuntimePlugin.IMP_RUNTIME,
+                extensionPointID);
     }
 
-    public static Set<ILanguageService> createExtensions(Language language, String extensionPointID) throws ServiceException {
-        return createExtensions(language, RuntimePlugin.IMP_RUNTIME, extensionPointID);
+    public static Set<ILanguageService> createExtensions(Language language,
+            String extensionPointID) throws ServiceException {
+        return createExtensions(language, RuntimePlugin.IMP_RUNTIME,
+                extensionPointID);
     }
 
     public static String getLanguageID(String pluginID) {
-        IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.IMP_RUNTIME, RuntimePlugin.LANGUAGE_DESCRIPTOR);
-        IConfigurationElement[] configElements= extensionPoint.getConfigurationElements();
+        IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
+                .getExtensionPoint(RuntimePlugin.IMP_RUNTIME,
+                        RuntimePlugin.LANGUAGE_DESCRIPTOR);
+        IConfigurationElement[] configElements = extensionPoint
+                .getConfigurationElements();
 
-        for(int i= 0; i < configElements.length; i++) {
-            IContributor contrib= configElements[i].getContributor();
-            
+        for (int i = 0; i < configElements.length; i++) {
+            IContributor contrib = configElements[i].getContributor();
+
             if (contrib.getName().equals(pluginID)) {
-                return configElements[i].getAttribute(Language.LANGUAGE_ID_ATTR);
+                return configElements[i]
+                        .getAttribute(Language.LANGUAGE_ID_ATTR);
             }
         }
-        
+
         return null;
     }
 
-    public static ILanguageService createExtensionPointForElement(Language language, String pluginID, String extensionPointId, String elementName) throws ServiceException {
-        IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointId);
+    public static ILanguageService createExtensionPointForElement(
+            Language language, String pluginID, String extensionPointId,
+            String elementName) throws ServiceException {
+        IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
+                .getExtensionPoint(pluginID, extensionPointId);
 
         if (extensionPoint == null) {
-        	throw new ServiceException("No such language service extension point defined: " + pluginID + "." + extensionPointId);
-        }  
-            	
-        ILanguageService service= getLanguageContributorForElement(extensionPoint, language.getName(), elementName);
+            throw new ServiceException(
+                    "No such language service extension point defined: "
+                            + pluginID + "." + extensionPointId);
+        }
 
-		if (service == null && languageIsDerived(language)) {
-            service= createExtensionPointForElement(LanguageRegistry.findLanguage(language.getDerivedFrom()), pluginID, extensionPointId, elementName);
+        ILanguageService service = getLanguageContributorForElement(
+                extensionPoint, language.getName(), elementName);
+
+        if (service == null && languageIsDerived(language)) {
+            service = createExtensionPointForElement(LanguageRegistry
+                    .findLanguage(language.getDerivedFrom()), pluginID,
+                    extensionPointId, elementName);
         }
 
         return service;
     }
 
-	private static boolean languageIsDerived(Language language) {
-		final boolean hasParent = language.getDerivedFrom() != null && LanguageRegistry.findLanguage(language.getDerivedFrom()) != null;
-		return hasParent;
-	}
-
-    public static ILanguageService createExtensionPoint(Language language, String pluginID, String extensionPointId) throws ServiceException {
-        return createExtensionPointForElement(language, pluginID, extensionPointId, "class");
+    private static boolean languageIsDerived(Language language) {
+        final boolean hasParent = language.getDerivedFrom() != null
+                && LanguageRegistry.findLanguage(language.getDerivedFrom()) != null;
+        return hasParent;
     }
 
-    public static Set<ILanguageService> createExtensions(Language language, String pluginID, String extensionPointId) throws ServiceException {
-        IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointId);
+    public static ILanguageService createExtensionPoint(Language language,
+            String pluginID, String extensionPointId) throws ServiceException {
+        return createExtensionPointForElement(language, pluginID,
+                extensionPointId, "class");
+    }
+
+    public static Set<ILanguageService> createExtensions(Language language,
+            String pluginID, String extensionPointId) throws ServiceException {
+        IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
+                .getExtensionPoint(pluginID, extensionPointId);
 
         if (extensionPoint == null) {
-        	throw new ServiceException("No such language service extension point defined: " + pluginID + "." + extensionPointId);
+            throw new ServiceException(
+                    "No such language service extension point defined: "
+                            + pluginID + "." + extensionPointId);
         }
-        
-        Set<ILanguageService> services = getLanguageContributors(extensionPoint, language.getName());
+
+        Set<ILanguageService> services = getLanguageContributors(
+                extensionPoint, language.getName());
 
         if (services.isEmpty() && languageIsDerived(language)) {
-			final ILanguageService baseServiceImpl = createExtensionPoint(
-					LanguageRegistry.findLanguage(language.getDerivedFrom()),
-					pluginID, extensionPointId);
-			if (baseServiceImpl != null) {
-				services.add(baseServiceImpl);
-			}
-		}
+            final ILanguageService baseServiceImpl = createExtensionPoint(
+                    LanguageRegistry.findLanguage(language.getDerivedFrom()),
+                    pluginID, extensionPointId);
+            if (baseServiceImpl != null) {
+                services.add(baseServiceImpl);
+            }
+        }
 
         return services;
     }
 
     @SuppressWarnings("deprecation")
-	public static boolean languageServiceExists(String pluginID, String extensionPointID, Language language) {
+    public static boolean languageServiceExists(String pluginID,
+            String extensionPointID, Language language) {
         if (language == null)
             return false;
 
-        IExtensionPoint extensionPoint= Platform.getExtensionRegistry().getExtensionPoint(pluginID, extensionPointID);
-        IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
-        String lowerLang= language.getName().toLowerCase();
+        IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
+                .getExtensionPoint(pluginID, extensionPointID);
+        IConfigurationElement[] elements = extensionPoint
+                .getConfigurationElements();
+        String lowerLang = language.getName().toLowerCase();
 
         if (elements != null) {
-            for(int n= 0; n < elements.length; n++) {
-                IConfigurationElement element= elements[n];
-                Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
+            for (int n = 0; n < elements.length; n++) {
+                IConfigurationElement element = elements[n];
+                Bundle bundle = Platform.getBundle(element
+                        .getDeclaringExtension().getNamespace());
 
                 if (bundle != null) {
-                    final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
+                    final String attrValue = element
+                            .getAttribute(Language.LANGUAGE_ID_ATTR);
 
-                    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
+                    if (attrValue != null
+                            && lowerLang.equals(attrValue.toLowerCase())) {
                         return true;
                     }
                 }
             }
         }
-        
+
         if (languageIsDerived(language)) {
-            return languageServiceExists(pluginID, extensionPointID, LanguageRegistry.findLanguage(language.getDerivedFrom()));
+            return languageServiceExists(pluginID, extensionPointID,
+                    LanguageRegistry.findLanguage(language.getDerivedFrom()));
         }
-        
+
         return false;
     }
 
     @SuppressWarnings("deprecation")
-	public static Set<ILanguageService> getLanguageContributors(IExtensionPoint extensionPoint, String language) throws ServiceException {
-        IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
-        Set<ILanguageService> result= new HashSet<ILanguageService>();
-        String lowerLang= language.toLowerCase();
+    public static Set<ILanguageService> getLanguageContributors(
+            IExtensionPoint extensionPoint, String language)
+            throws ServiceException {
+        IConfigurationElement[] elements = extensionPoint
+                .getConfigurationElements();
+        Set<ILanguageService> result = new HashSet<ILanguageService>();
+        String lowerLang = language.toLowerCase();
 
         if (elements != null) {
-            for(int n= 0; n < elements.length; n++) {
-                IConfigurationElement element= elements[n];
-                Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
+            for (int n = 0; n < elements.length; n++) {
+                IConfigurationElement element = elements[n];
+                Bundle bundle = Platform.getBundle(element
+                        .getDeclaringExtension().getNamespace());
 
                 if (bundle != null) {
-                    final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
+                    final String attrValue = element
+                            .getAttribute(Language.LANGUAGE_ID_ATTR);
 
-                    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
+                    if (attrValue != null
+                            && lowerLang.equals(attrValue.toLowerCase())) {
                         try {
-                            final ILanguageService executable= (ILanguageService) element.createExecutableExtension("class");
+                            final ILanguageService executable = (ILanguageService) element
+                                    .createExecutableExtension("class");
                             result.add(executable);
                         } catch (CoreException e) {
-                            throw new ServiceException("Unable to instantiate implementation of " + extensionPoint + " for language '" + language + "'.", e);
+                            throw new ServiceException(
+                                    "Unable to instantiate implementation of "
+                                            + extensionPoint.getLabel()
+                                            + " plugin for language '"
+                                            + language
+                                            + "' because of the following low level exception: " + e.getStatus().getException(),
+                                    e);
                         } catch (ClassCastException e) {
-                        	throw new ServiceException("Unable to instantiate implementation of " + extensionPoint + " for language '" + language + "' because it does not implement ILanguageService.", e);
+                            throw new ServiceException(
+                                    "Unable to instantiate implementation of "
+                                            + extensionPoint
+                                            + " plugin for language '"
+                                            + language
+                                            + "' because it does not implement ILanguageService.",
+                                    e);
+                        } catch (NoClassDefFoundError e) {
+                            throw new ServiceException(
+                                    "Unable to instantiate implementation of "
+                                            + extensionPoint
+                                            + " for language '"
+                                            + language
+                                            + "' because it may not have a zero argument constructor, or it could not be found in the class path");
                         }
                     }
                 }
             }
         }
-        
+
         return result;
     }
 
@@ -168,23 +226,40 @@ public class ExtensionPointFactory {
         String lowerLang= language.toLowerCase();
 
         if (elements != null) {
-            for(int n= 0; n < elements.length; n++) {
-                IConfigurationElement element= elements[n];
-                Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
+            for (int n = 0; n < elements.length; n++) {
+                IConfigurationElement element = elements[n];
+                Bundle bundle = Platform.getBundle(element
+                        .getDeclaringExtension().getNamespace());
 
                 if (bundle != null) {
-                    final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
+                    final String attrValue = element
+                            .getAttribute(Language.LANGUAGE_ID_ATTR);
 
-                    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
-                    	try {
-                          return (ILanguageService) element.createExecutableExtension(elementName);
-                    	} 
-                    	catch (ClassCastException e) {
-                    		throw new ServiceException("Extension does not point to a class that implements an ILanguageService:" + element, e);
-                    	} 
-                    	catch (CoreException e) {
-							throw new ServiceException("Extension is totally invalid:" + element,e );
-						}
+                    if (attrValue != null
+                            && lowerLang.equals(attrValue.toLowerCase())) {
+                        try {
+                            return (ILanguageService) element
+                                    .createExecutableExtension(elementName);
+                        } catch (ClassCastException e) {
+                            throw new ServiceException(
+                                    "Extension does not point to a class that implements an ILanguageService:"
+                                            + element, e);
+                        } catch (CoreException e) {
+                            throw new ServiceException(
+                                    "Unable to instantiate implementation of "
+                                            + extensionPoint.getLabel()
+                                            + " plugin for language '"
+                                            + language
+                                            + "' because of the following low level exception: " + e.getStatus().getException(),
+                                    e);
+                        } catch (NoClassDefFoundError e) {
+                            throw new ServiceException(
+                                    "Unable to instantiate implementation of "
+                                            + extensionPoint.getLabel()
+                                            + " plugin for language '"
+                                            + language
+                                            + "' because it may not have a zero argument constructor, or it could not be found in the class path.", e);
+                        } 
                     }
                 }
             }
@@ -193,26 +268,34 @@ public class ExtensionPointFactory {
         return null;
     }
 
-    public static ILanguageService getLanguageContributor(IExtensionPoint extensionPoint, String language) throws ServiceException  {
-        return getLanguageContributorForElement(extensionPoint, language, "class");
+    public static ILanguageService getLanguageContributor(
+            IExtensionPoint extensionPoint, String language)
+            throws ServiceException {
+        return getLanguageContributorForElement(extensionPoint, language,
+                "class");
     }
 
     @SuppressWarnings("deprecation")
-	public static URL getResourceURL(String language, IExtensionPoint extensionPoint, String label) {
-        IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
-        String lowerLabel= label.toLowerCase();
-        String lowerLang= language.toLowerCase();
+    public static URL getResourceURL(String language,
+            IExtensionPoint extensionPoint, String label) {
+        IConfigurationElement[] elements = extensionPoint
+                .getConfigurationElements();
+        String lowerLabel = label.toLowerCase();
+        String lowerLang = language.toLowerCase();
 
         if (elements != null) {
-            for(int n= 0; n < elements.length; n++) {
-                IConfigurationElement element= elements[n];
-                Bundle bundle= Platform.getBundle(element.getDeclaringExtension().getNamespace());
+            for (int n = 0; n < elements.length; n++) {
+                IConfigurationElement element = elements[n];
+                Bundle bundle = Platform.getBundle(element
+                        .getDeclaringExtension().getNamespace());
 
                 if (bundle != null) {
-                    final String attrValue= element.getAttribute(Language.LANGUAGE_ID_ATTR);
+                    final String attrValue = element
+                            .getAttribute(Language.LANGUAGE_ID_ATTR);
 
-                    if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
-                        String resourceName= element.getAttribute(lowerLabel);
+                    if (attrValue != null
+                            && lowerLang.equals(attrValue.toLowerCase())) {
+                        String resourceName = element.getAttribute(lowerLabel);
                         return bundle.getResource(resourceName);
                     }
                 }

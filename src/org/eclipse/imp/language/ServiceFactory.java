@@ -25,7 +25,7 @@ import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
-import org.eclipse.imp.utils.ExtensionPointFactory;
+import org.eclipse.imp.utils.ExtensionFactory;
 
 /**
  * This class stores language services. IMP services are configured with
@@ -380,12 +380,12 @@ public class ServiceFactory {
 
     private ILanguageService createExtensionPoint(Language lang, String id)
             throws ServiceException {
-        return ExtensionPointFactory.createExtensionPoint(lang, id);
+        return ExtensionFactory.createServiceExtension(lang, id);
     }
 
     private Set<ILanguageService> createExtensionPoints(Language lang, String id)
             throws ServiceException {
-        return ExtensionPointFactory.createExtensions(lang, id);
+        return ExtensionFactory.createServiceExtensionSet(lang, id);
     }
 
     private Set<ILanguageService> loadServices(Language lang, String serviceId)

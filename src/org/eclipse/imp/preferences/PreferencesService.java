@@ -499,29 +499,66 @@ public class PreferencesService implements IPreferencesService
         }
         
         /**
-         * An evaluator for a certain kind of parameterized value reference.
+         * An evaluator for non-parameterized (constant) references.
          */
-        private interface Evaluator {
+        private interface ConstantEvaluator {
+            String getValue();
+        }
+
+        private static final Map<String,ConstantEvaluator> sConstantMap= new HashMap<String, ConstantEvaluator>();
+
+        static {
+            sConstantMap.put("workspaceLoc", new ConstantEvaluator() {
+                public String getValue() {
+                    return ResourcesPlugin.getWorkspace().getRoot().getLocation().toPortableString();
+                }
+            });
+            sConstantMap.put("os", new ConstantEvaluator() {
+                public String getValue() {
+                    return Platform.getOS();
+                }
+            });
+            sConstantMap.put("arch", new ConstantEvaluator() {
+                public String getValue() {
+                    return Platform.getOSArch();
+                }
+            });
+            sConstantMap.put("nl", new ConstantEvaluator() {
+                public String getValue() {
+                    return Platform.getNL();
+                }
+            });
+            sConstantMap.put("ws", new ConstantEvaluator() {
+                public String getValue() {
+                    return Platform.getWS();
+                }
+            });
+        }
+
+        /**
+         * An evaluator for parameterized value references.
+         */
+        private interface ParamEvaluator {
             String getValue(String param);
         }
 
-        private static final Map<String,Evaluator> sParamMap= new HashMap<String, Evaluator>();
+        private static final Map<String,ParamEvaluator> sParamMap= new HashMap<String, ParamEvaluator>();
 
         static {
-            sParamMap.put("pluginLoc", new Evaluator() {
+            sParamMap.put("pluginLoc", new ParamEvaluator() {
                 public String getValue(String pluginID) {
                     // TODO Decode what the platform spits out here: it's not a file system path
                     Bundle bundle= Platform.getBundle(pluginID);
                     return bundle.getLocation();
                 }
             });
-            sParamMap.put("pluginVersion", new Evaluator() {
+            sParamMap.put("pluginVersion", new ParamEvaluator() {
                 public String getValue(String pluginID) {
                     Bundle bundle= Platform.getBundle(pluginID);
                     return (String) bundle.getHeaders().get("Bundle-Version");
                 }
             });
-            sParamMap.put("projectLoc", new Evaluator() {
+            sParamMap.put("projectLoc", new ParamEvaluator() {
                 public String getValue(String projectName) {
                     IProject project= getProjectFromName(projectName);
                     return project.getLocation().toPortableString();
@@ -546,15 +583,19 @@ public class PreferencesService implements IPreferencesService
                     String id= pm.group(1);
                     String param= pm.group(2);
 
-                    Evaluator e= sParamMap.get(id);
+                    ParamEvaluator e= sParamMap.get(id);
 
                     value= value.substring(0, pm.start()) + e.getValue(param) + value.substring(pm.end());
                 } else {
                     Matcher sm= sSimpleSubstRegexp.matcher(value);
                     if (sm.find(0)) {
                         String id= sm.group(1);
-                        String prefValue= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
-
+                        String prefValue;
+                        if (sConstantMap.containsKey(id)) {
+                            prefValue= sConstantMap.get(id).getValue();
+                        } else {
+                            prefValue= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
+                        }
                         value= value.substring(0, sm.start()) + prefValue + value.substring(sm.end());
                     } else {
                         break;

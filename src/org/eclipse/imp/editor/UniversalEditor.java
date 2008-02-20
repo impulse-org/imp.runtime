@@ -149,6 +149,8 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
+    public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".formatSource";
+
     public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".toggleComment";
 
     public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".showOutlineCommand";
@@ -239,7 +241,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	markAsStateDependentAction("ContentAssistProposal", true);
 
         action= new TextOperationAction(bundle, "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
-        action.setActionDefinitionId(IJavaEditorActionDefinitionIds.FORMAT);
+        action.setActionDefinitionId(FORMAT_SOURCE_COMMAND);
         setAction("Format", action); //$NON-NLS-1$
         markAsStateDependentAction("Format", true); //$NON-NLS-1$
         markAsSelectionDependentAction("Format", true); //$NON-NLS-1$

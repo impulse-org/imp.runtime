@@ -287,6 +287,10 @@ public class DetailsDialogForStringFields extends ProductInfoDialog {
 	        label.setText("\tCurrent value:  '" + field.getTextControl().getText() + "'");
 	        label.setBackground(prefUtils.colorWhite);
 	        
+                label = new Label(topContainer, SWT.LEAD);
+                label.setText("\tSubstituted value:  '" + this.preferencesService.performSubstitutions(field.getTextControl().getText()) + "'");
+                label.setBackground(prefUtils.colorWhite);
+                
 	        label = new Label(topContainer, SWT.LEAD);
 	        String level = PreferenceDialogConstants.getLevelName(field.getLevelFromWhichLoaded()); 
 	        label.setText("\tLevel at which set:  " + level);

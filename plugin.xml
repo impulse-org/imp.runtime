@@ -159,26 +159,6 @@
                tooltip="Toggles marking occurrences of the given entity"/>
       </actionSet>
    </extension>
-    <extension
-         point="org.eclipse.ui.actionSets">
-      <actionSet
-            id="org.eclipse.imp.runtime.editorActions"
-            label="IMP Source Actions"
-            visible="true">
-         <menu
-               id="org.eclipse.imp.editor"
-               label="Source">
-            <separator name="org.eclipse.imp.source"/>
-         </menu>
-         <action
-               class="org.eclipse.imp.editor.SourceFormattingAction"
-               icon="bla.gif"
-               id="org.eclipse.imp.runtime.actions.SourceFormattingAction"
-               label="Format Source"
-               toolbarPath="sampleGroup"
-               tooltip="Format the source code in this file"/>
-      </actionSet>
-   </extension>
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification

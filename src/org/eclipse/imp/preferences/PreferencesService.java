@@ -412,6 +412,11 @@ public class PreferencesService implements IPreferencesService
 	}
 	
 
+	public String getRawStringPreference(String key) {
+		String result = preferencesService.getString(languageName, key, null, specificProjectScope());
+		return result;
+	}
+	
 	/*
 	 * Get applicable preferences by project and type
 	 * 
@@ -701,6 +706,20 @@ public class PreferencesService implements IPreferencesService
 	}
 	
 	
+	/*
+     *  Return the "raw" (unsubstituted) version of the preference value.
+     *  Needed at least by field editors that may want to inherit a raw
+     *  value from a higher level.
+     *  SMS 21 Feb 2008
+     */
+	public String getRawStringPreference(String level, String key) {
+		IScopeContext scope = getScopeForLevel(level);
+		IEclipsePreferences node = scope.getNode(languageName);
+		String result = node.get(key, null);
+		return result;
+	}
+	
+	
 	
 	/*
 	 * Get preferences for a given project by type
@@ -771,6 +790,15 @@ public class PreferencesService implements IPreferencesService
 		IEclipsePreferences node = scope.getNode(languageName);
 		String result = node.get(key, null);
 		return performSubstitutions(result, project);
+	}	
+	
+	
+	
+	public String  getRawStringPreferenceForProject(IProject project, String key) {
+		IScopeContext scope = getScopeForProject(project);
+		IEclipsePreferences node = scope.getNode(languageName);
+		String result = node.get(key, null);
+		return result;
 	}	
 	
 	
@@ -915,6 +943,16 @@ public class PreferencesService implements IPreferencesService
 		return performSubstitutions(node.get(key, def), getProjectFromName(projectName));
 	}
 
+	
+	public String  getRawStringPreference(String languageName, String projectName, String level, String key, String def)
+	{
+		IEclipsePreferences node = getNodeForParameters("getRawStringPreference", languageName, level, projectName, key);	
+		return node.get(key, def);
+	}
+	
+	
+	
+	
 	
 	/*
 	 * Set preferences for a given level, language, and project by type

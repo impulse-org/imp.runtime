@@ -103,6 +103,7 @@ public interface IPreferencesService {
 	public int     getIntPreference(String key);
 	public long    getLongPreference(String key);
 	public String  getStringPreference(String key);
+	public String  getRawStringPreference(String key);
 
 	
 	/*
@@ -129,6 +130,7 @@ public interface IPreferencesService {
 	public int     getIntPreference(IProject project, String key);
 	public long    getLongPreference(IProject project, String key);
 	public String  getStringPreference(IProject project, String key);
+	public String  getRawStringPreference(IProject project, String key);
 	
 	
 	/*
@@ -159,7 +161,7 @@ public interface IPreferencesService {
 	public int     getIntPreference(String level, String key);
 	public long    getLongPreference(String level, String key);
 	public String  getStringPreference(String level, String key);
-	
+	public String  getRawStringPreference(String level, String key);
 	
 	
 	/*
@@ -185,7 +187,7 @@ public interface IPreferencesService {
 	public int     getIntPreferenceForProject(IProject project, String key);
 	public long    getLongPreferenceForProject(IProject project, String key);	
 	public String  getStringPreferenceForProject(IProject project, String key);
-	
+	public String  getRawStringPreferenceForProject(IProject project, String key);
 	
 	
 	/*
@@ -210,7 +212,7 @@ public interface IPreferencesService {
 	public int     getIntPreference(String languageName, String projectName, String level, String key, int def);
 	public long    getLongPreference(String languageName, String projectName, String level, String key, long def);
 	public String  getStringPreference(String languageName, String projectName, String level, String key, String def);
-	
+	public String  getRawStringPreference(String languageName, String projectName, String level, String key, String def);	
 	
 	/*
 	 * Set preferences for a given level, language, and project by type

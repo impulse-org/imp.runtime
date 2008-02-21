@@ -318,14 +318,14 @@ public class StringFieldEditor extends FieldEditor
         	String value = null;
         	if (preferencesLevel != null) {
         		// The "normal" case, in which field corresponds to a preferences level
-        		value = preferencesService.getStringPreference(preferencesLevel, getPreferenceName());
+        		value = preferencesService.getRawStringPreference(preferencesLevel, getPreferenceName());
         		levelFromWhichLoaded = preferencesLevel;
         		setInherited(false);
         	}
         	else {
         		// Not normal, exactly, but possible if loading is being done into a
         		// field that is not associated with a specific level
-        		value = preferencesService.getStringPreference(getPreferenceName());
+        		value = preferencesService.getRawStringPreference(getPreferenceName());
         		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
     			setInherited(!levelFromWhichLoaded.equals(preferencesLevel));
         	}
@@ -349,7 +349,7 @@ public class StringFieldEditor extends FieldEditor
      */
     protected void doLoadDefault() {
         if (getTextControl(parent) != null) {
-            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
+            String value = preferencesService.getRawStringPreference(IPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
             levelFromWhichLoaded = IPreferencesService.DEFAULT_LEVEL;
             setInherited(false);	// We're putting the default value here directly, not inheriting it
             setPresentsDefaultValue(true);	// Need this really?
@@ -371,10 +371,10 @@ public class StringFieldEditor extends FieldEditor
         if (getTextControl(parent) != null) {
         	String value = null;
         	if (preferencesLevel != null) {
-        		value = preferencesService.getStringPreference(level, getPreferenceName());
+        		value = preferencesService.getRawStringPreference(level, getPreferenceName());
         	} else {
         		// TODO:  Check whether this is right
-        		value = preferencesService.getStringPreference(getPreferenceName());
+        		value = preferencesService.getRawStringPreference(getPreferenceName());
         	}
          	// We're putting the level's value here directly, not inheriting it, so ...
         	levelFromWhichLoaded = level;
@@ -427,7 +427,7 @@ public class StringFieldEditor extends FieldEditor
     	int levelAtWhichFound = -1;
     	
     	for (int level = fieldLevelIndex; level < levels.length; level++) {
-       		value = preferencesService.getStringPreference(levels[level], getPreferenceName());
+       		value = preferencesService.getRawStringPreference(levels[level], getPreferenceName());
        		if (value == null) continue;
        		if (value.equals("") && !isEmptyValueAllowed()) continue;
        		levelAtWhichFound = level;
@@ -490,7 +490,7 @@ public class StringFieldEditor extends FieldEditor
    		levelFromWhichLoaded = preferencesLevel;
    		isInherited = false;
    		setPresentsDefaultValue(
-   				value.equals(preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
+   				value.equals(preferencesService.getRawStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName())));
             
    		
    		// If we've stored the field then it's not inherited, so be sure it's

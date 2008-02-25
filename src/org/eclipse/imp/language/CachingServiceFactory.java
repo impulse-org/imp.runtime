@@ -7,6 +7,7 @@ import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
 import org.eclipse.imp.indexing.IndexContributorBase;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
@@ -49,6 +50,7 @@ public class CachingServiceFactory extends ServiceFactory {
     private IndexContributorBase indexContributor;
     private ITokenColorer tokenColorer;
     private IHoverHelper hoverHelper;
+    private IASTAdapter astAdapter;
 
     public CachingServiceFactory() {
     }
@@ -235,11 +237,19 @@ public class CachingServiceFactory extends ServiceFactory {
         return elementImageProvider;
     }
 
-    public IOutliner getOldOutliner(Language lang) {
+    public IOutliner getOutliner(Language lang) {
         if (outliner != null) {
             outliner = super.getOutliner(lang);
         }
 
         return outliner;
+    }
+
+    public IASTAdapter getASTAdapter(Language lang) {
+        if (astAdapter != null) {
+            astAdapter = super.getASTAdapter(lang);
+        }
+
+        return astAdapter;
     }
 }

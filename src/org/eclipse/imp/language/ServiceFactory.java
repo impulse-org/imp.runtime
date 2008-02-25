@@ -9,6 +9,7 @@ import org.eclipse.imp.indexing.IndexContributorBase;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
@@ -54,55 +55,57 @@ import org.eclipse.imp.utils.ExtensionException;
 public class ServiceFactory {
     private static ServiceFactory sInstance;
 
-    String OUTLINER_SERVICE = "outliner";
-
-    String CONTENT_PROPOSER_SERVICE = "contentProposer";
-
-    String HOVER_HELPER_SERVICE = "hoverHelper";
-
-    String TOKEN_COLORER_SERVICE = "tokenColorer";
-
-    String INDEX_CONTRIBUTOR_SERVICE = "indexContributor";
-
-    String PARSER_SERVICE = "parser";
-
-    String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
-
-    String LISTENER_SERVICE = "modelListener";
-
     String AUTO_EDIT_SERVICE = "autoEditStrategy";
-
-    String FOLDING_SERVICE = "foldingUpdater";
 
     String ANNOTATION_HOVER_SERVICE = "annotationHover";
 
+    String AST_ADAPTER_SERVICE = "astAdapter";
+
+    String CONTENT_PROPOSER_SERVICE = "contentProposer";
+
+    String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
+
+    String EDITOR_ACTION_SERVICE = "editorActionContributions";
+
+    String FOLDING_SERVICE = "foldingUpdater";
+
     String FORMATTER_SERVICE = "formatter";
+
+    String HOVER_HELPER_SERVICE = "hoverHelper";
 
     String HYPERLINK_SERVICE = "hyperLink";
 
+    String IMAGE_DECORATOR_SERVICE = "imageDecorator";
+
+    String INDEX_CONTRIBUTOR_SERVICE = "indexContributor";
+
     String LABEL_PROVIDER_SERVICE = "labelProvider";
 
-    String IMAGE_DECORATOR_SERVICE = "imageDecorator";
+    String LISTENER_SERVICE = "modelListener";
+
+    String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
+
+    String OCCURRENCE_MARKER = "markOccurrences";
 
     String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
 
-    String REFACTORING_CONTRIBUTIONS_SERVICE = "refactoringContributions";
+    String OUTLINER_SERVICE = "outliner";
 
-    String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
-
-    String EDITOR_ACTION_SERVICE = "editorActionContributions";
+    String PARSER_SERVICE = "parser";
 
     String PREFERENCES_SERVICE = "preferencesDialog";
 
     String PREFERENCES_SPECIFICATION = "preferencesSpecification";
 
-    String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
+    String REFACTORING_CONTRIBUTIONS_SERVICE = "refactoringContributions";
 
-    String VIEWER_FILTER_SERVICE = "viewerFilter";
-
-    String OCCURRENCE_MARKER = "markOccurrences";
+    String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
 
     String SYNTAX_PROPS = "syntaxProps";
+
+    String TOKEN_COLORER_SERVICE = "tokenColorer";
+
+    String VIEWER_FILTER_SERVICE = "viewerFilter";
 
     protected ServiceFactory() {
     }
@@ -386,6 +389,17 @@ public class ServiceFactory {
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of OLD_OUTLINER_SERVICE does not implement IOutliner",
+                    e);
+            return null;
+        }
+    }
+
+    public IASTAdapter getASTAdapter(Language lang) {
+        try {
+            return (IASTAdapter) loadService(lang, AST_ADAPTER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of AST_ADAPTER_SERVICE does not implement IASTAdapter",
                     e);
             return null;
         }

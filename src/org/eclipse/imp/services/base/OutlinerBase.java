@@ -121,7 +121,7 @@ public abstract class OutlinerBase implements IOutliner
 	 * the stack of outline items
 	 */
 
-	private Stack fItemStack = new Stack();
+	private Stack<TreeItem> fItemStack = new Stack<TreeItem>();
 	
 	
 	public void pushTopItem(String itemName, Object node) {
@@ -241,7 +241,7 @@ public abstract class OutlinerBase implements IOutliner
 		  if (n != null)
 			  treeItem.setData(n);
 		treeItem.setImage(image.getOutlineItemImage());
-		int itemStyle = treeItem.getStyle();
+//		int itemStyle = treeItem.getStyle();
 		return treeItem;
 	}
 	

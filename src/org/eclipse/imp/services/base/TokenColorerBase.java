@@ -5,8 +5,6 @@
  */
 package org.eclipse.imp.services.base;
 
-import lpg.runtime.IToken;
-
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.jface.text.TextAttribute;
@@ -17,9 +15,7 @@ public abstract class TokenColorerBase implements ITokenColorer {
 
     protected TextAttribute keywordAttribute;
 
-//  protected abstract boolean isKeyword(int kind, IParseController parseController);
-
-    public TextAttribute getColoring(IParseController controller, IToken token) {
+    public TextAttribute getColoring(IParseController controller, Object token) {
 //        switch (token.getKind()) {
 //            default:
 //                if (isKeyword(token.getKind(), controller))

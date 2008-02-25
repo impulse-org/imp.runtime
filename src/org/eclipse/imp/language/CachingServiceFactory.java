@@ -54,7 +54,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IContentProposer getContentProposer(Language lang)
-            throws ServiceException {
+            {
         if (contentProposer != null) {
             contentProposer = super.getContentProposer(lang);
         }
@@ -62,7 +62,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return contentProposer;
     }
 
-    public IHoverHelper getHoverHelper(Language lang) throws ServiceException {
+    public IHoverHelper getHoverHelper(Language lang) {
         if (hoverHelper != null) {
             hoverHelper = super.getHoverHelper(lang);
         }
@@ -70,7 +70,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return hoverHelper;
     }
 
-    public ITokenColorer getTokenColorer(Language lang) throws ServiceException {
+    public ITokenColorer getTokenColorer(Language lang) {
         if (tokenColorer != null) {
             tokenColorer = super.getTokenColorer(lang);
         }
@@ -79,7 +79,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IndexContributorBase getIndexContributor(Language lang)
-            throws ServiceException {
+            {
         if (indexContributor != null) {
             indexContributor = super.getIndexContributor(lang);
         }
@@ -88,7 +88,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IParseController getParseController(Language lang)
-            throws ServiceException {
+            {
         if (parseController != null) {
             parseController = super.getParseController(lang);
         }
@@ -97,7 +97,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public TreeModelBuilderBase getTreeModelBuilder(Language lang)
-            throws ServiceException {
+            {
         if (treeModelBuilder != null) {
             treeModelBuilder = super.getTreeModelBuilder(lang);
         }
@@ -106,7 +106,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IModelListener getModelListener(Language lang)
-            throws ServiceException {
+            {
         if (modelListener != null) {
             modelListener = super.getModelListener(lang);
         }
@@ -115,7 +115,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IAutoEditStrategy getAutoEditStrategy(Language lang)
-            throws ServiceException {
+            {
         if (autoEditStrategy != null) {
             autoEditStrategy = super.getAutoEditStrategy(lang);
         }
@@ -124,7 +124,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IFoldingUpdater getFoldingUpdater(Language lang)
-            throws ServiceException {
+            {
         if (foldingUpdater != null) {
             foldingUpdater = super.getFoldingUpdater(lang);
         }
@@ -133,7 +133,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IAnnotationHover getAnnotationHover(Language lang)
-            throws ServiceException {
+            {
         if (annotationHover != null) {
             annotationHover = super.getAnnotationHover(lang);
         }
@@ -142,7 +142,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public ISourceFormatter getSourceFormatter(Language lang)
-            throws ServiceException {
+            {
         if (sourceFormatter != null) {
             sourceFormatter = super.getSourceFormatter(lang);
         }
@@ -151,7 +151,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang)
-            throws ServiceException {
+            {
         if (sourceHyperlinkDetector != null) {
             sourceHyperlinkDetector = super.getSourceHyperlinkDetector(lang);
         }
@@ -227,7 +227,7 @@ public class CachingServiceFactory extends ServiceFactory {
     }
 
     public IElementImageProvider getElementImageProvider(Language lang)
-            throws ServiceException {
+            {
         if (elementImageProvider != null) {
             elementImageProvider = super.getElementImageProvider(lang);
         }
@@ -235,7 +235,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return elementImageProvider;
     }
 
-    public IOutliner getOldOutliner(Language lang) throws ServiceException {
+    public IOutliner getOldOutliner(Language lang) {
         if (outliner != null) {
             outliner = super.getOutliner(lang);
         }

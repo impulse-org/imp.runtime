@@ -8,6 +8,7 @@ import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
 import org.eclipse.imp.indexing.IndexContributorBase;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
@@ -26,6 +27,7 @@ import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.utils.ExtensionFactory;
+import org.eclipse.imp.utils.ExtensionException;
 
 /**
  * This class stores language services. IMP services are configured with
@@ -120,138 +122,140 @@ public class ServiceFactory {
         return sInstance;
     }
 
-    public IContentProposer getContentProposer(Language lang)
-            throws ServiceException {
+    public IContentProposer getContentProposer(Language lang) {
         try {
             return (IContentProposer) loadService(lang,
                     CONTENT_PROPOSER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of CONTENT_PROPOSER_SERVICE does not implement IContentProposer",
                     e);
+            return null;
         }
     }
 
-    public IHoverHelper getHoverHelper(Language lang) throws ServiceException {
+    public IHoverHelper getHoverHelper(Language lang) {
         try {
             return (IHoverHelper) loadService(lang, HOVER_HELPER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of HOVER_HELPER_SERVICE does not implement IHoverHelper",
                     e);
+            return null;
         }
     }
 
-    public ITokenColorer getTokenColorer(Language lang) throws ServiceException {
+    public ITokenColorer getTokenColorer(Language lang) {
         try {
             return (ITokenColorer) loadService(lang, TOKEN_COLORER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of TOKEN_COLORER_SERVICE does not implement ITokenColorer",
                     e);
+            return null;
         }
     }
 
-    public IndexContributorBase getIndexContributor(Language lang)
-            throws ServiceException {
+    public IndexContributorBase getIndexContributor(Language lang) {
         try {
             return (IndexContributorBase) loadService(lang,
                     INDEX_CONTRIBUTOR_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of INDEX_CONTRIBUTOR_SERVICE does not implement IndexContributorBase",
                     e);
+            return null;
         }
     }
 
-    public IParseController getParseController(Language lang)
-            throws ServiceException {
+    public IParseController getParseController(Language lang) {
         try {
             return (IParseController) loadService(lang, PARSER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of PARSER_SERVICE does not implement IParseController",
                     e);
+            return null;
         }
     }
 
-    public TreeModelBuilderBase getTreeModelBuilder(Language lang)
-            throws ServiceException {
+    public TreeModelBuilderBase getTreeModelBuilder(Language lang) {
         try {
             return (TreeModelBuilderBase) loadService(lang,
                     MODEL_BUILDER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of MODEL_BUILDER_SERVICE does not implement TreeModelBuilderBase",
                     e);
+            return null;
         }
     }
 
-    public IModelListener getModelListener(Language lang)
-            throws ServiceException {
+    public IModelListener getModelListener(Language lang) {
         try {
             return (IModelListener) loadService(lang, LISTENER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of LISTENER_SERVICE does not implement IModelListener",
                     e);
+            return null;
         }
     }
 
-    public IAutoEditStrategy getAutoEditStrategy(Language lang)
-            throws ServiceException {
+    public IAutoEditStrategy getAutoEditStrategy(Language lang) {
         try {
             return (IAutoEditStrategy) loadService(lang, AUTO_EDIT_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of AUTO_EDIT_SERVICE does not implement IAutoEditStrategy",
                     e);
+            return null;
         }
     }
 
-    public IFoldingUpdater getFoldingUpdater(Language lang)
-            throws ServiceException {
+    public IFoldingUpdater getFoldingUpdater(Language lang) {
         try {
             return (IFoldingUpdater) loadService(lang, FOLDING_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of FOLDING_SERVICE does not implement IFoldingUpdater",
                     e);
+            return null;
         }
     }
 
-    public IAnnotationHover getAnnotationHover(Language lang)
-            throws ServiceException {
+    public IAnnotationHover getAnnotationHover(Language lang) {
         try {
             return (IAnnotationHover) loadService(lang,
                     ANNOTATION_HOVER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of ANNOTATION_HOVER_SERVICE does not implement IAnnotationHover",
                     e);
+            return null;
         }
     }
 
-    public ISourceFormatter getSourceFormatter(Language lang)
-            throws ServiceException {
+    public ISourceFormatter getSourceFormatter(Language lang) {
         try {
             return (ISourceFormatter) loadService(lang, FORMATTER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of FORMATTER_SERVICE does not implement ISourceFormatter",
                     e);
+            return null;
         }
     }
 
-    public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang)
-            throws ServiceException {
+    public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang) {
         try {
             return (ISourceHyperlinkDetector) loadService(lang,
                     HYPERLINK_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of HYPERLINK_SERVICE does not implement ISourceHyperlinkDetector",
                     e);
+            return null;
         }
     }
 
@@ -259,9 +263,10 @@ public class ServiceFactory {
         try {
             return (ILabelProvider) loadService(lang, LABEL_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of LABEL_PROVIDER_SERVICE does not implement ILabelProvider",
                     e);
+            return null;
         }
     }
 
@@ -270,9 +275,10 @@ public class ServiceFactory {
             return (OutlineContentProviderBase) loadService(lang,
                     OUTLINE_CONTENT_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of OUTLINE_CONTENT_PROVIDER_SERVICE does not implement OutlineContentProviderBase",
                     e);
+            return null;
         }
     }
 
@@ -288,9 +294,10 @@ public class ServiceFactory {
 
             return refactoringContribs;
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of SERVICE does not implement Set<ILanguageSerivice>",
                     e);
+            return null;
         }
     }
 
@@ -299,9 +306,10 @@ public class ServiceFactory {
             return (IReferenceResolver) loadService(lang,
                     REFERENCE_RESOLVER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of REFERENCE_RESOLVER_SERVICE does not implement IReferenceResolver",
                     e);
+            return null;
         }
     }
 
@@ -319,9 +327,10 @@ public class ServiceFactory {
 
             return actionContributors;
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of EDITOR_ACTION_SERVICE does not implement ILanguageActionConstributor",
                     e);
+            return null;
         }
     }
 
@@ -330,9 +339,10 @@ public class ServiceFactory {
             return (IDocumentationProvider) loadService(lang,
                     DOCUMENTATION_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of DOCUMENTATION_PROVIDER_SERVICE does not implement IDocumentationProvider",
                     e);
+            return null;
         }
     }
 
@@ -340,9 +350,10 @@ public class ServiceFactory {
         try {
             return (IOccurrenceMarker) loadService(lang, OCCURRENCE_MARKER);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of OCCURRENCE_MARKER does not implement IOccurrenceMarker",
                     e);
+            return null;
         }
     }
 
@@ -350,52 +361,63 @@ public class ServiceFactory {
         try {
             return (ILanguageSyntaxProperties) loadService(lang, SYNTAX_PROPS);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of SYNTAX_PROPS does not implement ILanguageSyntaxProperties",
                     e);
+            return null;
         }
     }
 
-    public IElementImageProvider getElementImageProvider(Language lang)
-            throws ServiceException {
+    public IElementImageProvider getElementImageProvider(Language lang) {
         try {
             return (IElementImageProvider) loadService(lang,
                     IMAGE_DECORATOR_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of IMAGE_DECORATOR_SERVICE does not implement IElementImageProvider",
                     e);
+            return null;
         }
     }
 
-    public IOutliner getOutliner(Language lang) throws ServiceException {
+    public IOutliner getOutliner(Language lang) {
         try {
             return (IOutliner) loadService(lang, OUTLINER_SERVICE);
         } catch (ClassCastException e) {
-            throw new ServiceException(
+            RuntimePlugin.getInstance().logException(
                     "Alleged implementation of OLD_OUTLINER_SERVICE does not implement IOutliner",
                     e);
+            return null;
         }
     }
 
-    private ILanguageService createExtensionPoint(Language lang, String id)
-            throws ServiceException {
-        return ExtensionFactory.createServiceExtension(lang, id);
+    private ILanguageService createExtension(Language lang, String id) {
+        try {
+            return ExtensionFactory.createServiceExtension(lang, id);
+        } catch (ExtensionException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Failed to create extension: " + id, e);
+            return null;
+        }
     }
 
-    private Set<ILanguageService> createExtensionPoints(Language lang, String id)
-            throws ServiceException {
-        return ExtensionFactory.createServiceExtensionSet(lang, id);
+    private Set<ILanguageService> createExtensions(Language lang, String id) {
+        try {
+          return ExtensionFactory.createServiceExtensionSet(lang, id);
+        } 
+        catch (ExtensionException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Failed to create set of extensions for: " + id, e);
+            return new HashSet<ILanguageService>();
+        }
     }
 
-    private Set<ILanguageService> loadServices(Language lang, String serviceId)
-            throws ServiceException {
-        return createExtensionPoints(lang, serviceId);
+    private Set<ILanguageService> loadServices(Language lang, String serviceId) {
+        return createExtensions(lang, serviceId);
     }
 
-    private ILanguageService loadService(Language lang, String name)
-            throws ServiceException {
-        return createExtensionPoint(lang, name);
+    private ILanguageService loadService(Language lang, String name) {
+        return createExtension(lang, name);
     }
 
 }

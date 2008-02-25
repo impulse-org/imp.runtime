@@ -17,7 +17,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
-import org.eclipse.imp.language.ServiceException;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 
@@ -40,10 +39,10 @@ public class ExtensionFactory {
      * @param language
      * @param extensionPointID
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     public static ILanguageService createServiceExtension(Language language,
-            String extensionPointID) throws ServiceException {
+            String extensionPointID) throws ExtensionException {
         return createServiceExtensionForPlugin(language, RuntimePlugin.IMP_RUNTIME,
                 extensionPointID);
     }
@@ -54,10 +53,10 @@ public class ExtensionFactory {
      * @param language
      * @param extensionPointID
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     public static Set<ILanguageService> createServiceExtensionSet(Language language,
-            String extensionPointID) throws ServiceException {
+            String extensionPointID) throws ExtensionException {
         return createServiceExtensionSetForPlugin(language, RuntimePlugin.IMP_RUNTIME,
                 extensionPointID);
     }
@@ -97,16 +96,16 @@ public class ExtensionFactory {
      * @param extensionPointId
      * @param elementName
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     public static ILanguageService createServiceExtensionForPlugin(
             Language language, String pluginID, String extensionPointId,
-            String elementName) throws ServiceException {
+            String elementName) throws ExtensionException {
         IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
                 .getExtensionPoint(pluginID, extensionPointId);
 
         if (extensionPoint == null) {
-            throw new ServiceException(
+            throw new ExtensionException(
                     "No such language service extension point defined: "
                             + pluginID + "." + extensionPointId);
         }
@@ -143,10 +142,10 @@ public class ExtensionFactory {
      * @param pluginID
      * @param extensionPointId
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     public static ILanguageService createServiceExtensionForPlugin(Language language,
-            String pluginID, String extensionPointId) throws ServiceException {
+            String pluginID, String extensionPointId) throws ExtensionException {
         return createServiceExtensionForPlugin(language, pluginID,
                 extensionPointId, "class");
     }
@@ -160,15 +159,15 @@ public class ExtensionFactory {
      * @param pluginID
      * @param extensionPointId
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     public static Set<ILanguageService> createServiceExtensionSetForPlugin(Language language,
-            String pluginID, String extensionPointId) throws ServiceException {
+            String pluginID, String extensionPointId) throws ExtensionException {
         IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
                 .getExtensionPoint(pluginID, extensionPointId);
 
         if (extensionPoint == null) {
-            throw new ServiceException(
+            throw new ExtensionException(
                     "No such language service extension point defined: "
                             + pluginID + "." + extensionPointId);
         }
@@ -239,11 +238,11 @@ public class ExtensionFactory {
      * @param extensionPoint
      * @param language
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     private static Set<ILanguageService> getLanguageServiceSet(
             IExtensionPoint extensionPoint, String language)
-            throws ServiceException {
+            throws ExtensionException {
         IConfigurationElement[] elements = extensionPoint
                 .getConfigurationElements();
         Set<ILanguageService> result = new HashSet<ILanguageService>();
@@ -270,11 +269,11 @@ public class ExtensionFactory {
      * @param language
      * @param elementName
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     private static ILanguageService getLanguageServiceForElement(
             IExtensionPoint extensionPoint, String language, String elementName)
-            throws ServiceException {
+            throws ExtensionException {
         IConfigurationElement[] elements = extensionPoint
                 .getConfigurationElements();
        
@@ -301,10 +300,10 @@ public class ExtensionFactory {
      * @param elementName
      * @param element
      * @return
-     * @throws ServiceException
+     * @throws ExtensionException
      */
     @SuppressWarnings("deprecation")
-    private static ILanguageService loadLanguageService(IExtensionPoint extensionPoint, String language, String elementName, IConfigurationElement element) throws ServiceException {
+    private static ILanguageService loadLanguageService(IExtensionPoint extensionPoint, String language, String elementName, IConfigurationElement element) throws ExtensionException {
         Bundle bundle = Platform.getBundle(element
                 .getDeclaringExtension().getNamespace());
         String lowerLang = language.toLowerCase();
@@ -319,11 +318,11 @@ public class ExtensionFactory {
                     return (ILanguageService) element
                             .createExecutableExtension(elementName);
                 } catch (ClassCastException e) {
-                    throw new ServiceException(
+                    throw new ExtensionException(
                             "Extension does not point to a class that implements an ILanguageService:"
                                     + element, e);
                 } catch (CoreException e) {
-                    throw new ServiceException(
+                    throw new ExtensionException(
                             "Unable to instantiate implementation of "
                                     + extensionPoint.getLabel()
                                     + " plugin for language '"
@@ -331,7 +330,7 @@ public class ExtensionFactory {
                                     + "' because of the following low level exception: "
                                     + e.getStatus().getException(), e);
                 } catch (NoClassDefFoundError e) {
-                    throw new ServiceException(
+                    throw new ExtensionException(
                             "Unable to instantiate implementation of "
                                     + extensionPoint.getLabel()
                                     + " plugin for language '"
@@ -352,7 +351,7 @@ public class ExtensionFactory {
      * @param the label of the attribute that contains the resource URL
      */
     @SuppressWarnings("deprecation")
-    public static URL crateResourceURL(String language,
+    public static URL createResourceURL(String language,
             IExtensionPoint extensionPoint, String label) {
         IConfigurationElement[] elements = extensionPoint
                 .getConfigurationElements();

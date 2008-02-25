@@ -431,7 +431,10 @@ public class ServiceFactory {
     }
 
     private ILanguageService loadService(Language lang, String name) {
+        if (lang == null) {
+            RuntimePlugin.getInstance().writeErrorMsg("No service for null language");
+            return null;
+        }
         return createExtension(lang, name);
     }
-
 }

@@ -2,7 +2,7 @@
 <version pluginID="org.eclipse.imp.runtime"
          versionID="3.2.72">
     <file path="/org.eclipse.imp.runtime/META-INF/MANIFEST.MF"
-          version="1.78"/>
+          version="1.79"/>
     <file path="/org.eclipse.imp.runtime/icons/IMP-editor.gif"
           version="1.2"/>
     <file path="/org.eclipse.imp.runtime/icons/file.GIF"

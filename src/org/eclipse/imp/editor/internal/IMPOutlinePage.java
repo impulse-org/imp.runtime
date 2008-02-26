@@ -100,7 +100,9 @@ public class IMPOutlinePage extends ContentOutlinePage implements
         super.createControl(parent);
         TreeViewer viewer= getTreeViewer();
         viewer.setContentProvider(fContentProvider);
-        viewer.setLabelProvider(fLabelProvider);
+        if (fLabelProvider != null) {
+            viewer.setLabelProvider(fLabelProvider);
+        }
         viewer.addSelectionChangedListener(this);
         ModelTreeNode rootNode= fModelBuilder.buildTree(fParseController.getCurrentAst());
         viewer.setInput(rootNode);

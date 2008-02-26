@@ -321,6 +321,12 @@ public class ExtensionFactory {
                     throw new ExtensionException(
                             "Extension does not point to a class that implements an ILanguageService:"
                                     + element, e);
+                } catch (IncompatibleClassChangeError e) {
+                    throw new ExtensionException("Unable to instantiate implementation of "
+                            + extensionPoint.getLabel()
+                            + " plugin for language '"
+                            + language
+                            + "' because some class in the plugin is incompatible (out-of-date)", e);
                 } catch (CoreException e) {
                     throw new ExtensionException(
                             "Unable to instantiate implementation of "
@@ -335,7 +341,7 @@ public class ExtensionFactory {
                                     + extensionPoint.getLabel()
                                     + " plugin for language '"
                                     + language
-                                    + "' because it may not have a public zero argument constructor, or it could not be found in the class path.",
+                                    + "' because it may not have a public zero argument constructor, or some class referenced by the plugin could not be found in the class path.",
                             e);
                 }
             }

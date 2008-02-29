@@ -77,6 +77,7 @@ import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IInformationControl;
@@ -101,6 +102,7 @@ import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.information.IInformationProvider;
 import org.eclipse.jface.text.information.IInformationProviderExtension;
 import org.eclipse.jface.text.information.InformationPresenter;
+import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
@@ -864,6 +866,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
 	    PresentationReconciler reconciler= new PresentationReconciler();
 	    reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
+            reconciler.setDamager(new IPresentationDamager() {
+
+                public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event, boolean documentPartitioningChanged) {
+                    return partition;
+                }
+
+                public void setDocument(IDocument document) {
+                    // TODO Auto-generated method stub
+                    
+                }
+                
+            }, IDocument.DEFAULT_CONTENT_TYPE);
 	    return reconciler;
 	}
 

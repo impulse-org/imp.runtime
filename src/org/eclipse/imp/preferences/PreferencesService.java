@@ -5,6 +5,7 @@
  */
 package org.eclipse.imp.preferences;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ISafeRunnable;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
@@ -552,9 +554,14 @@ public class PreferencesService implements IPreferencesService
         static {
             sParamMap.put("pluginLoc", new ParamEvaluator() {
                 public String getValue(String pluginID) {
-                    // TODO Decode what the platform spits out here: it's not a file system path
                     Bundle bundle= Platform.getBundle(pluginID);
-                    return bundle.getLocation();
+                    try {
+                        String bundleLoc= FileLocator.toFileURL(bundle.getResource("")).getFile();
+                        return bundleLoc;
+                    } catch (IOException e) {
+                        // TODO Figure out how to handle this error properly
+                    }
+                    return "";
                 }
             });
             sParamMap.put("pluginVersion", new ParamEvaluator() {

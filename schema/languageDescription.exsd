@@ -130,7 +130,7 @@ The class must extend the LanguageValidator class. The validate method will be c
 &lt;p&gt;
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.imp.core.LanguageValidator"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.language.LanguageValidator"/>
                </appInfo>
             </annotation>
          </attribute>

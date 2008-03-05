@@ -134,7 +134,9 @@ public abstract class SimpleLPGParseController implements IParseController
                     adjuncts= null;
             }
             public boolean hasNext() {
-                return curTokIdx < lastTokIdx - 1 || (curTokIdx == lastTokIdx - 1 && adjunctIdx >= 0);
+                //return curTokIdx < lastTokIdx - 1 || (curTokIdx == lastTokIdx - 1 && adjunctIdx >= 0);
+                return curTokIdx < lastTokIdx - 1 || (curTokIdx >= lastTokIdx - 1 && adjunctIdx >= 0 && 
+                		((adjuncts != null && adjunctIdx < adjuncts.length && adjuncts[adjunctIdx].getStartOffset() < offset + length && adjuncts[adjunctIdx].getEndOffset() > offset)));
             }
             public Object next() {
                 if (adjunctIdx >= 0) {

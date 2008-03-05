@@ -57,7 +57,7 @@ public class ErrorHandler {
 	if (showDialog) {
 	    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 		public void run() {
-		    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "SAFARI Error", message);
+		    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "IMP Error", message);
 		}
 	    });
 	}

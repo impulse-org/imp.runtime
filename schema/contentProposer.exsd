@@ -47,7 +47,7 @@
                   The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.IContentProposer"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.services.IContentProposer"/>
                </appInfo>
             </annotation>
          </attribute>

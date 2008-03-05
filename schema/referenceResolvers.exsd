@@ -57,7 +57,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.IReferenceResolver"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.services.IReferenceResolver"/>
                </appInfo>
             </annotation>
          </attribute>

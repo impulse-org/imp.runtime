@@ -52,7 +52,7 @@
                   The fully-qualified name for the class that implements IOutliner.
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.IOutliner"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.services.IOutliner"/>
                </appInfo>
             </annotation>
          </attribute>

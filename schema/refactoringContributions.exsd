@@ -57,7 +57,7 @@
                   
                </documentation>
                <appInfo>
-                  <meta.attribute kind="java" basedOn="org.eclipse.imp.editor.UniversalEditor$IRefactoringContributor"/>
+                  <meta.attribute kind="java" basedOn="org.eclipse.imp.services.IRefactoringContributor"/>
                </appInfo>
             </annotation>
          </attribute>

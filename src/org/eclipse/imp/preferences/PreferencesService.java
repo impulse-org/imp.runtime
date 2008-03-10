@@ -555,24 +555,33 @@ public class PreferencesService implements IPreferencesService
             sParamMap.put("pluginLoc", new ParamEvaluator() {
                 public String getValue(String pluginID) {
                     Bundle bundle= Platform.getBundle(pluginID);
+                    if (bundle == null) {
+                        return "<no such plugin: " + pluginID + ">";
+                    }
                     try {
-                        String bundleLoc= FileLocator.toFileURL(bundle.getResource("")).getFile();
+                        String bundleLoc= FileLocator.toFileURL(bundle.getEntry("")).getFile();
                         return bundleLoc;
                     } catch (IOException e) {
-                        // TODO Figure out how to handle this error properly
+                        return "<error determining location of plugin: " + pluginID + ">";
                     }
-                    return "";
+//                  Bundle[] fragments= Platform.getFragments(bundle);
                 }
             });
             sParamMap.put("pluginVersion", new ParamEvaluator() {
                 public String getValue(String pluginID) {
                     Bundle bundle= Platform.getBundle(pluginID);
+                    if (bundle == null) {
+                        return "<no such plugin: " + pluginID + ">";
+                    }
                     return (String) bundle.getHeaders().get("Bundle-Version");
                 }
             });
             sParamMap.put("projectLoc", new ParamEvaluator() {
                 public String getValue(String projectName) {
                     IProject project= getProjectFromName(projectName);
+                    if (project == null) {
+                        return "<no such project: " + projectName + ">";
+                    }
                     return project.getLocation().toPortableString();
                 }
             });
@@ -596,8 +605,9 @@ public class PreferencesService implements IPreferencesService
                     String param= pm.group(2);
 
                     ParamEvaluator e= sParamMap.get(id);
+                    String prefValue= (e != null) ? e.getValue(param) : ("<no such preference: " + id + ">");
 
-                    value= value.substring(0, pm.start()) + e.getValue(param) + value.substring(pm.end());
+                    value= value.substring(0, pm.start()) + prefValue + value.substring(pm.end());
                 } else {
                     Matcher sm= sSimpleSubstRegexp.matcher(value);
                     if (sm.find(0)) {

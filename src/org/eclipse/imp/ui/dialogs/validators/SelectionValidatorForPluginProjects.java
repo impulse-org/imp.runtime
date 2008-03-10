@@ -8,11 +8,11 @@ public class SelectionValidatorForPluginProjects implements ISelectionValidator 
 
 	public String isValid(Object selection) {
 		if (!(selection instanceof IProject))
-			return "SelectionValidatorForPluginProjects:  selection is not a project";
+			return "Selection is not a project";
 		if (!ValidationUtils.isJavaProject((IProject) selection))
-			return "SelectionValidatorForPluginProjects:  selection is not a Java project";
+			return "Selection is not a Java project";
 		if (!ValidationUtils.isPluginProject((IProject) selection)) {
-			return "SelectionValidatorForPluginProjects:  selection is not a plug-in project";
+			return "Selection is not a plug-in project";
 		}
 		return null;
 	}

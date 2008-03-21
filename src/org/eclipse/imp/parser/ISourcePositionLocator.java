@@ -45,8 +45,11 @@ public interface ISourcePositionLocator
     /**
      * @param entity the program entity, e.g. AST node, token, or some
      * kind of type system object
-     * @return the offset, in characters, of the end of the textual extent
-     * spanned by the given entity
+     * @return the offset, in characters, of the end of the textual extent spanned by the given entity 
+     * It should be the character offset of the last character of the token,
+     * equivalent to <code>getStartOffset() + getLength() - 1</code>
+     * 
+     * 
      */
     int getEndOffset(Object node);
 

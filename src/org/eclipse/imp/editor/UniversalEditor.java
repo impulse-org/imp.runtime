@@ -1164,14 +1164,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	protected IStatus run(IProgressMonitor monitor) {
-	    if (parseController == null)
-		return Status.OK_STATUS;
+	    if (parseController == null || getDocumentProvider() == null) {
+	    	/* Editor was closed, or no parse controller */
+		  return Status.OK_STATUS;
+	    }
+	    
 	    try {
 		IEditorInput editorInput= getEditorInput();
 		IFile file= null;
 		IDocument document= null;
 		IPath filePath= null;
-
+		
 		if (editorInput instanceof IFileEditorInput) {
 		    IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
 		    document= getDocumentProvider().getDocument(fileEditorInput);

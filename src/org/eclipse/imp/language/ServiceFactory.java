@@ -67,58 +67,59 @@ import org.eclipse.imp.utils.ExtensionException;
 public class ServiceFactory {
     private static ServiceFactory sInstance;
 
-    String AUTO_EDIT_SERVICE = "autoEditStrategy";
+	public static final String AUTO_EDIT_SERVICE = "autoEditStrategy";
 
-    String ANNOTATION_HOVER_SERVICE = "annotationHover";
+	public static final String ANNOTATION_HOVER_SERVICE = "annotationHover";
 
-    String AST_ADAPTER_SERVICE = "astAdapter";
+	public static final String AST_ADAPTER_SERVICE = "astAdapter";
 
-    String CONTENT_PROPOSER_SERVICE = "contentProposer";
+	public static final String CONTENT_PROPOSER_SERVICE = "contentProposer";
 
-    String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
+	public static final String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
 
-    String EDITOR_ACTION_SERVICE = "editorActionContributions";
+	public static final String EDITOR_ACTION_SERVICE = "editorActionContributions";
 
-    String FOLDING_SERVICE = "foldingUpdater";
+	public static final String FOLDING_SERVICE = "foldingUpdater";
 
-    String FORMATTER_SERVICE = "formatter";
+	public static final String FORMATTER_SERVICE = "formatter";
 
-    String HOVER_HELPER_SERVICE = "hoverHelper";
+	public static final String HOVER_HELPER_SERVICE = "hoverHelper";
 
-    String HYPERLINK_SERVICE = "hyperLink";
+	public static final String HYPERLINK_SERVICE = "hyperLink";
 
-    String IMAGE_DECORATOR_SERVICE = "imageDecorator";
+	public static final String IMAGE_DECORATOR_SERVICE = "imageDecorator";
 
-    String INDEX_CONTRIBUTOR_SERVICE = "indexContributor";
+	public static final String INDEX_CONTRIBUTOR_SERVICE = "indexContributor";
 
-    String LABEL_PROVIDER_SERVICE = "labelProvider";
+	public static final String LABEL_PROVIDER_SERVICE = "labelProvider";
 
-    String LISTENER_SERVICE = "modelListener";
+	public static final String LISTENER_SERVICE = "modelListener";
 
-    String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
+	public static final String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
 
-    String OCCURRENCE_MARKER = "markOccurrences";
+	public static final String OCCURRENCE_MARKER = "markOccurrences";
 
-    String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
+	public static final String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
 
-    String OUTLINER_SERVICE = "outliner";
+	public static final String OUTLINER_SERVICE = "outliner";
 
-    String PARSER_SERVICE = "parser";
+	public static final String PARSER_SERVICE = "parser";
 
-    String PREFERENCES_SERVICE = "preferencesDialog";
+	public static final String PREFERENCES_SERVICE = "preferencesDialog";
 
-    String PREFERENCES_SPECIFICATION = "preferencesSpecification";
+	public static final String PREFERENCES_SPECIFICATION = "preferencesSpecification";
 
-    String REFACTORING_CONTRIBUTIONS_SERVICE = "refactoringContributions";
+	public static final String REFACTORING_CONTRIBUTIONS_SERVICE = "refactoringContributions";
 
-    String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
+	public static final String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
 
-    String SYNTAX_PROPS = "syntaxProps";
+	public static final String SYNTAX_PROPS = "syntaxProps";
 
-    String TOKEN_COLORER_SERVICE = "tokenColorer";
+	public static final String TOKEN_COLORER_SERVICE = "tokenColorer";
 
-    String VIEWER_FILTER_SERVICE = "viewerFilter";
-
+	public static final String VIEWER_FILTER_SERVICE = "viewerFilter";
+    
+ 
     protected ServiceFactory() {
     }
 
@@ -135,6 +136,10 @@ public class ServiceFactory {
             sInstance = new ServiceFactory();
         }
         return sInstance;
+    }
+    
+    public static ServiceFactory otherGetInstance() {
+    	return sInstance;
     }
 
     public IContentProposer getContentProposer(Language lang) {

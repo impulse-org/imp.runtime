@@ -13,6 +13,7 @@
 package org.eclipse.imp.preferences;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -572,6 +573,40 @@ public class PreferencesService implements IPreferencesService
                         return "<error determining location of plugin: " + pluginID + ">";
                     }
 //                  Bundle[] fragments= Platform.getFragments(bundle);
+                }
+            });
+            sParamMap.put("pluginResource", new ParamEvaluator() {
+                public String getValue(String pluginResourceLoc) {
+                    int idx= pluginResourceLoc.indexOf('/');
+                    if (idx <= 0) {
+                        return "<error in pluginResource specification: no plugin ID found: " + pluginResourceLoc + ">";
+                    }
+                    String pluginID= pluginResourceLoc.substring(0, idx);
+                    String resourcePath= pluginResourceLoc.substring(idx+1);
+                    Bundle bundle= Platform.getBundle(pluginID);
+                    if (bundle == null) {
+                        return "<no such plugin: " + pluginID + ">";
+                    }
+                    try {
+                        URL resourceEntry= bundle.getEntry(resourcePath);
+                        if (resourceEntry == null) {
+                            Bundle[] fragments= Platform.getFragments(bundle);
+                            for(int i= 0; i < fragments.length; i++) {
+                                Bundle bundleFrag= fragments[i];
+                                resourceEntry= bundleFrag.getEntry(resourcePath);
+                                if (resourceEntry != null) {
+                                    break;
+                                }
+                            }
+                        }
+                        if (resourceEntry == null) {
+                            return "<error: no resource '" + resourcePath + "' in plugin " + pluginID + " or its fragments>";
+                        }
+                        String resourceLoc= FileLocator.toFileURL(resourceEntry).getFile();
+                        return resourceLoc;
+                    } catch (IOException e) {
+                        return "<error determining location of plugin: " + pluginID + ">";
+                    }
                 }
             });
             sParamMap.put("pluginVersion", new ParamEvaluator() {

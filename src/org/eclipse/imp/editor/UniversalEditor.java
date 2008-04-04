@@ -150,9 +150,8 @@ import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
- * An Eclipse editor. This editor is not enhanced using API. Instead, we publish extension points for outline, content assist, hover help, etc.
- * 
- * Credits go to Martin Kersten and Bob Foster for guiding the good parts of this design. Sole responsiblity for the bad parts rest with Chris Laffra.
+ * An Eclipse editor, which is not enhanced using API; rather, we publish extension
+ * points for outline, content assist, hover help, etc.
  * 
  * @author Chris Laffra
  * @author Robert M. Fuhrer
@@ -169,14 +168,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public static final String EDITOR_ID= RuntimePlugin.IMP_RUNTIME + ".impEditor";
 
     public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.imp.editor.parseAnnotation";
-
-    private static final String ERROR_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.error";
-
-    private static final String WARNING_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.warning";
-
-    private static final String INFO_ANNOTATION_TYPE= "org.eclipse.ui.workbench.texteditor.info";
-
-    private static final String DEBUG_ANNOTATION_TYPE= "org.eclipse.debug.core.breakpoint";
 
     private ServiceFactory fServiceRegistry = ServiceFactory.getInstance();
     

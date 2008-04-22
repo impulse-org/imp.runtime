@@ -25,6 +25,7 @@ public abstract class TreeModelBuilderBase implements ILanguageService {
     public final ModelTreeNode buildTree(Object rootASTNode) {
         fItemStack.push(fModelRoot= createTopItem(new ModelTreeNode(rootASTNode)));
         visitTree(rootASTNode);
+        fItemStack.pop();
         return fModelRoot;
     }
 

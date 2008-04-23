@@ -61,7 +61,11 @@ import org.osgi.framework.Bundle;
  * Registry for IMP language contributors.
  */
 @SuppressWarnings("restriction")
-public class LanguageRegistry {
+public class LanguageRegistry
+{
+	private static Object statusCheckMutex = new Object();
+	private static boolean isFullyInitialized = false;
+	
 	private static Map<String, Language> fRegister;
 
 	private static final String EXTENSION = "languageDescription";
@@ -70,36 +74,50 @@ public class LanguageRegistry {
 
 	private static EditorRegistry editorRegistry;
 
+	
+	/*
+	 * No one should instantiate this class.
+	 * TODO:  Perhaps should be a singleton class.
+	 */
+	private LanguageRegistry() {}
+	
+
+	private static Map<String, Language> getRegister() {
+		if(fRegister == null) {
+			fRegister = new HashMap<String, Language>();
+		}
+		return fRegister;
+	}
+	
+	
 	/**
 	 * Initialize the registry. Discover all contributors to the
 	 * languageDescription extension point. The registry will not be fully
 	 * initialized until the registerLanguages() method has been called.
 	 */
-	static {
-		try {
-			fRegister = new HashMap<String, Language>();
-
+	private static void preInitEditorRegistry() {
+	 	try {
 			editorRegistry = (EditorRegistry) PlatformUI.getWorkbench()
 					.getEditorRegistry();
 			initializeUniversalEditorDescriptor(editorRegistry);
-
+	
 			IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
 					.getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
-
+	
 			if (extensionPoint == null) {
 				ErrorHandler
-						.reportError("Nonexistent extension point called \""
-								+ RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
+						.reportError("Nonexistent extension point called \"" +
+						 RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
 			} else {
 				IConfigurationElement[] elements = extensionPoint
 						.getConfigurationElements();
-
+	
 				if (elements != null) {
 					for (IConfigurationElement element : elements) {
 						Bundle bundle = Platform.getBundle(element
 								.getDeclaringExtension()
 								.getNamespaceIdentifier());
-
+	
 						if (bundle != null) {
 							register(new Language(element));
 						}
@@ -123,6 +141,8 @@ public class LanguageRegistry {
 	 *         extension/content
 	 */
 	public static Language findLanguage(IEditorInput editorInput) {
+		if (!isFullyInitialized)
+			registerLanguages();
 		Language result = null;
 
 		if (editorInput instanceof IFileEditorInput) {
@@ -135,21 +155,21 @@ public class LanguageRegistry {
 			IStorageEditorInput storageEditorInput = (IStorageEditorInput) editorInput;
 			result = doFindLanguage(storageEditorInput);
 		} else {
-			ErrorHandler.reportError("Unexpected type of IEditorInput: "
-					+ editorInput.getClass().getName());
+			ErrorHandler.reportError("Unexpected type of IEditorInput: " +
+			 editorInput.getClass().getName());
 		}
 
 		return result;
 	}
 
-	private static Language doFindLanguage(
-			IStorageEditorInput storageEditorInput) {
+	private static Language doFindLanguage(IStorageEditorInput storageEditorInput)
+	{
 		try {
 			IPath path = storageEditorInput.getStorage().getFullPath();
 			return findLanguage(path, null);
 		} catch (CoreException e) {
-			ErrorHandler.reportError("Determining language of editor input "
-					+ storageEditorInput.getName());
+			ErrorHandler.reportError("Determining language of editor input " +
+			storageEditorInput.getName());
 			return null;
 		}
 	}
@@ -170,8 +190,8 @@ public class LanguageRegistry {
 
 		if (PreferenceCache.emitMessages)
 			RuntimePlugin.getInstance().writeInfoMsg(
-					"Determining language of file "
-							+ file.getFullPath().toString());
+					"Determining language of file " +
+					 file.getFullPath().toString());
 		path = file.getLocation();
 		if (path == null) {
 			path = file.getFullPath();
@@ -191,6 +211,8 @@ public class LanguageRegistry {
 	 */
 	public static Language findLanguage(IPath path, IFile file) {
 		// TODO: use Eclipse content type instead
+		if (!isFullyInitialized())
+			registerLanguages();
 		String extension = path.getFileExtension();
 
 		// N.B. It's ok for multiple language descriptors to specify the same
@@ -199,7 +221,7 @@ public class LanguageRegistry {
 		// the dialects.
 
 		if (extension != null) {
-			for (Language lang : fRegister.values()) {
+			for (Language lang : getRegister().values()) {
 				if (lang.hasExtension(extension)) {
 					LanguageValidator validator = lang.getValidator();
 
@@ -216,19 +238,21 @@ public class LanguageRegistry {
 
 		if (PreferenceCache.emitMessages) {
 			RuntimePlugin.getInstance().writeInfoMsg(
-					"No language support for text/source file of type '"
-							+ extension + "'.");
+					"No language support for text/source file of type '" +
+					 extension + "'.");
 		} else {
 			ErrorHandler
-					.reportError("No language support for text/source file of type '"
-							+ extension + "'.");
+					.reportError("No language support for text/source file of type '" +
+					 extension + "'.");
 		}
 
 		return null;
 	}
 
 	public static Language findLanguageByNature(String natureID) {
-		for (Language lang : fRegister.values()) {
+		if (!isFullyInitialized())
+			registerLanguages();
+		for (Language lang : getRegister().values()) {
 			String aNatureID = lang.getNatureID();
 
 			if (aNatureID != null && aNatureID.equals(natureID)) {
@@ -238,14 +262,19 @@ public class LanguageRegistry {
 		return null;
 	}
 
-	public static Collection<Language> getLanguages() {
-		return Collections.unmodifiableCollection(fRegister.values());
-	}
-
-	public static Language findLanguage(String languageName) {
-		return fRegister.get(languageName.toLowerCase());
-	}
-
+ 	public static Collection<Language> getLanguages() {
+		if (!isFullyInitialized())
+			registerLanguages();
+ 		return Collections.unmodifiableCollection(getRegister().values());
+ 	}
+ 		 
+ 	public static Language findLanguage(String languageName) {
+		if (!isFullyInitialized())
+			registerLanguages();
+ 		return getRegister().get(languageName.toLowerCase());
+ 	}
+	
+	
 	/**
 	 * Registers a language dynamically (as opposed to using an extension
 	 * point). This binds the file extensions associated with the language to
@@ -254,38 +283,65 @@ public class LanguageRegistry {
 	 * @param language
 	 */
 	public static void registerLanguage(Language language) {
+		if (!isFullyInitialized())
+			registerLanguages();
 		register(language);
 
 		List<IFileEditorMapping> mappings = new ArrayList<IFileEditorMapping>();
-
-		Collections.addAll(mappings, editorRegistry.getFileEditorMappings());
+		Collections.addAll(mappings, getEditorRegistry().getFileEditorMappings());
 		addUniversalEditorMappings(language.getFilenameExtensions(), mappings);
 		updateEditorRegistry(mappings);
 	}
 
+	private static EditorRegistry getEditorRegistry() {
+		return editorRegistry;
+	}
+	
 	/**
 	 * Removes stale registrations and then registers all languages declared
 	 * using the IMP languageDescription extension point. The file extensions of
 	 * all registered languages are bound to the IMP universal editor.
 	 * 
-	 * This methods is called at earlyStartup time to initialize the registry.
+	 * This method is called at earlyStartup time to initialize the registry.
+	 * It is also called from wihtin UniversalEditor.createPartControl(..)
+	 * (probably as a way to make sure that the registry is initialized if it
+	 * hasn't been already).  It is also called from various accessor methods
+	 * of the LanguageRegistry class to similarly assure that the registry is
+	 * initialized.
+	 * 
+	 * To prevent thread access errors and other possible concurency conflicts,
+	 * this method executes within a synchronized block.  It both tests and sets
+	 * isFullyInitialized within this block, as a means to assure that the registry
+	 * will be initialized serially and only once.  Although isFullyInitialized
+	 * can be tested from anywhere, this is the only place that it should be set.
 	 */
-	public static void registerLanguages() {
-		if (PreferenceCache.emitMessages) {
-			RuntimePlugin.getInstance().writeInfoMsg(
-					"Looking for IMP language description extensions...");
-		}
+	// TODO:  change name to something like BuildRegistryIfNeeded()
+	public static void registerLanguages()
+	{	
+		synchronized(statusCheckMutex) {
+			if(isFullyInitialized()) {
+				return;
+			}
+			preInitEditorRegistry();
+			
+			if (PreferenceCache.emitMessages) {
+				RuntimePlugin.getInstance().writeInfoMsg(
+						"Looking for IMP language description extensions...");
+			}
+	
+			List<String> langExtens = collectAllLanguageFileNameExtensions();
+			List<IFileEditorMapping> newMap = new ArrayList<IFileEditorMapping>();
+			
+			addNonUniversalEditorMappings(newMap);
+			addUniversalEditorMappings(langExtens, newMap);
+			updateEditorRegistry(newMap);
 
-		List<String> langExtens = collectAllLanguageFileNameExtensions();
-		List<IFileEditorMapping> newMap = new ArrayList<IFileEditorMapping>();
-		
-		addNonUniversalEditorMappings(newMap);
-		addUniversalEditorMappings(langExtens, newMap);
-		updateEditorRegistry(newMap);
+			setFullyInitialized();
+		}
 	}
 
 	private static void addNonUniversalEditorMappings(List<IFileEditorMapping> newMap) {
-		for (IFileEditorMapping mapping : editorRegistry
+		for (IFileEditorMapping mapping : getEditorRegistry()
 				.getFileEditorMappings()) {
 			IEditorDescriptor defaultEditor = mapping.getDefaultEditor();
 			if (defaultEditor == null
@@ -296,7 +352,7 @@ public class LanguageRegistry {
 	}
 
 	/**
-	 * Adds new mappings to the unversial editor for a set of extensions
+	 * Adds new mappings to the universal editor for a set of extensions
 	 * @param extensions
 	 * @param newMap
 	 */
@@ -313,16 +369,16 @@ public class LanguageRegistry {
 	 * Commits a new list of editor mappings to the editorRegistry
 	 * @param newMap
 	 */
-	private static void updateEditorRegistry(List<IFileEditorMapping> newMap) {
-		editorRegistry.setFileEditorMappings(newMap
-				.toArray(new FileEditorMapping[newMap.size()]));
-		editorRegistry.saveAssociations();
+	private static void updateEditorRegistry(final List<IFileEditorMapping> newMap) {
+		getEditorRegistry().setFileEditorMappings(newMap.toArray(new FileEditorMapping[newMap.size()]));
+		getEditorRegistry().saveAssociations();
+
 	}
 
 	private static List<String> collectAllLanguageFileNameExtensions() {
 		List<String> allExtens = new ArrayList<String>();
 
-		for (Language lang : fRegister.values()) {
+		for (Language lang : getRegister().values()) {
 			allExtens.addAll(lang.getFilenameExtensions());
 		}
 
@@ -330,7 +386,8 @@ public class LanguageRegistry {
 	}
 
 	private static void initializeUniversalEditorDescriptor(
-			EditorRegistry editorRegistry) {
+			EditorRegistry editorRegistry)
+	{
 		final IEditorDescriptor[] allEditors = editorRegistry
 				.getSortedEditorsFromPlugins();
 
@@ -340,11 +397,10 @@ public class LanguageRegistry {
 
 				if (PreferenceCache.emitMessages) {
 					RuntimePlugin.getInstance().writeInfoMsg(
-							"Universal editor descriptor: "
-									+ universalEditor.getId() + ":"
-									+ universalEditor.getLabel());
+							"Universal editor descriptor: " +
+							 universalEditor.getId() + ":" +
+							 universalEditor.getLabel());
 				}
-
 				return;
 			}
 		}
@@ -356,11 +412,22 @@ public class LanguageRegistry {
 	}
 
 	private static void register(Language language) {
-		fRegister.put(language.getName().toLowerCase(), language);
-
+		getRegister().put(language.getName().toLowerCase(), language);
+		
 		if (PreferenceCache.emitMessages) {
 			RuntimePlugin.getInstance().writeInfoMsg(
 					"Registered language description: " + language.getName());
 		}
 	}
+	
+	
+	private static void setFullyInitialized() {
+			isFullyInitialized = true;
+	}
+	
+	private static boolean isFullyInitialized() {
+			return isFullyInitialized;
+	}
+
+	
 }

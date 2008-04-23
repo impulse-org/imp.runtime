@@ -93,6 +93,6 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     }
 
     public void earlyStartup() {
-	LanguageRegistry.registerLanguages();
+	LanguageRegistry.initializeRegistryAsNeeded();
     }
 }

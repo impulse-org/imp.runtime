@@ -142,7 +142,7 @@ public class LanguageRegistry
 	 */
 	public static Language findLanguage(IEditorInput editorInput) {
 		if (!isFullyInitialized)
-			registerLanguages();
+			initializeRegistryAsNeeded();
 		Language result = null;
 
 		if (editorInput instanceof IFileEditorInput) {
@@ -212,7 +212,7 @@ public class LanguageRegistry
 	public static Language findLanguage(IPath path, IFile file) {
 		// TODO: use Eclipse content type instead
 		if (!isFullyInitialized())
-			registerLanguages();
+			initializeRegistryAsNeeded();
 		String extension = path.getFileExtension();
 
 		// N.B. It's ok for multiple language descriptors to specify the same
@@ -251,7 +251,7 @@ public class LanguageRegistry
 
 	public static Language findLanguageByNature(String natureID) {
 		if (!isFullyInitialized())
-			registerLanguages();
+			initializeRegistryAsNeeded();
 		for (Language lang : getRegister().values()) {
 			String aNatureID = lang.getNatureID();
 
@@ -264,13 +264,13 @@ public class LanguageRegistry
 
  	public static Collection<Language> getLanguages() {
 		if (!isFullyInitialized())
-			registerLanguages();
+			initializeRegistryAsNeeded();
  		return Collections.unmodifiableCollection(getRegister().values());
  	}
  		 
  	public static Language findLanguage(String languageName) {
 		if (!isFullyInitialized())
-			registerLanguages();
+			initializeRegistryAsNeeded();
  		return getRegister().get(languageName.toLowerCase());
  	}
 	
@@ -284,7 +284,7 @@ public class LanguageRegistry
 	 */
 	public static void registerLanguage(Language language) {
 		if (!isFullyInitialized())
-			registerLanguages();
+			initializeRegistryAsNeeded();
 		register(language);
 
 		List<IFileEditorMapping> mappings = new ArrayList<IFileEditorMapping>();
@@ -315,8 +315,7 @@ public class LanguageRegistry
 	 * will be initialized serially and only once.  Although isFullyInitialized
 	 * can be tested from anywhere, this is the only place that it should be set.
 	 */
-	// TODO:  change name to something like BuildRegistryIfNeeded()
-	public static void registerLanguages()
+	public static void initializeRegistryAsNeeded()
 	{	
 		synchronized(statusCheckMutex) {
 			if(isFullyInitialized()) {

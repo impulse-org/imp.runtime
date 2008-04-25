@@ -36,6 +36,7 @@ import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
@@ -369,9 +370,12 @@ public class LanguageRegistry
 	 * @param newMap
 	 */
 	private static void updateEditorRegistry(final List<IFileEditorMapping> newMap) {
-		getEditorRegistry().setFileEditorMappings(newMap.toArray(new FileEditorMapping[newMap.size()]));
-		getEditorRegistry().saveAssociations();
-
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				getEditorRegistry().setFileEditorMappings(newMap.toArray(new FileEditorMapping[newMap.size()]));
+				getEditorRegistry().saveAssociations();
+			}
+		});
 	}
 
 	private static List<String> collectAllLanguageFileNameExtensions() {

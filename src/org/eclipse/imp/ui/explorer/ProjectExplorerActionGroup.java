@@ -24,7 +24,8 @@ import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IOpenable;
 import org.eclipse.jdt.internal.ui.packageview.ToggleLinkingAction;
 import org.eclipse.jdt.internal.ui.wizards.buildpaths.newsourcepage.GenerateBuildPathActionGroup;
-import org.eclipse.jdt.internal.ui.workingsets.WorkingSetActionGroup;
+//import org.eclipse.jdt.internal.ui.workingsets.WorkingSetActionGroup;
+import org.eclipse.jdt.internal.ui.workingsets.WorkingSetShowActionGroup;	// SMS 26 Apr 2008 backport from 3.3 patches
 import org.eclipse.jdt.ui.IContextMenuConstants;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.BuildActionGroup;
@@ -129,7 +130,9 @@ public class ProjectExplorerActionGroup extends CompositeActionGroup {
                 fCustomFiltersActionGroup= new CustomFiltersActionGroup(fPart, viewer),
                 new LayoutActionGroup(fPart),
                 // the working set action group must be created after the project action group
-                new WorkingSetActionGroup(fPart)
+            	// SMS 26 Apr 2008 backport from 3.3 patches
+                //new WorkingSetActionGroup(fPart) 
+                new WorkingSetShowActionGroup(site)
         });
         fViewActionGroup.fillFilters(viewer);
         ExplorerFrameSource frameSource= new ExplorerFrameSource(fPart);

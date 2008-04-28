@@ -13,6 +13,7 @@
 package org.eclipse.imp.ui.explorer;
 
 import java.util.Iterator;
+
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
@@ -24,6 +25,7 @@ import org.eclipse.imp.model.ISourceFolder;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.ui.ActionMessages;
 import org.eclipse.jdt.core.ICompilationUnit;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
 import org.eclipse.jdt.internal.ui.actions.ActionUtil;
 import org.eclipse.jdt.ui.actions.SelectionDispatchAction;
@@ -132,14 +134,26 @@ public class OpenAction extends SelectionDispatchAction {
         run(new Object[] { element });
     }
 
+//    private boolean isProcessable() {
+//        if (fEditor != null) {
+//            ISourceEntity se= EditorUtility.getEditorInputModelElement(fEditor, false);
+//            if (se instanceof ICompilationUnit && !JavaModelUtil.isPrimary((ICompilationUnit) se))
+//                return true; // can process non-primary working copies
+//        }
+//        return ActionUtil.isProcessable(getShell(), fEditor);
+//    }
+    
     private boolean isProcessable() {
-        if (fEditor != null) {
-            ISourceEntity se= EditorUtility.getEditorInputModelElement(fEditor, false);
-            if (se instanceof ICompilationUnit && !JavaModelUtil.isPrimary((ICompilationUnit) se))
-                return true; // can process non-primary working copies
-        }
-        return ActionUtil.isProcessable(getShell(), fEditor);
+    	ISourceEntity se= EditorUtility.getEditorInputModelElement(fEditor, false);
+    		if (fEditor != null) {
+    			if (se instanceof ICompilationUnit && !JavaModelUtil.isPrimary((ICompilationUnit) se))
+    				return true; // can process non-primary working copies
+    		} else if(se instanceof IJavaElement) {
+    			return ActionUtil.isProcessable(getShell(), (IJavaElement)se);
+    		}
+    		return false;
     }
+
 
     /*
      * (non-Javadoc) Method declared on SelectionDispatchAction.

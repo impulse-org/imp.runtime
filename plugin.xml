@@ -113,11 +113,11 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
-      <key
+      <!--key
             commandId="org.eclipse.imp.runtime.formatSource"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+F"/>
+            sequence="M1+M2+F"/-->
    </extension>
    <extension
          point="org.eclipse.ui.commands">

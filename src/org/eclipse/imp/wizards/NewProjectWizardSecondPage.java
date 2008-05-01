@@ -71,7 +71,9 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
      */
     public void performFinish(IProgressMonitor monitor) throws CoreException, InterruptedException {
 	try {
-	    monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_create, 3);
+	    //monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_create, 3);  // <= 3.3
+	    //monitor.beginTask(NewWizardMessages.NewJavaProjectWizardPageTwo_operation_create, 3);	 // >= 3.4
+		monitor.beginTask("Creating project...", 3);
 	    if (fCurrProject == null) {
 		updateProject(new SubProgressMonitor(monitor, 1));
 	    }
@@ -102,7 +104,9 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
 	    monitor= new NullProgressMonitor();
 	}
 	try {
-	    monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize, 7);
+	    //monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize, 7);  // <= 3.3
+	    monitor.beginTask(NewWizardMessages.NewJavaProjectWizardPageTwo_operation_initialize, 7);	 // >= 3.4
+	    monitor.beginTask("Initializing project...", 7);
 	    if (monitor.isCanceled()) {
 		throw new OperationCanceledException();
 	    }

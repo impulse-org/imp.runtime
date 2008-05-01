@@ -269,21 +269,29 @@ public class NewProjectWizardFirstPage extends WizardPage {
 	    fGroup.setFont(composite.getFont());
 	    fGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 	    fGroup.setLayout(initGridLayout(new GridLayout(3, false), true));
-	    fGroup.setText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_title);
-
+	    //fGroup.setText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_title); 	// <= 3.3
+	    //fGroup.setText(NewWizardMessages.NewJavaProjectWizardPageOne_LayoutGroup_title);	// >= 3.4
+	    fGroup.setText("Project layout");
+	    
 	    fStdRadio= new SelectionButtonDialogField(SWT.RADIO);
-	    fStdRadio.setLabelText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_option_oneFolder);
+	    //fStdRadio.setLabelText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_option_oneFolder);	// <= 3.3
+	    //fStdRadio.setLabelText(NewWizardMessages.NewJavaProjectWizardPageOne_LayoutGroup_option_oneFolder);	// >= 3.4
+	    fStdRadio.setLabelText("&Use project folder as root for sources and class files");
 
 	    fSrcBinRadio= new SelectionButtonDialogField(SWT.RADIO);
-	    fSrcBinRadio.setLabelText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_option_separateFolders);
-
+	    //fSrcBinRadio.setLabelText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_option_separateFolders);	// <= 3.3
+	    //fSrcBinRadio.setLabelText(NewWizardMessages.NewJavaProjectWizardPageOne_LayoutGroup_option_separateFolders);	// >= 3.4
+	    fSrcBinRadio.setLabelText("&Create separate folders for sources and class files");
+	    
 	    fStdRadio.doFillIntoGrid(fGroup, 3);
 	    LayoutUtil.setHorizontalGrabbing(fStdRadio.getSelectionButton(null));
 
 	    fSrcBinRadio.doFillIntoGrid(fGroup, 2);
 
 	    fPreferenceLink= new Link(fGroup, SWT.NONE);
-	    fPreferenceLink.setText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_link_description);
+	    //fPreferenceLink.setText(NewWizardMessages.JavaProjectWizardFirstPage_LayoutGroup_link_description);	// <= 3.3
+	    //fPreferenceLink.setText(NewWizardMessages.NewJavaProjectWizardPageOne_LayoutGroup_link_description);	// >= 3.4
+	    fPreferenceLink.setText("<a>Configure d&efault...</a>");
 	    fPreferenceLink.setLayoutData(new GridData(GridData.END, GridData.END, false, false));
 	    fPreferenceLink.addSelectionListener(this);
 

@@ -40,14 +40,14 @@ public abstract class FolderBase implements IFoldingUpdater
 	// For recording annotations
 	
 	// Maps new annotations to positions
-    protected HashMap newAnnotations = new HashMap();
+    protected HashMap<Annotation,Position> newAnnotations = new HashMap<Annotation, Position>();
     // Lists the new annotations, which are the keys for newAnnotations
-    protected List annotations = new ArrayList();
+    protected List<Annotation> annotations = new ArrayList<Annotation>();
 
     protected IParseController parseController = null;
     
     // Methods to make annotations will be called by visitor methods
-    // in the language-specific concrete subtype    
+    // in the language-specific concrete subtype
     
     /**
      * Make a folding annotation that corresponds to the extent of text
@@ -103,7 +103,7 @@ public abstract class FolderBase implements IFoldingUpdater
 	// changed between invocations of updateFoldingStructure
 	// (because, if they haven't, then it's probably best not
 	// to update the folding structure)
-	private ArrayList oldAnnotationsList = null;
+	private ArrayList<Annotation> oldAnnotationsList = null;
   	private Annotation[] oldAnnotationsArray;
 
   	
@@ -162,11 +162,11 @@ public abstract class FolderBase implements IFoldingUpdater
 				// be more or less simple, efficient, correct, etc.  (The
 				// default test provided below is simplistic although quick and
 				// usually effective.)
-				updateNeeded = differ(oldAnnotationsList, (ArrayList) annotations);	
+				updateNeeded = differ(oldAnnotationsList, annotations);
 			}
 			if (updateNeeded) {
 				// Save the current annotations to compare for changes the next time
-				oldAnnotationsList = new ArrayList();
+				oldAnnotationsList = new ArrayList<Annotation>();
 				for (int i = 0; i < annotations.size(); i++) {
 					oldAnnotationsList.add(annotations.get(i));	
 				}
@@ -179,7 +179,7 @@ public abstract class FolderBase implements IFoldingUpdater
 			// (unless those were curtailed)
 			if (updateNeeded) {
 				annotationModel.modifyAnnotations(oldAnnotationsArray, newAnnotations, null);
-				// Capture the latest set of annotations in a form that can be used tne next
+				// Capture the latest set of annotations in a form that can be used the next
 				// time that it is necessary to modify the annotations
 				oldAnnotationsArray = (Annotation[]) annotations.toArray(new Annotation[annotations.size()]);
 			} else {
@@ -213,13 +213,12 @@ public abstract class FolderBase implements IFoldingUpdater
 	 * folding updater where a more sophisticated test is desired.	
 	 * 	
 	 * @param list1		A list of annotations (nominally the "old" annotations)
-	 * @param list2		A list of annotatoins (nominally the "new" annotations)
+	 * @param list2		A list of annotations (nominally the "new" annotations)
 	 * @return			true iff there has been a "significant" difference in the
 	 * 					two given lists of annotations
 	 * 
 	 */
-	protected boolean differ(ArrayList list1, ArrayList list2) {
-		
+	protected boolean differ(List<Annotation> list1, List<Annotation> list2) {
 		if (list1.size() != list2.size()) {
 			return true;
 		}
@@ -238,11 +237,11 @@ public abstract class FolderBase implements IFoldingUpdater
 	 * 							a listing of keys to the map of text positions
 	 * @param ast				An Object that will be taken to represent an AST node
 	 */
-	protected abstract void sendVisitorToAST(HashMap newAnnotations, List annotations, Object ast);
+	protected abstract void sendVisitorToAST(HashMap<Annotation,Position> newAnnotations, List<Annotation> annotations, Object ast);
 	
 
 	
-    protected void dumpAnnotations(final List annotations, final HashMap newAnnotations)
+    protected void dumpAnnotations(final List<Annotation> annotations, final HashMap<Annotation,Position> newAnnotations)
 	{
 		for(int i= 0; i < annotations.size(); i++) {
 		    Annotation a= (Annotation) annotations.get(i);

@@ -105,7 +105,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
 	}
 	try {
 	    //monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize, 7);  // <= 3.3
-	    monitor.beginTask(NewWizardMessages.NewJavaProjectWizardPageTwo_operation_initialize, 7);	 // >= 3.4
+	    //monitor.beginTask(NewWizardMessages.NewJavaProjectWizardPageTwo_operation_initialize, 7);	 // >= 3.4
 	    monitor.beginTask("Initializing project...", 7);
 	    if (monitor.isCanceled()) {
 		throw new OperationCanceledException();

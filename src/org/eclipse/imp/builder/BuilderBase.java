@@ -150,8 +150,8 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     }
 
     protected void compileNecessarySources(IProgressMonitor monitor) {
-        for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
-            IFile srcFile= (IFile) iter.next();
+        for(Iterator<IFile> iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= iter.next();
 
             clearMarkersOn(srcFile);
             if (isSourceFile(srcFile))
@@ -179,9 +179,9 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 	}
     }
     
-    private void dumpSourceList(Collection/*<IFile>*/ sourcesToCompile) {
-        for(Iterator iter= sourcesToCompile.iterator(); iter.hasNext(); ) {
-            IFile srcFile= (IFile) iter.next();
+    private void dumpSourceList(Collection<IFile> sourcesToCompile) {
+        for(Iterator<IFile> iter= sourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= iter.next();
 
             System.out.println("  " + srcFile.getFullPath());
         }
@@ -192,8 +192,8 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * having changed (i.e. in <code>fSourcesToCompile</code>).
      */
     private void clearDependencyInfoForChangedFiles() {
-        for(Iterator iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
-            IFile srcFile= (IFile) iter.next();
+        for(Iterator<IFile> iter= fSourcesToCompile.iterator(); iter.hasNext(); ) {
+            IFile srcFile= iter.next();
 
             fDependencyInfo.clearDependenciesOf(srcFile.getFullPath().toString());
         }
@@ -233,13 +233,13 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     }
 
     private void scanSourceList(Collection<IFile> srcList, Collection<IFile> changeDependents) {
-	for(Iterator iter= srcList.iterator(); iter.hasNext(); ) {
-            IFile srcFile= (IFile) iter.next();
-            Set/*<String path>*/ fileDependents= fDependencyInfo.getDependentsOf(srcFile.getFullPath().toString());
+	for(Iterator<IFile> iter= srcList.iterator(); iter.hasNext(); ) {
+            IFile srcFile= iter.next();
+            Set<String> fileDependents= fDependencyInfo.getDependentsOf(srcFile.getFullPath().toString());
 
             if (fileDependents != null) {
-                for(Iterator iterator= fileDependents.iterator(); iterator.hasNext(); ) {
-                    String depPath= (String) iterator.next();
+                for(Iterator<String> iterator= fileDependents.iterator(); iterator.hasNext(); ) {
+                    String depPath= iterator.next();
                     IFile depFile= getProject().getWorkspace().getRoot().getFile(new Path(depPath));
 
                     changeDependents.add(depFile);

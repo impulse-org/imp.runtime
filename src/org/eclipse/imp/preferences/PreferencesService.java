@@ -591,11 +591,13 @@ public class PreferencesService implements IPreferencesService
                         URL resourceEntry= bundle.getEntry(resourcePath);
                         if (resourceEntry == null) {
                             Bundle[] fragments= Platform.getFragments(bundle);
-                            for(int i= 0; i < fragments.length; i++) {
-                                Bundle bundleFrag= fragments[i];
-                                resourceEntry= bundleFrag.getEntry(resourcePath);
-                                if (resourceEntry != null) {
-                                    break;
+                            if (fragments != null) {
+                                for(int i= 0; i < fragments.length; i++) {
+                                    Bundle bundleFrag= fragments[i];
+                                    resourceEntry= bundleFrag.getEntry(resourcePath);
+                                    if (resourceEntry != null) {
+                                        break;
+                                    }
                                 }
                             }
                         }

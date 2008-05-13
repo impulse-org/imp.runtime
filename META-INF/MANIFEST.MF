@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: IMP Runtime (Incubation)
 Bundle-SymbolicName: org.eclipse.imp.runtime; singleton:=true
-Bundle-Version: 3.2.73
+Bundle-Version: 0.1.74
 Bundle-Activator: org.eclipse.imp.runtime.RuntimePlugin
 Bundle-Vendor: rfuhrer@watson.ibm.com
 Bundle-Localization: plugin

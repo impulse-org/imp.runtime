@@ -12,8 +12,10 @@
 
 package org.eclipse.imp.preferences;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 
 import org.eclipse.imp.preferences.fields.FieldEditor;
 import org.eclipse.jface.preference.PreferencePage;
@@ -22,6 +24,7 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.TabItem;
 
 public abstract class PreferencesTab
@@ -43,6 +46,10 @@ public abstract class PreferencesTab
 	
 	// The fields that occur on this tab
 	protected FieldEditor[] fFields = null;
+	
+	// The details links that are associated with the fields
+	// (to be in one-to-one correspondence)
+	protected List<Link> fDetailsLinks = new ArrayList();
 	
 	// Whether this tab is valid, that is, whether
 	// all of its fields are valid

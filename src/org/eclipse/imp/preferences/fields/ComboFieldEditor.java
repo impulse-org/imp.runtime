@@ -31,7 +31,7 @@ import org.osgi.service.prefs.BackingStoreException;
 /**
  * A field editor for a combo box that allows the drop-down selection of one of a list of items.
  * 
- * SMS:  This is a copy of ComboFieldEditor, found in org.eclupse.imp.preferences.fields,
+ * SMS:  This is a copy of ComboFieldEditor, found in org.eclipse.imp.preferences.fields,
  * which itself is a copy from org.eclipse.search.internal.ui.util, as indicated by the
  * following comment (copied from the "original"):
  * 

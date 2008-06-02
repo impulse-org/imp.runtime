@@ -72,6 +72,7 @@ import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.ILanguageActionsContributor;
+import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.ISourceFormatter;
@@ -119,9 +120,11 @@ import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
+import org.eclipse.jface.text.source.ICharacterPairMatcher;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
@@ -151,6 +154,7 @@ import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
+import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.texteditor.TextOperationAction;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
@@ -173,6 +177,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public static final String EDITOR_ID= RuntimePlugin.IMP_RUNTIME + ".impEditor";
 
     public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.imp.editor.parseAnnotation";
+
+    /** Preference key for matching brackets */
+    protected final static String MATCHING_BRACKETS= PreferenceConstants.EDITOR_MATCHING_BRACKETS;
+
+    /** Preference key for matching brackets color */
+    protected final static String MATCHING_BRACKETS_COLOR= PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR;
 
     private ServiceFactory fServiceRegistry = ServiceFactory.getInstance();
     
@@ -205,6 +215,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private ProblemMarkerManager fProblemMarkerManager;
 
     private IOccurrenceMarker fOccurrenceMarker;
+
+    private ICharacterPairMatcher fBracketMatcher;
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
@@ -552,58 +564,61 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    fFormattingController= new FormattingController(fFormattingStrategy);
 	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
             fCompletionProcessor= new CompletionProcessor(fLanguage);
+            fParseController= fServiceRegistry.getParseController(fLanguage);
+            if (fParseController == null) {
+                ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName() + "; parser-related services will be disabled.");
+            }
 	}
 
 	super.createPartControl(parent);
 
 	// SMS 4 Apr 2007:  Call no longer needed because preferences for the
 	// overview ruler are now obtained from appropriate preference store directly
-    //setupOverviewRulerAnnotations();
+        //setupOverviewRulerAnnotations();
 
 	// SMS 4 Apr 2007:  Also should not need this, since we're not using
 	// the plugin's store (for this purpose)
-    //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
+        //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
-    {
-        ILabelProvider lp= fServiceRegistry.getLabelProvider(fLanguage);
+        {
+            ILabelProvider lp= fServiceRegistry.getLabelProvider(fLanguage);
 
-        // Only set the editor's title bar icon if the language has a label provider
-        if (lp != null) {
-	    	IEditorInput editorInput= getEditorInput();
-	    	IFile file= null;
-	
-	    	if (editorInput instanceof IFileEditorInput)
-	    	    setTitleImage(lp.getImage(((IFileEditorInput) editorInput).getFile()));
-	    	else if (editorInput instanceof IPathEditorInput) {
-			    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
-		
-			    file= ResourcesPlugin.getWorkspace().getRoot().getFile(pathInput.getPath());
-	                setTitleImage(lp.getImage(file));
-	    	}
+            // Only set the editor's title bar icon if the language has a label provider
+            if (lp != null) {
+        	IEditorInput editorInput= getEditorInput();
+        	IFile file= null;
+
+        	if (editorInput instanceof IFileEditorInput)
+        	    setTitleImage(lp.getImage(((IFileEditorInput) editorInput).getFile()));
+        	else if (editorInput instanceof IPathEditorInput) {
+		    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
+
+		    file= ResourcesPlugin.getWorkspace().getRoot().getFile(pathInput.getPath());
+                    setTitleImage(lp.getImage(file));
+        	}
+            }
         }
-    }
 
-    if (PreferenceCache.sourceFont != null)
+        if (PreferenceCache.sourceFont != null)
 	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
 
 	getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
 
 	if (fLanguage != null) {
 	    try {
-		if (PreferenceCache.emitMessages) {
+	        if (PreferenceCache.emitMessages) {
 		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
 		}
 
-                fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser");
+                fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser", fParseController);
 
-       
-        TreeModelBuilderBase modelBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
+                TreeModelBuilderBase modelBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
 
-        if (modelBuilder != null) { 
-            ILabelProvider labelProvider= fServiceRegistry.getLabelProvider(fLanguage);
-            IElementImageProvider imageProvider= fServiceRegistry.getElementImageProvider(fLanguage);
+                if (modelBuilder != null) { 
+                    ILabelProvider labelProvider= fServiceRegistry.getLabelProvider(fLanguage);
+                    IElementImageProvider imageProvider= fServiceRegistry.getElementImageProvider(fLanguage);
          
-            fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider);
+                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider);
 		} else {
 		    fOutlineController= new OutlineController(this, fLanguage);
                 }
@@ -698,7 +713,24 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	return viewer;
     }
 
-    
+    protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
+        ILanguageSyntaxProperties syntaxProps= fParseController.getSyntaxProperties();
+        getPreferenceStore().setValue(MATCHING_BRACKETS, true);
+        if (syntaxProps != null) {
+//          fBracketMatcher.setSourceVersion(getPreferenceStore().getString(JavaCore.COMPILER_SOURCE));
+            String[][] fences= syntaxProps.getFences();
+            StringBuilder sb= new StringBuilder();
+            for(int i= 0; i < fences.length; i++) {
+                sb.append(fences[i][0]);
+                sb.append(fences[i][1]);
+            }
+            fBracketMatcher= new DefaultCharacterPairMatcher(sb.toString().toCharArray());
+            support.setCharacterPairMatcher(fBracketMatcher);
+            support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
+        }
+        super.configureSourceViewerDecorationSupport(support);
+    }
+
     public final String PARSE_ANNOTATION = "Parse_Annotation";
 
     private Map<IMarker, Annotation> markerParseAnnotations = new HashMap<IMarker, Annotation>();
@@ -1167,6 +1199,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
     };
 
+    protected IParseController fParseController;
+
     /**
      * Parsing may take a long time, and is not done inside the UI thread.
      * Therefore, we create a job that is executed in a background thread
@@ -1178,13 +1212,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	protected List<IModelListener> astListeners= new ArrayList<IModelListener>();
 
-	ParserScheduler(String name) {
+	ParserScheduler(String name, IParseController parseController) {
 	    super(name);
 	    setSystem(true); // do not show this job in the Progress view
-	    parseController= fServiceRegistry.getParseController(fLanguage);
-	    if (parseController == null) {
-		  ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName() + "; parser-related services disabled.");
-	    }
+	    this.parseController= parseController;
 	}
 
 	protected IStatus run(IProgressMonitor monitor) {

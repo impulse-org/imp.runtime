@@ -119,6 +119,11 @@
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+F"/>
+      <key
+            sequence="M1+M3+P"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.gotoMatchingFence"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -137,9 +142,15 @@
             description="Format the source code"
             id="org.eclipse.imp.runtime.formatSource"
             name="Format"/>
+      <command
+            name="Go to Matching Fence"
+            description="Moves the cursor to the matching fence character, if any"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.imp.runtime.gotoMatchingFence">
+      </command>
       <category
             id="org.eclipse.imp.runtime.source"
-            name="org.eclipse.imp.runtime.source"/>
+            name="Source"/>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">

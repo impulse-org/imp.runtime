@@ -100,6 +100,7 @@ import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.IUndoManager;
 import org.eclipse.jface.text.Position;
@@ -137,6 +138,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
@@ -171,6 +173,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".toggleComment";
 
     public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".showOutlineCommand";
+
+    /**
+     * Action definition ID of the edit -> go to matching fence action
+     * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
+     */
+    public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".gotoMatchingFence"; //$NON-NLS-1$
 
     public static final String MESSAGE_BUNDLE= "org.eclipse.imp.editor.messages";
 
@@ -273,6 +281,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
 	setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
 //	PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
+
+        action= new GotoMatchingFenceAction(this);
+        action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);
+        setAction(GOTO_MATCHING_FENCE_COMMAND, action);
     }
 
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
@@ -731,6 +743,119 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
         }
         super.configureSourceViewerDecorationSupport(support);
+    }
+
+    /**
+     * Jumps to the matching bracket.
+     */
+    public void gotoMatchingFence() {
+        ISourceViewer sourceViewer= getSourceViewer();
+        IDocument document= sourceViewer.getDocument();
+        if (document == null)
+            return;
+
+        IRegion selection= getSignedSelection(sourceViewer);
+        int selectionLength= Math.abs(selection.getLength());
+
+        if (selectionLength > 1) {
+            setStatusLineErrorMessage("Invalid selection");
+            sourceViewer.getTextWidget().getDisplay().beep();
+            return;
+        }
+
+        // #26314
+        int sourceCaretOffset= selection.getOffset() + selection.getLength();
+        if (isSurroundedByBrackets(document, sourceCaretOffset))
+            sourceCaretOffset -= selection.getLength();
+
+        IRegion region= fBracketMatcher.match(document, sourceCaretOffset);
+        if (region == null) {
+            setStatusLineErrorMessage("No matching fence!");
+            sourceViewer.getTextWidget().getDisplay().beep();
+            return;
+        }
+
+        int offset= region.getOffset();
+        int length= region.getLength();
+
+        if (length < 1)
+            return;
+
+        int anchor= fBracketMatcher.getAnchor();
+        // http://dev.eclipse.org/bugs/show_bug.cgi?id=34195
+        int targetOffset= (ICharacterPairMatcher.RIGHT == anchor) ? offset + 1: offset + length;
+
+        boolean visible= false;
+        if (sourceViewer instanceof ITextViewerExtension5) {
+            ITextViewerExtension5 extension= (ITextViewerExtension5) sourceViewer;
+            visible= (extension.modelOffset2WidgetOffset(targetOffset) > -1);
+        } else {
+            IRegion visibleRegion= sourceViewer.getVisibleRegion();
+            // http://dev.eclipse.org/bugs/show_bug.cgi?id=34195
+            visible= (targetOffset >= visibleRegion.getOffset() && targetOffset <= visibleRegion.getOffset() + visibleRegion.getLength());
+        }
+
+        if (!visible) {
+            setStatusLineErrorMessage("Matching fence is outside the currently selected element.");
+            sourceViewer.getTextWidget().getDisplay().beep();
+            return;
+        }
+
+        if (selection.getLength() < 0)
+            targetOffset -= selection.getLength();
+
+        sourceViewer.setSelectedRange(targetOffset, selection.getLength());
+        sourceViewer.revealRange(targetOffset, selection.getLength());
+    }
+
+    private boolean isBracket(char character) {
+        ILanguageSyntaxProperties syntaxProps= fParseController.getSyntaxProperties();
+        String[][] fences= syntaxProps.getFences();
+
+        for(int i= 0; i != fences.length; ++i) {
+            if (fences[i][0].indexOf(character) >= 0)
+                return true;
+            if (fences[i][1].indexOf(character) >= 0)
+                return true;
+        }
+        return false;
+    }
+
+    private boolean isSurroundedByBrackets(IDocument document, int offset) {
+        if (offset == 0 || offset == document.getLength())
+            return false;
+
+        try {
+            return isBracket(document.getChar(offset - 1)) &&
+                   isBracket(document.getChar(offset));
+        } catch (BadLocationException e) {
+                return false;
+        }
+    }
+
+    /**
+     * Returns the signed current selection.
+     * The length will be negative if the resulting selection
+     * is right-to-left (RtoL).
+     * <p>
+     * The selection offset is model based.
+     * </p>
+     *
+     * @param sourceViewer the source viewer
+     * @return a region denoting the current signed selection, for a resulting RtoL selections length is < 0
+     */
+    protected IRegion getSignedSelection(ISourceViewer sourceViewer) {
+            StyledText text= sourceViewer.getTextWidget();
+            Point selection= text.getSelectionRange();
+
+            if (text.getCaretOffset() == selection.x) {
+                    selection.x= selection.x + selection.y;
+                    selection.y= -selection.y;
+            }
+
+            selection.x= widgetOffset2ModelOffset(sourceViewer, selection.x);
+
+            return new Region(selection.x, selection.y);
     }
 
     public final String PARSE_ANNOTATION = "Parse_Annotation";

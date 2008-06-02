@@ -29,5 +29,25 @@ public class PreferenceConstants {
      */
     public static final String LINK_EXPLORER_TO_EDITOR= "org.eclipse.imp.ui.projects.linktoeditor"; //$NON-NLS-1$
 
+    /**
+     * A named preference that controls whether bracket matching highlighting is turned on or off.
+     * <p>
+     * Value is of type <code>Boolean</code>.
+     * </p>
+     */
+    public static final String EDITOR_MATCHING_BRACKETS= "matchingBrackets"; //$NON-NLS-1$
+
+    /**
+     * A named preference that holds the color used to highlight matching brackets.
+     * <p>
+     * Value is of type <code>String</code>. A RGB color value encoded as a string 
+     * using class <code>PreferenceConverter</code>
+     * </p>
+     * 
+     * @see org.eclipse.jface.resource.StringConverter
+     * @see org.eclipse.jface.preference.PreferenceConverter
+     */
+    public static final String EDITOR_MATCHING_BRACKETS_COLOR=  "matchingBracketsColor"; //$NON-NLS-1$
+
     private PreferenceConstants() { }
 }

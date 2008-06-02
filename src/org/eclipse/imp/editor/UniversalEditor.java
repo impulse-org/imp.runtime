@@ -719,14 +719,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (syntaxProps != null) {
 //          fBracketMatcher.setSourceVersion(getPreferenceStore().getString(JavaCore.COMPILER_SOURCE));
             String[][] fences= syntaxProps.getFences();
-            StringBuilder sb= new StringBuilder();
-            for(int i= 0; i < fences.length; i++) {
-                sb.append(fences[i][0]);
-                sb.append(fences[i][1]);
+            if (fences != null) {
+                StringBuilder sb= new StringBuilder();
+                for(int i= 0; i < fences.length; i++) {
+                    sb.append(fences[i][0]);
+                    sb.append(fences[i][1]);
+                }
+                fBracketMatcher= new DefaultCharacterPairMatcher(sb.toString().toCharArray());
+                support.setCharacterPairMatcher(fBracketMatcher);
+                support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
             }
-            fBracketMatcher= new DefaultCharacterPairMatcher(sb.toString().toCharArray());
-            support.setCharacterPairMatcher(fBracketMatcher);
-            support.setMatchingCharacterPainterPreferenceKeys(MATCHING_BRACKETS, MATCHING_BRACKETS_COLOR);
         }
         super.configureSourceViewerDecorationSupport(support);
     }

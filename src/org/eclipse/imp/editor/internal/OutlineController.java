@@ -41,6 +41,9 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
  * @author Claffra
+ * @deprecated This class is no longer needed; the IMP outline view is
+ * now produced using a TreeModelBuilder, if one is available for the
+ * given language.
  */
 public class OutlineController implements IContentOutlinePage, IModelListener {
     protected Tree tree;

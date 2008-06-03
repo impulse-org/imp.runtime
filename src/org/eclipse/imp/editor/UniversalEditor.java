@@ -51,7 +51,6 @@ import org.eclipse.imp.editor.internal.FoldingController;
 import org.eclipse.imp.editor.internal.FormattingController;
 import org.eclipse.imp.editor.internal.HoverHelpController;
 import org.eclipse.imp.editor.internal.HyperlinkDetector;
-import org.eclipse.imp.editor.internal.IMPOutlinePage;
 import org.eclipse.imp.editor.internal.OutlineController;
 import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
@@ -144,14 +143,17 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
+import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -624,15 +626,24 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
                 fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser", fParseController);
 
+
                 TreeModelBuilderBase modelBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
 
                 if (modelBuilder != null) { 
                     ILabelProvider labelProvider= fServiceRegistry.getLabelProvider(fLanguage);
                     IElementImageProvider imageProvider= fServiceRegistry.getElementImageProvider(fLanguage);
-         
-                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider);
-		} else {
-		    fOutlineController= new OutlineController(this, fLanguage);
+
+                    IRegionSelectionService regionSelector= new IRegionSelectionService() {
+                        public void selectAndReveal(int startOffset, int length) {
+                            IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+                            AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
+
+                            textEditor.selectAndReveal(startOffset, length);
+                        }
+                    };
+                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider, regionSelector);
+                } else {
+                    fOutlineController= new OutlineController(this, fLanguage);
                 }
 		fPresentationController= new PresentationController(getSourceViewer(), fLanguage);
 		fPresentationController.damage(new Region(0, getSourceViewer().getDocument().getLength()));

@@ -161,10 +161,19 @@ public class PresentationController implements IModelListener {
         final TextPresentation presentation= new TextPresentation();
         ISourcePositionLocator locator= controller.getNodeLocator();
 
+        int prevOffset= -1;
+        int prevEnd= -1;
         for(Iterator iter= controller.getTokenIterator(damage); iter.hasNext() && !monitor.isCanceled(); ) {
             Object token= iter.next();
+            int offset= locator.getStartOffset(token);
+            int end= locator.getEndOffset(token);
 
+            if (offset <= prevEnd && end >= prevOffset) {
+            	continue;
+            }
             changeTokenPresentation(controller, presentation, token, locator);
+            prevOffset= offset;
+            prevEnd= end;
         }
 	if (!monitor.isCanceled() && !presentation.isEmpty()) {
 	    Display.getDefault().asyncExec(new Runnable() {

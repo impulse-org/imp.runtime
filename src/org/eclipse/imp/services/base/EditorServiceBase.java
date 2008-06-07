@@ -2,7 +2,6 @@ package org.eclipse.imp.services.base;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IEditorService;
 

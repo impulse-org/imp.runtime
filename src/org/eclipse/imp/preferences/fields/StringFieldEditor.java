@@ -151,7 +151,9 @@ public class StringFieldEditor extends FieldEditor
     		String name, String labelText, int width, Composite parent)
     {
         this(page, tab, service, level,
-        	 name, labelText, width, org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
+        	 name, labelText, 
+     		(width == org.eclipse.jface.preference.StringFieldEditor.UNLIMITED ? 40 : width),
+        	 org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE, parent);
     }
     
     /**
@@ -167,7 +169,7 @@ public class StringFieldEditor extends FieldEditor
 			IPreferencesService service, String level,
 			String name, String labelText, Composite parent)
     {
-        this(page, tab, service, level, name, labelText, org.eclipse.jface.preference.StringFieldEditor.UNLIMITED, parent);
+        this(page, tab, service, level, name, labelText, 40, parent);
     }
 
    

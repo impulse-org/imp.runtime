@@ -128,10 +128,10 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 	        parent.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
        
 	        Button specialButton = createButton(parent, SPECIAL_ID, PreferenceDialogConstants.SPECIAL_LABEL, false);
-	        specialButton.setEnabled(field.hasSpecialValue() && field.getPreferencesLevel() != null);
+	        specialButton.setEnabled(field.getChangeControl().isEnabled() && field.hasSpecialValue() && field.getPreferencesLevel() != null);
 	        
 	        Button 	removeButton = createButton(parent, REMOVE_ID, PreferenceDialogConstants.REMOVE_LABEL, false);
-	        removeButton.setEnabled((field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded()) && field.isRemovable());
+	        removeButton.setEnabled(field.getChangeControl().isEnabled() && (field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded()) && field.isRemovable());
 
 	        Label l = new Label(parent, SWT.NONE);
 	        l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));

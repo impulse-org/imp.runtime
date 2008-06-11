@@ -32,6 +32,8 @@ import org.eclipse.imp.model.internal.PathEntry;
 import org.eclipse.imp.model.internal.SourceFolder;
 import org.eclipse.imp.model.internal.SourceProject;
 import org.eclipse.imp.model.internal.WorkspaceModel;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
 /**
  * A factory for implementations of the various common model interfaces, e.g., ISourceProject,
@@ -285,7 +287,9 @@ public class ModelFactory {
 
 	// Determine the language of this compilation unit, find the corresponding
 	// factory extender, and invoke it before returning the compilation unit.
-	Language lang= LanguageRegistry.findLanguage(file.getLocation(), file);
+	TextFileDocumentProvider tfdp= new TextFileDocumentProvider(); // TODO perhaps this should be in a field? or another type of doc provider?
+	IDocument doc= tfdp.getDocument(file);
+	Language lang= LanguageRegistry.findLanguage(file.getLocation(), doc);
 	IFactoryExtender ext= fExtenderMap.get(lang);
 
 	if (ext != null)

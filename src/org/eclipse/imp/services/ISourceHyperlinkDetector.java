@@ -15,13 +15,13 @@
  */
 package org.eclipse.imp.services;
 
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public interface ISourceHyperlinkDetector extends ILanguageService {
-    IHyperlink[] detectHyperlinks(IRegion region, UniversalEditor editor, ITextViewer textViewer, IParseController parseController);
+    IHyperlink[] detectHyperlinks(IRegion region, ITextEditor editor, ITextViewer textViewer, IParseController parseController);
 }

@@ -36,7 +36,6 @@ import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.FileEditorInput;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
 
 /**
  * Common class to represent a hyperlink to a given target location.
@@ -125,7 +124,7 @@ public final class TargetLink implements IHyperlink {
 
     private final int fTargetLength;
 
-    private AbstractTextEditor fEditor;
+    private IRegionSelectionService fSelectionService;
 
     /**
      * @param text
@@ -137,15 +136,15 @@ public final class TargetLink implements IHyperlink {
      * @param targetLength
      * @param editor may be null, if the target is in another compilation unit
      */
-    public TargetLink(String text, int srcStart, int srcLength, Object target, int targetStart, int targetLength, AbstractTextEditor editor) {
+    public TargetLink(String text, int srcStart, int srcLength, Object target, int targetStart, int targetLength, IRegionSelectionService selService) {
         super();
         fText= text;
         fStart= srcStart;
-	fEditor= editor;
         fTarget= target;
         fLength= srcLength;
         fTargetStart= targetStart;
         fTargetLength= targetLength;
+        fSelectionService= selService;
     }
 
     public IRegion getHyperlinkRegion() {
@@ -161,7 +160,7 @@ public final class TargetLink implements IHyperlink {
     }
 
     public void open() {
-	if (fEditor == null) {
+	if (fSelectionService == null) { // we're presumably opening up a new source file
 	    final IPath targetPath= (IPath) fTarget;
 	    IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
 
@@ -198,13 +197,13 @@ public final class TargetLink implements IHyperlink {
 
 		// Don't assume the target editor is a text editor; the target might be
 		// in a class file or another kind of binary file.
-		if (editor instanceof AbstractTextEditor)
-		    fEditor= (AbstractTextEditor) editor;
+		if (editor instanceof IRegionSelectionService)
+		    fSelectionService= (IRegionSelectionService) editor;
 	    } catch (PartInitException e) {
 		e.printStackTrace();
 	    }
 	}
-	if (fEditor != null)
-	    fEditor.selectAndReveal(fTargetStart, fTargetLength);
+	if (fSelectionService != null)
+	    fSelectionService.selectAndReveal(fTargetStart, fTargetLength);
     }
 }

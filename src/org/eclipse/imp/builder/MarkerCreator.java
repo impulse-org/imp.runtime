@@ -37,8 +37,7 @@ public class MarkerCreator implements IMessageHandler {
     private IFile file = null;
     private String problemType = IMarker.PROBLEM;
 
-    public MarkerCreator(
-            IFile file, IParseController parseController)
+    public MarkerCreator(IFile file, IParseController parseController)
     {
         this.parseController = parseController;
         this.file = file;
@@ -52,6 +51,10 @@ public class MarkerCreator implements IMessageHandler {
         this.file = file;
         this.parseController = parseController;
         this.problemType = problemType;
+    }
+
+    public void clearMessages() {
+        // TODO Clear markers on this file?
     }
 
     public void handleSimpleMessage(String msg, int startOffset, int endOffset,

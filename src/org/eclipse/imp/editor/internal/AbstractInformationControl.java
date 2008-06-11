@@ -747,7 +747,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		    IWorkbenchPage p= RuntimePlugin.getInstance().getWorkbench().getActiveWorkbenchWindow().getActivePage();
 		    IEditorPart editor= p.getActiveEditor();
 		    UniversalEditor ue= (UniversalEditor) editor;
-		    IParseController parseController= ue.fParserScheduler.parseController;
+		    IParseController parseController= ue.getParseController();
 		    ISourcePositionLocator locator= parseController.getNodeLocator();
                     Object element= selectedElement;
 

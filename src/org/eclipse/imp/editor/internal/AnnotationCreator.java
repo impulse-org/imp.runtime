@@ -71,4 +71,8 @@ public class AnnotationCreator implements IMessageHandler {
 		model.removeAnnotation(a);
 	}
     }
+
+    public void clearMessages() {
+        removeAnnotations();
+    }
 }

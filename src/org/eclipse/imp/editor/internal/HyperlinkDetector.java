@@ -12,9 +12,10 @@
 
 package org.eclipse.imp.editor.internal;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.editor.IRegionSelectionService;
 import org.eclipse.imp.editor.TargetLink;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.ServiceFactory;
@@ -26,6 +27,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * Provides a method to detect hyperlinks originating from a
@@ -40,7 +42,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
     }
 
     public IHyperlink[] detectHyperlinks(
-    		final IRegion region, UniversalEditor editor, final ITextViewer textViewer, IParseController parseController)
+    		final IRegion region, ITextEditor editor, final ITextViewer textViewer, IParseController parseController)
     {
     	// This is the only language-specific bit ...
 	if (fResolver == null) {
@@ -75,7 +77,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         final int srcLength= nodeLocator.getEndOffset(source) - srcStart + 1;
 
         // The target (depending on what--and where--the target is) may not have a
-        // legitimate location (or one wihtin the file). In that case, set the target
+        // legitimate location (or one within the file). In that case, set the target
         // to the beginning of the file and give it a nominal length.
 
         final int targetStart= (nodeLocator.getStartOffset(target) < 0) ? 0 : nodeLocator.getStartOffset(target);
@@ -95,15 +97,19 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // SMS 11 Jun 2007:  default implementation of getPath in NodeLocator template returns
         // an empty path, so test for that here and assume it means that the link target is in 
         // the same unit as the link source
-        UniversalEditor targetEditor= ((targetPath.segmentCount() == 0 || targetPath.equals(srcPath)) ? editor : null);
+        IPath wsPath= ResourcesPlugin.getWorkspace().getRoot().getLocation();
+        boolean isSamePath= targetPath.equals(srcPath) || srcPath.removeFirstSegments(wsPath.segmentCount()).setDevice(null).equals(targetPath);
+        ITextEditor targetEditor= (targetPath.segmentCount() == 0 || isSamePath) ? editor : null;
         Object targetArg= targetEditor == null ? targetPath : target;
 
         // If the target is exactly the same entity, don't bother with the hyperlink.
         if (srcStart == targetStart && srcLength == targetLength && targetPath.equals(srcPath))
             return null;
 
+        IRegionSelectionService selService= (IRegionSelectionService) targetEditor.getAdapter(IRegionSelectionService.class);
+
         IHyperlink[] result = new IHyperlink[] {
-            new TargetLink(linkText, srcStart, srcLength, targetArg, targetStart, targetLength, targetEditor)
+            new TargetLink(linkText, srcStart, srcLength, targetArg, targetStart, targetLength, selService)
         };
 
         return result;

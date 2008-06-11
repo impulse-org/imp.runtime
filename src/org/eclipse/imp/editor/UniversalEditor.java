@@ -7,6 +7,7 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -33,13 +34,9 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtension;
 import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
@@ -58,8 +55,7 @@ import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.language.ServiceFactory;
-import org.eclipse.imp.model.ISourceProject;
-import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.preferences.PreferenceCache;
@@ -150,7 +146,6 @@ import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPathEditorInput;
-import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -199,11 +194,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     /** Preference key for matching brackets color */
     protected final static String MATCHING_BRACKETS_COLOR= PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR;
 
-    private ServiceFactory fServiceRegistry = ServiceFactory.getInstance();
+    private ServiceFactory fServiceFactory = ServiceFactory.getInstance();
     
     public Language fLanguage;
 
     public ParserScheduler fParserScheduler;
+
+    protected IParseController fParseController;
 
     protected HoverHelpController fHoverHelpController;
 
@@ -264,6 +261,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		// to make use of new constructor
 	    return new ToggleBreakpointsAdapter(this);
 	}
+	if (IRegionSelectionService.class.equals(required)) {
+	    return fRegionSelector;
+	}
 	return super.getAdapter(required);
     }
 
@@ -306,8 +306,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
 	private void contributeRefactoringActions(IMenuManager menu) {
-		Set<IRefactoringContributor> contributors = fServiceRegistry
-				.getRefactoringContributors(fLanguage);
+		Set<IRefactoringContributor> contributors = fServiceFactory.getRefactoringContributors(fLanguage);
 
 		if (contributors != null && !contributors.isEmpty()) {
 			List<IAction> editorActions = new ArrayList<IAction>();
@@ -342,7 +341,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	private void contributeLanguageActions(IMenuManager menu) {
-		Set<ILanguageActionsContributor> actionContributors= fServiceRegistry.getLanguageActionsContributors(fLanguage);
+		Set<ILanguageActionsContributor> actionContributors= fServiceFactory.getLanguageActionsContributors(fLanguage);
 		
 		if (!actionContributors.isEmpty()) {
 			menu.add(new Separator());
@@ -568,25 +567,25 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public void createPartControl(Composite parent) {
 	if (PreferenceCache.emitMessages)
 	    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
-	fLanguage= LanguageRegistry.findLanguage(getEditorInput());
+	fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
 
 	// Create language service extensions now, for any services that could
 	// get accessed via super.createPartControl().
 	if (fLanguage != null) {
 	    if (PreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
-	    fHyperLinkDetector= fServiceRegistry.getSourceHyperlinkDetector(fLanguage);
+	    fHyperLinkDetector= fServiceFactory.getSourceHyperlinkDetector(fLanguage);
 	    if (fHyperLinkDetector == null)
 		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
 	    if (fHyperLinkDetector != null)
 	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
 	    fHoverHelpController= new HoverHelpController(fLanguage);
-	    fFoldingUpdater= fServiceRegistry.getFoldingUpdater(fLanguage);
-	    fFormattingStrategy= fServiceRegistry.getSourceFormatter(fLanguage);
+	    fFoldingUpdater= fServiceFactory.getFoldingUpdater(fLanguage);
+	    fFormattingStrategy= fServiceFactory.getSourceFormatter(fLanguage);
 	    fFormattingController= new FormattingController(fFormattingStrategy);
 	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
             fCompletionProcessor= new CompletionProcessor(fLanguage);
-            fParseController= fServiceRegistry.getParseController(fLanguage);
+            fParseController= fServiceFactory.getParseController(fLanguage);
             if (fParseController == null) {
                 ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName() + "; parser-related services will be disabled.");
             }
@@ -603,21 +602,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
         {
-            ILabelProvider lp= fServiceRegistry.getLabelProvider(fLanguage);
+            ILabelProvider lp= fServiceFactory.getLabelProvider(fLanguage);
 
             // Only set the editor's title bar icon if the language has a label provider
             if (lp != null) {
         	IEditorInput editorInput= getEditorInput();
-        	IFile file= null;
+        	IFile file= EditorInputUtils.getFile(editorInput);
 
-        	if (editorInput instanceof IFileEditorInput)
-        	    setTitleImage(lp.getImage(((IFileEditorInput) editorInput).getFile()));
-        	else if (editorInput instanceof IPathEditorInput) {
-		    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
-
-		    file= ResourcesPlugin.getWorkspace().getRoot().getFile(pathInput.getPath());
-                    setTitleImage(lp.getImage(file));
-        	}
+        	setTitleImage(lp.getImage(file));
             }
         }
 
@@ -632,30 +624,21 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
 		}
 
-                fParserScheduler= new ParserScheduler(fLanguage.getName() + " Parser", fParseController);
+                fParserScheduler= new ParserScheduler(fParseController, fLanguage, this, getDocumentProvider(), fAnnotationCreator);
 
-
-                TreeModelBuilderBase modelBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
+                TreeModelBuilderBase modelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
 
                 if (modelBuilder != null) { 
-                    ILabelProvider labelProvider= fServiceRegistry.getLabelProvider(fLanguage);
-                    IElementImageProvider imageProvider= fServiceRegistry.getElementImageProvider(fLanguage);
+                    ILabelProvider labelProvider= fServiceFactory.getLabelProvider(fLanguage);
+                    IElementImageProvider imageProvider= fServiceFactory.getElementImageProvider(fLanguage);
 
-                    IRegionSelectionService regionSelector= new IRegionSelectionService() {
-                        public void selectAndReveal(int startOffset, int length) {
-                            IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-                            AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
-
-                            textEditor.selectAndReveal(startOffset, length);
-                        }
-                    };
-                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider, regionSelector);
+                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider, fRegionSelector);
                 } else {
                     fOutlineController= new OutlineController(this, fLanguage);
                 }
 		fPresentationController= new PresentationController(getSourceViewer(), fLanguage);
 		fPresentationController.damage(new Region(0, getSourceViewer().getDocument().getLength()));
-		fFormattingController.setParseController(fParserScheduler.parseController);
+		fFormattingController.setParseController(fParseController);
 		// SMS 29 May 2007 (to give viewer access to single-line comment prefix)
 		ISourceViewer sourceViewer = getSourceViewer();
 		if (sourceViewer instanceof StructuredSourceViewer) {
@@ -1181,7 +1164,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    IAnnotationHover hover= null;
 
 	    if (fLanguage != null)
-		hover= fServiceRegistry.getAnnotationHover(fLanguage);
+		hover= fServiceFactory.getAnnotationHover(fLanguage);
 	    if (hover == null)
 		hover= new DefaultAnnotationHover();
 	    return hover;
@@ -1189,7 +1172,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
 	    if (fLanguage != null)
-		fAutoEditStrategy= fServiceRegistry.getAutoEditStrategy(fLanguage);
+		fAutoEditStrategy= fServiceFactory.getAutoEditStrategy(fLanguage);
 
 	    if (fAutoEditStrategy == null)
 		fAutoEditStrategy= super.getAutoEditStrategies(sourceViewer, contentType)[0];
@@ -1292,16 +1275,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    }
 	    public Object getInformation2(ITextViewer textViewer, IRegion subject) {
                 if (fBuilder == null) {
-                    fBuilder= fServiceRegistry.getTreeModelBuilder(fLanguage);
+                    fBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
                 }
-		return fBuilder.buildTree(fParserScheduler.parseController.getCurrentAst());
+		return fBuilder.buildTree(fParseController.getCurrentAst());
 	    }
 	}
 
 	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
 
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-		TreeModelBuilderBase modelBuilder = fServiceRegistry.getTreeModelBuilder(fLanguage);
+		TreeModelBuilderBase modelBuilder = fServiceFactory.getTreeModelBuilder(fLanguage);
 	    if (modelBuilder == null) {
 		  return null;
 	    }
@@ -1398,7 +1381,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {
-		if (fPresentationController != null && fParserScheduler.parseController != null) {
+		if (fPresentationController != null && fParseController != null) {
 		    fPresentationController.damage(damage);
 		    fParserScheduler.cancel();
 		    fParserScheduler.schedule();
@@ -1413,7 +1396,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
     }
 
-    private AnnotationCreator fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
+    private IMessageHandler fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
 
     private final IPropertyChangeListener fPrefStoreListener= new IPropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent event) {
@@ -1425,118 +1408,35 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
     };
 
-    protected IParseController fParseController;
+    private final IRegionSelectionService fRegionSelector= new IRegionSelectionService() {
+        public void selectAndReveal(int startOffset, int length) {
+            IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+            AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
 
-    /**
-     * Parsing may take a long time, and is not done inside the UI thread.
-     * Therefore, we create a job that is executed in a background thread
-     * by the platform's job service.
-     */
-    // TODO Perhaps this should be driven off of the "IReconcilingStrategy" mechanism?
-    public class ParserScheduler extends Job {
-	public IParseController parseController;
+            textEditor.selectAndReveal(startOffset, length);
+        }
+    };
 
-	protected List<IModelListener> astListeners= new ArrayList<IModelListener>();
-
-	ParserScheduler(String name, IParseController parseController) {
-	    super(name);
-	    setSystem(true); // do not show this job in the Progress view
-	    this.parseController= parseController;
-	}
-
-	protected IStatus run(IProgressMonitor monitor) {
-	    if (parseController == null || getDocumentProvider() == null) {
-	    	/* Editor was closed, or no parse controller */
-		  return Status.OK_STATUS;
-	    }
-	    
-	    try {
-		IEditorInput editorInput= getEditorInput();
-		IFile file= null;
-		IDocument document= null;
-		IPath filePath= null;
-		
-		if (editorInput instanceof IFileEditorInput) {
-		    IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
-		    document= getDocumentProvider().getDocument(fileEditorInput);
-		    file= fileEditorInput.getFile();
-		    filePath= fileEditorInput.getFile().getProjectRelativePath();
-		} else if (editorInput instanceof IPathEditorInput) {
-		    IPathEditorInput pathInput= (IPathEditorInput) editorInput;
-		    file= null;
-		    document= getDocumentProvider().getDocument(editorInput);
-		    filePath= pathInput.getPath();
-		} else if (editorInput instanceof IStorageEditorInput) {
-		    IStorageEditorInput storageEditorInput= (IStorageEditorInput) editorInput;
-		    file= null;
-		    document= getDocumentProvider().getDocument(editorInput);
-		    filePath= storageEditorInput.getStorage().getFullPath();
-		}
-
-		if (PreferenceCache.emitMessages)
-		    RuntimePlugin.getInstance().writeInfoMsg("Parsing language " + fLanguage.getName() + " for input " + getEditorInput().getName());
-
-		// Don't need to retrieve the AST; we don't need it.
-		// Just make sure the document contents gets parsed once (and only once).
-		fAnnotationCreator.removeAnnotations();
-		ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
-		parseController.initialize(filePath, srcProject, fAnnotationCreator);
-		parseController.parse(document.get(), false, monitor);
-		if (!monitor.isCanceled())
-		    notifyAstListeners(parseController, monitor);
-		// else
-		//	System.out.println("Bypassed AST listeners (cancelled).");
-	    } catch (Exception e) {
-	    	ErrorHandler.reportError("Error running parser for " + fLanguage.getName() + ":", e);
-		if (PreferenceCache.emitMessages)
-		    RuntimePlugin.getInstance().writeInfoMsg("Parsing failed for language " + fLanguage.getName() + " and input " + getEditorInput().getName());
-                // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
-                // may have failed at some phase, but there may be enough info to drive IDE services.
-                notifyAstListeners(parseController, monitor);
-	    }
-	    // SMS 25 Apr 2007
-	    // Since parsing has finished, check whether the marker annotations
-	    // are up-to-date with the most recent parse annotations.
-	    // Assuming that's often enough--i.e., don't refresh the marker
-	    // annotations after every update to the document annotation model
-	    // since there will be many of these, including possibly many that
-	    // don't relate to problem markers.
-            final IAnnotationTypeInfo annotationTypeInfo= parseController.getAnnotationTypeInfo();
+    private class AnnotationCreatorListener implements IModelListener {
+        public AnalysisRequired getAnalysisRequired() {
+            return AnalysisRequired.NONE; // Even if it doesn't scan, it's ok - this posts the error annotations!
+        }
+        public void update(IParseController parseController, IProgressMonitor monitor) {
+            // SMS 25 Apr 2007
+            // Since parsing has finished, check whether the marker annotations
+            // are up-to-date with the most recent parse annotations.
+            // Assuming that's often enough--i.e., don't refresh the marker
+            // annotations after every update to the document annotation model
+            // since there will be many of these, including possibly many that
+            // don't relate to problem markers.
+            final IAnnotationTypeInfo annotationTypeInfo= fParseController.getAnnotationTypeInfo();
             if (annotationTypeInfo != null) {
                 List problemMarkerTypes = annotationTypeInfo.getProblemMarkerTypes();
                 for (int i = 0; i < problemMarkerTypes.size(); i++) {
                     refreshMarkerAnnotations((String)problemMarkerTypes.get(i));
                 }
             }
-	    return Status.OK_STATUS;
-	}
-
-	public void addModelListener(IModelListener listener) {
-	    astListeners.add(listener);
-	}
-
-	public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
-	    // Suppress the notification if there's no AST (e.g. due to a parse error)
-	    if (parseController != null) {
-		if (PreferenceCache.emitMessages)
-		    RuntimePlugin.getInstance().writeInfoMsg("Notifying AST listeners of change in " + parseController.getPath().toPortableString());
-		for(int n= astListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
-		    IModelListener listener= astListeners.get(n);
-		    // Pretend to get through the highest level of analysis so all services execute (for now)
-		    int analysisLevel= IModelListener.AnalysisRequired.POINTER_ANALYSIS.level();
-
-		    if (parseController.getCurrentAst() == null)
-			analysisLevel= IModelListener.AnalysisRequired.LEXICAL_ANALYSIS.level();
-		    // TODO How to tell how far we got with the source analysis? The IAnalysisController should tell us!
-		    // TODO Rename IParseController to IAnalysisController
-		    // TODO Compute the minimum amount of analysis sufficient for all current listeners, and pass that to the IAnalysisController.
-		    if (listener.getAnalysisRequired().level() <= analysisLevel)
-			listener.update(parseController, monitor);
-		}
-	    } else
-		if (PreferenceCache.emitMessages)
-		    RuntimePlugin.getInstance().writeInfoMsg("No AST; bypassing listener notification.");
-	}
+        }
     }
 
     public String getSelectionText() {
@@ -1564,7 +1464,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public IParseController getParseController() {
-	return fParserScheduler.parseController;
+	return fParseController;
     }
     
     public IOccurrenceMarker getOccurrenceMarker() {
@@ -1596,7 +1496,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public String toString() {
         String langName= (fLanguage != null ? " for " + fLanguage.getName() : "");
-        String inputDesc= (fParserScheduler != null && fParserScheduler.parseController != null && fParserScheduler.parseController.getPath() != null) ? " on source " + fParserScheduler.parseController.getPath().toPortableString() : "";
+        String inputDesc= (fParserScheduler != null && fParseController != null && fParseController.getPath() != null) ? " on source " + fParseController.getPath().toPortableString() : "";
         return "Universal Editor" + langName +  " on " + inputDesc + getEditorInput();
     }
 }

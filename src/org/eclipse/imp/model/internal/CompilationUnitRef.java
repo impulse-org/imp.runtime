@@ -40,6 +40,8 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
 public class CompilationUnitRef implements ICompilationUnit {
     /**
@@ -124,12 +126,14 @@ public class CompilationUnitRef implements ICompilationUnit {
 
     public Object getAST(IMessageHandler msgHandler, IProgressMonitor monitor) {
 	IFile file= getFile();
+	TextFileDocumentProvider tfdp= new TextFileDocumentProvider();
+	IDocument doc= (file != null) ? tfdp.getDocument(file) : null;
 
 //	if (file == null)
 //	    return null;
 
 	if (fParseCtrlr == null) {
-	    Language lang= LanguageRegistry.findLanguage(fPath, file);
+	    Language lang= LanguageRegistry.findLanguage(fPath, doc);
 
 	    fParseCtrlr= ServiceFactory.getInstance().getParseController(lang);
 	}

@@ -10,12 +10,10 @@
 
 *******************************************************************************/
 
-package org.eclipse.imp.editor.internal;
+package org.eclipse.imp.editor;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
-import org.eclipse.imp.editor.IRegionSelectionService;
-import org.eclipse.imp.editor.TargetLink;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.ServiceFactory;

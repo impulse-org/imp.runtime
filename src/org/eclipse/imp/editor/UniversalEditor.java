@@ -46,7 +46,6 @@ import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
 import org.eclipse.imp.editor.internal.FoldingController;
 import org.eclipse.imp.editor.internal.FormattingController;
 import org.eclipse.imp.editor.internal.HoverHelpController;
-import org.eclipse.imp.editor.internal.HyperlinkDetector;
 import org.eclipse.imp.editor.internal.OutlineController;
 import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;

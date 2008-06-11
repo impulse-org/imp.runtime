@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -78,11 +77,14 @@ import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
+import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IStatusLineManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
@@ -142,6 +144,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
@@ -150,6 +153,8 @@ import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
@@ -228,6 +233,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private ICharacterPairMatcher fBracketMatcher;
 
+	private SubActionBars fActionBars;
+
+	private DefaultPartListener fRefreshContributions;
+
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
@@ -292,62 +301,61 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
         super.editorContextMenuAboutToShow(menu);
 
-        Set<IRefactoringContributor> contributors= fServiceRegistry.getRefactoringContributors(fLanguage);
-
-        if (contributors != null && !contributors.isEmpty()) {
-            List<IAction> editorActions= new ArrayList<IAction>();
-
-            for(Iterator<IRefactoringContributor> iter= contributors.iterator(); iter.hasNext(); ) {
-		IRefactoringContributor con=  iter.next();
-
-		try {
-		    IAction[] conActions= con.getEditorRefactoringActions(this);
-
-		    for(int i=0; i < conActions.length; i++)
-			editorActions.add(conActions[i]);
-		} catch(Exception e) {
-		    RuntimePlugin.getInstance().logException("Unable to create refactoring actions for contributor " + con, e);
-		}
-	    }
-            Separator refGroup= new Separator("group.refactor");
-            IMenuManager refMenu= new MenuManager("Refac&tor");
-
-            menu.add(refGroup);
-            menu.appendToGroup("group.refactor", refMenu);
-
-            for(Iterator<IAction> actionIter= editorActions.iterator(); actionIter.hasNext(); ) {
-                refMenu.add(actionIter.next());
-	    }
-        }
-
-        Set<ILanguageActionsContributor> actionContributors= fServiceRegistry.getLanguageActionsContributors(fLanguage);
-
-        if (actionContributors != null && !actionContributors.isEmpty()) {
-            List<IAction> editorActions= new ArrayList<IAction>();
-
-            for(Iterator<ILanguageActionsContributor> iter= actionContributors.iterator(); iter.hasNext(); ) {
-		ILanguageActionsContributor con=  iter.next();
-
-		try {
-		    IAction[] conActions= con.getEditorActions(this);
-
-		    for(int i=0; i < conActions.length; i++)
-			editorActions.add(conActions[i]);
-		} catch(Exception e) {
-		    RuntimePlugin.getInstance().logException("Unable to create editor actions for contributor " + con, e);
-		}
-	    }
-            Separator refGroup= new Separator("group.languageActions");
-            IMenuManager refMenu= new MenuManager(fLanguage.getName());
-
-            menu.add(refGroup);
-            menu.appendToGroup("group.languageActions", refMenu);
-
-            for(Iterator<IAction> actionIter= editorActions.iterator(); actionIter.hasNext(); ) {
-                refMenu.add(actionIter.next());
-	    }
-        }
+        contributeRefactoringActions(menu);
+        contributeLanguageActions(menu);
     }
+
+	private void contributeRefactoringActions(IMenuManager menu) {
+		Set<IRefactoringContributor> contributors = fServiceRegistry
+				.getRefactoringContributors(fLanguage);
+
+		if (contributors != null && !contributors.isEmpty()) {
+			List<IAction> editorActions = new ArrayList<IAction>();
+
+			for (Iterator<IRefactoringContributor> iter = contributors
+					.iterator(); iter.hasNext();) {
+				IRefactoringContributor con = iter.next();
+
+				try {
+					IAction[] conActions = con
+							.getEditorRefactoringActions(this);
+
+					for (int i = 0; i < conActions.length; i++)
+						editorActions.add(conActions[i]);
+				} catch (Exception e) {
+					RuntimePlugin.getInstance().logException(
+							"Unable to create refactoring actions for contributor "
+									+ con, e);
+				}
+			}
+			Separator refGroup = new Separator("group.refactor");
+			IMenuManager refMenu = new MenuManager("Refac&tor");
+
+			menu.add(refGroup);
+			menu.appendToGroup("group.refactor", refMenu);
+
+			for (Iterator<IAction> actionIter = editorActions.iterator(); actionIter
+					.hasNext();) {
+				refMenu.add(actionIter.next());
+			}
+		}
+	}
+
+	private void contributeLanguageActions(IMenuManager menu) {
+		Set<ILanguageActionsContributor> actionContributors= fServiceRegistry.getLanguageActionsContributors(fLanguage);
+		
+		if (!actionContributors.isEmpty()) {
+			menu.add(new Separator());
+		}
+		
+        for(ILanguageActionsContributor con : actionContributors) {
+		  try {
+			con.contributeToEditorMenu(this, menu);
+		  } catch(Exception e) {
+		    RuntimePlugin.getInstance().logException("Unable to create editor actions for contributor " + con, e);
+		  }
+	    }
+	}
 
     /* (non-Javadoc)
      * @see org.eclipse.ui.texteditor.AbstractDecoratedTextEditor#isOverviewRulerVisible()
@@ -711,11 +719,91 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		ErrorHandler.reportError("Could not create part", e);
 	    }
 	}
+	    initializeEditorContributors();
     }  
     
+    /**
+	 * Adds elements to toolbars, menubars and statusbars
+	 * 
+	 */
+	private void initializeEditorContributors() {
+		if (fLanguage != null) {
+			addEditorActions();
+			registerEditorContributionsActivator();
+		}
+	}
+
+	/**
+	 * Makes sure that menu items and status bar items dissappear as the editor
+	 * is out of focus, and reappear when it gets focus again. This does
+	 * not work for toolbar items for unknown reasons, they stay visible.
+	 *
+	 */
+	private void registerEditorContributionsActivator() {
+		fRefreshContributions = new DefaultPartListener() {
+			private UniversalEditor editor = UniversalEditor.this;
+
+			public void partActivated(IWorkbenchPart part) {
+				if (part == editor) {
+					editor.fActionBars.activate();
+					editor.fActionBars.updateActionBars();
+				}
+			}
+
+			public void partDeactivated(IWorkbenchPart part) {
+				if (part == editor) {
+					editor.fActionBars.deactivate();
+					editor.fActionBars.updateActionBars();
+				}
+			}
+		};
+		getSite().getPage().addPartListener(fRefreshContributions);
+	}
+	
+	private void unregisterEditorContributionsActivator() {
+	  getSite().getPage().removePartListener(fRefreshContributions);
+	  fRefreshContributions = null;
+	}
+
+	/**
+	 * Uses the LanguageActionsContributor extension point to add
+	 * elements to (sub) action bars. 
+	 *
+	 */
+	private void addEditorActions() {
+		final IActionBars allActionBars = getEditorSite().getActionBars();
+		if (fActionBars == null) {
+			Set<ILanguageActionsContributor> contributors = ServiceFactory
+					.getInstance().getLanguageActionsContributors(fLanguage);
+
+			fActionBars = new SubActionBars(allActionBars);
+
+			IStatusLineManager status = fActionBars.getStatusLineManager();
+			IToolBarManager toolbar = fActionBars.getToolBarManager();
+			IMenuManager menu = fActionBars.getMenuManager();
+
+			for (ILanguageActionsContributor c : contributors) {
+				c.contributeToStatusLine(this, status);
+				c.contributeToToolBar(this, toolbar);
+				c.contributeToMenuBar(this, menu);
+			}
+
+			fActionBars.updateActionBars();
+			allActionBars.updateActionBars();
+		}
+		allActionBars.updateActionBars();
+	}
+	
     public void dispose() {
 	// Remove the pref store listener *before* calling super; super nulls out the pref store.
         getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
+        unregisterEditorContributionsActivator();
+        
+        if (fActionBars != null) {
+          fActionBars.dispose();
+          fActionBars = null;
+        }
+        
         super.dispose();
     }
 

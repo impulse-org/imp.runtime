@@ -33,9 +33,11 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.InvalidRegistryObjectException;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.EditorInputUtils;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
@@ -47,6 +49,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 
 /*
@@ -141,63 +144,12 @@ public class LanguageRegistry
 	 * @return null if no language is contributed with the given
 	 *         extension/content
 	 */
-	public static Language findLanguage(IEditorInput editorInput) {
+	public static Language findLanguage(IEditorInput editorInput, IDocumentProvider docProvider) {
 		if (!isFullyInitialized)
 			initializeRegistryAsNeeded();
-		Language result = null;
+		IPath path= EditorInputUtils.getPath(editorInput);
 
-		if (editorInput instanceof IFileEditorInput) {
-			IFileEditorInput fileEditorInput = (IFileEditorInput) editorInput;
-			result = doFindLanguage(fileEditorInput);
-		} else if (editorInput instanceof IPathEditorInput) {
-			IPathEditorInput pathInput = (IPathEditorInput) editorInput;
-			result = doFindLanguage(pathInput);
-		} else if (editorInput instanceof IStorageEditorInput) {
-			IStorageEditorInput storageEditorInput = (IStorageEditorInput) editorInput;
-			result = doFindLanguage(storageEditorInput);
-		} else {
-			ErrorHandler.reportError("Unexpected type of IEditorInput: " +
-			 editorInput.getClass().getName());
-		}
-
-		return result;
-	}
-
-	private static Language doFindLanguage(IStorageEditorInput storageEditorInput)
-	{
-		try {
-			IPath path = storageEditorInput.getStorage().getFullPath();
-			return findLanguage(path, null);
-		} catch (CoreException e) {
-			ErrorHandler.reportError("Determining language of editor input " +
-			storageEditorInput.getName());
-			return null;
-		}
-	}
-
-	private static Language doFindLanguage(IPathEditorInput pathInput) {
-		IPath path;
-		IFile file;
-		path = pathInput.getPath();
-
-		file = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
-		return findLanguage(path, file);
-	}
-
-	private static Language doFindLanguage(IFileEditorInput fileEditorInput) {
-		IPath path;
-		IFile file;
-		file = fileEditorInput.getFile();
-
-		if (PreferenceCache.emitMessages)
-			RuntimePlugin.getInstance().writeInfoMsg(
-					"Determining language of file " +
-					 file.getFullPath().toString());
-		path = file.getLocation();
-		if (path == null) {
-			path = file.getFullPath();
-		}
-		return findLanguage(path, file);
+		return findLanguage(path, docProvider.getDocument(editorInput));
 	}
 
 	/**
@@ -205,36 +157,34 @@ public class LanguageRegistry
 	 * path.
 	 * 
 	 * @param path
-	 * @param file
-	 *            if non-null, may be used to validate the contents of the file
+	 * @param file if non-null, may be used to validate the contents of the file
 	 *            (e.g. to distinguish dialects)
 	 * @return
 	 */
-	public static Language findLanguage(IPath path, IFile file) {
+	public static Language findLanguage(IPath path, IDocument doc) {
 		// TODO: use Eclipse content type instead
 		if (!isFullyInitialized())
 			initializeRegistryAsNeeded();
-		String extension = path.getFileExtension();
+		String extension= path.getFileExtension();
+                String docContents= (doc != null) ? doc.get() : null;
 
 		// N.B. It's ok for multiple language descriptors to specify the same
-		// file name extension;
-		// the associated validators should use the file contents to identify
-		// the dialects.
-
+		// file name extension; the associated validators should use the file
+                // contents to identify the dialects.
 		if (extension != null) {
-			for (Language lang : getRegister().values()) {
-				if (lang.hasExtension(extension)) {
-					LanguageValidator validator = lang.getValidator();
+		    for (Language lang : getRegister().values()) {
+		        if (lang.hasExtension(extension)) {
+		            LanguageValidator validator = lang.getValidator();
 
-					if (validator != null && file != null) {
-						if (validator.validate(file)) {
-							return lang;
-						}
-					} else {
-						return lang;
-					}
-				}
-			}
+		            if (validator != null && docContents != null) {
+		                if (validator.validate(docContents)) {
+		                    return lang;
+		                }
+		            } else {
+		                return lang;
+		            }
+		        }
+		    }
 		}
 
 		if (PreferenceCache.emitMessages) {
@@ -358,12 +308,34 @@ public class LanguageRegistry
 	 */
 	private static void addUniversalEditorMappings(Iterable<String> extensions,
 			List<IFileEditorMapping> newMap) {
-		for (String ext : extensions) {
-			FileEditorMapping newMapping = new FileEditorMapping(ext);
-			newMapping.setDefaultEditor((EditorDescriptor) universalEditor);
-			newMap.add(newMapping);
-		}
+	    IFileEditorMapping[] mappings= editorRegistry.getFileEditorMappings();
+
+	    for (String ext : extensions) {
+	        IFileEditorMapping mapping= findMappingFor(ext, mappings);
+	        if (mapping == null) {
+	            mapping= new FileEditorMapping(ext);
+                    FileEditorMapping fem= (FileEditorMapping) mapping;
+	        }
+	        IEditorDescriptor defaultEditor= mapping.getDefaultEditor();
+                FileEditorMapping fem= (FileEditorMapping) mapping;
+	        if (defaultEditor == null || defaultEditor.getId().equals("")) {
+	            fem.setDefaultEditor((EditorDescriptor) universalEditor);
+	        } else {
+                    fem.addEditor((EditorDescriptor) universalEditor);
+	        }
+	        newMap.add(mapping);
+	    }
 	}
+
+	private static IFileEditorMapping findMappingFor(String ext, IFileEditorMapping[] mappings) {
+	    for(int i= 0; i < mappings.length; i++) {
+	        if (mappings[i].getExtension().equals(ext)) {
+	            return mappings[i];
+	        }
+	    }
+	    return null;
+	}
+
 
 	/**
 	 * Commits a new list of editor mappings to the editorRegistry
@@ -373,6 +345,7 @@ public class LanguageRegistry
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				getEditorRegistry().setFileEditorMappings(newMap.toArray(new FileEditorMapping[newMap.size()]));
+				// TODO Do we really want to save the associations persistently?
 				getEditorRegistry().saveAssociations();
 			}
 		});

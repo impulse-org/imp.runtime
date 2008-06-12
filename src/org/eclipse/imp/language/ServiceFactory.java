@@ -67,58 +67,60 @@ import org.eclipse.imp.utils.ExtensionException;
 public class ServiceFactory {
     private static ServiceFactory sInstance;
 
-	static String AUTO_EDIT_SERVICE = "autoEditStrategy";
+	static final String AUTO_EDIT_SERVICE = "autoEditStrategy";
 
-	static String ANNOTATION_HOVER_SERVICE = "annotationHover";
+	static final String ANNOTATION_HOVER_SERVICE = "annotationHover";
 
-	static String AST_ADAPTER_SERVICE = "astAdapter";
+	static final String AST_ADAPTER_SERVICE = "astAdapter";
 
-	static String CONTENT_PROPOSER_SERVICE = "contentProposer";
+	static final String CONTENT_PROPOSER_SERVICE = "contentProposer";
 
-	static String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
+	static final String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
 
-	static String EDITOR_ACTION_SERVICE = "editorActionContributions";
+	static final String EDITOR_ACTION_SERVICE = "editorActionContributions";
 
-	static String FOLDING_SERVICE = "foldingUpdater";
+	static final String FOLDING_SERVICE = "foldingUpdater";
 
-	static String FORMATTER_SERVICE = "formatter";
+	static final String FORMATTER_SERVICE = "formatter";
 
-	static String HOVER_HELPER_SERVICE = "hoverHelper";
+	static final String HOVER_HELPER_SERVICE = "hoverHelper";
 
-	static String HYPERLINK_SERVICE = "hyperLink";
+	static final String HYPERLINK_SERVICE = "hyperLink";
 
-	static String IMAGE_DECORATOR_SERVICE = "imageDecorator";
+	static final String IMAGE_DECORATOR_SERVICE = "imageDecorator";
 
-	static String INDEX_CONTRIBUTOR_SERVICE = "indexContributor";
+	static final String INDEX_CONTRIBUTOR_SERVICE = "indexContributor";
 
-	static String LABEL_PROVIDER_SERVICE = "labelProvider";
+	static final String LABEL_PROVIDER_SERVICE = "labelProvider";
 
-	static String LISTENER_SERVICE = "modelListener";
+	static final String LISTENER_SERVICE = "modelListener";
 
-	static String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
+	static final String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
 
-	static String OCCURRENCE_MARKER = "markOccurrences";
+	static final String OCCURRENCE_MARKER = "markOccurrences";
 
-	static String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
+	static final String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
 
-	static String OUTLINER_SERVICE = "outliner";
+	static final String OUTLINER_SERVICE = "outliner";
 
-	static String PARSER_SERVICE = "parser";
+	static final String PARSER_SERVICE = "parser";
 
-	static String PREFERENCES_SERVICE = "preferencesDialog";
+	static final String PREFERENCES_SERVICE = "preferencesDialog";
 
-	static String PREFERENCES_SPECIFICATION = "preferencesSpecification";
+	static final String PREFERENCES_SPECIFICATION = "preferencesSpecification";
 
-	static String REFACTORING_CONTRIBUTIONS_SERVICE = "refactoringContributions";
+	static final String REFACTORING_CONTRIBUTIONS_SERVICE = "refactoringContributions";
 
-	static String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
+	static final String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
 
-	static String SYNTAX_PROPS = "syntaxProps";
+	static final String SYNTAX_PROPS = "syntaxProps";
 
-	static String TOKEN_COLORER_SERVICE = "tokenColorer";
+	static final String TOKEN_COLORER_SERVICE = "tokenColorer";
 
-	static String VIEWER_FILTER_SERVICE = "viewerFilter";
+	static final String VIEWER_FILTER_SERVICE = "viewerFilter";
     
+	static final String EDITOR_SERVICE= "editorService";
+
  
     protected ServiceFactory() {
     }
@@ -420,6 +422,14 @@ public class ServiceFactory {
                     e);
             return null;
         }
+    }
+
+    public Set<IModelListener> getEditorServices(Language lang) {
+        Set<IModelListener> result= new HashSet<IModelListener>();
+        for(ILanguageService service: createExtensions(lang, EDITOR_SERVICE)) {
+            result.add((IModelListener) service);
+        }
+        return result;
     }
 
     private ILanguageService createExtension(Language lang, String id) {

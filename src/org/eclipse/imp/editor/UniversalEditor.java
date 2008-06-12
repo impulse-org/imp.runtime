@@ -29,14 +29,9 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IExtension;
-import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
@@ -51,6 +46,7 @@ import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
 import org.eclipse.imp.editor.internal.SourceHyperlinkController;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.language.ServiceFactory;
@@ -144,7 +140,6 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
-import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -564,12 +559,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public void createPartControl(Composite parent) {
-	if (PreferenceCache.emitMessages)
-	    RuntimePlugin.getInstance().writeInfoMsg("Determining editor input source language");
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
 
 	// Create language service extensions now, for any services that could
-	// get accessed via super.createPartControl().
+	// get accessed via super.createPartControl() (in particular, while
+	// setting up the ISourceViewer).
 	if (fLanguage != null) {
 	    if (PreferenceCache.emitMessages)
 		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
@@ -590,34 +584,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
 	}
 
-	super.createPartControl(parent);
+        super.createPartControl(parent);
 
-	// SMS 4 Apr 2007:  Call no longer needed because preferences for the
-	// overview ruler are now obtained from appropriate preference store directly
-        //setupOverviewRulerAnnotations();
-
-	// SMS 4 Apr 2007:  Also should not need this, since we're not using
-	// the plugin's store (for this purpose)
-        //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
-
-        {
-            ILabelProvider lp= fServiceFactory.getLabelProvider(fLanguage);
-
-            // Only set the editor's title bar icon if the language has a label provider
-            if (lp != null) {
-        	IEditorInput editorInput= getEditorInput();
-        	IFile file= EditorInputUtils.getFile(editorInput);
-
-        	setTitleImage(lp.getImage(file));
-            }
-        }
-
-        if (PreferenceCache.sourceFont != null)
-	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
-
-	getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
-
-	if (fLanguage != null) {
+	if (fParseController != null) {
 	    try {
 	        if (PreferenceCache.emitMessages) {
 		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
@@ -656,6 +625,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
 		}
 
+		fParserScheduler.addModelListener(new AnnotationCreatorListener());
 		fParserScheduler.addModelListener(fOutlineController);
 		fParserScheduler.addModelListener(fPresentationController);
 		fParserScheduler.addModelListener(fCompletionProcessor);
@@ -668,41 +638,53 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 		if (fHyperLinkController != null)
 		    fParserScheduler.addModelListener(fHyperLinkController);
-		
-		// SMS 28 May 2008
-		{	
-			IExtensionPoint extPt = Platform.getExtensionRegistry().getExtensionPoint("org.eclipse.imp.runtime.editorService");
-			IExtension[] exts = extPt.getExtensions();
-			
-			// Create the predicate suite
-			for (int i = 0; i < exts.length;i++) {
-				IConfigurationElement[] elts = exts[i].getConfigurationElements();
-				for (int j = 0; j < elts.length; j++) {
-					Object exeExt = null;
-					try {
-						exeExt = elts[j].createExecutableExtension("class");
-						if (exeExt instanceof IModelListener) {
-							if (exeExt instanceof IEditorService)
-								((IEditorService)exeExt).setEditor(this);
-							fParserScheduler.addModelListener((IModelListener)exeExt);
-						}
-					} catch (CoreException e) {
-						// Need to fix up error handling
-						System.err.println("UniversalEditor.createPartControl(..):  CoreException obtaining IEditorService; continuing");
-						continue;
-					}
-				}
-			}
-		}
-		
 
+		installExternalEditorServices();
 		fParserScheduler.run(new NullProgressMonitor());
 	    } catch (Exception e) {
 		ErrorHandler.reportError("Could not create part", e);
 	    }
 	}
-	    initializeEditorContributors();
-    }  
+
+        // SMS 4 Apr 2007:  Call no longer needed because preferences for the
+        // overview ruler are now obtained from appropriate preference store directly
+        //setupOverviewRulerAnnotations();
+
+        // SMS 4 Apr 2007:  Also should not need this, since we're not using
+        // the plugin's store (for this purpose)
+        //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
+
+        setTitleImageFromLanguageIcon();
+
+        if (PreferenceCache.sourceFont != null)
+            getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
+
+        getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
+
+        initializeEditorContributors();
+    }
+
+    private void setTitleImageFromLanguageIcon() {
+        ILabelProvider lp= fServiceFactory.getLabelProvider(fLanguage);
+
+        // Only set the editor's title bar icon if the language has a label provider
+        if (lp != null) {
+            IEditorInput editorInput= getEditorInput();
+            IFile file= EditorInputUtils.getFile(editorInput);
+
+            setTitleImage(lp.getImage(file));
+        }
+    }
+
+    private void installExternalEditorServices() {
+        Set<IModelListener> editorServices= fServiceFactory.getEditorServices(fLanguage);
+
+        for(ILanguageService editorService : editorServices) {
+            if (editorService instanceof IEditorService)
+                ((IEditorService) editorService).setEditor(this);
+            fParserScheduler.addModelListener((IModelListener) editorService);
+        }
+    }
     
     /**
 	 * Adds elements to toolbars, menubars and statusbars

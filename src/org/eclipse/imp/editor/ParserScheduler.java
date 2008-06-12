@@ -13,6 +13,7 @@ import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
@@ -50,6 +51,17 @@ public class ParserScheduler extends Job {
         fEditorPart= editorPart;
         fDocumentProvider= docProvider;
         fMsgHandler= msgHandler;
+
+        IEditorInput editorInput= fEditorPart.getEditorInput();
+        IFile file= EditorInputUtils.getFile(editorInput);
+        IPath filePath= EditorInputUtils.getPath(editorInput);
+        try {
+            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
+
+            fParseController.initialize(filePath, srcProject, fMsgHandler);
+        } catch (ModelException e) {
+            ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
+        }
     }
 
     public IStatus run(IProgressMonitor monitor) {
@@ -61,8 +73,6 @@ public class ParserScheduler extends Job {
         IEditorInput editorInput= fEditorPart.getEditorInput();
         try {
             IDocument document= fDocumentProvider.getDocument(editorInput);
-            IFile file= EditorInputUtils.getFile(editorInput);
-            IPath filePath= EditorInputUtils.getPath(editorInput);
 
             if (PreferenceCache.emitMessages)
                 RuntimePlugin.getInstance().writeInfoMsg(
@@ -71,20 +81,14 @@ public class ParserScheduler extends Job {
             // Don't need to retrieve the AST; we don't need it.
             // Just make sure the document contents gets parsed once (and only once).
             fMsgHandler.clearMessages();
-            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
-            // TODO Do we really need to re-initialize the IParseController every time?
-            fParseController.initialize(filePath, srcProject, fMsgHandler);
             fParseController.parse(document.get(), false, monitor);
             if (!monitor.isCanceled())
-                notifyAstListeners(fParseController, monitor);
+                notifyAstListeners(monitor);
         } catch (Exception e) {
-            ErrorHandler.reportError("Error running parser for " + fLanguage.getName() + ":", e);
-            if (PreferenceCache.emitMessages)
-                RuntimePlugin.getInstance().writeInfoMsg(
-                        "Parsing failed for language " + fLanguage.getName() + " and input " + editorInput.getName());
+            ErrorHandler.reportError("Error running parser for language " + fLanguage.getName() + " and input " + editorInput.getName() + ":", e);
             // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
             // may have failed at some phase, but there may be enough info to drive IDE services.
-            notifyAstListeners(fParseController, monitor);
+            notifyAstListeners(monitor);
         }
         return Status.OK_STATUS;
     }
@@ -93,25 +97,25 @@ public class ParserScheduler extends Job {
         fAstListeners.add(listener);
     }
 
-    public void notifyAstListeners(IParseController parseController, IProgressMonitor monitor) {
+    public void notifyAstListeners(IProgressMonitor monitor) {
         // Suppress the notification if there's no AST (e.g. due to a parse error)
-        if (parseController != null) {
+        if (fParseController != null) {
             if (PreferenceCache.emitMessages)
                 RuntimePlugin.getInstance().writeInfoMsg(
-                        "Notifying AST listeners of change in " + parseController.getPath().toPortableString());
+                        "Notifying AST listeners of change in " + fParseController.getPath().toPortableString());
             for(int n= fAstListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
                 IModelListener listener= fAstListeners.get(n);
                 // Pretend to get through the highest level of analysis so all services execute (for now)
                 int analysisLevel= IModelListener.AnalysisRequired.POINTER_ANALYSIS.level();
 
-                if (parseController.getCurrentAst() == null)
+                if (fParseController.getCurrentAst() == null)
                     analysisLevel= IModelListener.AnalysisRequired.LEXICAL_ANALYSIS.level();
                 // TODO How to tell how far we got with the source analysis? The IAnalysisController should tell us!
                 // TODO Rename IParseController to IAnalysisController
                 // TODO Compute the minimum amount of analysis sufficient for all current listeners, and pass that to
                 // the IAnalysisController.
                 if (listener.getAnalysisRequired().level() <= analysisLevel)
-                    listener.update(parseController, monitor);
+                    listener.update(fParseController, monitor);
             }
         } else if (PreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("No AST; bypassing listener notification.");

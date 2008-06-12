@@ -224,9 +224,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private ICharacterPairMatcher fBracketMatcher;
 
-	private SubActionBars fActionBars;
+    private ILabelProvider fLabelProvider;
 
-	private DefaultPartListener fRefreshContributions;
+    private IElementImageProvider fImageProvider;
+
+    private TreeModelBuilderBase fModelBuilder;
+
+    private SubActionBars fActionBars;
+
+    private DefaultPartListener fRefreshContributions;
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
@@ -561,89 +567,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public void createPartControl(Composite parent) {
 	fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
 
-	// Create language service extensions now, for any services that could
+	// Create language service extensions now, since some services could
 	// get accessed via super.createPartControl() (in particular, while
 	// setting up the ISourceViewer).
 	if (fLanguage != null) {
-	    if (PreferenceCache.emitMessages)
-		RuntimePlugin.getInstance().writeInfoMsg("Creating hyperlink, folding, and formatting language service extensions for " + fLanguage.getName());
-	    fHyperLinkDetector= fServiceFactory.getSourceHyperlinkDetector(fLanguage);
-	    if (fHyperLinkDetector == null)
-		fHyperLinkDetector= new HyperlinkDetector(fLanguage);
-	    if (fHyperLinkDetector != null)
-	    	fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
-	    fHoverHelpController= new HoverHelpController(fLanguage);
-	    fFoldingUpdater= fServiceFactory.getFoldingUpdater(fLanguage);
-	    fFormattingStrategy= fServiceFactory.getSourceFormatter(fLanguage);
-	    fFormattingController= new FormattingController(fFormattingStrategy);
-	    fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
-            fCompletionProcessor= new CompletionProcessor(fLanguage);
-            fParseController= fServiceFactory.getParseController(fLanguage);
-            if (fParseController == null) {
-                ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName() + "; parser-related services will be disabled.");
-            }
+	    instantiateLanguageServices();
 	}
 
         super.createPartControl(parent);
 
 	if (fParseController != null) {
-	    try {
-	        if (PreferenceCache.emitMessages) {
-		    RuntimePlugin.getInstance().writeInfoMsg("Creating remaining language service extensions for " + fLanguage.getName());
-		}
-
-                fParserScheduler= new ParserScheduler(fParseController, fLanguage, this, getDocumentProvider(), fAnnotationCreator);
-
-                TreeModelBuilderBase modelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
-
-                if (modelBuilder != null) { 
-                    ILabelProvider labelProvider= fServiceFactory.getLabelProvider(fLanguage);
-                    IElementImageProvider imageProvider= fServiceFactory.getElementImageProvider(fLanguage);
-
-                    fOutlineController= new IMPOutlinePage(this.getParseController(), modelBuilder, labelProvider, imageProvider, fRegionSelector);
-                } else {
-                    fOutlineController= new OutlineController(this, fLanguage);
-                }
-		fPresentationController= new PresentationController(getSourceViewer(), fLanguage);
-		fPresentationController.damage(new Region(0, getSourceViewer().getDocument().getLength()));
-		fFormattingController.setParseController(fParseController);
-		// SMS 29 May 2007 (to give viewer access to single-line comment prefix)
-		ISourceViewer sourceViewer = getSourceViewer();
-		if (sourceViewer instanceof StructuredSourceViewer) {
-		    ((StructuredSourceViewer)sourceViewer).setParseController(getParseController());
-		}
-		if (fFoldingUpdater != null) {
-		    if (PreferenceCache.emitMessages)
-			RuntimePlugin.getInstance().writeInfoMsg("Enabling source folding for " + fLanguage.getName());
-		    ProjectionViewer viewer= (ProjectionViewer) getSourceViewer();
-		    ProjectionSupport projectionSupport= new ProjectionSupport(viewer, getAnnotationAccess(), getSharedColors());
-
-		    projectionSupport.install();    
-		    
-		    viewer.doOperation(ProjectionViewer.TOGGLE);
-		    fAnnotationModel= viewer.getProjectionAnnotationModel();
-		    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
-		}
-
-		fParserScheduler.addModelListener(new AnnotationCreatorListener());
-		fParserScheduler.addModelListener(fOutlineController);
-		fParserScheduler.addModelListener(fPresentationController);
-		fParserScheduler.addModelListener(fCompletionProcessor);
-		fParserScheduler.addModelListener(fHoverHelpController);
-		
-		// TODO RMF 8/6/2007 - Disable "Mark Occurrences" if no occurrence marker exists for this language
-		// The following doesn't work b/c getAction() doesn't find the Mark Occurrences action (why?)
-//		if (this.fOccurrenceMarker == null)
-//		    getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
-
-		if (fHyperLinkController != null)
-		    fParserScheduler.addModelListener(fHyperLinkController);
-
-		installExternalEditorServices();
-		fParserScheduler.run(new NullProgressMonitor());
-	    } catch (Exception e) {
-		ErrorHandler.reportError("Could not create part", e);
-	    }
+	    instantiateServiceControllers();
 	}
 
         // SMS 4 Apr 2007:  Call no longer needed because preferences for the
@@ -656,23 +590,104 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         setTitleImageFromLanguageIcon();
 
-        if (PreferenceCache.sourceFont != null)
+        if (PreferenceCache.sourceFont != null) {
             getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
+        }
 
         getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
 
         initializeEditorContributors();
     }
 
-    private void setTitleImageFromLanguageIcon() {
-        ILabelProvider lp= fServiceFactory.getLabelProvider(fLanguage);
+    private void instantiateLanguageServices() {
+        if (PreferenceCache.emitMessages)
+            RuntimePlugin.getInstance().writeInfoMsg(
+                    "Instantiating language service extensions for " + fLanguage.getName());
+        fHyperLinkDetector= fServiceFactory.getSourceHyperlinkDetector(fLanguage);
+        if (fHyperLinkDetector == null)
+            fHyperLinkDetector= new HyperlinkDetector(fLanguage);
+        if (fHyperLinkDetector != null)
+            fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
+        fFoldingUpdater= fServiceFactory.getFoldingUpdater(fLanguage);
+        fFormattingStrategy= fServiceFactory.getSourceFormatter(fLanguage);
+        fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
+        fCompletionProcessor= new CompletionProcessor(fLanguage);
+        fModelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
+        fLabelProvider= fServiceFactory.getLabelProvider(fLanguage);
+        fImageProvider= fServiceFactory.getElementImageProvider(fLanguage);
 
+        fHoverHelpController= new HoverHelpController(fLanguage);
+        fFormattingController= new FormattingController(fFormattingStrategy);
+        fParseController= fServiceFactory.getParseController(fLanguage);
+        if (fParseController == null) {
+            ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName()
+                    + "; parser-related services will be disabled.");
+        }
+    }
+
+    private void instantiateServiceControllers() {
+        try {
+            if (PreferenceCache.emitMessages) {
+                RuntimePlugin.getInstance().writeInfoMsg(
+                        "Creating language service controllers for " + fLanguage.getName());
+            }
+
+            ISourceViewer sourceViewer= getSourceViewer();
+            fParserScheduler= new ParserScheduler(fParseController, fLanguage, this, getDocumentProvider(),
+                    fAnnotationCreator);
+
+            if (fModelBuilder != null) {
+                fOutlineController= new IMPOutlinePage(this.getParseController(), fModelBuilder, fLabelProvider,
+                        fImageProvider, fRegionSelector);
+            } else {
+                fOutlineController= new OutlineController(this, fLanguage);
+            }
+            fPresentationController= new PresentationController(sourceViewer, fLanguage);
+            fPresentationController.damage(new Region(0, sourceViewer.getDocument().getLength()));
+            fFormattingController.setParseController(fParseController);
+            // SMS 29 May 2007 (to give viewer access to single-line comment prefix)
+            if (sourceViewer instanceof StructuredSourceViewer) {
+                ((StructuredSourceViewer) sourceViewer).setParseController(getParseController());
+            }
+            if (fFoldingUpdater != null) {
+                ProjectionViewer projViewer= (ProjectionViewer) sourceViewer;
+                ProjectionSupport projectionSupport= new ProjectionSupport(projViewer, getAnnotationAccess(),
+                        getSharedColors());
+
+                projectionSupport.install();
+                projViewer.doOperation(ProjectionViewer.TOGGLE);
+                fAnnotationModel= projViewer.getProjectionAnnotationModel();
+                fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
+            }
+
+            fParserScheduler.addModelListener(new AnnotationCreatorListener());
+            fParserScheduler.addModelListener(fOutlineController);
+            fParserScheduler.addModelListener(fPresentationController);
+            fParserScheduler.addModelListener(fCompletionProcessor);
+            fParserScheduler.addModelListener(fHoverHelpController);
+
+            // TODO RMF 8/6/2007 - Disable "Mark Occurrences" if no occurrence marker exists for this language
+            // The following doesn't work b/c getAction() doesn't find the Mark Occurrences action (why?)
+            // if (this.fOccurrenceMarker == null)
+            // getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
+
+            if (fHyperLinkController != null)
+                fParserScheduler.addModelListener(fHyperLinkController);
+
+            installExternalEditorServices();
+            fParserScheduler.run(new NullProgressMonitor());
+        } catch (Exception e) {
+            ErrorHandler.reportError("Error while creating service controllers", e);
+        }
+    }
+
+    private void setTitleImageFromLanguageIcon() {
         // Only set the editor's title bar icon if the language has a label provider
-        if (lp != null) {
+        if (fLabelProvider != null) {
             IEditorInput editorInput= getEditorInput();
             IFile file= EditorInputUtils.getFile(editorInput);
 
-            setTitleImage(lp.getImage(file));
+            setTitleImage(fLabelProvider.getImage(file));
         }
     }
 

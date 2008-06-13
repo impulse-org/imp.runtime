@@ -20,6 +20,8 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.jface.text.IRegion;
@@ -33,6 +35,8 @@ import org.eclipse.jface.text.IRegion;
  */
 public abstract class SimpleLPGParseController implements IParseController
 {
+    protected Language fLanguage;
+
     protected ISourceProject fProject;
 
     protected IPath fFilePath;
@@ -66,7 +70,13 @@ public abstract class SimpleLPGParseController implements IParseController
 	}
     }
 
-    public SimpleLPGParseController() {}
+    public SimpleLPGParseController(String languageID) {
+        fLanguage= LanguageRegistry.findLanguage(languageID);
+    }
+
+    public Language getLanguage() {
+        return fLanguage;
+    }
 
     /*
      * Defined in the IParseController interface.  The implementation here serves

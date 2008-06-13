@@ -635,7 +635,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             fFormattingController= new FormattingController(fFormattingStrategy);
             fFormattingController.setParseController(fParseController);
 
-            fParserScheduler= new ParserScheduler(fParseController, fLanguage, this, getDocumentProvider(),
+            fParserScheduler= new ParserScheduler(fParseController, this, getDocumentProvider(),
                     fAnnotationCreator);
 
             // N.B. To first order, the source viewer can be created before instantiating

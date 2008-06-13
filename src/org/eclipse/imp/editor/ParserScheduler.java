@@ -10,7 +10,6 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
@@ -34,20 +33,17 @@ public class ParserScheduler extends Job {
 
     private final IEditorPart fEditorPart;
 
-    private final Language fLanguage;
-
     private final IDocumentProvider fDocumentProvider;
 
     private final IMessageHandler fMsgHandler;
 
     private final List<IModelListener> fAstListeners= new ArrayList<IModelListener>();
 
-    public ParserScheduler(IParseController parseController, Language lang, IEditorPart editorPart,
+    public ParserScheduler(IParseController parseController, IEditorPart editorPart,
             IDocumentProvider docProvider, IMessageHandler msgHandler) {
-        super(lang.getName() + " Parser");
+        super(parseController.getLanguage().getName() + " ParserScheduler");
         setSystem(true); // do not show this job in the Progress view
         fParseController= parseController;
-        fLanguage= lang;
         fEditorPart= editorPart;
         fDocumentProvider= docProvider;
         fMsgHandler= msgHandler;
@@ -76,7 +72,7 @@ public class ParserScheduler extends Job {
 
             if (PreferenceCache.emitMessages)
                 RuntimePlugin.getInstance().writeInfoMsg(
-                        "Parsing language " + fLanguage.getName() + " for input " + editorInput.getName());
+                        "Parsing language " + fParseController.getLanguage().getName() + " for input " + editorInput.getName());
 
             // Don't need to retrieve the AST; we don't need it.
             // Just make sure the document contents gets parsed once (and only once).
@@ -85,7 +81,7 @@ public class ParserScheduler extends Job {
             if (!monitor.isCanceled())
                 notifyAstListeners(monitor);
         } catch (Exception e) {
-            ErrorHandler.reportError("Error running parser for language " + fLanguage.getName() + " and input " + editorInput.getName() + ":", e);
+            ErrorHandler.reportError("Error running parser for language " + fParseController.getLanguage().getName() + " and input " + editorInput.getName() + ":", e);
             // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
             // may have failed at some phase, but there may be enough info to drive IDE services.
             notifyAstListeners(monitor);

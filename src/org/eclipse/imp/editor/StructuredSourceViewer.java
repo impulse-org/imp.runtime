@@ -20,6 +20,7 @@ import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
+import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.IOverviewRuler;
 import org.eclipse.jface.text.source.IVerticalRuler;
@@ -106,6 +107,10 @@ public class StructuredSourceViewer extends ProjectionViewer {
     // SMS 29 May 2007 (see doToggleComment())
     public void setParseController(IParseController parseController) {
     	fParseController = parseController;
+    }
+
+    public void setFormatter(IContentFormatter formatter) {
+        fContentFormatter= formatter;
     }
 
     private void doToggleComment() {

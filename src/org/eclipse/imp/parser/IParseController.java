@@ -17,12 +17,15 @@ import java.util.Iterator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.jface.text.IRegion;
 
 public interface IParseController extends ILanguageService {
+    Language getLanguage();
+
     /**
      * Initialize the parse controller to parse source text corresponding to
      * a compilation unit in the given ISourceProject at the given path.

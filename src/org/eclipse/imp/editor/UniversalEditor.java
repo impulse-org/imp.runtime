@@ -615,9 +615,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fModelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
         fLabelProvider= fServiceFactory.getLabelProvider(fLanguage);
         fImageProvider= fServiceFactory.getElementImageProvider(fLanguage);
-
-        fHoverHelpController= new HoverHelpController(fLanguage);
-        fFormattingController= new FormattingController(fFormattingStrategy);
         fParseController= fServiceFactory.getParseController(fLanguage);
         if (fParseController == null) {
             ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName()
@@ -627,28 +624,50 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private void instantiateServiceControllers() {
         try {
+            StructuredSourceViewer sourceViewer= (StructuredSourceViewer) getSourceViewer();
+
             if (PreferenceCache.emitMessages) {
                 RuntimePlugin.getInstance().writeInfoMsg(
                         "Creating language service controllers for " + fLanguage.getName());
             }
 
-            ISourceViewer sourceViewer= getSourceViewer();
+            fHoverHelpController= new HoverHelpController(fLanguage);
+            fFormattingController= new FormattingController(fFormattingStrategy);
+            fFormattingController.setParseController(fParseController);
+
             fParserScheduler= new ParserScheduler(fParseController, fLanguage, this, getDocumentProvider(),
                     fAnnotationCreator);
 
+            // N.B. To first order, the source viewer can be created before instantiating
+            // any service controllers. The following two services (text hover and
+            // content formatting) are the only exceptions. Most other controllers
+            // must be instantiated after the source viewer has been created, since
+            // they actually need to maintain a reference to it.
+
+            // The source viewer configuration has already been asked for its ITextHover,
+            // but before we actually instantiated the relevant controller class. So update
+            // the source viewer, now that we actually have the hover provider.
+            sourceViewer.setTextHover(fHoverHelpController, IDocument.DEFAULT_CONTENT_TYPE);
+
+            // The source viewer configuration has already been asked for its IContentFormatter,
+            // but before we actually instantiated the relevant controller class. So update the
+            // source viewer, now that we actually have the IContentFormatter.
+            ContentFormatter formatter= new ContentFormatter();
+
+            formatter.setFormattingStrategy(fFormattingController, IDocument.DEFAULT_CONTENT_TYPE);
+            sourceViewer.setFormatter(formatter);
+
             if (fModelBuilder != null) {
-                fOutlineController= new IMPOutlinePage(this.getParseController(), fModelBuilder, fLabelProvider,
+                fOutlineController= new IMPOutlinePage(fParseController, fModelBuilder, fLabelProvider,
                         fImageProvider, fRegionSelector);
             } else {
                 fOutlineController= new OutlineController(this, fLanguage);
             }
             fPresentationController= new PresentationController(sourceViewer, fLanguage);
             fPresentationController.damage(new Region(0, sourceViewer.getDocument().getLength()));
-            fFormattingController.setParseController(fParseController);
             // SMS 29 May 2007 (to give viewer access to single-line comment prefix)
-            if (sourceViewer instanceof StructuredSourceViewer) {
-                ((StructuredSourceViewer) sourceViewer).setParseController(getParseController());
-            }
+            sourceViewer.setParseController(fParseController);
+
             if (fFoldingUpdater != null) {
                 ProjectionViewer projViewer= (ProjectionViewer) sourceViewer;
                 ProjectionSupport projectionSupport= new ProjectionSupport(projViewer, getAnnotationAccess(),
@@ -1123,8 +1142,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
-	
-
 	public int getTabWidth(ISourceViewer sourceViewer) {
             return PreferenceCache.tabWidth;
 //	    return fPreferenceStore.getInt(PreferenceConstants.P_TAB_WIDTH);
@@ -1178,13 +1195,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
 	    // Disable the content formatter if no language-specific implementation exists.
-	    if (fFormattingStrategy == null)
+	    // N.B.: This will probably always be null, since this method gets called before 
+	    // the formatting controller has been instantiated (which happens in
+	    // instantiateServiceControllers()).
+	    if (fFormattingController == null)
 		return null;
 
-	    // BUG For now, assumes only one content type (i.e. one kind of partition)
+	    // For now, assumes only one content type (i.e. one kind of partition)
 	    ContentFormatter formatter= new ContentFormatter();
 
-//	    formatter.setDocumentPartitioning("foo");
 	    formatter.setFormattingStrategy(fFormattingController, IDocument.DEFAULT_CONTENT_TYPE);
 	    return formatter;
 	}

@@ -140,7 +140,7 @@ public class PresentationController implements IModelListener {
         // SMS 21 Jun 2007:  negative (possibly 0) length style ranges seem to cause problems;
         // but if you have one it should lead to an IllegalArgumentException in changeTextPresentation(..)
         if (styleRange.length <= 0 || styleRange.start + styleRange.length >= this.sourceViewer.getDocument().getLength()) {
-            System.err.println("PresentationController.changeTokenPresentation(): attempting to add style range, start =  " + styleRange.start + ", length = " + styleRange.length);
+//          System.err.println("PresentationController.changeTokenPresentation(): attempting to add style range, start =  " + styleRange.start + ", length = " + styleRange.length);
         } else {
             presentation.addStyleRange(styleRange);
         }

@@ -17,13 +17,8 @@ import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.FontFieldEditor;
 import org.eclipse.jface.preference.IntegerFieldEditor;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
-import org.eclipse.ui.PlatformUI;
 
 public class PreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
     public PreferencePage() {
@@ -52,21 +47,10 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
 		"Source font:", getFieldEditorParent());
 	addField(fontField);
 
-	getPreferenceStore().addPropertyChangeListener(new IPropertyChangeListener() {
-	    public void propertyChange(PropertyChangeEvent event) {
-		if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES))
-		    PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
-                else if (event.getProperty().equals(PreferenceConstants.P_DUMP_TOKENS))
-                    PreferenceCache.dumpTokens= ((Boolean) event.getNewValue()).booleanValue();
-		else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH))
-		    PreferenceCache.tabWidth= ((Integer) event.getNewValue()).intValue();
-		else if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-		    if (PreferenceCache.sourceFont != null)
-			PreferenceCache.sourceFont.dispose();
-		    PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), ((FontData[]) event.getNewValue())[0]);
-		}
-	    }
-	});
+	// Don't need a preference store listener here; the UniversalEditor already listens
+	// to the preference store, and takes the necessary actions. Moreover, some preference
+	// changes require some resource management that only it can do properly (e.g. it must
+	// only dispose of the old Font *after* telling the ITextViewer to use the new one).
     }
 
     public void init(IWorkbench workbench) {}

@@ -131,6 +131,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
@@ -594,7 +596,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
         }
 
-        getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
+        // N.B.: The editor's preference store is not the same as the IMP plugin's
+        // preference store, which gets manipulated by the preference dialog fields.
+        // So don't bother listening to what getPreferenceStore() returns.
+//      getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
+        RuntimePlugin.getInstance().getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
 
         initializeEditorContributors();
     }
@@ -1415,11 +1421,20 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private final IPropertyChangeListener fPrefStoreListener= new IPropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent event) {
-    	if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-    	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
-    	} else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
-    	    getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
-    	}
+            if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
+        	Font oldFont= PreferenceCache.sourceFont;
+        	PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), ((FontData[]) event.getNewValue())[0]);
+        	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
+        	if (oldFont != null)
+        	    oldFont.dispose();
+            } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
+        	PreferenceCache.tabWidth= ((Integer) event.getNewValue()).intValue();
+        	getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
+            } else if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES)) {
+        	PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
+            } else if (event.getProperty().equals(PreferenceConstants.P_DUMP_TOKENS)) {
+        	PreferenceCache.dumpTokens= ((Boolean) event.getNewValue()).booleanValue();
+            }
         }
     };
 

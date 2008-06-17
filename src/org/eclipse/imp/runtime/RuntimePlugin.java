@@ -16,8 +16,11 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.IStartup;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -60,6 +63,8 @@ public class RuntimePlugin extends PluginBase implements IStartup {
         IPreferenceStore prefStore= getPreferenceStore();
 
         PreferenceCache.emitMessages= prefStore.getBoolean(PreferenceConstants.P_EMIT_MESSAGES);
+        PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), PreferenceConverter.getFontData(prefStore, PreferenceConstants.P_SOURCE_FONT));
+        PreferenceCache.tabWidth= prefStore.getInt(PreferenceConstants.P_TAB_WIDTH);
     }
 
     /**

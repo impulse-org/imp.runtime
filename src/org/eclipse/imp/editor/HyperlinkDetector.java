@@ -104,7 +104,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         if (srcStart == targetStart && srcLength == targetLength && targetPath.equals(srcPath))
             return null;
 
-        IRegionSelectionService selService= (IRegionSelectionService) targetEditor.getAdapter(IRegionSelectionService.class);
+        IRegionSelectionService selService= (IRegionSelectionService) editor.getAdapter(IRegionSelectionService.class);
 
         IHyperlink[] result = new IHyperlink[] {
             new TargetLink(linkText, srcStart, srcLength, targetArg, targetStart, targetLength, selService)

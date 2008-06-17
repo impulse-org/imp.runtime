@@ -1429,7 +1429,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         	if (oldFont != null)
         	    oldFont.dispose();
             } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
-        	PreferenceCache.tabWidth= ((Integer) event.getNewValue()).intValue();
+                int newTab= (event.getNewValue() instanceof String) ? Integer.parseInt((String) event.getNewValue()) : ((Integer) event.getNewValue()).intValue();
+        	PreferenceCache.tabWidth= newTab;
         	if (getSourceViewer() != null)
         	    getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
             } else if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES)) {

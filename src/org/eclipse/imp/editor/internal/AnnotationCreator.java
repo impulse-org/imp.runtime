@@ -53,6 +53,7 @@ public class AnnotationCreator implements IMessageHandler {
 
         IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
         Annotation annotation= new Annotation(fAnnotationType, false, message);
+        
         Position pos= new Position(startOffset, endOffset - startOffset + 1);
 
         model.addAnnotation(annotation, pos);

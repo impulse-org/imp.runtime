@@ -10,6 +10,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.model.ModelFactory;
 import org.eclipse.imp.model.ModelFactory.ModelException;
@@ -41,7 +42,7 @@ public class ParserScheduler extends Job {
 
     public ParserScheduler(IParseController parseController, IEditorPart editorPart,
             IDocumentProvider docProvider, IMessageHandler msgHandler) {
-        super(parseController.getLanguage().getName() + " ParserScheduler");
+    	super(LanguageRegistry.findLanguage(EditorInputUtils.getPath(editorPart.getEditorInput()), null) + " ParserScheduler");
         setSystem(true); // do not show this job in the Progress view
         fParseController= parseController;
         fEditorPart= editorPart;

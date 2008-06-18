@@ -34,7 +34,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.editor.OutlineLabelProvider.IElementImageProvider;
 import org.eclipse.imp.editor.internal.AnnotationCreator;
 import org.eclipse.imp.editor.internal.CompletionProcessor;
 import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
@@ -59,13 +58,10 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.IEditorService;
-import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IRefactoringContributor;
-import org.eclipse.imp.services.ISourceFormatter;
-import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
@@ -125,7 +121,6 @@ import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
 import org.eclipse.jface.util.IPropertyChangeListener;
 import org.eclipse.jface.util.PropertyChangeEvent;
-import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -190,17 +185,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     /** Preference key for matching brackets color */
     protected final static String MATCHING_BRACKETS_COLOR= PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR;
 
-    private ServiceFactory fServiceFactory = ServiceFactory.getInstance();
-    
     public Language fLanguage;
 
     public ParserScheduler fParserScheduler;
 
-    protected IParseController fParseController;
-
-    protected HoverHelpController fHoverHelpController;
+    protected LanguageServiceManager fLanguageServiceManager;
 
     protected IModelListener fOutlineController;
+
+    private HoverHelpController fHoverHelpController;
 
     protected PresentationController fPresentationController;
 
@@ -208,29 +201,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     protected SourceHyperlinkController fHyperLinkController;
 
-    protected ISourceHyperlinkDetector fHyperLinkDetector;
-
-    protected IAutoEditStrategy fAutoEditStrategy;
-
-    private IFoldingUpdater fFoldingUpdater;
-
     private ProjectionAnnotationModel fAnnotationModel;
-
-    public ISourceFormatter fFormattingStrategy;
 
     private FormattingController fFormattingController;
 
     private ProblemMarkerManager fProblemMarkerManager;
 
-    private IOccurrenceMarker fOccurrenceMarker;
-
     private ICharacterPairMatcher fBracketMatcher;
-
-    private ILabelProvider fLabelProvider;
-
-    private IElementImageProvider fImageProvider;
-
-    private TreeModelBuilderBase fModelBuilder;
 
     private SubActionBars fActionBars;
 
@@ -308,7 +285,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
 	private void contributeRefactoringActions(IMenuManager menu) {
-		Set<IRefactoringContributor> contributors = fServiceFactory.getRefactoringContributors(fLanguage);
+		Set<IRefactoringContributor> contributors = fLanguageServiceManager.getRefactoringContributors();
 
 		if (contributors != null && !contributors.isEmpty()) {
 			List<IAction> editorActions = new ArrayList<IAction>();
@@ -343,7 +320,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	private void contributeLanguageActions(IMenuManager menu) {
-		Set<ILanguageActionsContributor> actionContributors= fServiceFactory.getLanguageActionsContributors(fLanguage);
+		Set<ILanguageActionsContributor> actionContributors= fLanguageServiceManager.getActionContributors();
 		
 		if (!actionContributors.isEmpty()) {
 			menu.add(new Separator());
@@ -573,12 +550,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	// get accessed via super.createPartControl() (in particular, while
 	// setting up the ISourceViewer).
 	if (fLanguage != null) {
-	    instantiateLanguageServices();
+	    fLanguageServiceManager= new LanguageServiceManager(fLanguage);
+	    fLanguageServiceManager.initialize();
 	}
 
         super.createPartControl(parent);
 
-	if (fParseController != null) {
+	if (fLanguageServiceManager.getParseController() != null) {
 	    instantiateServiceControllers();
 	}
 
@@ -605,29 +583,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         initializeEditorContributors();
     }
 
-    private void instantiateLanguageServices() {
-        if (PreferenceCache.emitMessages)
-            RuntimePlugin.getInstance().writeInfoMsg(
-                    "Instantiating language service extensions for " + fLanguage.getName());
-        fHyperLinkDetector= fServiceFactory.getSourceHyperlinkDetector(fLanguage);
-        if (fHyperLinkDetector == null)
-            fHyperLinkDetector= new HyperlinkDetector(fLanguage);
-        if (fHyperLinkDetector != null)
-            fHyperLinkController= new SourceHyperlinkController(fHyperLinkDetector, this);
-        fFoldingUpdater= fServiceFactory.getFoldingUpdater(fLanguage);
-        fFormattingStrategy= fServiceFactory.getSourceFormatter(fLanguage);
-        fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
-        fCompletionProcessor= new CompletionProcessor(fLanguage);
-        fModelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
-        fLabelProvider= fServiceFactory.getLabelProvider(fLanguage);
-        fImageProvider= fServiceFactory.getElementImageProvider(fLanguage);
-        fParseController= fServiceFactory.getParseController(fLanguage);
-        if (fParseController == null) {
-            ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName()
-                    + "; parser-related services will be disabled.");
-        }
-    }
-
     private void instantiateServiceControllers() {
         try {
             StructuredSourceViewer sourceViewer= (StructuredSourceViewer) getSourceViewer();
@@ -637,11 +592,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                         "Creating language service controllers for " + fLanguage.getName());
             }
 
-            fHoverHelpController= new HoverHelpController(fLanguage);
-            fFormattingController= new FormattingController(fFormattingStrategy);
-            fFormattingController.setParseController(fParseController);
+            if (fHyperLinkController == null && fLanguageServiceManager.getHyperLinkDetector() != null)
+                fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), this);
 
-            fParserScheduler= new ParserScheduler(fParseController, this, getDocumentProvider(),
+            fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
+            fCompletionProcessor= new CompletionProcessor(fLanguage);
+
+            fHoverHelpController= new HoverHelpController(fLanguage);
+            fFormattingController= new FormattingController(fLanguageServiceManager.getFormattingStrategy());
+            fFormattingController.setParseController(fLanguageServiceManager.getParseController());
+
+            fParserScheduler= new ParserScheduler(fLanguageServiceManager.getParseController(), this, getDocumentProvider(),
                     fAnnotationCreator);
 
             // N.B. To first order, the source viewer can be created before instantiating
@@ -663,18 +624,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             formatter.setFormattingStrategy(fFormattingController, IDocument.DEFAULT_CONTENT_TYPE);
             sourceViewer.setFormatter(formatter);
 
-            if (fModelBuilder != null) {
-                fOutlineController= new IMPOutlinePage(fParseController, fModelBuilder, fLabelProvider,
-                        fImageProvider, fRegionSelector);
+            if (fLanguageServiceManager.getModelBuilder() != null) {
+                fOutlineController= new IMPOutlinePage(fLanguageServiceManager.getParseController(), fLanguageServiceManager.getModelBuilder(), fLanguageServiceManager.getLabelProvider(),
+                        fLanguageServiceManager.getImageProvider(), fRegionSelector);
             } else {
                 fOutlineController= new OutlineController(this, fLanguage);
             }
             fPresentationController= new PresentationController(sourceViewer, fLanguage);
             fPresentationController.damage(new Region(0, sourceViewer.getDocument().getLength()));
             // SMS 29 May 2007 (to give viewer access to single-line comment prefix)
-            sourceViewer.setParseController(fParseController);
+            sourceViewer.setParseController(fLanguageServiceManager.getParseController());
 
-            if (fFoldingUpdater != null) {
+            if (fLanguageServiceManager.getFoldingUpdater() != null) {
                 ProjectionViewer projViewer= (ProjectionViewer) sourceViewer;
                 ProjectionSupport projectionSupport= new ProjectionSupport(projViewer, getAnnotationAccess(),
                         getSharedColors());
@@ -682,7 +643,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 projectionSupport.install();
                 projViewer.doOperation(ProjectionViewer.TOGGLE);
                 fAnnotationModel= projViewer.getProjectionAnnotationModel();
-                fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fFoldingUpdater));
+                fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fLanguageServiceManager.getFoldingUpdater()));
             }
 
             fParserScheduler.addModelListener(new AnnotationCreatorListener());
@@ -708,16 +669,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private void setTitleImageFromLanguageIcon() {
         // Only set the editor's title bar icon if the language has a label provider
-        if (fLabelProvider != null) {
+        if (fLanguageServiceManager.getLabelProvider() != null) {
             IEditorInput editorInput= getEditorInput();
             IFile file= EditorInputUtils.getFile(editorInput);
 
-            setTitleImage(fLabelProvider.getImage(file));
+            setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(file));
         }
     }
 
     private void installExternalEditorServices() {
-        Set<IModelListener> editorServices= fServiceFactory.getEditorServices(fLanguage);
+        Set<IModelListener> editorServices= fLanguageServiceManager.getEditorServices();
 
         for(ILanguageService editorService : editorServices) {
             if (editorService instanceof IEditorService)
@@ -829,7 +790,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
-        ILanguageSyntaxProperties syntaxProps= fParseController.getSyntaxProperties();
+        ILanguageSyntaxProperties syntaxProps= fLanguageServiceManager.getParseController().getSyntaxProperties();
         getPreferenceStore().setValue(MATCHING_BRACKETS, true);
         if (syntaxProps != null) {
 //          fBracketMatcher.setSourceVersion(getPreferenceStore().getString(JavaCore.COMPILER_SOURCE));
@@ -912,7 +873,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private boolean isBracket(char character) {
-        ILanguageSyntaxProperties syntaxProps= fParseController.getSyntaxProperties();
+        ILanguageSyntaxProperties syntaxProps= fLanguageServiceManager.getParseController().getSyntaxProperties();
         String[][] fences= syntaxProps.getFences();
 
         for(int i= 0; i != fences.length; ++i) {
@@ -1180,23 +1141,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
-	    IAnnotationHover hover= null;
-
-	    if (fLanguage != null)
-		hover= fServiceFactory.getAnnotationHover(fLanguage);
+	    IAnnotationHover hover= fLanguageServiceManager.getAnnotationHover();
 	    if (hover == null)
 		hover= new DefaultAnnotationHover();
 	    return hover;
 	}
 
 	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-	    if (fLanguage != null)
-		fAutoEditStrategy= fServiceFactory.getAutoEditStrategy(fLanguage);
+	    IAutoEditStrategy autoEdit= fLanguageServiceManager.getAutoEditStrategy();
+	    if (autoEdit == null)
+		autoEdit= super.getAutoEditStrategies(sourceViewer, contentType)[0];
 
-	    if (fAutoEditStrategy == null)
-		fAutoEditStrategy= super.getAutoEditStrategies(sourceViewer, contentType)[0];
-
-	    return new IAutoEditStrategy[] { fAutoEditStrategy };
+            // TODO Permit multiple auto-edit strategies
+	    return new IAutoEditStrategy[] { autoEdit };
 	}
 
 	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
@@ -1223,6 +1180,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+            if (fLanguageServiceManager.getHyperLinkDetector() != null)
+                fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), UniversalEditor.this);
+
 	    if (fHyperLinkController != null)
 		return new IHyperlinkDetector[] { fHyperLinkController };
 	    return super.getHyperlinkDetectors(sourceViewer);
@@ -1296,16 +1256,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    }
 	    public Object getInformation2(ITextViewer textViewer, IRegion subject) {
                 if (fBuilder == null) {
-                    fBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
+                    fBuilder= fLanguageServiceManager.getModelBuilder();
                 }
-		return fBuilder.buildTree(fParseController.getCurrentAst());
+		return fBuilder.buildTree(fLanguageServiceManager.getParseController().getCurrentAst());
 	    }
 	}
 
 	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
 
 	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-		TreeModelBuilderBase modelBuilder = fServiceFactory.getTreeModelBuilder(fLanguage);
+	    TreeModelBuilderBase modelBuilder = fLanguageServiceManager.getModelBuilder();
 	    if (modelBuilder == null) {
 		  return null;
 	    }
@@ -1402,7 +1362,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {
-		if (fPresentationController != null && fParseController != null) {
+		if (fPresentationController != null && fLanguageServiceManager.getParseController() != null) {
 		    fPresentationController.damage(damage);
 		    fParserScheduler.cancel();
 		    fParserScheduler.schedule();
@@ -1462,7 +1422,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // annotations after every update to the document annotation model
             // since there will be many of these, including possibly many that
             // don't relate to problem markers.
-            final IAnnotationTypeInfo annotationTypeInfo= fParseController.getAnnotationTypeInfo();
+            final IAnnotationTypeInfo annotationTypeInfo= fLanguageServiceManager.getParseController().getAnnotationTypeInfo();
             if (annotationTypeInfo != null) {
                 List problemMarkerTypes = annotationTypeInfo.getProblemMarkerTypes();
                 for (int i = 0; i < problemMarkerTypes.size(); i++) {
@@ -1497,11 +1457,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public IParseController getParseController() {
-	return fParseController;
+	return fLanguageServiceManager.getParseController();
     }
     
     public IOccurrenceMarker getOccurrenceMarker() {
-        return fOccurrenceMarker;
+        return fLanguageServiceManager.getOccurrenceMarker();
     }
 
     // SMS 4 May 2006:
@@ -1529,7 +1489,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public String toString() {
         String langName= (fLanguage != null ? " for " + fLanguage.getName() : "");
-        String inputDesc= (fParserScheduler != null && fParseController != null && fParseController.getPath() != null) ? " on source " + fParseController.getPath().toPortableString() : "";
+        String inputDesc= (fParserScheduler != null && fLanguageServiceManager.getParseController() != null && fLanguageServiceManager.getParseController().getPath() != null) ? " on source " + fLanguageServiceManager.getParseController().getPath().toPortableString() : "";
         return "Universal Editor" + langName +  " on " + inputDesc + getEditorInput();
     }
 }

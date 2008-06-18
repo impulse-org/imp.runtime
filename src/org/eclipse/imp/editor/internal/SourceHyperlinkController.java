@@ -16,7 +16,6 @@
 package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
@@ -24,13 +23,14 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 public class SourceHyperlinkController implements IHyperlinkDetector, IModelListener {
     private final ISourceHyperlinkDetector fSourceHyperlinkDetector;
     private IParseController fParseController;
-    private final UniversalEditor fEditor;
+    private final ITextEditor fEditor;
 
-    public SourceHyperlinkController(ISourceHyperlinkDetector sourceHyperlinkDetector, UniversalEditor editor) {
+    public SourceHyperlinkController(ISourceHyperlinkDetector sourceHyperlinkDetector, ITextEditor editor) {
 	fSourceHyperlinkDetector= sourceHyperlinkDetector;
 	fEditor= editor;
     }

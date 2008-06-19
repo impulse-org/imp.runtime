@@ -12,10 +12,10 @@
 
 package org.eclipse.imp.services;
 
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -45,7 +45,7 @@ public interface IOutliner extends ILanguageService {
 	 * Set the editor that currently controls the outline view
 	 * @param editor
 	 */
-	void setEditor(UniversalEditor editor);
+	void setEditor(ITextEditor editor);
 
     
 	/**

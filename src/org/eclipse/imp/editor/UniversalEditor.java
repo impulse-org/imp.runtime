@@ -191,19 +191,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     protected LanguageServiceManager fLanguageServiceManager;
 
-    protected IModelListener fOutlineController;
-
-    private HoverHelpController fHoverHelpController;
-
-    protected PresentationController fPresentationController;
-
-    protected CompletionProcessor fCompletionProcessor;
-
-    protected SourceHyperlinkController fHyperLinkController;
+    protected ServiceControllerManager fServiceControllerManager;
 
     private ProjectionAnnotationModel fAnnotationModel;
-
-    private FormattingController fFormattingController;
 
     private ProblemMarkerManager fProblemMarkerManager;
 
@@ -233,7 +223,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {
-            return fOutlineController;
+            return fServiceControllerManager.getOutlineController();
 	}
 	if (IToggleBreakpointsTarget.class.equals(required)) {
 		// SMS 14 MAR 2007  added "this" parameter
@@ -552,11 +542,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	if (fLanguage != null) {
 	    fLanguageServiceManager= new LanguageServiceManager(fLanguage);
 	    fLanguageServiceManager.initialize();
+            fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
+            fServiceControllerManager.initialize();
 	}
 
         super.createPartControl(parent);
 
 	if (fLanguageServiceManager.getParseController() != null) {
+	    fServiceControllerManager.setSourceViewer(getSourceViewer());
 	    instantiateServiceControllers();
 	}
 
@@ -592,46 +585,31 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                         "Creating language service controllers for " + fLanguage.getName());
             }
 
-            if (fHyperLinkController == null && fLanguageServiceManager.getHyperLinkDetector() != null)
-                fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), this);
-
             fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
-            fCompletionProcessor= new CompletionProcessor(fLanguage);
-
-            fHoverHelpController= new HoverHelpController(fLanguage);
-            fFormattingController= new FormattingController(fLanguageServiceManager.getFormattingStrategy());
-            fFormattingController.setParseController(fLanguageServiceManager.getParseController());
 
             fParserScheduler= new ParserScheduler(fLanguageServiceManager.getParseController(), this, getDocumentProvider(),
                     fAnnotationCreator);
 
             // N.B. To first order, the source viewer can be created before instantiating
-            // any service controllers. The following two services (text hover and
-            // content formatting) are the only exceptions. Most other controllers
-            // must be instantiated after the source viewer has been created, since
-            // they actually need to maintain a reference to it.
+            // any service controllers. The following three services: text hover, hyperlink
+            // detector, and content formatting, are the only exceptions. Most other controllers
+            // *must* be instantiated after the source viewer has been created, since they
+            // actually need to maintain a reference to it.
 
             // The source viewer configuration has already been asked for its ITextHover,
             // but before we actually instantiated the relevant controller class. So update
             // the source viewer, now that we actually have the hover provider.
-            sourceViewer.setTextHover(fHoverHelpController, IDocument.DEFAULT_CONTENT_TYPE);
+            sourceViewer.setTextHover(fServiceControllerManager.getHoverHelpController(), IDocument.DEFAULT_CONTENT_TYPE);
 
             // The source viewer configuration has already been asked for its IContentFormatter,
             // but before we actually instantiated the relevant controller class. So update the
             // source viewer, now that we actually have the IContentFormatter.
             ContentFormatter formatter= new ContentFormatter();
 
-            formatter.setFormattingStrategy(fFormattingController, IDocument.DEFAULT_CONTENT_TYPE);
+            formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
             sourceViewer.setFormatter(formatter);
 
-            if (fLanguageServiceManager.getModelBuilder() != null) {
-                fOutlineController= new IMPOutlinePage(fLanguageServiceManager.getParseController(), fLanguageServiceManager.getModelBuilder(), fLanguageServiceManager.getLabelProvider(),
-                        fLanguageServiceManager.getImageProvider(), fRegionSelector);
-            } else {
-                fOutlineController= new OutlineController(this, fLanguage);
-            }
-            fPresentationController= new PresentationController(sourceViewer, fLanguage);
-            fPresentationController.damage(new Region(0, sourceViewer.getDocument().getLength()));
+            fServiceControllerManager.getPresentationController().damage(new Region(0, sourceViewer.getDocument().getLength()));
             // SMS 29 May 2007 (to give viewer access to single-line comment prefix)
             sourceViewer.setParseController(fLanguageServiceManager.getParseController());
 
@@ -647,18 +625,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
 
             fParserScheduler.addModelListener(new AnnotationCreatorListener());
-            fParserScheduler.addModelListener(fOutlineController);
-            fParserScheduler.addModelListener(fPresentationController);
-            fParserScheduler.addModelListener(fCompletionProcessor);
-            fParserScheduler.addModelListener(fHoverHelpController);
+            fServiceControllerManager.setupModelListeners(fParserScheduler);
 
             // TODO RMF 8/6/2007 - Disable "Mark Occurrences" if no occurrence marker exists for this language
             // The following doesn't work b/c getAction() doesn't find the Mark Occurrences action (why?)
             // if (this.fOccurrenceMarker == null)
             // getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
 
-            if (fHyperLinkController != null)
-                fParserScheduler.addModelListener(fHyperLinkController);
 
             installExternalEditorServices();
             fParserScheduler.run(new NullProgressMonitor());
@@ -1135,7 +1108,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
 	    ContentAssistant ca= new ContentAssistant();
-	    ca.setContentAssistProcessor(fCompletionProcessor, IDocument.DEFAULT_CONTENT_TYPE);
+	    ca.setContentAssistProcessor(fServiceControllerManager.getCompletionProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
 	    ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
 	    return ca;
 	}
@@ -1161,13 +1134,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // N.B.: This will probably always be null, since this method gets called before 
 	    // the formatting controller has been instantiated (which happens in
 	    // instantiateServiceControllers()).
-	    if (fFormattingController == null)
+	    if (fServiceControllerManager.getFormattingController() == null)
 		return null;
 
 	    // For now, assumes only one content type (i.e. one kind of partition)
 	    ContentFormatter formatter= new ContentFormatter();
 
-	    formatter.setFormattingStrategy(fFormattingController, IDocument.DEFAULT_CONTENT_TYPE);
+	    formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
 	    return formatter;
 	}
 
@@ -1180,11 +1153,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-            if (fLanguageServiceManager.getHyperLinkDetector() != null)
-                fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), UniversalEditor.this);
-
-	    if (fHyperLinkController != null)
-		return new IHyperlinkDetector[] { fHyperLinkController };
+	    if (fServiceControllerManager.getHyperLinkController() != null)
+		return new IHyperlinkDetector[] { fServiceControllerManager.getHyperLinkController() };
 	    return super.getHyperlinkDetectors(sourceViewer);
 	}
 
@@ -1231,7 +1201,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
-	    return fHoverHelpController;
+	    return fServiceControllerManager.getHoverHelpController();
 	}
 
 	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
@@ -1362,8 +1332,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {
-		if (fPresentationController != null && fLanguageServiceManager.getParseController() != null) {
-		    fPresentationController.damage(damage);
+		if (fServiceControllerManager.getPresentationController() != null && fLanguageServiceManager.getParseController() != null) {
+		    fServiceControllerManager.getPresentationController().damage(damage);
 		    fParserScheduler.cancel();
 		    fParserScheduler.schedule();
 		}

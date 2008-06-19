@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.progress.UIJob;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /*
@@ -50,19 +51,16 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     private IParseController controller;
 
-    private UniversalEditor editor;		// SMS 5 Apr 2007
-
     private IOutliner outliner;
 
     private UIJob job;
 
     private int DELAY= 50; //500;
 
-    public OutlineController(UniversalEditor editor, Language language)  {
-    	this.editor= editor;	// SMS 5 Apr 2007
+    public OutlineController(ITextEditor editor, Language language)  {
     	outliner = ServiceFactory.getInstance().getOutliner(language);
         if (outliner != null) {
-                outliner.setEditor(editor);     // SMS 5 Apr 2007
+            outliner.setEditor(editor);     // SMS 5 Apr 2007
         }
     }
 
@@ -72,24 +70,8 @@ public class OutlineController implements IContentOutlinePage, IModelListener {
 
     public void createControl(Composite parent) {
     	tree= new Tree(parent, SWT.NONE);
-    	tree.addSelectionListener(new SelectionAdapter() {
-			    public void widgetSelected(SelectionEvent e) {
-			    	try {
-					    // RMF 11/4/2005 - Disabled, since not every parser yields a imp AST
-			//		    TreeItem item= tree.getSelection()[0];
-			//		    Ast node= (Ast) item.getData();
-			//		    if (node != null) {
-						// int start = node.getStartOffset();
-						// int end = node.getEndOffset();
-			//		    }
-					} catch (Throwable ee) {
-					    ErrorHandler.reportError("Universal Editor Error", ee);
-					}
-					super.widgetSelected(e);
-			    }
-    		});
     	if (outliner != null)
-    		outliner.setTree(tree);
+    	    outliner.setTree(tree);
     }
 
     public void dispose() {}

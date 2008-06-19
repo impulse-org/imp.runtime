@@ -18,7 +18,6 @@ import java.util.Stack;
 import lpg.runtime.IToken;
 
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.SimpleLPGParseController;
@@ -32,6 +31,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 /**
  * OutlinerBase is an abstract base type for a source-text outlining service.
@@ -53,12 +53,9 @@ import org.eclipse.ui.texteditor.AbstractTextEditor;
  */
 public abstract class OutlinerBase implements IOutliner
 {
-	
-	protected UniversalEditor editor = null;
-	
-	public void setEditor(UniversalEditor editor) {
-		this.editor = editor;
-	}
+    protected IParseController fParseController;
+
+    public void setEditor(ITextEditor editor) { }
 	
 	protected Tree tree;
 	
@@ -81,19 +78,12 @@ public abstract class OutlinerBase implements IOutliner
 			// It's actually possible (if not probable) that the outlining service will be invoked
 			// by the editor so soon in the initialization of a workspace that the following composite
 			// call will fail (e.g., due to null values returned at various points).  However, execution
-			// of this method depends on the selection of a wiget, which requires that the ActivePage,
+			// of this method depends on the selection of a widget, which requires that the ActivePage,
 			// ActiveWorkbenchWindow, etc. be established.  So for the outliner, this sequence of calls
 			// is not a problem in practice.
 			IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
 			AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
-
-			if (!(textEditor instanceof UniversalEditor)) {
-				System.err.println("OutlinerBase.TreeSelectionListener.wigetSelected(..):  text editor is not a UniversalEditor!  Don't know what to do with it!");
-				return;
-			}
-			UniversalEditor uE = (UniversalEditor) textEditor;
-
-			ISourcePositionLocator nodeLocator = uE.getParseController().getNodeLocator();
+			ISourcePositionLocator nodeLocator = fParseController.getNodeLocator();
 			int startOffset = 0;
 			int endOffset = 0;
 		
@@ -313,6 +303,7 @@ public abstract class OutlinerBase implements IOutliner
 		if (controller == null || tree == null) return;
 		if (!significantChange(controller)) return;
 		
+		fParseController= controller;
 		boolean redrawSetFalse = false;
 		try {
 			Object root= controller.getCurrentAst();

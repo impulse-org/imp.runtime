@@ -82,7 +82,7 @@ public abstract class OutlinerBase implements IOutliner
 			// ActiveWorkbenchWindow, etc. be established.  So for the outliner, this sequence of calls
 			// is not a problem in practice.
 			IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-			AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
+			ITextEditor textEditor= (ITextEditor) activeEditor;
 			ISourcePositionLocator nodeLocator = fParseController.getNodeLocator();
 			int startOffset = 0;
 			int endOffset = 0;

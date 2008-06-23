@@ -32,13 +32,13 @@ public class ServiceControllerManager {
     public ServiceControllerManager(ITextEditor textEditor, LanguageServiceManager serviceMgr) {
         fTextEditor= textEditor;
         fLanguageServiceManager= serviceMgr;
+
+        if (fLanguageServiceManager.getHyperLinkDetector() != null)
+            fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), fTextEditor);
     }
 
     public void initialize() {
         IRegionSelectionService regionSelector= (IRegionSelectionService) fTextEditor.getAdapter(IRegionSelectionService.class);
-
-        if (fHyperLinkController == null && fLanguageServiceManager.getHyperLinkDetector() != null)
-            fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), fTextEditor);
 
         fHoverHelpController= new HoverHelpController(fLanguageServiceManager.getLanguage());
         fFormattingController= new FormattingController(fLanguageServiceManager.getFormattingStrategy());

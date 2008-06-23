@@ -75,6 +75,9 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
@@ -563,17 +566,32 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         setTitleImageFromLanguageIcon();
 
-        if (PreferenceCache.sourceFont != null) {
-            getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
-        }
+        IPreferenceStore prefStore= setSourceFontFromPreference();
 
         // N.B.: The editor's preference store is not the same as the IMP plugin's
         // preference store, which gets manipulated by the preference dialog fields.
-        // So don't bother listening to what getPreferenceStore() returns.
+        // So don't bother listening to what this.getPreferenceStore() returns.
 //      getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
-        RuntimePlugin.getInstance().getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
+        prefStore.addPropertyChangeListener(fPrefStoreListener);
 
         initializeEditorContributors();
+    }
+
+    private IPreferenceStore setSourceFontFromPreference() {
+        IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
+
+        String fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
+        FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
+
+        if (!fontRegistry.hasValueFor(fontName)) {
+            fontRegistry.put(fontName, PreferenceConverter.readFontData(fontName));
+        }
+        Font sourceFont= fontRegistry.get(fontName);
+
+        if (sourceFont != null) {
+            getSourceViewer().getTextWidget().setFont(sourceFont);
+        }
+        return prefStore;
     }
 
     private void instantiateServiceControllers() {
@@ -1352,12 +1370,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private final IPropertyChangeListener fPrefStoreListener= new IPropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent event) {
             if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-        	Font oldFont= PreferenceCache.sourceFont;
-        	PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), ((FontData[]) event.getNewValue())[0]);
-        	if (getSourceViewer() != null)
-        	    getSourceViewer().getTextWidget().setFont(PreferenceCache.sourceFont);
-        	if (oldFont != null)
-        	    oldFont.dispose();
+                FontRegistry fontReg= RuntimePlugin.getInstance().getFontRegistry();
+
+                fontReg.put(PreferenceConstants.P_SOURCE_FONT, (FontData[]) event.getNewValue());
+
+                Font sourceFont= fontReg.get(PreferenceConstants.P_SOURCE_FONT);
+
+                if (getSourceViewer() != null)
+        	    getSourceViewer().getTextWidget().setFont(sourceFont);
             } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
                 int newTab= (event.getNewValue() instanceof String) ? Integer.parseInt((String) event.getNewValue()) : ((Integer) event.getNewValue()).intValue();
         	PreferenceCache.tabWidth= newTab;

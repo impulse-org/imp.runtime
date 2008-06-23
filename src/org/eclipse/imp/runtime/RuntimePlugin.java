@@ -17,6 +17,7 @@ import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
+import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.IStartup;
@@ -34,6 +35,8 @@ public class RuntimePlugin extends PluginBase implements IStartup {
      * The (unqualified) ID of the language descriptor extension point.
      */
     public static String LANGUAGE_DESCRIPTOR= "languageDescription";
+
+    private FontRegistry fFontRegistry;
 
     // The singleton instance.
     private static RuntimePlugin sPlugin;
@@ -53,6 +56,15 @@ public class RuntimePlugin extends PluginBase implements IStartup {
 	return IMP_RUNTIME;
     }
 
+    public FontRegistry getFontRegistry() {
+        // Hopefully this gets called late enough, i.e., after a Display has been
+        // created on the current thread (see FontRegistry constructor).
+        if (fFontRegistry == null) {
+            fFontRegistry= new FontRegistry();
+        }
+        return fFontRegistry;
+    }
+
     /**
      * This method is called upon plug-in activation
      */
@@ -63,8 +75,9 @@ public class RuntimePlugin extends PluginBase implements IStartup {
         IPreferenceStore prefStore= getPreferenceStore();
 
         PreferenceCache.emitMessages= prefStore.getBoolean(PreferenceConstants.P_EMIT_MESSAGES);
-        PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), PreferenceConverter.getFontData(prefStore, PreferenceConstants.P_SOURCE_FONT));
         PreferenceCache.tabWidth= prefStore.getInt(PreferenceConstants.P_TAB_WIDTH);
+
+//      PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), PreferenceConverter.getFontData(prefStore, PreferenceConstants.P_SOURCE_FONT));
     }
 
     /**

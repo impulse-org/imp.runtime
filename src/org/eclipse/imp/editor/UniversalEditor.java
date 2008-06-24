@@ -35,15 +35,9 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.internal.AnnotationCreator;
-import org.eclipse.imp.editor.internal.CompletionProcessor;
 import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
 import org.eclipse.imp.editor.internal.FoldingController;
-import org.eclipse.imp.editor.internal.FormattingController;
-import org.eclipse.imp.editor.internal.HoverHelpController;
-import org.eclipse.imp.editor.internal.OutlineController;
-import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
-import org.eclipse.imp.editor.internal.SourceHyperlinkController;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
@@ -607,12 +601,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
             fParserScheduler= new ParserScheduler(fLanguageServiceManager.getParseController(), this, getDocumentProvider(),
                     fAnnotationCreator);
-
-            // N.B. To first order, the source viewer can be created before instantiating
-            // any service controllers. The following three services: text hover, hyperlink
-            // detector, and content formatting, are the only exceptions. Most other controllers
-            // *must* be instantiated after the source viewer has been created, since they
-            // actually need to maintain a reference to it.
 
             // The source viewer configuration has already been asked for its ITextHover,
             // but before we actually instantiated the relevant controller class. So update

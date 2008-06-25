@@ -436,6 +436,12 @@ public class NewProjectWizardFirstPage extends WizardPage {
 	return fLocationGroup.getLocation();
     }
 
+    public boolean isInWorkspace() {
+        final String location= fLocationGroup.getLocation().toOSString();
+        IPath projectPath= Path.fromOSString(location);
+        return Platform.getLocation().isPrefixOf(projectPath);
+    }
+
     public boolean getDetect() {
 	return false; // fDetectGroup.mustDetect();
     }

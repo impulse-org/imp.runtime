@@ -1,5 +1,8 @@
 package org.eclipse.imp.editor;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.imp.core.ErrorHandler;
@@ -24,6 +27,9 @@ import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IWorkbenchPart;
 
 public class LanguageServiceManager {
     private Language fLanguage;
@@ -72,6 +78,11 @@ public class LanguageServiceManager {
         fLanguage= lang;
     }
 
+    public void initialize(IEditorPart part) {
+    	saveMyServiceManager(part, this);
+    	initialize();
+    }
+    
     public void initialize() {
         if (PreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("Instantiating language service extensions for " + fLanguage.getName());
@@ -95,6 +106,8 @@ public class LanguageServiceManager {
         fParseController= fServiceFactory.getParseController(fLanguage);
         fRefactoringContributors= fServiceFactory.getRefactoringContributors(fLanguage);
         fResolver= fServiceFactory.getReferenceResolver(fLanguage);
+        
+        fOccurrenceMarker = fServiceFactory.getOccurrenceMarker(fLanguage);
 
         if (fParseController == null) {
             ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName()
@@ -170,4 +183,34 @@ public class LanguageServiceManager {
     public IContentProposer getContentProposer() {
         return fContentProposer;
     }
+    
+    
+    
+    private static HashMap<IEditorPart, LanguageServiceManager> editorServiceMap = new HashMap<IEditorPart, LanguageServiceManager>();
+    
+    public static void saveMyServiceManager(IEditorPart part, LanguageServiceManager manager) {
+    	clearDeadEntries();
+    	editorServiceMap.put(part, manager);
+    }
+    
+    public static LanguageServiceManager getMyServiceManager(IEditorPart part) {
+    	clearDeadEntries();
+    	return editorServiceMap.get(part);
+    }
+    
+    private static void clearDeadEntries() {
+    	List<IWorkbenchPart> deadEditors = new ArrayList<IWorkbenchPart>();
+    	for (IEditorPart ed: editorServiceMap.keySet()) {
+    		IEditorSite edSite = ed.getEditorSite();
+    		IWorkbenchPart wbPart = edSite.getPart();
+    		if (wbPart == null) {
+    			deadEditors.add(wbPart);
+    		} else {
+    		}
+    	}
+		for (IWorkbenchPart wbPart:  deadEditors) {
+			editorServiceMap.remove(wbPart);
+		}
+    }
+    
 }

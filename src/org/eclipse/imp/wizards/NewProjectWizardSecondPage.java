@@ -133,7 +133,9 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             if (visible) {
                     IStatus status= changeToNewProject();
                     if (status != null && !status.isOK()) {
-                            ErrorDialog.openError(getShell(), NewWizardMessages.JavaProjectWizardSecondPage_error_title, null, status);
+                            ErrorDialog.openError(getShell(),
+                            	//NewWizardMessages.JavaProjectWizardSecondPage_error_title,
+                            	"New Java Project", null, status);
                     }
             } else {
                     removeProject();
@@ -171,8 +173,8 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                     getContainer().run(true, false, new WorkspaceModifyDelegatingOperation(op));
                     return op.infoStatus;
             } catch (InvocationTargetException e) {
-                    final String title= NewWizardMessages.JavaProjectWizardSecondPage_error_title; 
-                    final String message= NewWizardMessages.JavaProjectWizardSecondPage_error_message; 
+                    final String title= "New Java Project"; 												  //NewWizardMessages.JavaProjectWizardSecondPage_error_title; 
+                    final String message= "An error occurred while creating project. Check log for details."; //NewWizardMessages.JavaProjectWizardSecondPage_error_message; 
                     ExceptionHandler.handle(e, getShell(), title, message);
             } catch  (InterruptedException e) {
                     // cancel pressed
@@ -191,7 +193,8 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                 monitor= new NullProgressMonitor();
         }
         try {
-                monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize, 7); 
+                monitor.beginTask(		//NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize
+                		"Initializing project...", 7); 
                 if (monitor.isCanceled()) {
                         throw new OperationCanceledException();
                 }
@@ -214,7 +217,10 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                         createProject(fCurrProject, fCurrProjectLocation, new SubProgressMonitor(monitor, 2));
                 } catch (CoreException e) {
                         if (e.getStatus().getCode() == IResourceStatus.FAILED_READ_METADATA) {                                  
-                                result= new StatusInfo(IStatus.INFO, Messages.format(NewWizardMessages.JavaProjectWizardSecondPage_DeleteCorruptProjectFile_message, e.getLocalizedMessage()));
+                                result= new StatusInfo(IStatus.INFO, Messages.format(
+                                		//NewWizardMessages.JavaProjectWizardSecondPage_DeleteCorruptProjectFile_message,
+                                		"A problem occurred while creating the project from existing source:\n\n''{0}''\n\nThe corrupt project file will be replaced by a valid one.",
+                                		e.getLocalizedMessage()));
                                 
                                 deleteProjectFile(realLocation);
                                 if (fCurrProject.exists())
@@ -332,7 +338,10 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                         copyFile(fDotProjectBackup, projectFile, new SubProgressMonitor(monitor, 1));
                 }
         } catch (IOException e) {
-                IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, NewWizardMessages.JavaProjectWizardSecondPage_problem_restore_project, e); 
+                IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, 
+                		//NewWizardMessages.JavaProjectWizardSecondPage_problem_restore_project,
+                		"Problem while restoring backup for .project",
+                		e); 
                 throw new CoreException(status);
         }
         try {
@@ -342,7 +351,9 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                         copyFile(fDotClasspathBackup, classpathFile, new SubProgressMonitor(monitor, 1));
                 }
         } catch (IOException e) {
-                IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, NewWizardMessages.JavaProjectWizardSecondPage_problem_restore_classpath, e); 
+                IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR,
+                		//NewWizardMessages.JavaProjectWizardSecondPage_problem_restore_classpath,
+                		"Problem while restoring backup for .classpath", e); 
                 throw new CoreException(status);
         }
     }
@@ -353,7 +364,11 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                 copyFile(source, bak);
                 return bak;
         } catch (IOException e) {
-                IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, Messages.format(NewWizardMessages.JavaProjectWizardSecondPage_problem_backup, name), e); 
+                IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR,
+                		Messages.format(
+                			//NewWizardMessages.JavaProjectWizardSecondPage_problem_backup,
+                			"Problem while creating backup for ''{0}''",	
+                			name), e); 
                 throw new CoreException(status);
         } 
     }
@@ -445,8 +460,10 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
         try {
                 getContainer().run(true, true, new WorkspaceModifyDelegatingOperation(op));
         } catch (InvocationTargetException e) {
-                final String title= NewWizardMessages.JavaProjectWizardSecondPage_error_remove_title; 
-                final String message= NewWizardMessages.JavaProjectWizardSecondPage_error_remove_message; 
+                final String title= 	//NewWizardMessages.JavaProjectWizardSecondPage_error_remove_title; 
+                					"Error Creating Java Project";
+                final String message= 	//NewWizardMessages.JavaProjectWizardSecondPage_error_remove_message; 
+                					"An error occurred while removing a temporary project.";
                 ExceptionHandler.handle(e, getShell(), title, message);         
         } catch  (InterruptedException e) {
                 // cancel pressed
@@ -458,7 +475,8 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
         if (monitor == null || noProgressMonitor) {
                 monitor= new NullProgressMonitor();
         }
-        monitor.beginTask(NewWizardMessages.JavaProjectWizardSecondPage_operation_remove, 3); 
+        monitor.beginTask(	//NewWizardMessages.JavaProjectWizardSecondPage_operation_remove,
+        		"Removing project...", 3); 
         try {
                 try {
                         URI projLoc= fCurrProject.getLocationURI();

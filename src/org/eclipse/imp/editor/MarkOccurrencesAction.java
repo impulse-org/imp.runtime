@@ -219,6 +219,12 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
         // RMF 6/27/2008 - If we've come up in an empty workspace, there won't be an active editor
         if (fActiveEditor == null)
             return;
+        // RMF 6/27/2008 - Apparently partActivated() gets called before the editor is initialized
+        // (on MacOS?), and then we can't properly initialize this MarkOccurrencesAction instance.
+        // When that happens, fDocumentProvider will be null. Initialization needs a fix for that,
+        // rather than this simple-minded null guard.
+        if (fDocumentProvider == null)
+            return;
 		IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
 		if (annotationModel == null || fOccurrenceAnnotations == null)
 		    return;

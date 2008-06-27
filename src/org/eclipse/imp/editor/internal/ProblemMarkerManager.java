@@ -42,7 +42,7 @@ import org.eclipse.swt.widgets.Display;
 public class ProblemMarkerManager implements IResourceChangeListener, IAnnotationModelListener, IAnnotationModelListenerExtension {
 
     /**
-     * Visitors used to look if the element change delta containes a marker change.
+     * Visitors used to look if the element change delta contains a marker change.
      */
     private static class ProjectErrorVisitor implements IResourceDeltaVisitor {
         private HashSet fChangedElements;

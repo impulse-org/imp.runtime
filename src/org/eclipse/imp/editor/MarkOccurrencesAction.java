@@ -168,14 +168,20 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 	}
 
     private void recomputeAnnotationsForSelection(int offset, int length, IDocument document) {
-        IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
-        Object root= getCompilationUnit();
-        Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset + length + 1);
-        if (fOccurrenceMarker == null) {
-            setActiveEditor((ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor());
-        }
-        List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
-        Position[] positions= convertRefNodesToPositions(occurrences);
+		IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
+		Object root= getCompilationUnit();
+		if (root == null) {
+			// Get this when "selecting" an error message that is shown in the editor view
+			// but is not part of the source file; just returning should leave previous
+			// markings, if any, as they were (which is probably fine)
+			return;
+		}
+		Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length+1);
+		if (fOccurrenceMarker == null) {
+			setActiveEditor((ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor());
+		}
+		List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
+		Position[] positions= convertRefNodesToPositions(occurrences);
 
         placeAnnotations(convertPositionsToAnnotationMap(positions, document), annotationModel);
     }

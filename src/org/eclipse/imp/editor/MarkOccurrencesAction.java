@@ -277,6 +277,8 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     		return;
 		fActiveEditor = textEditor;
 		LanguageServiceManager fLanguageServiceManager = LanguageServiceManager.getMyServiceManager(fActiveEditor);
+		if (fLanguageServiceManager == null)
+		    return;
 		fOccurrenceMarker = fLanguageServiceManager.getOccurrenceMarker();
 		fParseController = fLanguageServiceManager.getParseController();
 		registerListeners();
@@ -312,6 +314,8 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 				System.out.println("partActivated");
 				if (part instanceof ITextEditor) {
 					setActiveEditor((ITextEditor)part);
+					if (fDocumentProvider == null)
+					    return;
 					IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
 					// Need to initialize the set of preexisting annotations in order
 					// for them to be removed properly when new occurrences are marked

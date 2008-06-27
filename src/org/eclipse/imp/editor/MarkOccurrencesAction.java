@@ -168,33 +168,33 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 	}
 
     private void recomputeAnnotationsForSelection(int offset, int length, IDocument document) {
-	IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
-	Object root= getCompilationUnit();
-	Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length+1);
-	if (fOccurrenceMarker == null) {
-		setActiveEditor((ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor());
-	}
-	List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
-	Position[] positions= convertRefNodesToPositions(occurrences);
+        IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
+        Object root= getCompilationUnit();
+        Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset + length + 1);
+        if (fOccurrenceMarker == null) {
+            setActiveEditor((ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor());
+        }
+        List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
+        Position[] positions= convertRefNodesToPositions(occurrences);
 
-	placeAnnotations(convertPositionsToAnnotationMap(positions, document), annotationModel);
+        placeAnnotations(convertPositionsToAnnotationMap(positions, document), annotationModel);
     }
 
-    private Map<Annotation,Position> convertPositionsToAnnotationMap(Position[] positions, IDocument document) {
-	Map<Annotation,Position> annotationMap= new HashMap<Annotation,Position>(positions.length);
+    private Map<Annotation, Position> convertPositionsToAnnotationMap(Position[] positions, IDocument document) {
+        Map<Annotation, Position> annotationMap= new HashMap<Annotation, Position>(positions.length);
 
-	for(int i= 0; i < positions.length; i++) {
-	    Position position= positions[i];
+        for(int i= 0; i < positions.length; i++) {
+            Position position= positions[i];
 
-	    try { // Create & add annotation
-		String message= document.get(position.offset, position.length);
+            try { // Create & add annotation
+                String message= document.get(position.offset, position.length);
 
-		annotationMap.put(new Annotation(OCCURRENCE_ANNOTATION, false, message), position);
-	    } catch (BadLocationException ex) {
-		continue; // skip apparently bogus position
-	    }
-	}
-	return annotationMap;
+                annotationMap.put(new Annotation(OCCURRENCE_ANNOTATION, false, message), position);
+            } catch (BadLocationException ex) {
+                continue; // skip apparently bogus position
+            }
+        }
+        return annotationMap;
     }
 
     private void placeAnnotations(Map<Annotation,Position> annotationMap, IAnnotationModel annotationModel) {
@@ -216,7 +216,9 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     }
 
     void removeExistingOccurrenceAnnotations() {
-
+        // RMF 6/27/2008 - If we've come up in an empty workspace, there won't be an active editor
+        if (fActiveEditor == null)
+            return;
 		IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
 		if (annotationModel == null || fOccurrenceAnnotations == null)
 		    return;
@@ -234,37 +236,38 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 
     
     private Position[] convertRefNodesToPositions(List<Object> refs) {
-	Position[] positions= new Position[refs.size()];
-	int i= 0;
-	ISourcePositionLocator locator= fParseController.getNodeLocator();
+        Position[] positions= new Position[refs.size()];
+        int i= 0;
+        ISourcePositionLocator locator= fParseController.getNodeLocator();
 
-	for(Iterator iter= refs.iterator(); iter.hasNext(); i++) {
-	    Object node= iter.next();
+        for(Iterator iter= refs.iterator(); iter.hasNext(); i++) {
+            Object node= iter.next();
 
-	    positions[i]= new Position(locator.getStartOffset(node), locator.getLength(node));
-	    // System.out.println("Annotation at " + positions[i].offset + ":" + positions[i].length);
-	}
-	return positions;
+            positions[i]= new Position(locator.getStartOffset(node), locator.getLength(node));
+            // System.out.println("Annotation at " + positions[i].offset + ":" +
+            // positions[i].length);
+        }
+        return positions;
     }
 
     
     private Object getCompilationUnit() {
-	if (fCompilationUnit == null) {
-	    fCompilationUnit= fParseController.getCurrentAst();
-	}
-	return fCompilationUnit;
+        if (fCompilationUnit == null) {
+            fCompilationUnit= fParseController.getCurrentAst();
+        }
+        return fCompilationUnit;
     }
 
     
     private IEditorInput getEditorInput() {
-	return fActiveEditor.getEditorInput();
+        return fActiveEditor.getEditorInput();
     }
 
     
     private IDocumentProvider getDocumentProvider() {
-	fDocumentProvider= fActiveEditor.getDocumentProvider();
+        fDocumentProvider= fActiveEditor.getDocumentProvider();
 
-	return fDocumentProvider;
+        return fDocumentProvider;
     }
 
     
@@ -287,10 +290,10 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 
     
     private Object getLockObject(IAnnotationModel annotationModel) {
-	if (annotationModel instanceof ISynchronizable)
-	    return ((ISynchronizable) annotationModel).getLockObject();
-	else
-	    return annotationModel;
+        if (annotationModel instanceof ISynchronizable)
+            return ((ISynchronizable) annotationModel).getLockObject();
+        else
+            return annotationModel;
     }
 
     
@@ -346,10 +349,4 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			}
     	});
     }
-    
-    
- 
-    
-    
-    
 }

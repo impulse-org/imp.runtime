@@ -178,7 +178,10 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 		}
 		Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length+1);
 		if (fOccurrenceMarker == null) {
-			setActiveEditor((ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor());
+			// It might be possible to set the active editor at this point under
+			// some circumstances, but attempting to do so under other circumstances
+			// can lead to stack overflow, so just return.
+			return;
 		}
 		List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
 		Position[] positions= convertRefNodesToPositions(occurrences);

@@ -98,12 +98,12 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 	
 		public void selectionChanged(SelectionChangedEvent event) {
 		    ISelection selection= event.getSelection();
-	
+
 		    if (selection instanceof ITextSelection) {
 			ITextSelection textSel= (ITextSelection) selection;
 			int offset= textSel.getOffset();
 			int length= textSel.getLength();
-	
+			
 			System.out.println("MarkOccurrencesAction.selectionChanged:  offset = " + offset + "; length = " + length);
 			recomputeAnnotationsForSelection(offset, length, fDocument);
 		    }
@@ -118,7 +118,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 //		System.out.println("Run");
     	fMarkingEnabled = action.isChecked();
 		if (fMarkingEnabled) {
-			setActiveEditor(
+			setUpActiveEditor(
 				(ITextEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()
 				);
 		} else {
@@ -258,7 +258,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
         for(Iterator iter= refs.iterator(); iter.hasNext(); i++) {
             Object node= iter.next();
 
-            positions[i]= new Position(locator.getStartOffset(node), locator.getLength(node));
+            positions[i]= new Position(locator.getStartOffset(node), locator.getLength(node)+1);
             // System.out.println("Annotation at " + positions[i].offset + ":" +
             // positions[i].length);
         }
@@ -285,8 +285,8 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
         return fDocumentProvider;
     }
 
-    
-    private void setActiveEditor(ITextEditor textEditor) {
+
+    private void setUpActiveEditor(ITextEditor textEditor) {
     	unregisterListeners();
     	if (textEditor == null)
     		return;
@@ -303,6 +303,8 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			ITextSelection textSelection = (ITextSelection) selection;
 			recomputeAnnotationsForSelection(textSelection.getOffset(), textSelection.getLength(), getDocumentFromEditor());
 		}
+
+		
     }
 
     
@@ -326,9 +328,9 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     		new IPartListener() {
 
 			public void partActivated(IWorkbenchPart part) {
-				System.out.println("partActivated");
+//				System.out.println("partActivated");
 				if (part instanceof ITextEditor) {
-					setActiveEditor((ITextEditor)part);
+					setUpActiveEditor((ITextEditor)part);
 					if (fDocumentProvider == null)
 					    return;
 					IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());

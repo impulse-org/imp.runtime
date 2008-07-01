@@ -80,10 +80,6 @@ public class LanguageServiceManager {
 
     public void initialize(IEditorPart part) {
     	saveMyServiceManager(part, this);
-    	initialize();
-    }
-    
-    public void initialize() {
         if (PreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("Instantiating language service extensions for " + fLanguage.getName());
 

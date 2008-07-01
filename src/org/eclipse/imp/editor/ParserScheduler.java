@@ -49,16 +49,8 @@ public class ParserScheduler extends Job {
         fDocumentProvider= docProvider;
         fMsgHandler= msgHandler;
 
-        IEditorInput editorInput= fEditorPart.getEditorInput();
-        IFile file= EditorInputUtils.getFile(editorInput);
-        IPath filePath= EditorInputUtils.getPath(editorInput);
-        try {
-            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
-
-            fParseController.initialize(filePath, srcProject, fMsgHandler);
-        } catch (ModelException e) {
-            ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
-        }
+        // rmf 7/1/2008 - N.B. The parse controller is now initialized before it gets handed to us here,
+        // since some other services may actually depend on that.
     }
 
     public IStatus run(IProgressMonitor monitor) {

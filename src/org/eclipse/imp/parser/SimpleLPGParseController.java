@@ -68,6 +68,10 @@ public abstract class SimpleLPGParseController implements IParseController
 		wasCancelled= monitor.isCanceled();
 	    return wasCancelled;
 	}
+
+    public void setMonitor(IProgressMonitor monitor) {
+        this.monitor= monitor;
+    }
     }
 
     public SimpleLPGParseController(String languageID) {

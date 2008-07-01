@@ -27,6 +27,7 @@ import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IFoldingUpdater;
+import org.eclipse.imp.services.IHelpService;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.imp.services.ILanguageActionsContributor;
@@ -120,6 +121,8 @@ public class ServiceFactory {
 	static final String VIEWER_FILTER_SERVICE = "viewerFilter";
     
 	static final String EDITOR_SERVICE= "editorService";
+
+	static final String CONTEXT_HELPER_SERVICE= "contextHelper";
 
  
     protected ServiceFactory() {
@@ -467,5 +470,16 @@ public class ServiceFactory {
             return null;
         }
         return createExtension(lang, name);
+    }
+
+    public IHelpService getContextHelper(Language lang) {
+        try {
+            return (IHelpService) loadService(lang, CONTEXT_HELPER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of CONTEXT_HELP_SERVICE does not implement IHelpService",
+                    e);
+            return null;
+        }
     }
 }

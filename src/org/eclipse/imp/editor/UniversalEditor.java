@@ -30,19 +30,25 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.help.IContextProvider;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.internal.AnnotationCreator;
 import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
 import org.eclipse.imp.editor.internal.FoldingController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
+import org.eclipse.imp.help.IMPHelp;
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.language.ServiceFactory;
+import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
@@ -202,6 +208,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
+    private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".editorHelpContext";
+
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
@@ -229,6 +237,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 	if (IRegionSelectionService.class.equals(required)) {
 	    return fRegionSelector;
+	}
+	if (IContextProvider.class.equals(required)) {
+	    return IMPHelp.getHelpContextProvider(this, fLanguageServiceManager, IMP_EDITOR_CONTEXT);
 	}
 	return super.getAdapter(required);
     }
@@ -539,8 +550,21 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	if (fLanguage != null) {
 	    fLanguageServiceManager= new LanguageServiceManager(fLanguage);
 	    fLanguageServiceManager.initialize(this);
-            fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
-            fServiceControllerManager.initialize();
+	    fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
+	    fServiceControllerManager.initialize();
+	    if (fLanguageServiceManager.getParseController() != null) {
+            // Initialize the parse controller now, since the initialization of other things (like the context help support) might depend on it being so.
+	        IEditorInput editorInput= getEditorInput();
+	        IFile file= EditorInputUtils.getFile(editorInput);
+	        IPath filePath= EditorInputUtils.getPath(editorInput);
+	        try {
+	            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
+
+	            fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
+	        } catch (ModelException e) {
+	            ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
+	        }
+	    }
 	}
 
         super.createPartControl(parent);
@@ -597,7 +621,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                         "Creating language service controllers for " + fLanguage.getName());
             }
 
-            fProblemMarkerManager.addListener(new EditorErrorTickUpdater(this));
+            fEditorErrorTickUpdater= new EditorErrorTickUpdater(this);
+            fProblemMarkerManager.addListener(fEditorErrorTickUpdater);
 
             fParserScheduler= new ParserScheduler(fLanguageServiceManager.getParseController(), this, getDocumentProvider(),
                     fAnnotationCreator);
@@ -678,7 +703,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 
 	/**
-	 * Makes sure that menu items and status bar items dissappear as the editor
+	 * Makes sure that menu items and status bar items disappear as the editor
 	 * is out of focus, and reappear when it gets focus again. This does
 	 * not work for toolbar items for unknown reasons, they stay visible.
 	 *
@@ -740,8 +765,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	
     public void dispose() {
 	// Remove the pref store listener *before* calling super; super nulls out the pref store.
-        getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
+        RuntimePlugin.getInstance().getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
         unregisterEditorContributionsActivator();
+        fProblemMarkerManager.removeListener(fEditorErrorTickUpdater);
         
         if (fActionBars != null) {
           fActionBars.dispose();
@@ -755,17 +781,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * Override creation of the normal source viewer with one that supports source folding.
      */
     protected ISourceViewer createSourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
-//	if (fFoldingUpdater == null)
-//	    return super.createSourceViewer(parent, ruler, styles);
+        //	if (fFoldingUpdater == null)
+        //	    return super.createSourceViewer(parent, ruler, styles);
 
-	fAnnotationAccess= createAnnotationAccess();
-	fOverviewRuler= createOverviewRuler(getSharedColors());
+        fAnnotationAccess= createAnnotationAccess();
+        fOverviewRuler= createOverviewRuler(getSharedColors());
 
-	ISourceViewer viewer= new StructuredSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
-	// ensure decoration support has been created and configured.
-	getSourceViewerDecorationSupport(viewer);
+        ISourceViewer viewer= new StructuredSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
+        // ensure decoration support has been created and configured.
+        getSourceViewerDecorationSupport(viewer);
+        IMPHelp.setHelp(fLanguageServiceManager, this, viewer.getTextWidget(), IMP_EDITOR_CONTEXT);
 	
-	return viewer;
+        return viewer;
     }
 
     protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
@@ -1387,6 +1414,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             textEditor.selectAndReveal(startOffset, length);
         }
     };
+
+    private EditorErrorTickUpdater fEditorErrorTickUpdater;
 
     private class AnnotationCreatorListener implements IModelListener {
         public AnalysisRequired getAnalysisRequired() {

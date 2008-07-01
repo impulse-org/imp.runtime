@@ -25,6 +25,7 @@
    <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
    <extension-point id="modelTreeBuilder" name="Model Tree Builder" schema="schema/modelTreeBuilder.exsd"/>
    <extension-point id="editorService" name="IMP Editor Service" schema="schema/editorService.exsd"/>
+   <extension-point id="contextHelper" name="Context Helper" schema="schema/contextHelper.exsd"/>
 
    <extension
          point="org.eclipse.ui.editors">
@@ -212,5 +213,11 @@
       <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
          <showInPart id="org.eclipse.imp.runtime.projectExplorerView"/>
       </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="org.eclipse.imp.runtime.editorHelpContext">
+      </contexts>
    </extension>
 </plugin>

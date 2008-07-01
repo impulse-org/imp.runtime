@@ -538,7 +538,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	// setting up the ISourceViewer).
 	if (fLanguage != null) {
 	    fLanguageServiceManager= new LanguageServiceManager(fLanguage);
-	    fLanguageServiceManager.initialize();
+	    fLanguageServiceManager.initialize(this);
             fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
             fServiceControllerManager.initialize();
 	}

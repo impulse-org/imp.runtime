@@ -8,6 +8,7 @@ import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IHelpService;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.Region;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -19,6 +20,8 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class IMPHelp {
+    private final static Object[] NO_ELEMENTS= new Object[0];
+
     public static void setHelp(LanguageServiceManager svcMgr, StructuredViewer viewer, String contextId) {
         IMPViewerHelpListener listener= new IMPViewerHelpListener(svcMgr, viewer, contextId);
         viewer.getControl().addHelpListener(listener);
@@ -112,22 +115,28 @@ public class IMPHelp {
      * @return the help context provider
      */
     public static IContextProvider getHelpContextProvider(IWorkbenchPart part, LanguageServiceManager srvcMgr, String contextId) {
-        Object[] elements= null;
         ISelectionProvider provider= part.getSite().getSelectionProvider();
         if (provider != null) {
             ISelection sel= provider.getSelection();
             if (sel instanceof IStructuredSelection) {
                 IStructuredSelection selection= (IStructuredSelection) sel;
-                elements= selection.toArray();
+
+                return new IMPHelpContextProvider(srvcMgr, contextId, selection.toArray());
             } else if (sel instanceof ITextSelection) {
                 ITextSelection textSel= (ITextSelection) sel;
-                IParseController parseController= srvcMgr.getParseController();
-                ISourcePositionLocator nodeLocator= parseController.getNodeLocator();
-                Object node= nodeLocator.findNode(parseController.getCurrentAst(), textSel.getOffset(), textSel.getOffset() + textSel.getLength());
+//                IParseController parseController= srvcMgr.getParseController();
 
-                elements= new Object[] { node };
+                return new IMPHelpContextProvider(srvcMgr, contextId, new Region(textSel.getOffset(), textSel.getLength()));
+//                ISourcePositionLocator nodeLocator= parseController.getNodeLocator();
+//                Object node= nodeLocator.findNode(parseController.getCurrentAst(), textSel.getOffset(), textSel.getOffset() + textSel.getLength());
+//
+//                if (node != null) {
+//                    elements= new Object[] { node };
+//                } else {
+//                    elements= NO_ELEMENTS;
+//                }
             }
         }
-        return new IMPHelpContextProvider(srvcMgr, contextId, elements);
+        return null;
     }
 }

@@ -214,10 +214,4 @@
          <showInPart id="org.eclipse.imp.runtime.projectExplorerView"/>
       </perspectiveExtension>
    </extension>
-   <extension
-         point="org.eclipse.help.contexts">
-      <contexts
-            file="org.eclipse.imp.runtime.editorHelpContext">
-      </contexts>
-   </extension>
 </plugin>

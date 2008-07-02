@@ -176,7 +176,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			// markings, if any, as they were (which is probably fine)
 			return;
 		}
-		Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length+1);
+		Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length-1);
 		if (fOccurrenceMarker == null) {
 			// It might be possible to set the active editor at this point under
 			// some circumstances, but attempting to do so under other circumstances

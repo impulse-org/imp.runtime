@@ -208,7 +208,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
-    private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".editorHelpContext";
+    private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".imp_editor_context";
 
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 

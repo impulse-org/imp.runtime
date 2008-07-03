@@ -29,6 +29,12 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.IResourceDeltaVisitor;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -593,6 +599,39 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         prefStore.addPropertyChangeListener(fPrefStoreListener);
 
         initializeEditorContributors();
+
+        watchForSourceMove();
+    }
+
+    private void watchForSourceMove() {
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+            public void resourceChanged(IResourceChangeEvent event) {
+                if (event.getType() != IResourceChangeEvent.POST_CHANGE)
+                    return;
+                IParseController pc= fLanguageServiceManager.getParseController();
+                IPath oldWSRelPath= pc.getProject().getRawProject().getFullPath().append(pc.getPath());
+                IResourceDelta rd= event.getDelta().findMember(oldWSRelPath);
+
+                if (rd != null) {
+                    if ((rd.getFlags() & IResourceDelta.MOVED_TO) == IResourceDelta.MOVED_TO) {
+                        IPath newPath= rd.getMovedToPath();
+                        IPath newProjRelPath= newPath.removeFirstSegments(1);
+                        String newProjName= newPath.segment(0);
+                        boolean sameProj= pc.getProject().getRawProject().getName().equals(newProjName);
+
+                        try {
+                            ISourceProject proj= sameProj ? pc.getProject() : ModelFactory.open(ResourcesPlugin.getWorkspace().getRoot().getProject(newProjName));
+
+                            // Tell the IParseController about the move - it caches the path
+//                          fParserScheduler.cancel(); // avoid a race condition if ParserScheduler was starting/in the middle of a run
+                            pc.initialize(newProjRelPath, proj, fAnnotationCreator);
+                        } catch (ModelException e) {
+                            RuntimePlugin.getInstance().logException("Error tracking resource move", e);
+                        }
+                    }
+                }
+            }
+        });
     }
 
     private IPreferenceStore setSourceFontFromPreference() {
@@ -1496,7 +1535,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public String toString() {
         String langName= (fLanguage != null ? " for " + fLanguage.getName() : "");
-        String inputDesc= (fParserScheduler != null && fLanguageServiceManager.getParseController() != null && fLanguageServiceManager.getParseController().getPath() != null) ? " on source " + fLanguageServiceManager.getParseController().getPath().toPortableString() : "";
+        String inputDesc= (fParserScheduler != null && fLanguageServiceManager.getParseController() != null && fLanguageServiceManager.getParseController().getPath() != null) ? "source " + fLanguageServiceManager.getParseController().getPath().toPortableString() : "";
         return "Universal Editor" + langName +  " on " + inputDesc + getEditorInput();
     }
 }

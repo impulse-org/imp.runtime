@@ -35,9 +35,9 @@ public class IMPHelpContextProvider implements IContextProvider {
         IContext context= HelpSystem.getContext(fContextID);
 
         if (fHelpContextSrvc != null) {
+            context= HelpSystem.getContext(fHelpContextSrvc.getContextId(fContextID));
             if (fSelected != null && fSelected.length > 0) {
-                String result= buildHelpString(fSelected, fHelpContextSrvc, fParseController);
-                context= new IMPHelpContext(context, result);
+                context= new IMPHelpContext(context, buildHelpString(fSelected, fHelpContextSrvc, fParseController));
             } else if (fSelection != null) {
                 context= new IMPHelpContext(context, buildHelpString(fSelection, fHelpContextSrvc, fParseController));
             }

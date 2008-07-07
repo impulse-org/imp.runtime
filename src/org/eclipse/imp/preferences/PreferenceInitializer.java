@@ -17,6 +17,9 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.ColorRegistry;
+import org.eclipse.jface.resource.JFaceResources;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.PlatformUI;
 
@@ -29,11 +32,18 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         ColorRegistry registry= null;
         if (PlatformUI.isWorkbenchRunning())
                 registry= PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
-	IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
+        IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
 
-	store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
-//	store.setDefault(PreferenceConstants.P_SOURCE_FONT, 9);
-	store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
+        store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
+
+        Font font= JFaceResources.getTextFont();
+        if (font != null) {
+            FontData[] data= font.getFontData();
+            if (data != null && data.length > 0)
+                PreferenceConverter.setDefault(store, PreferenceConstants.P_SOURCE_FONT, data);
+        }
+
+        store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
         store.setDefault(PreferenceConstants.P_DUMP_TOKENS, false);
         store.setDefault(PreferenceConstants.EDITOR_MATCHING_BRACKETS, true);
 

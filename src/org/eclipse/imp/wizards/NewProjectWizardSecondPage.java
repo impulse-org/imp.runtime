@@ -288,6 +288,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                 
                 init(JavaCore.create(fCurrProject), outputLocation, entries, false);
                 configureJavaProject(new SubProgressMonitor(monitor, 3)); // create the Java project to allow the use of the new source folder page
+                getProjectNature().addToProject(fCurrProject);
         } finally {
                 monitor.done();
         }

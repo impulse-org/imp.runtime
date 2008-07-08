@@ -334,14 +334,17 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 					if (fDocumentProvider == null)
 					    return;
 					IAnnotationModel annotationModel= fDocumentProvider.getAnnotationModel(getEditorInput());
-					// Need to initialize the set of preexisting annotations in order
+					// Need to initialize the set of pre-existing annotations in order
 					// for them to be removed properly when new occurrences are marked
-					Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
-					List<Annotation> annotationList = new ArrayList<Annotation>();
-					while (annotationIterator.hasNext()) {
-						annotationList.add((Annotation)annotationIterator.next());
+					if (annotationModel != null) {
+					    Iterator<Annotation> annotationIterator = annotationModel.getAnnotationIterator();
+					    List<Annotation> annotationList = new ArrayList<Annotation>();
+
+					    while (annotationIterator.hasNext()) {
+					        annotationList.add((Annotation)annotationIterator.next());
+					    }
+					    fOccurrenceAnnotations = annotationList.toArray(new Annotation[annotationList.size()]);
 					}
-					fOccurrenceAnnotations = annotationList.toArray(new Annotation[annotationList.size()]);
 				}
 				if (!fMarkingEnabled) {
 					unregisterListeners();

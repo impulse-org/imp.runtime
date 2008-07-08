@@ -98,13 +98,11 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 	
 		public void selectionChanged(SelectionChangedEvent event) {
 		    ISelection selection= event.getSelection();
-
 		    if (selection instanceof ITextSelection) {
 			ITextSelection textSel= (ITextSelection) selection;
 			int offset= textSel.getOffset();
 			int length= textSel.getLength();
-			
-			System.out.println("MarkOccurrencesAction.selectionChanged:  offset = " + offset + "; length = " + length);
+
 			recomputeAnnotationsForSelection(offset, length, fDocument);
 		    }
 		}
@@ -174,6 +172,9 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			// Get this when "selecting" an error message that is shown in the editor view
 			// but is not part of the source file; just returning should leave previous
 			// markings, if any, as they were (which is probably fine)
+			// Also get this when the current AST is null, e.g., as in the event of
+			// a parse error
+			System.err.println("MarkOccurrencesAction.recomputeAnnotationsForSelection(..):  root of current AST is null; returning");
 			return;
 		}
 		Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length-1);
@@ -194,7 +195,6 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 
         for(int i= 0; i < positions.length; i++) {
             Position position= positions[i];
-
             try { // Create & add annotation
                 String message= document.get(position.offset, position.length);
 
@@ -257,19 +257,22 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 
         for(Iterator iter= refs.iterator(); iter.hasNext(); i++) {
             Object node= iter.next();
-
             positions[i]= new Position(locator.getStartOffset(node), locator.getLength(node)+1);
-            // System.out.println("Annotation at " + positions[i].offset + ":" +
-            // positions[i].length);
         }
         return positions;
     }
 
     
     private Object getCompilationUnit() {
-        if (fCompilationUnit == null) {
-            fCompilationUnit= fParseController.getCurrentAst();
-        }
+    	// Do NOT compute fCompilationUnit conditionally based
+    	// on the AST being null; that causes problems when switching
+    	// between editor windows because the old value of the AST
+    	// will be retained even after the new window comes up, until
+    	// the text in the new window is parsed.  For now just
+    	// get the current AST (but in the future do something more
+    	// sophisticated to avoid needless recomputation but only
+    	// when it is truly needless).
+        fCompilationUnit= fParseController.getCurrentAst();
         return fCompilationUnit;
     }
 
@@ -302,9 +305,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 		if (selection instanceof ITextSelection) {
 			ITextSelection textSelection = (ITextSelection) selection;
 			recomputeAnnotationsForSelection(textSelection.getOffset(), textSelection.getLength(), getDocumentFromEditor());
-		}
-
-		
+		}	
     }
 
     

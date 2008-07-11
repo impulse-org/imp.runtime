@@ -31,6 +31,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.ISynchronizable;
 import org.eclipse.jface.text.ITextSelection;
+import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -39,6 +40,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -69,8 +71,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     private ISelectionChangedListener fSelectionListener;
 
     private IDocumentListener fDocumentListener;
-
-
+    
     /**
      * Listens to document changes and invalidates the AST cache to force a re-parsing.
      */
@@ -90,20 +91,25 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
      * in order to produce the annotations corresponding to the selection.
      */
     private final class SelectionListener implements ISelectionChangedListener {
-		private final IDocument fDocument;
-	
+		private final IDocument document;
+		private ISelection previousSelection = null;
+		
 		private SelectionListener(IDocument document) {
-		    fDocument= document;
+		    this.document = document;
 		}
 	
 		public void selectionChanged(SelectionChangedEvent event) {
 		    ISelection selection= event.getSelection();
 		    if (selection instanceof ITextSelection) {
-			ITextSelection textSel= (ITextSelection) selection;
-			int offset= textSel.getOffset();
-			int length= textSel.getLength();
-
-			recomputeAnnotationsForSelection(offset, length, fDocument);
+		    	if (previousSelection != null && previousSelection.equals(selection)) {
+//		    		System.out.println("Repeated selection--not recomputing annotations");
+		    		return;
+		    	}
+		    	previousSelection = selection;
+				ITextSelection textSel= (ITextSelection) selection;
+				int offset= textSel.getOffset();
+				int length= textSel.getLength();
+				recomputeAnnotationsForSelection(offset, length, document);
 		    }
 		}
     }
@@ -132,6 +138,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     	IDocument document = getDocumentFromEditor();
     	if (document == null)
     		return;
+    	
     	createListeners(document);
     	fActiveEditor.getSelectionProvider().addSelectionChangedListener(fSelectionListener);
     	document.addDocumentListener(fDocumentListener);
@@ -284,7 +291,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     
     private IDocumentProvider getDocumentProvider() {
         fDocumentProvider= fActiveEditor.getDocumentProvider();
-
+        
         return fDocumentProvider;
     }
 

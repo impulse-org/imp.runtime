@@ -304,8 +304,13 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 		LanguageServiceManager fLanguageServiceManager = LanguageServiceManager.getMyServiceManager(fActiveEditor);
 		if (fLanguageServiceManager == null)
 		    return;
-		fOccurrenceMarker = fLanguageServiceManager.getOccurrenceMarker();
 		fParseController = fLanguageServiceManager.getParseController();
+
+		if (fParseController == null) {
+			return;
+		}
+
+		fOccurrenceMarker = fLanguageServiceManager.getOccurrenceMarker();
 		registerListeners();
 		
 		ISelection selection = fActiveEditor.getSelectionProvider().getSelection();

@@ -147,16 +147,16 @@ public class PresentationController implements IModelListener {
     }
 
     public void changeTextPresentation(IParseController controller, IProgressMonitor monitor, IRegion damage) {
-	if (controller == null) {
-	    return;
-	}
-	if (PreferenceCache.dumpTokens) { // RuntimePlugin.getPreferencesService().getBooleanPreference(PreferenceConstants.P_DUMP_TOKENS)
-	    MessageConsole myConsole= findConsole();
-	    MessageConsoleStream consStream= myConsole.newMessageStream();
-            PrintStream ps= new PrintStream(consStream);
-
-	    dumpTokens(controller.getTokenIterator(damage), ps);
-	}
+		if (controller == null) {
+		    return;
+		}
+		if (PreferenceCache.dumpTokens) { // RuntimePlugin.getPreferencesService().getBooleanPreference(PreferenceConstants.P_DUMP_TOKENS)
+		    MessageConsole myConsole= findConsole();
+		    MessageConsoleStream consStream= myConsole.newMessageStream();
+	            PrintStream ps= new PrintStream(consStream);
+	
+		    dumpTokens(controller.getTokenIterator(damage), ps);
+		}
 
         final TextPresentation presentation= new TextPresentation();
         ISourcePositionLocator locator= controller.getNodeLocator();
@@ -175,24 +175,24 @@ public class PresentationController implements IModelListener {
             prevOffset= offset;
             prevEnd= end;
         }
-	if (!monitor.isCanceled() && !presentation.isEmpty()) {
-	    Display.getDefault().asyncExec(new Runnable() {
-		public void run() {
-		    // SMS 21 Jun 2007 added try-catch block
-		    // Note:  It doesn't work to just eat the exception here; if there is a problematic token
-		    // then an exception is likely to arise downstream in the computation anyway
-		    try {
-		    	// SMS 04 Dec 2007:
-		    	if (sourceViewer != null)
-		    		sourceViewer.changeTextPresentation(presentation, true);	
-		    } catch (IllegalArgumentException e) {
-		        // One possible cause is a negative length in a styleRange in the presentation
-		        ErrorHandler.logError("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; rethrowing", e);
-		        throw e;
-		    }
+		if (!monitor.isCanceled() && !presentation.isEmpty()) {
+		    Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+			    // SMS 21 Jun 2007 added try-catch block
+			    // Note:  It doesn't work to just eat the exception here; if there is a problematic token
+			    // then an exception is likely to arise downstream in the computation anyway
+			    try {
+			    	// SMS 04 Dec 2007:
+			    	if (sourceViewer != null)
+			    		sourceViewer.changeTextPresentation(presentation, true);	
+			    } catch (IllegalArgumentException e) {
+			        // One possible cause is a negative length in a styleRange in the presentation
+			        ErrorHandler.logError("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; rethrowing", e);
+			        throw e;
+			    }
+			}
+		    });
 		}
-	    });
-	}
     }
 
     public void update(IParseController controller, IProgressMonitor monitor) {

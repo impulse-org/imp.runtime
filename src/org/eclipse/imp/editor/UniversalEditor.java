@@ -594,6 +594,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         // N.B.: The editor's preference store is not the same as the IMP plugin's
         // preference store, which gets manipulated by the preference dialog fields.
+        // (the editor's preference store is defined by AbstractTextEditor).
         // So don't bother listening to what this.getPreferenceStore() returns.
 //      getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
         prefStore.addPropertyChangeListener(fPrefStoreListener);
@@ -1410,7 +1411,23 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     class PresentationRepairer implements IPresentationRepairer {
 	IDocument fDocument;
 
+	// For checking whether the damage region has changed
+	ITypedRegion previousDamage = null;
+	
 	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
+		
+		// If the given damage is the same as the previous
+		// damage then don't reparse
+		if (previousDamage == null) {
+			previousDamage = damage;
+		} else if (damage.getOffset() == previousDamage.getOffset() &&
+				damage.getLength() == previousDamage.getLength())
+		{
+			return;
+		} else {
+			previousDamage = damage;
+		}
+		
 	    // BUG Should we really just ignore the presentation passed in???
 	    // JavaDoc says we're responsible for "merging" our changes in...
 	    try {

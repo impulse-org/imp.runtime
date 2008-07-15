@@ -806,7 +806,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	// Remove the pref store listener *before* calling super; super nulls out the pref store.
         RuntimePlugin.getInstance().getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
         unregisterEditorContributionsActivator();
-        fProblemMarkerManager.removeListener(fEditorErrorTickUpdater);
+        if (fEditorErrorTickUpdater != null) {
+        	fProblemMarkerManager.removeListener(fEditorErrorTickUpdater);
+        }
         
         if (fActionBars != null) {
           fActionBars.dispose();
@@ -829,13 +831,21 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         ISourceViewer viewer= new StructuredSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
         // ensure decoration support has been created and configured.
         getSourceViewerDecorationSupport(viewer);
-        IMPHelp.setHelp(fLanguageServiceManager, this, viewer.getTextWidget(), IMP_EDITOR_CONTEXT);
+        if (fLanguageServiceManager.getParseController() != null) {
+        	IMPHelp.setHelp(fLanguageServiceManager, this, viewer.getTextWidget(), IMP_EDITOR_CONTEXT);
+        }
 	
         return viewer;
     }
 
     protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
-        ILanguageSyntaxProperties syntaxProps= fLanguageServiceManager.getParseController().getSyntaxProperties();
+        IParseController parseController = fLanguageServiceManager.getParseController();
+
+        if (parseController == null) {
+        	return;
+        }
+
+        ILanguageSyntaxProperties syntaxProps= parseController.getSyntaxProperties();
         getPreferenceStore().setValue(MATCHING_BRACKETS, true);
         if (syntaxProps != null) {
 //          fBracketMatcher.setSourceVersion(getPreferenceStore().getString(JavaCore.COMPILER_SOURCE));

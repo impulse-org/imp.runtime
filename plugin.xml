@@ -214,4 +214,10 @@
          <showInPart id="org.eclipse.imp.runtime.projectExplorerView"/>
       </perspectiveExtension>
    </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.imp.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
 </plugin>

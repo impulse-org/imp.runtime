@@ -36,12 +36,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 
         store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
 
-        Font font= JFaceResources.getTextFont();
-        if (font != null) {
-            FontData[] data= font.getFontData();
-            if (data != null && data.length > 0)
-                PreferenceConverter.setDefault(store, PreferenceConstants.P_SOURCE_FONT, data);
-        }
+        // RMF 7/16/2008 - Somehow JFaceResources.getFont(symbolicName) and JFaceResources.getFontDescriptor()
+        // return different answers. Seems that getFontDescriptor() gives us a better answer, though.
+        FontData[] fontData= JFaceResources.getFontDescriptor("org.eclipse.jdt.ui.editors.textfont").getFontData();
+
+        if (fontData != null && fontData.length > 0)
+            PreferenceConverter.setDefault(store, PreferenceConstants.P_SOURCE_FONT, fontData);
 
         store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
         store.setDefault(PreferenceConstants.P_DUMP_TOKENS, false);

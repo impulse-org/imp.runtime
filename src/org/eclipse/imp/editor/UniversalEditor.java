@@ -1510,6 +1510,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     class PresentationRepairer implements IPresentationRepairer {
+        private static final int REPARSE_SCHEDULE_DELAY= 500;
+
         IDocument fDocument;
 
 	    // For checking whether the damage region has changed
@@ -1534,7 +1536,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 if (fServiceControllerManager.getPresentationController() != null && fLanguageServiceManager.getParseController() != null) {
                     fServiceControllerManager.getPresentationController().damage(damage);
                     fParserScheduler.cancel();
-                    fParserScheduler.schedule();
+                    fParserScheduler.schedule(REPARSE_SCHEDULE_DELAY);
                 }
             } catch (Exception e) {
                 ErrorHandler.reportError("Could not repair damage ", e);

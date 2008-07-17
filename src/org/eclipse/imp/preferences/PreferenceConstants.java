@@ -49,5 +49,13 @@ public class PreferenceConstants {
      */
     public static final String EDITOR_MATCHING_BRACKETS_COLOR=  "matchingBracketsColor"; //$NON-NLS-1$
 
+    /**
+     * A named preference that controls whether "fences" (e.g. parens or braces) are automatically closed.
+     * <p>
+     * Value is of type <code>Boolean</code>.
+     * </p>
+     */
+    public static final String EDITOR_CLOSE_FENCES= "closeFences"; //$NON-NLS-1$
+
     private PreferenceConstants() { }
 }

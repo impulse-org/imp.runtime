@@ -688,7 +688,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private final String CLOSE_FENCES= PreferenceConstants.EDITOR_CLOSE_FENCES;
 
     private void setupBracketCloser(IPreferenceStore preferenceStore) {
-        if (fLanguageServiceManager.getParseController().getSyntaxProperties() == null) {
+        IParseController parseController= fLanguageServiceManager.getParseController();
+        if (parseController == null || parseController.getSyntaxProperties() == null) {
             return;
         }
 
@@ -709,6 +710,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 if (event.getType() != IResourceChangeEvent.POST_CHANGE)
                     return;
                 IParseController pc= fLanguageServiceManager.getParseController();
+                if (pc == null) {
+                    return;
+                }
                 IPath oldWSRelPath= pc.getProject().getRawProject().getFullPath().append(pc.getPath());
                 IResourceDelta rd= event.getDelta().findMember(oldWSRelPath);
 

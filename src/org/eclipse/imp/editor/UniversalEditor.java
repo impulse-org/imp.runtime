@@ -29,11 +29,9 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
-import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -73,6 +71,7 @@ import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
+import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -97,12 +96,14 @@ import org.eclipse.jface.text.ITextDoubleClickStrategy;
 import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.text.ITextViewer;
+import org.eclipse.jface.text.ITextViewerExtension;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.ITypedRegion;
 import org.eclipse.jface.text.IUndoManager;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextPresentation;
+import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.jface.text.contentassist.ContentAssistant;
 import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.ContentFormatter;
@@ -135,6 +136,8 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.custom.VerifyKeyListener;
+import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
@@ -219,45 +222,45 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
-	if (PreferenceCache.emitMessages)
-	    RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
-	// SMS 4 Apr 2007
-	// Do not set preference store with store obtained from plugin; one is
-	// already defined for the parent text editor and populated with relevant
-	// preferences
-	//setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
-	setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
-	configureInsertMode(SMART_INSERT, true);
-	setInsertMode(SMART_INSERT);
+        if (PreferenceCache.emitMessages)
+            RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
+        // SMS 4 Apr 2007
+        // Do not set preference store with store obtained from plugin; one is
+        // already defined for the parent text editor and populated with relevant
+        // preferences
+        // setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
+        setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
+        configureInsertMode(SMART_INSERT, true);
+        setInsertMode(SMART_INSERT);
         fProblemMarkerManager= new ProblemMarkerManager();
     }
 
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {
             return fServiceControllerManager.getOutlineController();
-	}
-	if (IToggleBreakpointsTarget.class.equals(required)) {
-		// SMS 14 MAR 2007  added "this" parameter
-		// to make use of new constructor
-	    return new ToggleBreakpointsAdapter(this);
-	}
-	if (IRegionSelectionService.class.equals(required)) {
-	    return fRegionSelector;
-	}
-	if (IContextProvider.class.equals(required)) {
-	    return IMPHelp.getHelpContextProvider(this, fLanguageServiceManager, IMP_EDITOR_CONTEXT);
-	}
-	return super.getAdapter(required);
+        }
+        if (IToggleBreakpointsTarget.class.equals(required)) {
+            // SMS 14 MAR 2007  added "this" parameter
+            // to make use of new constructor
+            return new ToggleBreakpointsAdapter(this);
+        }
+        if (IRegionSelectionService.class.equals(required)) {
+            return fRegionSelector;
+        }
+        if (IContextProvider.class.equals(required)) {
+            return IMPHelp.getHelpContextProvider(this, fLanguageServiceManager, IMP_EDITOR_CONTEXT);
+        }
+        return super.getAdapter(required);
     }
 
     protected void createActions() {
-	super.createActions();
+        super.createActions();
 
         final ResourceBundle bundle= ResourceBundle.getBundle(MESSAGE_BUNDLE);
-	Action action= new ContentAssistAction(bundle, "ContentAssistProposal.", this);
-	action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
-	setAction("ContentAssistProposal", action);
-	markAsStateDependentAction("ContentAssistProposal", true);
+        Action action= new ContentAssistAction(bundle, "ContentAssistProposal.", this);
+        action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
+        setAction("ContentAssistProposal", action);
+        markAsStateDependentAction("ContentAssistProposal", true);
 
         action= new TextOperationAction(bundle, "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
         action.setActionDefinitionId(FORMAT_SOURCE_COMMAND);
@@ -271,10 +274,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction(SHOW_OUTLINE_COMMAND, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
 
-	action= new TextOperationAction(bundle, "ToggleComment.", this, StructuredSourceViewer.TOGGLE_COMMENT); //$NON-NLS-1$
-	action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
-	setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
-//	PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
+        action= new TextOperationAction(bundle, "ToggleComment.", this, StructuredSourceViewer.TOGGLE_COMMENT); //$NON-NLS-1$
+        action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
+        setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
+//      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
 
         action= new GotoMatchingFenceAction(this);
         action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);
@@ -352,9 +355,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @param msg message to be set
      */
     protected void setStatusLineErrorMessage(String msg) {
-	IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
-	if (statusLine != null)
-	    statusLine.setMessage(true, msg, null);
+        IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
+        if (statusLine != null)
+            statusLine.setMessage(true, msg, null);
     }
 
     /**
@@ -364,9 +367,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @since 3.0
      */
     protected void setStatusLineMessage(String msg) {
-	IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
-	if (statusLine != null)
-	    statusLine.setMessage(false, msg, null);
+        IEditorStatusLine statusLine= (IEditorStatusLine) getAdapter(IEditorStatusLine.class);
+        if (statusLine != null)
+            statusLine.setMessage(false, msg, null);
     }
 
     public ProblemMarkerManager getProblemMarkerManager() {
@@ -396,29 +399,29 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      *
      * @param forward <code>true</code> if search direction is forward, <code>false</code> if backward
      */
-    public Annotation /*void*/ gotoAnnotation(boolean forward) {
-	ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
-	Position position= new Position(0, 0);
+    public Annotation /*void*/gotoAnnotation(boolean forward) {
+        ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
+        Position position= new Position(0, 0);
 
-	// SMS 28 Jun 2007:  declared here for something to return from both
-	// branches
-	 Annotation annotation = null;
-	
-	if (false /* delayed - see bug 18316 */) {
-	    annotation = getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
-	    selectAndReveal(position.getOffset(), position.getLength());
-	} else /* no delay - see bug 18316 */{
-	    /*Annotation*/ annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+        // SMS 28 Jun 2007: declared here for something to return from both
+        // branches
+        Annotation annotation= null;
 
-	    setStatusLineErrorMessage(null);
-	    setStatusLineMessage(null);
-	    if (annotation != null) {
-		updateAnnotationViews(annotation);
-		selectAndReveal(position.getOffset(), position.getLength());
-		setStatusLineMessage(annotation.getText());
-	    }
-	}
-	return annotation;
+        if (false /* delayed - see bug 18316 */) {
+            annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+            selectAndReveal(position.getOffset(), position.getLength());
+        } else /* no delay - see bug 18316 */{
+            /* Annotation */annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
+
+            setStatusLineErrorMessage(null);
+            setStatusLineMessage(null);
+            if (annotation != null) {
+                updateAnnotationViews(annotation);
+                selectAndReveal(position.getOffset(), position.getLength());
+                setStatusLineMessage(annotation.getText());
+            }
+        }
+        return annotation;
     }
     
     
@@ -434,75 +437,74 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @return the found annotation
      */
     private Annotation getNextAnnotation(final int offset, final int length, boolean forward, Position annotationPosition) {
-	Annotation nextAnnotation= null;
-	Position nextAnnotationPosition= null;
-	Annotation containingAnnotation= null;
-	Position containingAnnotationPosition= null;
-	boolean currentAnnotation= false;
+        Annotation nextAnnotation= null;
+        Position nextAnnotationPosition= null;
+        Annotation containingAnnotation= null;
+        Position containingAnnotationPosition= null;
+        boolean currentAnnotation= false;
 
-	IDocument document= getDocumentProvider().getDocument(getEditorInput());
-	int endOfDocument= document.getLength();
-	int distance= Integer.MAX_VALUE;
+        IDocument document= getDocumentProvider().getDocument(getEditorInput());
+        int endOfDocument= document.getLength();
+        int distance= Integer.MAX_VALUE;
 
-	IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
+        IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
 
-	for(Iterator e= model.getAnnotationIterator(); e.hasNext(); ) {
-	    Annotation a= (Annotation) e.next();
-	    //	    if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay() || !isNavigationTarget(a))
-	    //		continue;
-	    // TODO RMF 4/19/2006 - Need more accurate logic here for filtering annotations
-	    if (!(a instanceof MarkerAnnotation) && !a.getType().equals(PARSE_ANNOTATION_TYPE))
-		continue;
+        for(Iterator e= model.getAnnotationIterator(); e.hasNext();) {
+            Annotation a= (Annotation) e.next();
+            // if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay() || !isNavigationTarget(a))
+            // continue;
+            // TODO RMF 4/19/2006 - Need more accurate logic here for filtering annotations
+            if (!(a instanceof MarkerAnnotation) && !a.getType().equals(PARSE_ANNOTATION_TYPE))
+                continue;
 
-	    Position p= model.getPosition(a);
-	    if (p == null)
-		continue;
+            Position p= model.getPosition(a);
+            if (p == null)
+                continue;
 
-	    if (forward && p.offset == offset || !forward && p.offset + p.getLength() == offset + length) {// || p.includes(offset)) {
-		if (containingAnnotation == null
-			|| (forward && p.length >= containingAnnotationPosition.length || !forward
-				&& p.length >= containingAnnotationPosition.length)) {
-		    containingAnnotation= a;
-		    containingAnnotationPosition= p;
-		    currentAnnotation= p.length == length;
-		}
-	    } else {
-		int currentDistance= 0;
+            if (forward && p.offset == offset || !forward && p.offset + p.getLength() == offset + length) {// || p.includes(offset)) {
+                if (containingAnnotation == null
+                        || (forward && p.length >= containingAnnotationPosition.length || !forward && p.length >= containingAnnotationPosition.length)) {
+                    containingAnnotation= a;
+                    containingAnnotationPosition= p;
+                    currentAnnotation= p.length == length;
+                }
+            } else {
+                int currentDistance= 0;
 
-		if (forward) {
-		    currentDistance= p.getOffset() - offset;
-		    if (currentDistance < 0)
-			currentDistance= endOfDocument + currentDistance;
+                if (forward) {
+                    currentDistance= p.getOffset() - offset;
+                    if (currentDistance < 0)
+                        currentDistance= endOfDocument + currentDistance;
 
-		    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
-			distance= currentDistance;
-			nextAnnotation= a;
-			nextAnnotationPosition= p;
-		    }
-		} else {
-		    currentDistance= offset + length - (p.getOffset() + p.length);
-		    if (currentDistance < 0)
-			currentDistance= endOfDocument + currentDistance;
+                    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
+                        distance= currentDistance;
+                        nextAnnotation= a;
+                        nextAnnotationPosition= p;
+                    }
+                } else {
+                    currentDistance= offset + length - (p.getOffset() + p.length);
+                    if (currentDistance < 0)
+                        currentDistance= endOfDocument + currentDistance;
 
-		    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
-			distance= currentDistance;
-			nextAnnotation= a;
-			nextAnnotationPosition= p;
-		    }
-		}
-	    }
-	}
-	if (containingAnnotationPosition != null && (!currentAnnotation || nextAnnotation == null)) {
-	    annotationPosition.setOffset(containingAnnotationPosition.getOffset());
-	    annotationPosition.setLength(containingAnnotationPosition.getLength());
-	    return containingAnnotation;
-	}
-	if (nextAnnotationPosition != null) {
-	    annotationPosition.setOffset(nextAnnotationPosition.getOffset());
-	    annotationPosition.setLength(nextAnnotationPosition.getLength());
-	}
+                    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
+                        distance= currentDistance;
+                        nextAnnotation= a;
+                        nextAnnotationPosition= p;
+                    }
+                }
+            }
+        }
+        if (containingAnnotationPosition != null && (!currentAnnotation || nextAnnotation == null)) {
+            annotationPosition.setOffset(containingAnnotationPosition.getOffset());
+            annotationPosition.setLength(containingAnnotationPosition.getLength());
+            return containingAnnotation;
+        }
+        if (nextAnnotationPosition != null) {
+            annotationPosition.setOffset(nextAnnotationPosition.getOffset());
+            annotationPosition.setLength(nextAnnotationPosition.getLength());
+        }
 
-	return nextAnnotation;
+        return nextAnnotation;
     }
 
     /**
@@ -511,74 +513,73 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @param annotation the annotation
      */
     private void updateAnnotationViews(Annotation annotation) {
-	IMarker marker= null;
-	if (annotation instanceof MarkerAnnotation)
-	    marker= ((MarkerAnnotation) annotation).getMarker();
-	else
-	//        if (annotation instanceof IJavaAnnotation) {
-	//	    Iterator e= ((IJavaAnnotation) annotation).getOverlaidIterator();
-	//	    if (e != null) {
-	//		while (e.hasNext()) {
-	//		    Object o= e.next();
-	//		    if (o instanceof MarkerAnnotation) {
-	//			marker= ((MarkerAnnotation) o).getMarker();
-	//			break;
-	//		    }
-	//		}
-	//	    }
-	//	}
+        IMarker marker= null;
+        if (annotation instanceof MarkerAnnotation)
+            marker= ((MarkerAnnotation) annotation).getMarker();
+        else
+        // if (annotation instanceof IJavaAnnotation) {
+        // Iterator e= ((IJavaAnnotation) annotation).getOverlaidIterator();
+        // if (e != null) {
+        // while (e.hasNext()) {
+        // Object o= e.next();
+        // if (o instanceof MarkerAnnotation) {
+        // marker= ((MarkerAnnotation) o).getMarker();
+        // break;
+        // }
+        // }
+        // }
+        // }
 
-	if (marker != null /*&& !marker.equals(fLastMarkerTarget)*/) {
-	    try {
-		boolean isProblem= marker.isSubtypeOf(IMarker.PROBLEM);
-		IWorkbenchPage page= getSite().getPage();
-		IViewPart view= page.findView(isProblem ? IPageLayout.ID_PROBLEM_VIEW : IPageLayout.ID_TASK_LIST); //$NON-NLS-1$  //$NON-NLS-2$
-		if (view != null) {
-		    Method method= view.getClass().getMethod(
-			    "setSelection", new Class[] { IStructuredSelection.class, boolean.class }); //$NON-NLS-1$
-		    method.invoke(view, new Object[] { new StructuredSelection(marker), Boolean.TRUE });
-		}
-	    } catch (CoreException x) {
-	    } catch (NoSuchMethodException x) {
-	    } catch (IllegalAccessException x) {
-	    } catch (InvocationTargetException x) {
-	    }
-	    // ignore exceptions, don't update any of the lists, just set status line
-	}
+        if (marker != null /* && !marker.equals(fLastMarkerTarget) */) {
+            try {
+                boolean isProblem= marker.isSubtypeOf(IMarker.PROBLEM);
+                IWorkbenchPage page= getSite().getPage();
+                IViewPart view= page.findView(isProblem ? IPageLayout.ID_PROBLEM_VIEW : IPageLayout.ID_TASK_LIST); //$NON-NLS-1$  //$NON-NLS-2$
+                if (view != null) {
+                    Method method= view.getClass().getMethod("setSelection", new Class[] { IStructuredSelection.class, boolean.class }); //$NON-NLS-1$
+                    method.invoke(view, new Object[] { new StructuredSelection(marker), Boolean.TRUE });
+                }
+            } catch (CoreException x) {
+            } catch (NoSuchMethodException x) {
+            } catch (IllegalAccessException x) {
+            } catch (InvocationTargetException x) {
+            }
+            // ignore exceptions, don't update any of the lists, just set status line
+        }
     }
 
     public void createPartControl(Composite parent) {
-	fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
+        fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
 
-	// Create language service extensions now, since some services could
-	// get accessed via super.createPartControl() (in particular, while
-	// setting up the ISourceViewer).
-	if (fLanguage != null) {
-	    fLanguageServiceManager= new LanguageServiceManager(fLanguage);
-	    fLanguageServiceManager.initialize(this);
-	    fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
-	    fServiceControllerManager.initialize();
-	    if (fLanguageServiceManager.getParseController() != null) {
-            // Initialize the parse controller now, since the initialization of other things (like the context help support) might depend on it being so.
-	        IEditorInput editorInput= getEditorInput();
-	        IFile file= EditorInputUtils.getFile(editorInput);
-	        IPath filePath= EditorInputUtils.getPath(editorInput);
-	        try {
-	            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
+        // Create language service extensions now, since some services could
+        // get accessed via super.createPartControl() (in particular, while
+        // setting up the ISourceViewer).
+        if (fLanguage != null) {
+            fLanguageServiceManager= new LanguageServiceManager(fLanguage);
+            fLanguageServiceManager.initialize(this);
+            fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
+            fServiceControllerManager.initialize();
+            if (fLanguageServiceManager.getParseController() != null) {
+                // Initialize the parse controller now, since the initialization of other things (like the context help support) might depend on it being so.
+                IEditorInput editorInput= getEditorInput();
+                IFile file= EditorInputUtils.getFile(editorInput);
+                IPath filePath= EditorInputUtils.getPath(editorInput);
+                try {
+                    ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
 
-	            fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
-	        } catch (ModelException e) {
-	            ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
-	        }
-	    }
-	}
+                    fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
+                } catch (ModelException e) {
+                    ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
+                }
+            }
+        }
 
         super.createPartControl(parent);
 
-	if (fLanguageServiceManager.getParseController() != null) {
-	    fServiceControllerManager.setSourceViewer(getSourceViewer());
-	    instantiateServiceControllers();
-	}
+        if (fLanguageServiceManager.getParseController() != null) {
+            fServiceControllerManager.setSourceViewer(getSourceViewer());
+            instantiateServiceControllers();
+        }
 
         // SMS 4 Apr 2007:  Call no longer needed because preferences for the
         // overview ruler are now obtained from appropriate preference store directly
@@ -592,6 +593,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         IPreferenceStore prefStore= setSourceFontFromPreference();
 
+        setupBracketCloser(prefStore);
+
         // N.B.: The editor's preference store is not the same as the IMP plugin's
         // preference store, which gets manipulated by the preference dialog fields.
         // (the editor's preference store is defined by AbstractTextEditor).
@@ -602,6 +605,102 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         initializeEditorContributors();
 
         watchForSourceMove();
+    }
+
+    private class BracketInserter implements VerifyKeyListener {
+        private final Map<String,String> fFencePairs= new HashMap<String, String>();
+        private final String fOpenFences;
+        private final Map<Character,Boolean> fCloseFenceMap= new HashMap<Character, Boolean>();
+//      private final String CATEGORY= toString();
+//      private IPositionUpdater fUpdater= new ExclusivePositionUpdater(CATEGORY);
+
+        public BracketInserter() {
+            String[][] pairs= fLanguageServiceManager.getParseController().getSyntaxProperties().getFences();
+            StringBuilder sb= new StringBuilder();
+            for(int i= 0; i < pairs.length; i++) {
+                sb.append(pairs[i][0]);
+                fFencePairs.put(pairs[i][0], pairs[i][1]);
+            }
+            fOpenFences= sb.toString();
+        }
+
+        public void setCloseFenceEnabled(char openingFence, boolean enabled) {
+            fCloseFenceMap.put(openingFence, enabled);
+        }
+
+        public void setCloseFencesEnabled(boolean enabled) {
+            for(int i= 0; i < fOpenFences.length(); i++) {
+                fCloseFenceMap.put(fOpenFences.charAt(i), enabled);
+            }
+        }
+
+        /*
+         * @see org.eclipse.swt.custom.VerifyKeyListener#verifyKey(org.eclipse.swt.events.VerifyEvent)
+         */
+        public void verifyKey(VerifyEvent event) {
+            // early pruning to slow down normal typing as little as possible
+            if (!event.doit || getInsertMode() != SMART_INSERT)
+                return;
+
+            if (fOpenFences.indexOf(event.character) < 0) {
+                return;
+            }
+
+            final ISourceViewer sourceViewer= getSourceViewer();
+            IDocument document= sourceViewer.getDocument();
+
+            final Point selection= sourceViewer.getSelectedRange();
+            final int offset= selection.x;
+            final int length= selection.y;
+
+            try {
+//              IRegion startLine= document.getLineInformationOfOffset(offset);
+//              IRegion endLine= document.getLineInformationOfOffset(offset + length);
+
+                // TODO Ask the parser/scanner whether the close fence is valid here
+                // (i.e. whether it would recover by inserting the matching close fence character)
+                // Right now, naively insert the closing fence regardless.
+
+                ITypedRegion partition= TextUtilities.getPartition(document, IJavaPartitions.JAVA_PARTITIONING, offset, true);
+                if (!IDocument.DEFAULT_CONTENT_TYPE.equals(partition.getType()))
+                    return;
+
+                if (!validateEditorInputState())
+                    return;
+
+                final String inputStr= new String(new char[] { event.character });
+                final String closingFence= fFencePairs.get(inputStr);
+                final StringBuffer buffer= new StringBuffer();
+                buffer.append(inputStr);
+                buffer.append(closingFence);
+
+                document.replace(offset, length, buffer.toString());
+                sourceViewer.setSelectedRange(offset + inputStr.length(), 0);
+
+                event.doit= false;
+            } catch (BadLocationException e) {
+                RuntimePlugin.getInstance().logException(e.getMessage(), e);
+            }
+        }
+    }
+
+    private BracketInserter fBracketInserter;
+    private final String CLOSE_FENCES= PreferenceConstants.EDITOR_CLOSE_FENCES;
+
+    private void setupBracketCloser(IPreferenceStore preferenceStore) {
+        if (fLanguageServiceManager.getParseController().getSyntaxProperties() == null) {
+            return;
+        }
+
+        /** Preference key for automatically closing brackets and parenthesis */
+        boolean closeFences= preferenceStore.getBoolean(CLOSE_FENCES);
+
+        fBracketInserter= new BracketInserter();
+        fBracketInserter.setCloseFencesEnabled(closeFences);
+
+        ISourceViewer sourceViewer= getSourceViewer();
+        if (sourceViewer instanceof ITextViewerExtension)
+            ((ITextViewerExtension) sourceViewer).prependVerifyKeyListener(fBracketInserter);
     }
 
     private void watchForSourceMove() {
@@ -770,9 +869,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 	
 	private void unregisterEditorContributionsActivator() {
-	  getSite().getPage().removePartListener(fRefreshContributions);
-	  fRefreshContributions = null;
-	}
+        getSite().getPage().removePartListener(fRefreshContributions);
+        fRefreshContributions= null;
+    }
 
 	/**
 	 * Uses the LanguageActionsContributor extension point to add
@@ -804,7 +903,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 	
     public void dispose() {
-	// Remove the pref store listener *before* calling super; super nulls out the pref store.
+        // Remove the pref store listener *before* calling super; super nulls out the pref store.
         RuntimePlugin.getInstance().getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
         unregisterEditorContributionsActivator();
         if (fEditorErrorTickUpdater != null) {
@@ -1161,19 +1260,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @param listener the listener to notify of Model changes
      */
     public void addModelListener(IModelListener listener) {
-	fParserScheduler.addModelListener(listener);
+        fParserScheduler.addModelListener(listener);
     }
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
-	public int getTabWidth(ISourceViewer sourceViewer) {
+        public int getTabWidth(ISourceViewer sourceViewer) {
             return PreferenceCache.tabWidth;
-//	    return fPreferenceStore.getInt(PreferenceConstants.P_TAB_WIDTH);
-	}
+            // return fPreferenceStore.getInt(PreferenceConstants.P_TAB_WIDTH);
+        }
 
-	public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-	    // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
-	    PresentationReconciler reconciler= new PresentationReconciler();
-	    reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
+        public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+            // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
+            PresentationReconciler reconciler= new PresentationReconciler();
+            reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
             reconciler.setDamager(new IPresentationDamager() {
 
                 public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event, boolean documentPartitioningChanged) {
@@ -1182,268 +1281,269 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
                 public void setDocument(IDocument document) {
                     // TODO Auto-generated method stub
-                    
+
                 }
-                
+
             }, IDocument.DEFAULT_CONTENT_TYPE);
-	    return reconciler;
-	}
+            return reconciler;
+        }
 
-	public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-	    ContentAssistant ca= new ContentAssistant();
-	    ca.setContentAssistProcessor(fServiceControllerManager.getCompletionProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
-	    ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
-	    return ca;
-	}
+        public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+            ContentAssistant ca= new ContentAssistant();
+            ca.setContentAssistProcessor(fServiceControllerManager.getCompletionProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
+            ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
+            return ca;
+        }
 
-	public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
-	    IAnnotationHover hover= fLanguageServiceManager.getAnnotationHover();
-	    if (hover == null)
-		hover= new DefaultAnnotationHover();
-	    return hover;
-	}
+        public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+            IAnnotationHover hover= fLanguageServiceManager.getAnnotationHover();
+            if (hover == null)
+                hover= new DefaultAnnotationHover();
+            return hover;
+        }
 
-	public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-	    IAutoEditStrategy autoEdit= fLanguageServiceManager.getAutoEditStrategy();
-	    if (autoEdit == null)
-		autoEdit= super.getAutoEditStrategies(sourceViewer, contentType)[0];
+        public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+            IAutoEditStrategy autoEdit= fLanguageServiceManager.getAutoEditStrategy();
+            if (autoEdit == null)
+                autoEdit= super.getAutoEditStrategies(sourceViewer, contentType)[0];
 
             // TODO Permit multiple auto-edit strategies
-	    return new IAutoEditStrategy[] { autoEdit };
-	}
+            return new IAutoEditStrategy[] { autoEdit };
+        }
 
-	public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
-	    // Disable the content formatter if no language-specific implementation exists.
-	    // N.B.: This will probably always be null, since this method gets called before 
-	    // the formatting controller has been instantiated (which happens in
-	    // instantiateServiceControllers()).
-	    if (fServiceControllerManager.getFormattingController() == null)
-		return null;
+        public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
+            // Disable the content formatter if no language-specific implementation exists.
+            // N.B.: This will probably always be null, since this method gets called before
+            // the formatting controller has been instantiated (which happens in
+            // instantiateServiceControllers()).
+            if (fServiceControllerManager.getFormattingController() == null)
+                return null;
 
-	    // For now, assumes only one content type (i.e. one kind of partition)
-	    ContentFormatter formatter= new ContentFormatter();
+            // For now, assumes only one content type (i.e. one kind of partition)
+            ContentFormatter formatter= new ContentFormatter();
 
-	    formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
-	    return formatter;
-	}
+            formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
+            return formatter;
+        }
 
-	public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
-	    return super.getDefaultPrefixes(sourceViewer, contentType);
-	}
+        public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
+            return super.getDefaultPrefixes(sourceViewer, contentType);
+        }
 
-	public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
-	    return super.getDoubleClickStrategy(sourceViewer, contentType);
-	}
+        public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
+            return super.getDoubleClickStrategy(sourceViewer, contentType);
+        }
 
-	public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-	    if (fServiceControllerManager.getHyperLinkController() != null)
-		return new IHyperlinkDetector[] { fServiceControllerManager.getHyperLinkController() };
-	    return super.getHyperlinkDetectors(sourceViewer);
-	}
+        public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
+            if (fServiceControllerManager.getHyperLinkController() != null)
+                return new IHyperlinkDetector[] { fServiceControllerManager.getHyperLinkController() };
+            return super.getHyperlinkDetectors(sourceViewer);
+        }
 
-	public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
-	    return super.getHyperlinkPresenter(sourceViewer);
-	}
+        public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
+            return super.getHyperlinkPresenter(sourceViewer);
+        }
 
-	public String[] getIndentPrefixes(ISourceViewer sourceViewer, String contentType) {
-	    return super.getIndentPrefixes(sourceViewer, contentType);
-	}
+        public String[] getIndentPrefixes(ISourceViewer sourceViewer, String contentType) {
+            return super.getIndentPrefixes(sourceViewer, contentType);
+        }
 
-	public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
-	    return new IInformationControlCreator() {
-		public IInformationControl createInformationControl(Shell parent) {
-		    int shellStyle= SWT.RESIZE | SWT.TOOL;
-		    int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
+        public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
+            return new IInformationControlCreator() {
+                public IInformationControl createInformationControl(Shell parent) {
+                    int shellStyle= SWT.RESIZE | SWT.TOOL;
+                    int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
 
-		    // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
-		    return new DefaultInformationControl(parent, style, new HTMLTextPresenter(false), "Press 'F2' for focus");
-		}
-	    };
-	}
+                    // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
+                    return new DefaultInformationControl(parent, style, new HTMLTextPresenter(false), "Press 'F2' for focus");
+                }
+            };
+        }
 
-	private InformationPresenter fInfoPresenter;
+        private InformationPresenter fInfoPresenter;
 
-	public IInformationPresenter getInformationPresenter(ISourceViewer sourceViewer) {
-	    if (fInfoPresenter == null) {
-		fInfoPresenter= new InformationPresenter(getInformationControlCreator(sourceViewer));
-		fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-		fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-		IInformationProvider provider= new IInformationProvider() { // this should be language-specific
-		    public IRegion getSubject(ITextViewer textViewer, int offset) {
-			return new Region(offset, 10);
-		    }
-		    public String getInformation(ITextViewer textViewer, IRegion subject) {
-			return "Hi Mom!";
-		    }
-		};
-		fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-		fInfoPresenter.setSizeConstraints(60, 10, true, false);
-		fInfoPresenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
-	    }
-	    return fInfoPresenter;
-	}
+        public IInformationPresenter getInformationPresenter(ISourceViewer sourceViewer) {
+            if (fInfoPresenter == null) {
+                fInfoPresenter= new InformationPresenter(getInformationControlCreator(sourceViewer));
+                fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+                fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+                IInformationProvider provider= new IInformationProvider() { // this should be language-specific
+                    public IRegion getSubject(ITextViewer textViewer, int offset) {
+                        return new Region(offset, 10);
+                    }
 
-	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
-	    return fServiceControllerManager.getHoverHelpController();
-	}
+                    public String getInformation(ITextViewer textViewer, IRegion subject) {
+                        return "Hi Mom!";
+                    }
+                };
+                fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+                fInfoPresenter.setSizeConstraints(60, 10, true, false);
+                fInfoPresenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
+            }
+            return fInfoPresenter;
+        }
 
-	public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-	    return super.getTextHover(sourceViewer, contentType, stateMask);
-	}
+        public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+            return fServiceControllerManager.getHoverHelpController();
+        }
 
-	public IUndoManager getUndoManager(ISourceViewer sourceViewer) {
-	    return super.getUndoManager(sourceViewer);
-	}
+        public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
+            return super.getTextHover(sourceViewer, contentType, stateMask);
+        }
 
-	public IAnnotationHover getOverviewRulerAnnotationHover(ISourceViewer sourceViewer) {
-	    return super.getOverviewRulerAnnotationHover(sourceViewer);
-	}
+        public IUndoManager getUndoManager(ISourceViewer sourceViewer) {
+            return super.getUndoManager(sourceViewer);
+        }
 
-	private class LangInformationProvider implements IInformationProvider, IInformationProviderExtension {
-	    private TreeModelBuilderBase fBuilder;
-	    public IRegion getSubject(ITextViewer textViewer, int offset) {
-		return new Region(offset, 10);
-	    }
-	    public String getInformation(ITextViewer textViewer, IRegion subject) {
-		return "never called?!?"; // shouldn't be called, given IInformationProviderExtension???
-	    }
-	    public Object getInformation2(ITextViewer textViewer, IRegion subject) {
+        public IAnnotationHover getOverviewRulerAnnotationHover(ISourceViewer sourceViewer) {
+            return super.getOverviewRulerAnnotationHover(sourceViewer);
+        }
+
+        private class LangInformationProvider implements IInformationProvider, IInformationProviderExtension {
+            private TreeModelBuilderBase fBuilder;
+
+            public IRegion getSubject(ITextViewer textViewer, int offset) {
+                return new Region(offset, 10);
+            }
+
+            public String getInformation(ITextViewer textViewer, IRegion subject) {
+                return "never called?!?"; // shouldn't be called, given IInformationProviderExtension???
+            }
+
+            public Object getInformation2(ITextViewer textViewer, IRegion subject) {
                 if (fBuilder == null) {
                     fBuilder= fLanguageServiceManager.getModelBuilder();
                 }
-		return fBuilder.buildTree(fLanguageServiceManager.getParseController().getCurrentAst());
-	    }
-	}
+                return fBuilder.buildTree(fLanguageServiceManager.getParseController().getCurrentAst());
+            }
+        }
 
-	private IInformationProvider fSourceElementProvider= new LangInformationProvider();
+        private IInformationProvider fSourceElementProvider= new LangInformationProvider();
 
-	public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-	    TreeModelBuilderBase modelBuilder = fLanguageServiceManager.getModelBuilder();
-	    if (modelBuilder == null) {
-		  return null;
-	    }
+        public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
+            TreeModelBuilderBase modelBuilder= fLanguageServiceManager.getModelBuilder();
+            if (modelBuilder == null) {
+                return null;
+            }
 
-	    InformationPresenter presenter;
+            InformationPresenter presenter;
 
-	    presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
-	    presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-	    presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+            presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
+            presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+            presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 
-	    IInformationProvider provider= fSourceElementProvider;
+            IInformationProvider provider= fSourceElementProvider;
 
-	    presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-	    // TODO Should associate all other partition types with this provider, too
-	    presenter.setSizeConstraints(50, 20, true, false);
-	    presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
-	    return presenter;
-	}
+            presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+            // TODO Should associate all other partition types with this provider, too
+            presenter.setSizeConstraints(50, 20, true, false);
+            presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
+            return presenter;
+        }
 
-	/**
-	 * Returns the outline presenter control creator. The creator is a factory creating outline
-	 * presenter controls for the given source viewer. This implementation always returns a creator
-	 * for <code>OutlineInformationControl</code> instances.
-	 *
-	 * @param sourceViewer the source viewer to be configured by this configuration
-	 * @param commandId the ID of the command that opens this control
-	 * @return an information control creator
-	 */
-	private IInformationControlCreator getOutlinePresenterControlCreator(ISourceViewer sourceViewer, final String commandId) {
-	    return new IInformationControlCreator() {
-		public IInformationControl createInformationControl(Shell parent) {
-		    int shellStyle= SWT.RESIZE;
-		    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
+        /**
+         * Returns the outline presenter control creator. The creator is a factory creating outline presenter controls for the given source viewer. This
+         * implementation always returns a creator for <code>OutlineInformationControl</code> instances.
+         * 
+         * @param sourceViewer the source viewer to be configured by this configuration
+         * @param commandId the ID of the command that opens this control
+         * @return an information control creator
+         */
+        private IInformationControlCreator getOutlinePresenterControlCreator(ISourceViewer sourceViewer, final String commandId) {
+            return new IInformationControlCreator() {
+                public IInformationControl createInformationControl(Shell parent) {
+                    int shellStyle= SWT.RESIZE;
+                    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
 
-		    return new OutlineInformationControl(parent, shellStyle, treeStyle, commandId, UniversalEditor.this.fLanguage);
-		}
-	    };
-	}
+                    return new OutlineInformationControl(parent, shellStyle, treeStyle, commandId, UniversalEditor.this.fLanguage);
+                }
+            };
+        }
 
-	/**
-	 * Returns the hierarchy presenter which will determine and shown type hierarchy
-	 * information requested for the current cursor position.
-	 *
-	 * @param sourceViewer the source viewer to be configured by this configuration
-	 * @param doCodeResolve a boolean which specifies whether code resolve should be used to compute the program element
-	 * @return an information presenter
-	 */
-	public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
-	    InformationPresenter presenter= new InformationPresenter(getHierarchyPresenterControlCreator(sourceViewer));
-	    presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-	    presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-	    IInformationProvider provider= null; // TODO RMF new HierarchyInformationProvider(this);
-	    presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_DOC);
-//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
-//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
-//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_STRING);
-//	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_CHARACTER);
-	    presenter.setSizeConstraints(50, 20, true, false);
-	    presenter.setRestoreInformationControlBounds(getSettings("hierarchy_presenter_bounds"), true, true); //$NON-NLS-1$
-	    return presenter;
-	}
+        /**
+         * Returns the hierarchy presenter which will determine and shown type hierarchy information requested for the current cursor position.
+         * 
+         * @param sourceViewer the source viewer to be configured by this configuration
+         * @param doCodeResolve a boolean which specifies whether code resolve should be used to compute the program element
+         * @return an information presenter
+         */
+        public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
+            InformationPresenter presenter= new InformationPresenter(getHierarchyPresenterControlCreator(sourceViewer));
+            presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
+            presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+            IInformationProvider provider= null; // TODO RMF new HierarchyInformationProvider(this);
+            presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
+            // presenter.setInformationProvider(provider, IJavaPartitions.JAVA_DOC);
+            // presenter.setInformationProvider(provider, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
+            //	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
+            //	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_STRING);
+            //	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_CHARACTER);
+            presenter.setSizeConstraints(50, 20, true, false);
+            presenter.setRestoreInformationControlBounds(getSettings("hierarchy_presenter_bounds"), true, true); //$NON-NLS-1$
+            return presenter;
+        }
 
-	private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
-	    return new IInformationControlCreator() {
-		public IInformationControl createInformationControl(Shell parent) {
-		    int shellStyle= SWT.RESIZE;
-		    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
+        private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
+            return new IInformationControlCreator() {
+                public IInformationControl createInformationControl(Shell parent) {
+                    int shellStyle= SWT.RESIZE;
+                    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
 
-		    return new DefaultInformationControl(parent); // HierarchyInformationControl(parent, shellStyle, treeStyle);
-		}
-	    };
-	}
+                    return new DefaultInformationControl(parent); // HierarchyInformationControl(parent, shellStyle, treeStyle);
+                }
+            };
+        }
 
-	/**
-	 * Returns the settings for the given section.
-	 *
-	 * @param sectionName the section name
-	 * @return the settings
-	 * @since 3.0
-	 */
-	private IDialogSettings getSettings(String sectionName) {
-	    IDialogSettings settings= RuntimePlugin.getInstance().getDialogSettings().getSection(sectionName);
-	    if (settings == null)
-		settings= RuntimePlugin.getInstance().getDialogSettings().addNewSection(sectionName);
-	    return settings;
-	}
+        /**
+         * Returns the settings for the given section.
+         *
+         * @param sectionName the section name
+         * @return the settings
+         * @since 3.0
+         */
+        private IDialogSettings getSettings(String sectionName) {
+            IDialogSettings settings= RuntimePlugin.getInstance().getDialogSettings().getSection(sectionName);
+            if (settings == null)
+                settings= RuntimePlugin.getInstance().getDialogSettings().addNewSection(sectionName);
+            return settings;
+        }
     }
 
     class PresentationRepairer implements IPresentationRepairer {
-	IDocument fDocument;
+        IDocument fDocument;
 
-	// For checking whether the damage region has changed
-	ITypedRegion previousDamage = null;
-	
-	public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
-		
-		// If the given damage is the same as the previous
-		// damage then don't reparse
-		if (previousDamage == null) {
-			previousDamage = damage;
-		} else if (damage.getOffset() == previousDamage.getOffset() &&
-				damage.getLength() == previousDamage.getLength())
-		{
-			return;
-		} else {
-			previousDamage = damage;
-		}
-		
-	    // BUG Should we really just ignore the presentation passed in???
-	    // JavaDoc says we're responsible for "merging" our changes in...
-	    try {
-		if (fServiceControllerManager.getPresentationController() != null && fLanguageServiceManager.getParseController() != null) {
-		    fServiceControllerManager.getPresentationController().damage(damage);
-		    fParserScheduler.cancel();
-		    fParserScheduler.schedule();
-		}
-	    } catch (Exception e) {
-		ErrorHandler.reportError("Could not repair damage ", e);
-	    }
-	}
+	    // For checking whether the damage region has changed
+	    ITypedRegion previousDamage = null;
 
-	public void setDocument(IDocument document) {
-	    fDocument= document;
-	}
+        public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
+		    // If the given damage is the same as the previous
+		    // damage then don't reparse
+		    if (previousDamage == null) {
+			    previousDamage = damage;
+		    } else if (damage.getOffset() == previousDamage.getOffset() &&
+				       damage.getLength() == previousDamage.getLength())
+		    {
+			    return;
+		    } else {
+			    previousDamage = damage;
+		    }
+
+            // BUG Should we really just ignore the presentation passed in???
+            // JavaDoc says we're responsible for "merging" our changes in...
+            try {
+                if (fServiceControllerManager.getPresentationController() != null && fLanguageServiceManager.getParseController() != null) {
+                    fServiceControllerManager.getPresentationController().damage(damage);
+                    fParserScheduler.cancel();
+                    fParserScheduler.schedule();
+                }
+            } catch (Exception e) {
+                ErrorHandler.reportError("Could not repair damage ", e);
+            }
+        }
+
+        public void setDocument(IDocument document) {
+            fDocument= document;
+        }
     }
 
     private IMessageHandler fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
@@ -1458,16 +1558,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 Font sourceFont= fontReg.get(PreferenceConstants.P_SOURCE_FONT);
 
                 if (getSourceViewer() != null)
-        	    getSourceViewer().getTextWidget().setFont(sourceFont);
+                    getSourceViewer().getTextWidget().setFont(sourceFont);
             } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
                 int newTab= (event.getNewValue() instanceof String) ? Integer.parseInt((String) event.getNewValue()) : ((Integer) event.getNewValue()).intValue();
-        	PreferenceCache.tabWidth= newTab;
-        	if (getSourceViewer() != null)
-        	    getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
+                PreferenceCache.tabWidth= newTab;
+                if (getSourceViewer() != null)
+                    getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
             } else if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES)) {
-        	PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
+                PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
             } else if (event.getProperty().equals(PreferenceConstants.P_DUMP_TOKENS)) {
-        	PreferenceCache.dumpTokens= ((Boolean) event.getNewValue()).booleanValue();
+                PreferenceCache.dumpTokens= ((Boolean) event.getNewValue()).booleanValue();
             }
         }
     };
@@ -1506,31 +1606,31 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     public String getSelectionText() {
-	Point sel= getSelection();
+        Point sel= getSelection();
         IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
         IDocument document= getDocumentProvider().getDocument(fileEditorInput);
 
         try {
-	    return document.get(sel.x, sel.y);
-	} catch (BadLocationException e) {
-	    e.printStackTrace();
-	    return "";
-	}
+            return document.get(sel.x, sel.y);
+        } catch (BadLocationException e) {
+            e.printStackTrace();
+            return "";
+        }
     }
 
     public Point getSelection() {
-	ISelection sel= this.getSelectionProvider().getSelection();
-	ITextSelection textSel= (ITextSelection) sel;
+        ISelection sel= this.getSelectionProvider().getSelection();
+        ITextSelection textSel= (ITextSelection) sel;
 
-	return new Point(textSel.getOffset(), textSel.getLength());
+        return new Point(textSel.getOffset(), textSel.getLength());
     }
 
     public boolean canPerformFind() {
-	return true;
+        return true;
     }
 
     public IParseController getParseController() {
-	return fLanguageServiceManager.getParseController();
+        return fLanguageServiceManager.getParseController();
     }
     
     public IOccurrenceMarker getOccurrenceMarker() {

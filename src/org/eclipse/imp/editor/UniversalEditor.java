@@ -689,7 +689,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private void setupBracketCloser(IPreferenceStore preferenceStore) {
         IParseController parseController= fLanguageServiceManager.getParseController();
-        if (parseController == null || parseController.getSyntaxProperties() == null) {
+        if (parseController == null || parseController.getSyntaxProperties() == null || parseController.getSyntaxProperties().getFences() == null) {
             return;
         }
 

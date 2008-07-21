@@ -1205,10 +1205,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 					return null;
 				}
 			} catch (CoreException e) {
-				System.err.println("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end attributes");
+			    RuntimePlugin.getInstance().logException("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end attributes", e);
 				return null;
 			} catch (NullPointerException e) {
-				System.err.println("UniversalEditor.findParseAnnotationForMarker:  NullPointerException geting marker start and end attributes");
+			    RuntimePlugin.getInstance().logException("UniversalEditor.findParseAnnotationForMarker:  NullPointerException geting marker start and end attributes", e);
 				return null;
 			}
 			

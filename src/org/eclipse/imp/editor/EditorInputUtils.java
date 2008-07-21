@@ -67,7 +67,8 @@ public class EditorInputUtils {
             FileStoreEditorInput fileStoreEditorInput= (FileStoreEditorInput) editorInput;
             URI uri= fileStoreEditorInput.getURI();
             String path= uri.getPath();
-            if (uri.getScheme().equals("file") && uri.getHost().equals("localhost") && path.startsWith(wsRoot.getLocation().toOSString())) {
+            // Bug 526: uri.getHost() can be null for a local file URL
+            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && path.startsWith(wsRoot.getLocation().toOSString())) {
                 file= wsRoot.getFile(new Path(path));
             }
         }

@@ -688,6 +688,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private final String CLOSE_FENCES= PreferenceConstants.EDITOR_CLOSE_FENCES;
 
     private void setupBracketCloser(IPreferenceStore preferenceStore) {
+        if (true) return; // Bug #536: Disable for now, until we can be more intelligent about when to overwrite an existing (subsequent) close-fence char.
         IParseController parseController= fLanguageServiceManager.getParseController();
         if (parseController == null || parseController.getSyntaxProperties() == null || parseController.getSyntaxProperties().getFences() == null) {
             return;

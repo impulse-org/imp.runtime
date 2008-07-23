@@ -32,6 +32,7 @@ public class AnnotationCreator implements IMessageHandler {
         else 
         	fAnnotationType= annotationType;
     }
+
     public void startMessageGroup(String groupName) { }
     public void endMessageGroup() { }
 
@@ -60,17 +61,17 @@ public class AnnotationCreator implements IMessageHandler {
     }
 
     public void removeAnnotations() {
-	IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+        IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
 
-	if (model == null)
-	    return;
+        if (model == null)
+            return;
 
-	for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
-	    Annotation a= (Annotation) i.next();
+        for(Iterator i= model.getAnnotationIterator(); i.hasNext();) {
+            Annotation a= (Annotation) i.next();
 
-	    if (a.getType().equals(fAnnotationType))
-		model.removeAnnotation(a);
-	}
+            if (a.getType().equals(fAnnotationType))
+                model.removeAnnotation(a);
+        }
     }
 
     public void clearMessages() {

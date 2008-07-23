@@ -354,7 +354,10 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 					    List<Annotation> annotationList = new ArrayList<Annotation>();
 
 					    while (annotationIterator.hasNext()) {
-					        annotationList.add((Annotation)annotationIterator.next());
+					    	// SMS 23 Jul 2008:  added test for annotation type
+					    	Annotation ann = (Annotation)annotationIterator.next();
+					    	if (ann.getType().indexOf(OCCURRENCE_ANNOTATION) > -1)
+					    		annotationList.add(ann);
 					    }
 					    fOccurrenceAnnotations = annotationList.toArray(new Annotation[annotationList.size()]);
 					}

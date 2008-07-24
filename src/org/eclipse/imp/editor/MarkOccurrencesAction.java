@@ -374,8 +374,15 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			}
 
 			public void partClosed(IWorkbenchPart part) {
-				// TODO Auto-generated method stub
-//				System.out.println("partClosed");
+			    if (part == fActiveEditor) {
+			        unregisterListeners();
+			        fActiveEditor= null;
+			        fCompilationUnit= null;
+			        fDocumentProvider= null;
+			        fParseController= null;
+			        fOccurrenceMarker= null;
+			        fOccurrenceAnnotations= null;
+			    }
 			}
 
 			public void partDeactivated(IWorkbenchPart part) {

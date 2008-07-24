@@ -67,12 +67,12 @@ public class ParserScheduler extends Job {
             fMsgHandler.clearMessages();
             fParseController.parse(document.get(), false, monitor);
             if (!monitor.isCanceled())
-                notifyAstListeners(monitor);
+                notifyModelListeners(monitor);
         } catch (Exception e) {
             ErrorHandler.reportError("Error running parser for language " + fParseController.getLanguage().getName() + " and input " + editorInput.getName() + ":", e);
             // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
             // may have failed at some phase, but there may be enough info to drive IDE services.
-            notifyAstListeners(monitor);
+            notifyModelListeners(monitor);
         }
         return Status.OK_STATUS;
     }
@@ -81,7 +81,7 @@ public class ParserScheduler extends Job {
         fAstListeners.add(listener);
     }
 
-    public void notifyAstListeners(IProgressMonitor monitor) {
+    public void notifyModelListeners(IProgressMonitor monitor) {
         // Suppress the notification if there's no AST (e.g. due to a parse error)
         if (fParseController != null) {
             if (PreferenceCache.emitMessages)

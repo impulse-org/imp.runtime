@@ -89,6 +89,7 @@ import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.IInformationControl;
 import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
@@ -604,7 +605,29 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         initializeEditorContributors();
 
+        watchDocument();
+
         watchForSourceMove();
+    }
+
+    private static final int REPARSE_SCHEDULE_DELAY= 500;
+
+    private void watchDocument() {
+
+        if (fLanguageServiceManager.getParseController() == null) {
+            return;
+        }
+
+        IDocument doc= getDocumentProvider().getDocument(getEditorInput());
+
+        doc.addDocumentListener(new IDocumentListener() {
+            public void documentAboutToBeChanged(DocumentEvent event) {}
+            public void documentChanged(DocumentEvent event) {
+                fParserScheduler.cancel();
+                fParserScheduler.schedule(REPARSE_SCHEDULE_DELAY);
+            }
+        });
+        fParserScheduler.schedule(REPARSE_SCHEDULE_DELAY); // start things off
     }
 
     private class BracketInserter implements VerifyKeyListener {
@@ -1519,34 +1542,30 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     class PresentationRepairer implements IPresentationRepairer {
-        private static final int REPARSE_SCHEDULE_DELAY= 500;
-
         IDocument fDocument;
 
 	    // For checking whether the damage region has changed
-	    ITypedRegion previousDamage = null;
+//	    ITypedRegion previousDamage = null;
 
         public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 		    // If the given damage is the same as the previous
 		    // damage then don't reparse
 //          System.out.println("Repairing damage to region " + damage.getOffset() + ":" + damage.getLength());
-		    if (previousDamage == null) {
-			    previousDamage = damage;
-		    } else if (damage.getOffset() == previousDamage.getOffset() &&
-				       damage.getLength() == previousDamage.getLength())
-		    {
-			    return;
-		    } else {
-			    previousDamage = damage;
-		    }
+//		    if (previousDamage == null) {
+//			    previousDamage = damage;
+//		    } else if (damage.getOffset() == previousDamage.getOffset() &&
+//				       damage.getLength() == previousDamage.getLength())
+//		    {
+//			    return;
+//		    } else {
+//			    previousDamage = damage;
+//		    }
 
             // BUG Should we really just ignore the presentation passed in???
             // JavaDoc says we're responsible for "merging" our changes in...
             try {
-                if (fServiceControllerManager.getPresentationController() != null && fLanguageServiceManager.getParseController() != null) {
+                if (fServiceControllerManager.getPresentationController() != null) {
                     fServiceControllerManager.getPresentationController().damage(damage);
-                    fParserScheduler.cancel();
-                    fParserScheduler.schedule(REPARSE_SCHEDULE_DELAY);
                 }
             } catch (Exception e) {
                 ErrorHandler.reportError("Could not repair damage ", e);

@@ -1172,7 +1172,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     			Object ann = annotations.next();
     			if (ann instanceof MarkerAnnotation) {
     				IMarker marker = ((MarkerAnnotation)ann).getMarker();
-    				currentMarkers.add(marker);
+    				if (marker.exists()) {
+    				    currentMarkers.add(marker);
+    				}
     				markerMarkerAnnotations.put(marker, (MarkerAnnotation) ann);
     			} else if (ann instanceof Annotation) {
     				Annotation annotation = (Annotation) ann;
@@ -1206,10 +1208,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 					return null;
 				}
 			} catch (CoreException e) {
-			    RuntimePlugin.getInstance().logException("UniversalEditor.findParseAnnotationForMarker:  CoreException geting marker start and end attributes", e);
+			    // RMF 7/25/2008 -- This exception should never occur, now that we check that each marker still exists in modelChanged()
+			    // (see Bug 242098).
+			    RuntimePlugin.getInstance().logException("UniversalEditor.findParseAnnotationForMarker:  CoreException getting marker start and end attributes", e);
 				return null;
 			} catch (NullPointerException e) {
-			    RuntimePlugin.getInstance().logException("UniversalEditor.findParseAnnotationForMarker:  NullPointerException geting marker start and end attributes", e);
+			    RuntimePlugin.getInstance().logException("UniversalEditor.findParseAnnotationForMarker:  NullPointerException getting marker start and end attributes", e);
 				return null;
 			}
 			
@@ -1525,6 +1529,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
 		    // If the given damage is the same as the previous
 		    // damage then don't reparse
+//          System.out.println("Repairing damage to region " + damage.getOffset() + ":" + damage.getLength());
 		    if (previousDamage == null) {
 			    previousDamage = damage;
 		    } else if (damage.getOffset() == previousDamage.getOffset() &&

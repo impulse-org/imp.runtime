@@ -54,7 +54,7 @@ import org.eclipse.ui.IWorkbenchPart;
  * 
  * Modified constructor to take a UniversalEditor (presumably the one creating
  * the adapter and to save that editor and the filename extension of the source
- * file opened in that editor (the "origianl" source file).
+ * file opened in that editor (the "original" source file).
  * 
  * The original filename extension is useful for methods that may need
  * the extension but that don't have access to the original file or to an

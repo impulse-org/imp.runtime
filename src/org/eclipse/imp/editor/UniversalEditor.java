@@ -1311,18 +1311,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
             PresentationReconciler reconciler= new PresentationReconciler();
             reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
-            reconciler.setDamager(new IPresentationDamager() {
-
-                public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event, boolean documentPartitioningChanged) {
-                    return partition;
-                }
-
-                public void setDocument(IDocument document) {
-                    // TODO Auto-generated method stub
-
-                }
-
-            }, IDocument.DEFAULT_CONTENT_TYPE);
+            reconciler.setDamager(new PresentationDamager(), IDocument.DEFAULT_CONTENT_TYPE);
             return reconciler;
         }
 
@@ -1547,40 +1536,51 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
     }
 
-    class PresentationRepairer implements IPresentationRepairer {
-        IDocument fDocument;
+    private class PresentationDamager implements IPresentationDamager {
+        public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event, boolean documentPartitioningChanged) {
+            // The following always returns the entire document (really, the entire partition, of
+            // which the document has only 1) as the damage region, which is safe, if inefficient.
+            return partition;
+            // The following is more efficient, but also incorrect - really need language-specific
+            // logic to figure out how big the damage region really is.
+//              return new Region(event.getOffset(), Math.max(event.getLength(), event.getText().length()));
+        }
 
+        public void setDocument(IDocument document) {}
+    }
+
+    private class PresentationRepairer implements IPresentationRepairer {
 	    // For checking whether the damage region has changed
-//	    ITypedRegion previousDamage = null;
+	    ITypedRegion previousDamage= null;
+
+        private final IProgressMonitor fProgressMonitor= new NullProgressMonitor();
 
         public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
-		    // If the given damage is the same as the previous
-		    // damage then don't reparse
-//          System.out.println("Repairing damage to region " + damage.getOffset() + ":" + damage.getLength());
-//		    if (previousDamage == null) {
-//			    previousDamage = damage;
-//		    } else if (damage.getOffset() == previousDamage.getOffset() &&
-//				       damage.getLength() == previousDamage.getLength())
-//		    {
-//			    return;
-//		    } else {
-//			    previousDamage = damage;
-//		    }
+            boolean hyperlinkRestore= false;
+
+            // If the given damage region is the same as the previous one, assume it's due to removing a hyperlink decoration
+		    if (previousDamage != null && damage.getOffset() == previousDamage.getOffset() && damage.getLength() == previousDamage.getLength()) {
+		        hyperlinkRestore= true;
+		    }
+            previousDamage= damage;
 
             // BUG Should we really just ignore the presentation passed in???
             // JavaDoc says we're responsible for "merging" our changes in...
             try {
                 if (fServiceControllerManager.getPresentationController() != null) {
+//                    System.out.println("Scheduling repair for damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
                     fServiceControllerManager.getPresentationController().damage(damage);
+                    if (hyperlinkRestore) {
+//                        System.out.println("** Forcing repair for hyperlink damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
+                        fServiceControllerManager.getPresentationController().update(fLanguageServiceManager.getParseController(), fProgressMonitor);
+                    }
                 }
             } catch (Exception e) {
                 ErrorHandler.reportError("Could not repair damage ", e);
             }
         }
 
-        public void setDocument(IDocument document) {
-            fDocument= document;
-        }
+        public void setDocument(IDocument document) { }
     }
 
     private IMessageHandler fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);

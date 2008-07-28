@@ -36,25 +36,23 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
     private final Language fLanguage;
 
     public HyperlinkDetector(Language lang) {
-	fLanguage= lang;
+        fLanguage= lang;
     }
 
-    public IHyperlink[] detectHyperlinks(
-    		final IRegion region, ITextEditor editor, final ITextViewer textViewer, IParseController parseController)
-    {
+    public IHyperlink[] detectHyperlinks(final IRegion region, ITextEditor editor, final ITextViewer textViewer, IParseController parseController) {
     	// This is the only language-specific bit ...
-	if (fResolver == null) {
-		fResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
-	}
+        if (fResolver == null) {
+            fResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
+        }
 
-	// SMS 17 Aug 2007
-	if (fResolver == null)
-	    return null;
+    	// SMS 17 Aug 2007
+    	if (fResolver == null)
+    	    return null;
 
-	if (parseController == null)
-		return null;
+    	if (parseController == null)
+    		return null;
 	
-	// Get stuff for getting link source node
+    	// Get stuff for getting link source node
         Object ast= parseController.getCurrentAst();
         if (ast == null) return null;
         int offset= region.getOffset();

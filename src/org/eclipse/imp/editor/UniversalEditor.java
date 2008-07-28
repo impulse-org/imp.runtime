@@ -967,6 +967,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     protected void configureSourceViewerDecorationSupport(SourceViewerDecorationSupport support) {
+        // X10DT Bug #546: If this input has no corresponding language descriptor, someone
+        // can still associate the IMP editor with this file extension, in which case we
+        // get here with no fLanguage and no fLanguageServiceManager.
+        if (fLanguage == null || fLanguageServiceManager == null) {
+            return;
+        }
         IParseController parseController = fLanguageServiceManager.getParseController();
 
         if (parseController == null) {

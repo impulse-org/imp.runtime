@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 /*
@@ -31,8 +30,8 @@ public class SourceHyperlinkController implements IHyperlinkDetector, IModelList
     private final ITextEditor fEditor;
 
     public SourceHyperlinkController(ISourceHyperlinkDetector sourceHyperlinkDetector, ITextEditor editor) {
-	fSourceHyperlinkDetector= sourceHyperlinkDetector;
-	fEditor= editor;
+        fSourceHyperlinkDetector= sourceHyperlinkDetector;
+        fEditor= editor;
     }
 
     public AnalysisRequired getAnalysisRequired() {
@@ -40,10 +39,10 @@ public class SourceHyperlinkController implements IHyperlinkDetector, IModelList
     }
 
     public IHyperlink[] detectHyperlinks(final ITextViewer textViewer, final IRegion region, boolean canShowMultipleHyperlinks) {
-	return fSourceHyperlinkDetector.detectHyperlinks(region, fEditor, textViewer, fParseController);
+        return fSourceHyperlinkDetector.detectHyperlinks(region, fEditor, textViewer, fParseController);
     }
 
     public void update(IParseController parseController, IProgressMonitor monitor) {
-	fParseController= parseController;
+        fParseController= parseController;
     }
 }

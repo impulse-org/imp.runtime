@@ -1,14 +1,14 @@
 /*******************************************************************************
-* Copyright (c) 2007 IBM Corporation.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
-*
-* Contributors:
-*    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
 
-*******************************************************************************/
+ *******************************************************************************/
 
 package org.eclipse.imp.editor;
 
@@ -39,77 +39,78 @@ import org.eclipse.ui.part.FileEditorInput;
 
 /**
  * Common class to represent a hyperlink to a given target location.
+ * 
  * @author rfuhrer
  */
 public final class TargetLink implements IHyperlink {
     private static final class ExternalEditorInput implements IStorageEditorInput {
-	private final IStorage fStorage;
+        private final IStorage fStorage;
 
-	private ExternalEditorInput(IStorage storage) {
-	    super();
-	    fStorage= storage;
-	}
+        private ExternalEditorInput(IStorage storage) {
+            super();
+            fStorage= storage;
+        }
 
-	public IStorage getStorage() throws CoreException {
-	    return fStorage;
-	}
+        public IStorage getStorage() throws CoreException {
+            return fStorage;
+        }
 
-	public boolean exists() {
-	    return true;
-	}
+        public boolean exists() {
+            return true;
+        }
 
-	public ImageDescriptor getImageDescriptor() {
-	    return null;
-	}
+        public ImageDescriptor getImageDescriptor() {
+            return null;
+        }
 
-	public String getName() {
-	    return fStorage.getName();
-	}
+        public String getName() {
+            return fStorage.getName();
+        }
 
-	public IPersistableElement getPersistable() {
-	    return null;
-	}
+        public IPersistableElement getPersistable() {
+            return null;
+        }
 
-	public String getToolTipText() {
-	    return "";
-	}
+        public String getToolTipText() {
+            return "";
+        }
 
-	public Object getAdapter(Class adapter) {
-	    return null;
-	}
+        public Object getAdapter(Class adapter) {
+            return null;
+        }
     }
 
     private static final class ExternalStorage implements IStorage {
-	private final IPath fPath;
+        private final IPath fPath;
 
-	private ExternalStorage(IPath path) {
-	    fPath= path;
-	}
+        private ExternalStorage(IPath path) {
+            fPath= path;
+        }
 
-	public InputStream getContents() throws CoreException {
-	    File file= new File(fPath.toOSString());
-	    try {
-	        return new FileInputStream(file);
-	    } catch(FileNotFoundException fnf) {
-	        return null;
-	    }
-	}
+        public InputStream getContents() throws CoreException {
+            File file= new File(fPath.toOSString());
+            try {
+                return new FileInputStream(file);
+            } catch (FileNotFoundException fnf) {
+                return null;
+            }
+        }
 
-	public IPath getFullPath() {
-	    return fPath;
-	}
+        public IPath getFullPath() {
+            return fPath;
+        }
 
-	public String getName() {
-	    return fPath.lastSegment();
-	}
+        public String getName() {
+            return fPath.lastSegment();
+        }
 
-	public boolean isReadOnly() {
-	    return true;
-	}
+        public boolean isReadOnly() {
+            return true;
+        }
 
-	public Object getAdapter(Class adapter) {
-	    return null;
-	}
+        public Object getAdapter(Class adapter) {
+            return null;
+        }
     }
 
     private final String fText;
@@ -130,8 +131,7 @@ public final class TargetLink implements IHyperlink {
      * @param text
      * @param srcStart
      * @param srcLength
-     * @param target an IPath to the file, if 'editor' is null; otherwise,
-     * an object that indicates the particular target within the source file
+     * @param target an IPath to the file, if 'editor' is null; otherwise, an object that indicates the particular target within the source file
      * @param targetStart
      * @param targetLength
      * @param editor may be null, if the target is in another compilation unit
@@ -160,50 +160,51 @@ public final class TargetLink implements IHyperlink {
     }
 
     public void open() {
-	if (fSelectionService == null) { // we're presumably opening up a new source file
-	    final IPath targetPath= (IPath) fTarget;
-	    IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
+        if (fSelectionService == null) { // we're presumably opening up a new source file
+            final IPath targetPath= (IPath) fTarget;
+            IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
 
-	    if (ed == null) {
-		MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(),
-			"Error",
-			"No editor defined for target file " + targetPath.toPortableString());
-		return;
-	    }
+            if (ed == null) {
+                MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Error", "No editor defined for target file "
+                        + targetPath.toPortableString());
+                return;
+            }
 
-	    IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
+            IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
             IPath wsLoc= wsRoot.getLocation();
-	    IEditorInput editorInput;
+            IEditorInput editorInput;
 
-	    // Abortive attempt to support links to class files embedded in jars (e.g., Java rt.jar).
-//	    if (targetPath.toPortableString().endsWith(".class")) {
-//		IFile jarFile= null; // Can't get an IFile for something not in the workspace... and rt.jar usually isn't... right?
-//              // Anyway, we'll have to use something other than a plain IFileEditorInput.
-//	        // JDT has IClassFileEditorInput, but it's internal... Hmmm...
-//		JavaCore.createClassFileFrom(jarFile);
-//	    } else
+            // Abortive attempt to support links to class files embedded in jars (e.g., Java rt.jar).
+            // if (targetPath.toPortableString().endsWith(".class")) {
+            // IFile jarFile= null; // Can't get an IFile for something not in the workspace... and rt.jar usually isn't... right?
+            // // Anyway, we'll have to use something other than a plain IFileEditorInput.
+            // // JDT has IClassFileEditorInput, but it's internal... Hmmm...
+            // JavaCore.createClassFileFrom(jarFile);
+            // } else
 
-	    if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
-		// http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
-		final IStorage storage= new ExternalStorage(targetPath);
-		editorInput= new ExternalEditorInput(storage);
-	    } else {
-		IFile file= wsRoot.getFile(wsLoc.isPrefixOf(targetPath) ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
-		editorInput= new FileEditorInput(file);
-	    }
- 
-	    try {
-		IEditorPart editor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(editorInput, ed.getId());
+            if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
+                // http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
+                final IStorage storage= new ExternalStorage(targetPath);
+                editorInput= new ExternalEditorInput(storage);
+            } else {
+                IFile file= wsRoot.getFile(wsLoc.isPrefixOf(targetPath) ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
+                editorInput= new FileEditorInput(file);
+            }
 
-		// Don't assume the target editor is a text editor; the target might be
-		// in a class file or another kind of binary file.
-		if (editor instanceof IRegionSelectionService)
-		    fSelectionService= (IRegionSelectionService) editor;
-	    } catch (PartInitException e) {
-		e.printStackTrace();
-	    }
-	}
-	if (fSelectionService != null)
-	    fSelectionService.selectAndReveal(fTargetStart, fTargetLength);
+            try {
+                IEditorPart editor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(editorInput, ed.getId());
+
+                // Don't assume the target editor is a text editor; the target might be
+                // in a class file or another kind of binary file.
+                if (editor instanceof IRegionSelectionService)
+                    fSelectionService= (IRegionSelectionService) editor;
+                else
+                    fSelectionService= (IRegionSelectionService) editor.getAdapter(IRegionSelectionService.class);
+            } catch (PartInitException e) {
+                e.printStackTrace();
+            }
+        }
+        if (fSelectionService != null)
+            fSelectionService.selectAndReveal(fTargetStart, fTargetLength);
     }
 }

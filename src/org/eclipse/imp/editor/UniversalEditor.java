@@ -293,35 +293,30 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
 	private void contributeRefactoringActions(IMenuManager menu) {
-		Set<IRefactoringContributor> contributors = fLanguageServiceManager.getRefactoringContributors();
+		Set<IRefactoringContributor> contributors= fLanguageServiceManager.getRefactoringContributors();
 
 		if (contributors != null && !contributors.isEmpty()) {
-			List<IAction> editorActions = new ArrayList<IAction>();
+			List<IAction> editorActions= new ArrayList<IAction>();
 
-			for (Iterator<IRefactoringContributor> iter = contributors
-					.iterator(); iter.hasNext();) {
-				IRefactoringContributor con = iter.next();
+			for (Iterator<IRefactoringContributor> iter= contributors.iterator(); iter.hasNext(); ) {
+				IRefactoringContributor con= iter.next();
 
 				try {
-					IAction[] conActions = con
-							.getEditorRefactoringActions(this);
+					IAction[] conActions= con.getEditorRefactoringActions(this);
 
-					for (int i = 0; i < conActions.length; i++)
+					for (int i= 0; i < conActions.length; i++)
 						editorActions.add(conActions[i]);
 				} catch (Exception e) {
-					RuntimePlugin.getInstance().logException(
-							"Unable to create refactoring actions for contributor "
-									+ con, e);
+					RuntimePlugin.getInstance().logException("Unable to create refactoring actions for contributor " + con, e);
 				}
 			}
-			Separator refGroup = new Separator("group.refactor");
-			IMenuManager refMenu = new MenuManager("Refac&tor");
+			Separator refGroup= new Separator("group.refactor");
+			IMenuManager refMenu= new MenuManager("Refac&tor");
 
 			menu.add(refGroup);
 			menu.appendToGroup("group.refactor", refMenu);
 
-			for (Iterator<IAction> actionIter = editorActions.iterator(); actionIter
-					.hasNext();) {
+			for (Iterator<IAction> actionIter= editorActions.iterator(); actionIter.hasNext(); ) {
 				refMenu.add(actionIter.next());
 			}
 		}

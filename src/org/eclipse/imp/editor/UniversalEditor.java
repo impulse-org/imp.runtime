@@ -605,7 +605,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         watchForSourceMove();
     }
 
-    private static final int REPARSE_SCHEDULE_DELAY= 500;
+    private static final int REPARSE_SCHEDULE_DELAY= 100;
 
     private void watchDocument() {
 

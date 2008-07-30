@@ -1,19 +1,24 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.imp.runtime">
+<schema targetNamespace="org.eclipse.imp.runtime" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appInfo>
-         <meta.schema plugin="org.eclipse.imp.runtime" id="markOccurrences" name="Mark Occurrences"/>
-      </appInfo>
+      <appinfo>
+         <meta.schema plugin="org.eclipse.imp.runtime" id="occurrenceIdentifier" name="Occurrence Identifier"/>
+      </appinfo>
       <documentation>
          This IDE service provides a detector for some definition of a kind of &quot;occurrence&quot;, along with the necessary meta-information needed to present it in the IDE user interface. There may be more than one implementation of this service for a given language.
       </documentation>
    </annotation>
 
    <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
       <complexType>
          <sequence>
-            <element ref="occurrenceMarker"/>
+            <element ref="occurrenceIdentifier"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -34,15 +39,15 @@
                <documentation>
                   
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute translatable="true"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
       </complexType>
    </element>
 
-   <element name="occurrenceMarker">
+   <element name="occurrenceIdentifier">
       <complexType>
          <attribute name="language" type="string" use="required">
             <annotation>
@@ -56,57 +61,49 @@
                <documentation>
                   
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.imp.services.IOccurrenceMarker"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
       </complexType>
    </element>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="since"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter the first release in which this extension point appears.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="examples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter extension point usage example here.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="apiInfo"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter API information here.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="implementation"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter information about supplied implementation of this extension point.]
       </documentation>
    </annotation>
 
-   <annotation>
-      <appInfo>
-         <meta.section type="copyright"/>
-      </appInfo>
-      <documentation>
-         
-      </documentation>
-   </annotation>
 
 </schema>

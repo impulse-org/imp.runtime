@@ -72,25 +72,26 @@ public class BreakpointUtils {
                   bkptAttributes);
             final IMarker javaMarker= bkpt.getMarker();
     
-            // create the marker
-            IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
-            
-    
-            Map javaMarkerAttrs= javaMarker.getAttributes();
-            for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {
-                String key= (String) iter.next();
-                Object value= javaMarkerAttrs.get(key);
-                if (key.equals(IMarker.LINE_NUMBER)) {
-                    value= origSrcLineNumber;
-                }
-                if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
-                    continue;
-                origSrcMarker.setAttribute(key, value);
-                
-                
-            }
-            origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
-            
+// mmk 7/29/08: removal of breakpoint doesn't appear to remove original source marker.  So we shouldn't "re"-create it -- yields duplicates on recompile
+//            // create the marker
+//            IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
+//            
+//    
+//            Map javaMarkerAttrs= javaMarker.getAttributes();
+//            for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {
+//                String key= (String) iter.next();
+//                Object value= javaMarkerAttrs.get(key);
+//                if (key.equals(IMarker.LINE_NUMBER)) {
+//                    value= origSrcLineNumber;
+//                }
+//                if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
+//                    continue;
+//                origSrcMarker.setAttribute(key, value);
+//                
+//                
+//            }
+//            origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
+//            
     		}
     	} catch (CoreException e) {
     		// TODO Auto-generated catch block

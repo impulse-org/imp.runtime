@@ -22,7 +22,7 @@
    <extension-point id="referenceResolvers" name="IMP Reference Resolver" schema="schema/referenceResolvers.exsd"/>
    <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
    <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
-   <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
+   <extension-point id="occurrenceIdentifier" name="Occurrence Identifier" schema="schema/occurrenceIdentifier.exsd"/>
    <extension-point id="modelTreeBuilder" name="Model Tree Builder" schema="schema/modelTreeBuilder.exsd"/>
    <extension-point id="editorService" name="IMP Editor Service" schema="schema/editorService.exsd"/>
    <extension-point id="contextHelper" name="Context Helper" schema="schema/contextHelper.exsd"/>

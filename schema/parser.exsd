@@ -1,19 +1,24 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Schema file written by PDE -->
-<schema targetNamespace="org.eclipse.imp.metatooling">
+<schema targetNamespace="org.eclipse.imp.metatooling" xmlns="http://www.w3.org/2001/XMLSchema">
 <annotation>
-      <appInfo>
+      <appinfo>
          <meta.schema plugin="org.eclipse.imp.metatooling" id="parser" name="IMP IDE Parser"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          The org.eclipse.imp.parser extension point allows providers to provide a language parser and lexer. The provider specifies what languages it can parse. The provider must implement the IParseController interface. It will be presented with an IDocument and is responsible for producing an AST (abstract syntax tree) of some sort.
       </documentation>
    </annotation>
 
    <element name="extension">
+      <annotation>
+         <appinfo>
+            <meta.element />
+         </appinfo>
+      </annotation>
       <complexType>
          <sequence>
-            <element ref="parser"/>
+            <element ref="parserWrapper"/>
          </sequence>
          <attribute name="point" type="string" use="required">
             <annotation>
@@ -39,16 +44,16 @@
       </complexType>
    </element>
 
-   <element name="parser">
+   <element name="parserWrapper">
       <complexType>
          <attribute name="class" type="string" use="required">
             <annotation>
                <documentation>
                   The fully-qualified name of the class that will be generated to serve as the implementation of this extension.  This class will be assigned the given name and located in the given package in the currently selected project.  (The package will be created if it does not already exist.)
                </documentation>
-               <appInfo>
+               <appinfo>
                   <meta.attribute kind="java" basedOn="org.eclipse.imp.parser.IParseController"/>
-               </appInfo>
+               </appinfo>
             </annotation>
          </attribute>
          <attribute name="language" type="string" use="required">
@@ -62,18 +67,18 @@
    </element>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="since"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          1.0.0
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="examples"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          &lt;extension
          point=&quot;org.eclipse.imp.parser&quot;&gt;
@@ -87,27 +92,27 @@
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="apiInfo"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          [Enter API information here.]
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="implementation"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          See org.eclipse.imp.DefaultParser.
       </documentation>
    </annotation>
 
    <annotation>
-      <appInfo>
+      <appinfo>
          <meta.section type="copyright"/>
-      </appInfo>
+      </appinfo>
       <documentation>
          Licensed Materials - Property of IBM,
  (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved

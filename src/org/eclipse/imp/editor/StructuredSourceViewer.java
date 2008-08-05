@@ -282,6 +282,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
 
             if (fAutoIndentStrategies != null) {
                 List<org.eclipse.jface.text.IAutoEditStrategy> strategies= (List<org.eclipse.jface.text.IAutoEditStrategy>) fAutoIndentStrategies.get(IDocument.DEFAULT_CONTENT_TYPE);
+                // TODO If there are multiple IAudoEditStrategy's, we may pick up one that doesn't do indent. How to identify the right one?
                 if (strategies != null && strategies.size() > 0) {
                     fAutoEditStrategy= (IAutoEditStrategy) strategies.get(0);
                 }

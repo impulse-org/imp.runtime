@@ -116,6 +116,11 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
       <key
+            commandId="org.eclipse.imp.runtime.indentSelection"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+I"/>
+      <key
             commandId="org.eclipse.imp.runtime.formatSource"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
@@ -148,6 +153,12 @@
             description="Moves the cursor to the matching fence character, if any"
             categoryId="org.eclipse.ui.category.navigate"
             id="org.eclipse.imp.runtime.gotoMatchingFence">
+      </command>
+      <command
+            categoryId="org.eclipse.imp.runtime.source"
+            description="Re-indent the selected text"
+            id="org.eclipse.imp.runtime.indentSelection"
+            name="Indent Selection">
       </command>
       <category
             id="org.eclipse.imp.runtime.source"

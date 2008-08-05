@@ -180,6 +180,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".showOutlineCommand";
 
+    //mmk 8/4/08
+    public static final String INDENT_SELECTION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".indentSelection";
+
     /**
      * Action definition ID of the edit -> go to matching fence action
      * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
@@ -279,6 +282,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
         setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
+
+        // mmk 8/4/08
+        action= new TextOperationAction(bundle, "IndentSelection.", this, StructuredSourceViewer.INDENT_SELECTION); //$NON-NLS-1$
+        action.setActionDefinitionId(INDENT_SELECTION_COMMAND);
+        setAction(INDENT_SELECTION_COMMAND, action); //$NON-NLS-1$
 
         action= new GotoMatchingFenceAction(this);
         action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);

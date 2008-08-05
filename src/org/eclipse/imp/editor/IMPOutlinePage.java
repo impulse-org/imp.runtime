@@ -120,5 +120,6 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
         viewer.addSelectionChangedListener(this);
         ModelTreeNode rootNode= fModelBuilder.buildTree(fParseController.getCurrentAst());
         viewer.setInput(rootNode);
+        viewer.setAutoExpandLevel(2);
      }
 }

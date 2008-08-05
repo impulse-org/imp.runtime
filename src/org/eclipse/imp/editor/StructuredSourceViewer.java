@@ -18,13 +18,13 @@ import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguratio
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.imp.services.base.DefaultAutoIndentStrategy;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentCommand;
 import org.eclipse.jface.text.DocumentRewriteSession;
 import org.eclipse.jface.text.DocumentRewriteSessionType;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentExtension4;
-import org.eclipse.jface.text.IDocumentPartitioner;
 import org.eclipse.jface.text.formatter.IContentFormatter;
 import org.eclipse.jface.text.information.IInformationPresenter;
 import org.eclipse.jface.text.source.IOverviewRuler;
@@ -283,8 +283,17 @@ public class StructuredSourceViewer extends ProjectionViewer {
             if (fAutoIndentStrategies != null) {
                 List<org.eclipse.jface.text.IAutoEditStrategy> strategies= (List<org.eclipse.jface.text.IAutoEditStrategy>) fAutoIndentStrategies.get(IDocument.DEFAULT_CONTENT_TYPE);
                 // TODO If there are multiple IAudoEditStrategy's, we may pick up one that doesn't do indent. How to identify the right one?
+                // SMS 5 Aug 2008:  There's another problem here, in that the available strategy here
+                // may not be of type IAutoEditStrategy.  See bug #243212.  To provide at least a
+                // short term fix, I'm going to substitute an appropriate value when that turns out 
+                // to be the case.  This may be revised if we decide to somehow avoid the possibility
+                // that a strategy of an inappropriate type might appear here.
                 if (strategies != null && strategies.size() > 0) {
-                    fAutoEditStrategy= (IAutoEditStrategy) strategies.get(0);
+//                    fAutoEditStrategy= (IAutoEditStrategy) strategies.get(0);
+                	if (strategies.get(0) instanceof IAutoEditStrategy)
+                		fAutoEditStrategy= (IAutoEditStrategy) strategies.get(0);
+                	else
+                		fAutoEditStrategy = new DefaultAutoIndentStrategy();
                 }
             }
         }

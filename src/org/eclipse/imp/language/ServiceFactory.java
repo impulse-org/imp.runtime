@@ -98,8 +98,7 @@ public class ServiceFactory {
 
 	static final String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
 
-	// SMS 30 Jul 2008
-	static final String OCCURRENCE_MARKER = "occurrenceIdentifier";	//"markOccurrences";
+    static final String OCCURRENCE_MARKER = "markOccurrences";
 
 	static final String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
 

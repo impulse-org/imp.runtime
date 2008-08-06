@@ -32,8 +32,8 @@ public class DependencyInfo {
     protected final String fWorkspacePath;
 
     public DependencyInfo(IProject project) {
-	fProject= project;
-	fWorkspacePath= fProject.getProject().getWorkspace().getRoot().getLocation().toString();
+        fProject= project;
+        fWorkspacePath= fProject.getProject().getWorkspace().getRoot().getLocation().toString();
     }
 
     protected Set<String /*unitPath*/> getEntry(Map<String /*unitPath*/, Set<String /*unitPath*/>> map, String unitPath) {
@@ -47,7 +47,7 @@ public class DependencyInfo {
     }
 
     protected Set<String> getOrCreateEntry(Map<String,Set<String>> map, String unitPath) {
-	Set<String> result;
+        Set<String> result;
 
         if (!map.containsKey(unitPath))
             map.put(unitPath, result= new HashSet<String>());
@@ -62,7 +62,7 @@ public class DependencyInfo {
      * @param uponPath a compilation unit path; should be workspace-relative
      */
     public void addDependency(String fromPath, String uponPath) {
-	Set<String> fwdEntry= getOrCreateEntry(fDependsUpon, fromPath);
+        Set<String> fwdEntry= getOrCreateEntry(fDependsUpon, fromPath);
 
         fwdEntry.add(uponPath);
 
@@ -76,8 +76,8 @@ public class DependencyInfo {
      * this DependencyInfo instance.
      */
     public void clearAllDependencies() {
-	fDependsUpon.clear();
-	fIsDependedUponBy.clear();
+        fDependsUpon.clear();
+        fIsDependedUponBy.clear();
     }
 
     /**
@@ -120,10 +120,10 @@ public class DependencyInfo {
     
             System.out.println("Unit " + unit + ": ");
             for(Iterator iterator= dependents.iterator(); iterator.hasNext(); ) {
-        	String uponUnit= (String) iterator.next();
-        	System.out.print("  ");
-        	System.out.print(uponUnit);
-        	if (iterator.hasNext()) System.out.print(", ");
+                String uponUnit= (String) iterator.next();
+                System.out.print("  ");
+                System.out.print(uponUnit);
+                if (iterator.hasNext()) System.out.print(", ");
             }
             System.out.println();
         }

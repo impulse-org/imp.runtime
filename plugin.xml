@@ -1,31 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.0"?>
 <plugin>
-   <extension-point id="contentProposer" name="IMP Content Proposer" schema="schema/contentProposer.exsd"/>
-   <extension-point id="hoverHelper" name="IMP Hover Helper" schema="schema/hoverHelper.exsd"/>
-   <extension-point id="outliner" name="IMP Outliner" schema="schema/outliner.exsd"/>
-   <extension-point id="tokenColorer" name="IMP Token Colorer" schema="schema/tokenColorer.exsd"/>
-   <extension-point id="languageDescription" name="Description of a programming language" schema="schema/languageDescription.exsd"/>
-   <extension-point id="indexContributor" name="Shared index of language-specific items, such as types" schema="schema/indexContributor.exsd"/>
-   <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
-   <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
-   <extension-point id="hyperLink" name="IMP Hyperlink Detector" schema="schema/hyperLink.exsd"/>
-   <extension-point id="autoEditStrategy" name="Auto-Edit Strategy" schema="schema/autoEditStrategy.exsd"/>
-   <extension-point id="foldingUpdater" name="IMP Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="annotationHover" name="Annotation Hover" schema="schema/annotationHover.exsd"/>
+   <extension-point id="autoEditStrategy" name="Auto-Edit Strategy" schema="schema/autoEditStrategy.exsd"/>
+   <extension-point id="contentProposer" name="IMP Content Proposer" schema="schema/contentProposer.exsd"/>
+   <extension-point id="contextHelper" name="Context Helper" schema="schema/contextHelper.exsd"/>
+   <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
+   <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
+   <extension-point id="editorService" name="IMP Editor Service" schema="schema/editorService.exsd"/>
+   <extension-point id="foldingUpdater" name="IMP Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="formatter" name="IMP Source Code Formatter" schema="schema/formatter.exsd"/>
-   <extension-point id="labelProvider" name="Label Provider" schema="schema/labelProvider.exsd"/>
+   <extension-point id="hoverHelper" name="IMP Hover Helper" schema="schema/hoverHelper.exsd"/>
+   <extension-point id="hyperLink" name="IMP Hyperlink Detector" schema="schema/hyperLink.exsd"/>
    <extension-point id="imageDecorator" name="Image Decorator" schema="schema/imageDecorator.exsd"/>
-   <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
+   <extension-point id="indexContributor" name="Shared index of language-specific items, such as types" schema="schema/indexContributor.exsd"/>
+   <extension-point id="labelProvider" name="Label Provider" schema="schema/labelProvider.exsd"/>
+   <extension-point id="languageDescription" name="Description of a programming language" schema="schema/languageDescription.exsd"/>
+   <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
+   <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
+   <extension-point id="modelTreeBuilder" name="Model Tree Builder" schema="schema/modelTreeBuilder.exsd"/>
    <extension-point id="outlineContentProvider" name="Outline Content Provider" schema="schema/outlineContentProvider.exsd"/>
+   <extension-point id="outliner" name="IMP Outliner" schema="schema/outliner.exsd"/>
+   <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
    <extension-point id="refactoringContributions" name="Refactoring Contributions" schema="schema/refactoringContributions.exsd"/>
    <extension-point id="referenceResolvers" name="IMP Reference Resolver" schema="schema/referenceResolvers.exsd"/>
-   <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
-   <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
-   <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
-   <extension-point id="modelTreeBuilder" name="Model Tree Builder" schema="schema/modelTreeBuilder.exsd"/>
-   <extension-point id="editorService" name="IMP Editor Service" schema="schema/editorService.exsd"/>
-   <extension-point id="contextHelper" name="Context Helper" schema="schema/contextHelper.exsd"/>
+   <extension-point id="tokenColorer" name="IMP Token Colorer" schema="schema/tokenColorer.exsd"/>
+   <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
 
    <extension
          point="org.eclipse.ui.editors">

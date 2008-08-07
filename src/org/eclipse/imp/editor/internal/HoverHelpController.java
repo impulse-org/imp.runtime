@@ -1,14 +1,14 @@
 /*******************************************************************************
-* Copyright (c) 2007 IBM Corporation.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
-*
-* Contributors:
-*    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
 
-*******************************************************************************/
+ *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
 
@@ -34,16 +34,16 @@ public class HoverHelpController implements ITextHover, IModelListener {
     private IHoverHelper hoverHelper;
 
     public HoverHelpController(Language language) {
-    	hoverHelper = ServiceFactory.getInstance().getHoverHelper(language);
+        hoverHelper= ServiceFactory.getInstance().getHoverHelper(language);
         if (hoverHelper == null)
             hoverHelper= new HoverHelper(language);
         else if (hoverHelper instanceof HoverHelperBase) {
-            ((HoverHelperBase)hoverHelper).setLanguage(language);
+            ((HoverHelperBase) hoverHelper).setLanguage(language);
         }
     }
 
     public AnalysisRequired getAnalysisRequired() {
-	return AnalysisRequired.NAME_ANALYSIS;
+        return AnalysisRequired.NAME_ANALYSIS;
     }
 
     public IRegion getHoverRegion(ITextViewer textViewer, int offset) {
@@ -56,9 +56,9 @@ public class HoverHelpController implements ITextHover, IModelListener {
             String help= null;
 
             if (controller != null && hoverHelper != null)
-        	help= hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, offset);
+                help= hoverHelper.getHoverHelpAt(controller, (ISourceViewer) textViewer, offset);
             if (help == null)
-        	help= AnnotationUtils.formatAnnotationList(AnnotationUtils.getAnnotationsForOffset((ISourceViewer) textViewer, offset));
+                help= AnnotationUtils.formatAnnotationList(AnnotationUtils.getAnnotationsForOffset((ISourceViewer) textViewer, offset));
 
             return help;
         } catch (Throwable e) {

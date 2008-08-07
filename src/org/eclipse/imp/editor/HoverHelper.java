@@ -65,15 +65,29 @@ public class HoverHelper implements IHoverHelper {
 
         if (selNode == null) return null;
 
+        // determine whether this is a reference to something else 
        	Object target = (refResolver != null) ? refResolver.getLinkTarget(selNode, parseController) : selNode;
 
-       	if (target == null) return null;
+       	// if target is null, we're hovering over a declaration whose javadoc is right before us, but
+       	// showing it can still be useful for previewing the javadoc formatting
+       	// OR if target is null we're hovering over something not a decl or ref (e.g. integer literal)
+       	// ==>  show information if something other than the source is available:
+       	// 1. if target != src, show something
+       	// 2. if target == src, and docProvider gives something, then show it
+       	// 3. if target == src, and docProvider doesn't give anything, don't show anything
+       	//
+       	
+       	// if this is not a reference, provide info for it anyway 
+       	if (target == null) target=selNode;
 
        	IDocumentationProvider docProvider= ServiceFactory.getInstance().getDocumentationProvider(fLanguage);
        	String doc= (docProvider != null) ? docProvider.getDocumentation(target, parseController) : null;			
 
        	if (doc != null)
        		return doc;
+
+       	if (target==selNode)
+       		return null;
 
        	StringBuffer buffer= new StringBuffer();
 

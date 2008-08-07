@@ -56,11 +56,13 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
+import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -1398,12 +1400,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
                 fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
                 IInformationProvider provider= new IInformationProvider() { // this should be language-specific
+                    private IDocumentationProvider fDocProvider= fLanguageServiceManager.getDocProvider();
+                    private IParseController fParseController= fLanguageServiceManager.getParseController();
+                    private ISourcePositionLocator fNodeLocator= fParseController.getNodeLocator();
+
                     public IRegion getSubject(ITextViewer textViewer, int offset) {
                         return new Region(offset, 10);
                     }
-
                     public String getInformation(ITextViewer textViewer, IRegion subject) {
-                        return "Hi Mom!";
+                        Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), subject.getOffset());
+                        return (fDocProvider != null) ? fDocProvider.getDocumentation(selNode, fParseController) : "No documentation available on the selected entity.";
                     }
                 };
                 fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);

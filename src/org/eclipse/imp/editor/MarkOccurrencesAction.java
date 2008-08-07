@@ -52,7 +52,7 @@ import org.eclipse.ui.texteditor.ITextEditor;
 
 public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 	
-    private static final String OCCURRENCE_ANNOTATION= RuntimePlugin.IMP_RUNTIME + ".occurrenceAnnotation";
+    public static final String OCCURRENCE_ANNOTATION= RuntimePlugin.IMP_RUNTIME + ".occurrenceAnnotation";
     
     private boolean fMarkingEnabled = false;
     

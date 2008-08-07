@@ -1388,9 +1388,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 //                  int shellStyle= SWT.RESIZE | SWT.TOOL;
                     int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
 
-                    if (BrowserInformationControl.isAvailable(parent))
-                        return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE, EditorsUI.getTooltipAffordanceString());
-                    else
+//                    if (BrowserInformationControl.isAvailable(parent))
+//                        return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE, EditorsUI.getTooltipAffordanceString());
+//                    else
                     // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
                     return new DefaultInformationControl(parent, style, new HTMLTextPresenter(true), "Press 'F2' for focus");
                 }

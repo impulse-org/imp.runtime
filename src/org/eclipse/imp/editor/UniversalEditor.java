@@ -82,6 +82,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.internal.text.html.BrowserInformationControl;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
@@ -157,6 +158,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
@@ -1383,11 +1385,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
             return new IInformationControlCreator() {
                 public IInformationControl createInformationControl(Shell parent) {
-                    int shellStyle= SWT.RESIZE | SWT.TOOL;
+//                  int shellStyle= SWT.RESIZE | SWT.TOOL;
                     int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
 
+                    if (BrowserInformationControl.isAvailable(parent))
+                        return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE, EditorsUI.getTooltipAffordanceString());
+                    else
                     // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
-                    return new DefaultInformationControl(parent, style, new HTMLTextPresenter(false), "Press 'F2' for focus");
+                    return new DefaultInformationControl(parent, style, new HTMLTextPresenter(true), "Press 'F2' for focus");
                 }
             };
         }
@@ -1399,13 +1404,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 fInfoPresenter= new InformationPresenter(getInformationControlCreator(sourceViewer));
                 fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
                 fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
+
                 IInformationProvider provider= new IInformationProvider() { // this should be language-specific
                     private IDocumentationProvider fDocProvider= fLanguageServiceManager.getDocProvider();
                     private IParseController fParseController= fLanguageServiceManager.getParseController();
                     private ISourcePositionLocator fNodeLocator= fParseController.getNodeLocator();
 
                     public IRegion getSubject(ITextViewer textViewer, int offset) {
-                        return new Region(offset, 10);
+                        Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), offset);
+                        return new Region(fNodeLocator.getStartOffset(selNode), fNodeLocator.getLength(selNode));
                     }
                     public String getInformation(ITextViewer textViewer, IRegion subject) {
                         Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), subject.getOffset());

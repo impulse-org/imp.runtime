@@ -17,8 +17,10 @@ package org.eclipse.imp.editor;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.utils.HTMLPrinter;
@@ -41,12 +43,12 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
     protected static boolean isRulerLine(Position position, IDocument document, int line) {
         if (position.getOffset() > -1 && position.getLength() > -1) {
             try {
-        	// RMF 11/10/2006 - This used to add 1 to the line computed by the document,
-        	// which appears to be bogus. First, it didn't work right (annotation hovers
-        	// never appeared); second, the line passed in comes from the Eclipse
-        	// framework, so it should be consistent (wrt the index base) with what the
-        	// IDocument API provides.
-        	return line == document.getLineOfOffset(position.getOffset())/* + 1*/;
+                // RMF 11/10/2006 - This used to add 1 to the line computed by the document,
+                // which appears to be bogus. First, it didn't work right (annotation hovers
+                // never appeared); second, the line passed in comes from the Eclipse
+                // framework, so it should be consistent (wrt the index base) with what the
+                // IDocument API provides.
+                return line == document.getLineOfOffset(position.getOffset())/* + 1 */;
             } catch (BadLocationException x) {
             }
         }
@@ -76,28 +78,41 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
             Position position= model.getPosition(annotation);
     
             if (position == null)
-        	continue;
+                continue;
     
             if (!isRulerLine(position, document, line))
-        	continue;
+                continue;
 
             if (annotation instanceof AnnotationBag) {
-        	AnnotationBag bag= (AnnotationBag) annotation;
-        	Iterator e= bag.iterator();
-        	while (e.hasNext()) {
-        	    annotation= (Annotation) e.next();
-        	    position= model.getPosition(annotation);
-        	    if (position != null && includeAnnotation(annotation, position, messagesAtPosition))
-        		srcAnnotations.add(annotation);
-        	}
-        	continue;
+                AnnotationBag bag= (AnnotationBag) annotation;
+                Iterator e= bag.iterator();
+                while (e.hasNext()) {
+                    annotation= (Annotation) e.next();
+                    position= model.getPosition(annotation);
+                    if (position != null && includeAnnotation(annotation, position, messagesAtPosition))
+                        srcAnnotations.add(annotation);
+                }
+                continue;
             }
     
             if (includeAnnotation(annotation, position, messagesAtPosition))
-        	srcAnnotations.add(annotation);
+                srcAnnotations.add(annotation);
         }
     
         return srcAnnotations;
+    }
+
+    // Following is just used for debugging to discover new annotation types to filter out
+//    private static Set<String> fAnnotationTypes= new HashSet<String>();
+
+    private static Set<String> sAnnotationTypesToFilter= new HashSet<String>();
+
+    static {
+        sAnnotationTypesToFilter.add("org.eclipse.ui.workbench.texteditor.quickdiffUnchanged");
+        sAnnotationTypesToFilter.add("org.eclipse.ui.workbench.texteditor.quickdiffChange");
+        sAnnotationTypesToFilter.add("org.eclipse.debug.core.breakpoint");
+        sAnnotationTypesToFilter.add(MarkOccurrencesAction.OCCURRENCE_ANNOTATION);
+        sAnnotationTypesToFilter.add(ProjectionAnnotation.TYPE);
     }
 
     /**
@@ -109,34 +124,39 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
      * @return
      */
     private static boolean includeAnnotation(Annotation annotation, Position position, HashMap messagesAtPosition) {
-        return !(annotation instanceof ProjectionAnnotation) && !annotation.getType().equals("org.eclipse.ui.workbench.texteditor.quickdiffUnchanged");
+        String type= annotation.getType();
+//        if (!fAnnotationTypes.contains(type)) {
+//            fAnnotationTypes.add(type);
+//            System.out.println("Annotation type: " + type);
+//        }
+        return !sAnnotationTypesToFilter.contains(type);
     }
 
     public static String formatAnnotationList(List javaAnnotations) {
         if (javaAnnotations != null) {
             if (javaAnnotations.size() == 1) {
-        	// optimization
-        	Annotation annotation= (Annotation) javaAnnotations.get(0);
-        	String message= annotation.getText();
-    
-        	if (message != null && message.trim().length() > 0)
-        	    return formatSingleMessage(message);
+                // optimization
+                Annotation annotation= (Annotation) javaAnnotations.get(0);
+                String message= annotation.getText();
+
+                if (message != null && message.trim().length() > 0)
+                    return formatSingleMessage(message);
             } else {
-        	List messages= new ArrayList();
-        	Iterator e= javaAnnotations.iterator();
-    
-        	while (e.hasNext()) {
-        	    Annotation annotation= (Annotation) e.next();
-        	    String message= annotation.getText();
-        	    if (message != null && message.trim().length() > 0)
-        		messages.add(message.trim());
-        	}
-    
-        	if (messages.size() == 1)
-        	    return formatSingleMessage((String) messages.get(0));
-    
-        	if (messages.size() > 1)
-        	    return formatMultipleMessages(messages);
+                List messages= new ArrayList();
+                Iterator e= javaAnnotations.iterator();
+
+                while (e.hasNext()) {
+                    Annotation annotation= (Annotation) e.next();
+                    String message= annotation.getText();
+                    if (message != null && message.trim().length() > 0)
+                        messages.add(message.trim());
+                }
+
+                if (messages.size() == 1)
+                    return formatSingleMessage((String) messages.get(0));
+
+                if (messages.size() > 1)
+                    return formatMultipleMessages(messages);
             }
         }
         return null;
@@ -190,8 +210,8 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
      * @see IVerticalRulerHover#getHoverInfo(ISourceViewer, int)
      */
     public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
-	List javaAnnotations= getSourceAnnotationsForLine(sourceViewer, lineNumber);
+        List javaAnnotations= getSourceAnnotationsForLine(sourceViewer, lineNumber);
 
-	return formatAnnotationList(javaAnnotations);
+        return formatAnnotationList(javaAnnotations);
     }
 }

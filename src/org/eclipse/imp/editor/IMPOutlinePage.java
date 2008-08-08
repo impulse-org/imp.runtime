@@ -18,17 +18,21 @@ import org.eclipse.imp.editor.internal.TreeDiffer;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
+import org.eclipse.jface.action.Action;
+import org.eclipse.jface.action.IToolBarManager;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ILabelProvider;
-import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ITreeSelection;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerComparator;
+import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.texteditor.AbstractTextEditor;
+import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.part.IPageSite;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 public class IMPOutlinePage extends ContentOutlinePage implements IModelListener {
@@ -121,5 +125,97 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
         ModelTreeNode rootNode= fModelBuilder.buildTree(fParseController.getCurrentAst());
         viewer.setInput(rootNode);
         viewer.setAutoExpandLevel(2);
+
+        IPageSite site= getSite();
+        IActionBars actionBars= site.getActionBars();
+
+        registerToolbarActions(actionBars);
      }
+
+    class LexicalSortingAction extends Action {
+        // TODO Need to introduce some API to provide language-specific "categories" that get used for sorting and filtering; perhaps on ModelTreeNode?
+        private ViewerComparator fElementComparator= new ViewerComparator() {
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+                ModelTreeNode t1= (ModelTreeNode) e1;
+                ModelTreeNode t2= (ModelTreeNode) e2;
+                int cat1= t1.getCategory();
+                int cat2= t2.getCategory();
+
+                if (cat1 == cat2) {
+                    return fLabelProvider.getText(t1).compareTo(fLabelProvider.getText(t2));
+                }
+                return cat1 - cat2;
+            }
+        };
+        private ISourcePositionLocator fLocator= fParseController.getNodeLocator();
+
+        private ViewerComparator fPositionComparator= new ViewerComparator() {
+            @Override
+            public int compare(Viewer viewer, Object e1, Object e2) {
+                int pos1= fLocator.getStartOffset(e1);
+                int pos2= fLocator.getStartOffset(e2);
+
+                return pos1 - pos2;
+            }
+        };
+
+        public LexicalSortingAction() {
+            super();
+//          PlatformUI.getWorkbench().getHelpSystem().setHelp(this, IJavaHelpContextIds.LEXICAL_SORTING_OUTLINE_ACTION);
+            setText("Sort");
+            setToolTipText("Sort by name");
+            setDescription("Sort entries lexically by name");
+
+            ImageDescriptor desc= RuntimePlugin.getImageDescriptor("icons/alphab_sort_co.gif"); //$NON-NLS-1$
+            this.setHoverImageDescriptor(desc);
+            this.setImageDescriptor(desc); 
+
+            boolean checked= RuntimePlugin.getInstance().getPreferenceStore().getBoolean("LexicalSortingAction.isChecked"); //$NON-NLS-1$
+            valueChanged(checked, false);
+        }
+
+        public void run() {
+            valueChanged(isChecked(), true);
+        }
+
+        private void valueChanged(final boolean on, boolean store) {
+            final TreeViewer outlineViewer= getTreeViewer();
+            setChecked(on);
+            BusyIndicator.showWhile(outlineViewer.getControl().getDisplay(), new Runnable() {
+                public void run() {
+                    if (on)
+                        outlineViewer.setComparator(fElementComparator);
+                    else
+                        outlineViewer.setComparator(fPositionComparator);
+                }
+            });
+
+            if (store) {
+                // RMF Need to store separate settings per language
+                RuntimePlugin.getInstance().getPreferenceStore().setValue("LexicalSortingAction.isChecked", on); //$NON-NLS-1$
+            }
+        }
+    }
+
+    private void registerToolbarActions(IActionBars actionBars) {
+        IToolBarManager toolBarManager= actionBars.getToolBarManager();
+        toolBarManager.add(new LexicalSortingAction());
+
+//        fMemberFilterActionGroup= new MemberFilterActionGroup(fOutlineViewer, "org.eclipse.jdt.ui.JavaOutlinePage"); //$NON-NLS-1$
+//        fMemberFilterActionGroup.contributeToToolBar(toolBarManager);
+//
+//        fCustomFiltersActionGroup.fillActionBars(actionBars);
+//
+//        IMenuManager viewMenuManager= actionBars.getMenuManager();
+//        viewMenuManager.add(new Separator("EndFilterGroup")); //$NON-NLS-1$
+//
+//        fToggleLinkingAction= new ToggleLinkingAction(this);
+//        viewMenuManager.add(new ClassOnlyAction());
+//        viewMenuManager.add(fToggleLinkingAction);
+//
+//        fCategoryFilterActionGroup= new CategoryFilterActionGroup(fOutlineViewer, "org.eclipse.jdt.ui.JavaOutlinePage", new IJavaElement[] {fInput}); //$NON-NLS-1$
+//        fCategoryFilterActionGroup.contributeToViewMenu(viewMenuManager);
+    }
+
 }

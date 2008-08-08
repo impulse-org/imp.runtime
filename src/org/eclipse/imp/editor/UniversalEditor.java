@@ -1442,11 +1442,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             return super.getOverviewRulerAnnotationHover(sourceViewer);
         }
 
-        private class LangInformationProvider implements IInformationProvider, IInformationProviderExtension {
+        private class OutlineInformationProvider implements IInformationProvider, IInformationProviderExtension {
             private TreeModelBuilderBase fBuilder;
 
             public IRegion getSubject(ITextViewer textViewer, int offset) {
-                return new Region(offset, 10);
+                return new Region(offset, 0); // Could be anything, since it's ignored below in getInformation2()...
             }
 
             public String getInformation(ITextViewer textViewer, IRegion subject) {
@@ -1461,7 +1461,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
         }
 
-        private IInformationProvider fSourceElementProvider= new LangInformationProvider();
+        private IInformationProvider fOutlineElementProvider= new OutlineInformationProvider();
 
         public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
             TreeModelBuilderBase modelBuilder= fLanguageServiceManager.getModelBuilder();
@@ -1475,7 +1475,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
             presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 
-            IInformationProvider provider= fSourceElementProvider;
+            IInformationProvider provider= fOutlineElementProvider;
 
             presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
             // TODO Should associate all other partition types with this provider, too

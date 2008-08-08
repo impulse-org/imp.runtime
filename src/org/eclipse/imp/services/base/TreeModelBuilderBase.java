@@ -32,19 +32,32 @@ public abstract class TreeModelBuilderBase implements ILanguageService {
     protected abstract void visitTree(Object root);
 
     protected ModelTreeNode createTopItem(Object n) {
-        ModelTreeNode treeNode= new ModelTreeNode(n);
+        return createTopItem(n, ModelTreeNode.DEFAULT_CATEGORY);
+    }
+
+    protected ModelTreeNode createTopItem(Object n, int category) {
+        ModelTreeNode treeNode= new ModelTreeNode(n, category);
         return treeNode;
     }
 
     protected ModelTreeNode createSubItem(Object n) {
+        return createSubItem(n, ModelTreeNode.DEFAULT_CATEGORY);
+    }
+
+    protected ModelTreeNode createSubItem(Object n, int category) {
         final ModelTreeNode parent= fItemStack.peek();
-        ModelTreeNode treeNode= new ModelTreeNode(n, parent);
+        ModelTreeNode treeNode= new ModelTreeNode(n, parent, category);
+
         parent.addChild(treeNode);
         return treeNode;
     }
 
     protected ModelTreeNode pushSubItem(Object n) {
-        return fItemStack.push(createSubItem(n));
+        return pushSubItem(n, ModelTreeNode.DEFAULT_CATEGORY);
+    }
+
+    protected ModelTreeNode pushSubItem(Object n, int category) {
+        return fItemStack.push(createSubItem(n, category));
     }
 
     protected void popSubItem() {

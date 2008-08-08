@@ -16,6 +16,8 @@
 package org.eclipse.imp.editor;
 
 public class ModelTreeNode {
+    public static final int DEFAULT_CATEGORY= 0;
+
     private static final ModelTreeNode[] NO_CHILDREN= new ModelTreeNode[0];
 
     private ModelTreeNode[] fChildren= NO_CHILDREN;
@@ -24,13 +26,25 @@ public class ModelTreeNode {
 
     private final Object fASTNode;
 
+    private final int fCategory;
+
     public ModelTreeNode(Object astNode) {
+        this(astNode, DEFAULT_CATEGORY);
+    }
+
+    public ModelTreeNode(Object astNode, int category) {
         fASTNode= astNode;
+        fCategory= category;
     }
 
     public ModelTreeNode(Object astNode, ModelTreeNode parent) {
+        this(astNode, parent, DEFAULT_CATEGORY);
+    }
+
+    public ModelTreeNode(Object astNode, ModelTreeNode parent, int category) {
         fASTNode= astNode;
         fParent= parent;
+        fCategory= category;
     }
 
     public void setChildren(ModelTreeNode[] children) {
@@ -57,6 +71,10 @@ public class ModelTreeNode {
 
     public Object getASTNode() {
         return fASTNode;
+    }
+
+    public int getCategory() {
+        return fCategory;
     }
 
     public String toString() {

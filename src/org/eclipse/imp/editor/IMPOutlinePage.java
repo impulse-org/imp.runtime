@@ -32,7 +32,10 @@ import org.eclipse.jface.viewers.ViewerComparator;
 import org.eclipse.swt.custom.BusyIndicator;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.IPageSite;
+import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.views.contentoutline.ContentOutlinePage;
 
 public class IMPOutlinePage extends ContentOutlinePage implements IModelListener {
@@ -52,7 +55,21 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
         fModelBuilder= modelBuilder;
         fLabelProvider= labelProvider;
         fImageProvider= imageProvider;
-        this.regionSelector= regionSelector;
+//        this.regionSelector= regionSelector;
+        
+        // SMS 21 Aug 2008
+        if (regionSelector != null)
+        	this.regionSelector = regionSelector;
+        else
+        	this.regionSelector = new IRegionSelectionService() {
+        	        public void selectAndReveal(int startOffset, int length) {
+        	            IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+//        	            AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
+        	            ITextEditor textEditor= (ITextEditor) activeEditor;
+        	            
+        	            textEditor.selectAndReveal(startOffset, length);
+        	        }
+        	    };
 
         fContentProvider= new OutlineContentProviderBase(null) {
             private ModelTreeNode fOldTree= null;

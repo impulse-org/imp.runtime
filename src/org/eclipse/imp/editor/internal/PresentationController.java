@@ -71,7 +71,7 @@ public class PresentationController implements IModelListener {
         ps.println();
     }
 
-    private void dumpTokens(Iterator tokenIter, PrintStream ps) {
+    private void dumpTokens(Iterator<Object> tokenIter, PrintStream ps) {
         ps.println(" Kind \tOffset \tLen \tLine \tCol \tText");
         for(; tokenIter.hasNext(); ) {
             dumpToken(tokenIter.next(), ps);
@@ -125,7 +125,7 @@ public class PresentationController implements IModelListener {
             ISourcePositionLocator locator) {
         int prevOffset= -1;
         int prevEnd= -1;
-        for(Iterator iter= parseController.getTokenIterator(damage); iter.hasNext() && !monitor.isCanceled(); ) {
+        for(Iterator<Object> iter= parseController.getTokenIterator(damage); iter.hasNext() && !monitor.isCanceled(); ) {
             Object token= iter.next();
             int offset= locator.getStartOffset(token);
             int end= locator.getEndOffset(token);
@@ -147,10 +147,9 @@ public class PresentationController implements IModelListener {
                 attribute == null ? null : attribute.getBackground(),
                 attribute == null ? SWT.NORMAL : attribute.getStyle());
         
-        // SMS 21 Jun 2007:  negative (possibly 0) length style ranges seem to cause problems;
+       // SMS 21 Jun 2007:  negative (possibly 0) length style ranges seem to cause problems;
         // but if you have one it should lead to an IllegalArgumentException in changeTextPresentation(..)
-        if (styleRange.length <= 0 || styleRange.start + styleRange.length >= this.fSourceViewer.getDocument().getLength()) {
-//          System.err.println("PresentationController.changeTokenPresentation(): attempting to add style range, start =  " + styleRange.start + ", length = " + styleRange.length);
+        if (styleRange.length <= 0 || styleRange.start + styleRange.length > this.fSourceViewer.getDocument().getLength()) {
         } else {
             presentation.addStyleRange(styleRange);
         }
@@ -168,6 +167,11 @@ public class PresentationController implements IModelListener {
         	    		fSourceViewer.changeTextPresentation(presentation, true);	
         	    } catch (IllegalArgumentException e) {
         	        // One possible cause is a negative length in a styleRange in the presentation
+        	    	Iterator ranges = presentation.getAllStyleRangeIterator();
+        	    	while (ranges.hasNext()) {
+        	    		StyleRange range = (StyleRange) ranges.next();
+        	    		System.out.println("\tstart = " + range.start + ", length = " + range.length);
+        	    	}
         	        ErrorHandler.logError("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; rethrowing", e);
         	        throw e;
         	    }

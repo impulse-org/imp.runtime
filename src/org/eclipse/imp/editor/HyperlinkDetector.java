@@ -95,6 +95,20 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // the same unit as the link source
         IPath wsPath= ResourcesPlugin.getWorkspace().getRoot().getLocation();
         boolean isSamePath= targetPath.equals(srcPath) || srcPath.removeFirstSegments(wsPath.segmentCount()).setDevice(null).equals(targetPath);
+        
+        // SMS 5 Aug 2008
+        // The above test for isSamePath doesn't necessarily work because the default node
+        // locator always returns an empty path for any given node.  Special customization
+        // is needed which, among our known IDEs, has only been done for X10DT (PolyglotNodeLocator)
+        // and LPG.  So in cases where it might make sense, we can try relying on the node locator
+        // to return a negative offset for a node that is not in a given AST.  I.e., if the target
+        // node is not in the same AST as the source node then assume their paths are different.
+        // OK, this might not be strictly true if you can get more than one AST from a single
+        // file, but it will prevent problems in the common case of one AST per source file.
+        if (!isSamePath && targetPath.segmentCount() == 0) {
+        	isSamePath = nodeLocator.getStartOffset(target) >= 0;
+        }
+        
         ITextEditor targetEditor= (targetPath.segmentCount() == 0 || isSamePath) ? editor : null;
         Object targetArg= targetEditor == null ? targetPath : target;
 

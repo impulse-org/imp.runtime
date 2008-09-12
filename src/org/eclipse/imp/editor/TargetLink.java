@@ -161,6 +161,7 @@ public final class TargetLink implements IHyperlink {
 
     public void open() {
         if (fSelectionService == null) { // we're presumably opening up a new source file
+        	// SMS 5 Aug 2008:  presumably, but actually it seems to not always be the case.
             final IPath targetPath= (IPath) fTarget;
             IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
 

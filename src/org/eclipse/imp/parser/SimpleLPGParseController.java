@@ -21,6 +21,7 @@ import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
@@ -114,76 +115,104 @@ public abstract class SimpleLPGParseController implements IParseController
     }
 
     public Object getCurrentAst() {
-	return fCurrentAst;
+    	return fCurrentAst;
     }
 
-    public Iterator<IToken> getTokenIterator(IRegion region) {
+    public Iterator<IToken> getTokenIterator(final IRegion region) {
         final int regionOffset= region.getOffset();
         final int regionLength= region.getLength();
+    	final int regionEnd = regionOffset + regionLength - 1;
+
 
         return new Iterator<IToken>() {   	
             final PrsStream stream= SimpleLPGParseController.this.getParser().getParseStream();
             final int firstTokIdx= getTokenIndexAtCharacter(regionOffset);
-            
-            // Compute the index of the last "proper" token in the region, that is,
-            // not counting the EOF token, if present.
-            // LPG puts an EOF token at the end of the token stream for a file,
-            // so we can assume that if the EOF character occurs at the end of
-            // the given character range then the EOF token will be the final
-            // one in the token stream for the character range (in which case
-            // we discount it)
-            final int decrement;
+            final int lastTokIdx;
             {
-            	if (stream.getInputChars()[regionOffset + regionLength - 1] == IToken.EOF)
-            		decrement = 1;
-            	else
-            		decrement = 0;
+            	int endIdx = getTokenIndexAtCharacter(regionEnd);
+            	char[] streamChars = stream.getInputChars();
+            	int streamLen = streamChars.length;
+            	try {
+            		if (regionEnd >= 1 && regionEnd < streamLen && streamChars[regionEnd] == IToken.EOF) {
+            			// skip EOF token (assume LPG puts one at end of input character stream, since it does)
+            			endIdx--;
+            		}
+            	} catch (ArrayIndexOutOfBoundsException e) {
+        	        ErrorHandler.logError("SimpleLPGParseController.getTokenIterator(IRegion):  error initializing lastTokIdx", e);
+//            		System.err.println("getTokenIterator:  new Iterator(..)<init>:  ArrayIndexOutOfBoundsException");
+//            		System.err.println("    regionEnd = " + regionEnd + ", endIdx = " + endIdx + ", streamLen = " + streamLen + ", inputChars.length = " + streamChars.length);
+            	}
+            	lastTokIdx = endIdx;
             }
-            final int lastTokIdx= getTokenIndexAtCharacter(regionOffset + regionLength - 1) - decrement;
-
-            
             int curTokIdx= Math.max(1, firstTokIdx); // skip bogus initial token
-
+            
+            
             private int getTokenIndexAtCharacter(int offset) {
-            	
                 int result= stream.getTokenIndexAtCharacter(offset);
                 // getTokenIndexAtCharacter() answers the negative of the index of the
                 // preceding token if the given offset is not actually within a token.
                 if (result < 0) {
                     result= -result + 1;
                 }
+                
+                // The above may leave result set to a value that is one more than the
+                // last token index, so return the last token index if that's the case
+                // (This can happen if the end of the file contains some text that
+                // does not correspond to a token--e.g., if the text represents an adjunct
+                // or something unrecognized)
+                if (result >= stream.getTokens().size())
+                	result = stream.getTokens().size() - 1;
+                
                 return result;
             }
 
 
-            // the preceding adjuncts for each token
+            // The following declarations cover the whole input stream, which
+            // may be a proper superset of the range of the given region.
+            // For now, that's a simple way to collect the information, and
+            // most often the given region corresponds to the whole input anyway.
+            // In any case, iteration is based on the range of the given region.
+            
+            // The preceding adjuncts for each token
             IToken[][] precedingAdjuncts = new IToken[lastTokIdx+1][];
             {
+            	stream.setStreamLength();
             	for (int i = 0; i < precedingAdjuncts.length; i++) {
-            		precedingAdjuncts[i] = stream.getPrecedingAdjuncts(i);
+        			precedingAdjuncts[i] = stream.getPrecedingAdjuncts(i);
             	}
             }
-            // the current indices for each array of preceding adjuncts
+            
+            // The current indices for each array of preceding adjuncts
             int[] nextPrecedingAdjunct = new int[lastTokIdx+1];
             {
             	for (int i = 0; i < nextPrecedingAdjunct.length; i++) {
-            		nextPrecedingAdjunct[i] = 0;
+            		if (precedingAdjuncts[i].length == 0)
+            			nextPrecedingAdjunct[i] = -1;
+            		else 
+            			nextPrecedingAdjunct[i] = 0;
             	}
             }
             
-            // the following adjuncts (for the last token only)
+            // The following adjuncts (for the last token only)
             IToken[] followingAdjuncts = stream.getFollowingAdjuncts(lastTokIdx);
-            // the current index for the array of following adjuncts
-            int nextFollowingAdjunct = 0;
             
-            // to support hasNext()
-            private boolean finalTokenReturned = false;
+            // The current index for the array of following adjuncts
+            int nextFollowingAdjunct;
+            {
+            	if (followingAdjuncts.length == 0)
+            		nextFollowingAdjunct = -1;
+            	else
+	            	nextFollowingAdjunct = 0;
+            }
+            
+            // To support hasNext(); initial values may be reset if appropriate
+            private boolean finalTokenReturned = regionEnd < 1;
             private boolean finalAdjunctsReturned = !(followingAdjuncts.length > 0);
 
             
             /**
-             * Tests whether the iterator has any unreturned tokens.  These may
-             * include "regular" tokens and "adjunct" tokens (e.g., representing comments).
+             * Tests whether the iterator has any unreturned tokens.  These may include
+             * "regular" tokens and "adjunct" tokens (e.g., representing comments).
              * 
              * @return	True if there is another token available, false otherwise
              */
@@ -193,8 +222,14 @@ public abstract class SimpleLPGParseController implements IParseController
             
             
             /**
-             * Returns the next available token in the iterator (or null
-             * if there is none)
+             * Returns the next available token in the iterator (or null if there is none)
+ 			 *
+ 			 * Will return a valid token under conditions that would cause hasNext() to
+             * to return true; conversely, will return null under conditions that would
+             * cause hasNext() to return false.
+             * 
+             * As a side effect, updates the flags that are used to compute the value
+             * returned by hasNext().
              * 
              * The returned token may be a "regular" token (which will have a
              * corresponding AST node) or an "adjunct" token (which will represent
@@ -208,29 +243,30 @@ public abstract class SimpleLPGParseController implements IParseController
             	
             	// If we're not all the way through the tokens
             	if (curTokIdx <= lastTokIdx) {
+            		
+            		// First check for any remaining preceding adjuncts
+            		// of the current token
 	            	next = nextPrecedingAdjunct[curTokIdx];
 	            	// If the current token has any unreturned preceding adjuncts
 	            	if (next >= 0 && next < precedingAdjuncts[curTokIdx].length) {
-	            		// Return the next preceding adjunct, incrementing the corresponding index
+	            		// Return the next preceding adjunct, incrementing the adjunct index afterwards
 	            		return precedingAdjuncts[curTokIdx][nextPrecedingAdjunct[curTokIdx]++];
 	            	}
-            	}
-            	
-            	// If we're not all the way through the tokens
-            	if (curTokIdx <= lastTokIdx) {
-            		// Return the current token, flagging whether it's the final token
-            		// and incrementing the current token index
-            		finalTokenReturned = curTokIdx == lastTokIdx;
+	            	
+            		// Flag whether the current token is the last one
+            		finalTokenReturned = curTokIdx >= lastTokIdx;
+            		
+            		// Return the current token, incrementing the token index afterwards
 	            	return stream.getIToken(curTokIdx++);
             	}
-
-            	// Here we must be on the final, following adjuncts, if any
-            	next = nextFollowingAdjunct;
-            	// If there are any unreturned following adjuncts
-            	if (next >= 0 && next < followingAdjuncts.length) {
-            		// Return the next of those, flagging whether it's the last and
-            		// incrementing the final-adjunct index
-            		finalAdjunctsReturned = ++next >= followingAdjuncts.length;
+            	
+            	// If there are any adjuncts following the last token
+            	if (nextFollowingAdjunct >= 0 && nextFollowingAdjunct < followingAdjuncts.length) {
+            		
+            		// Flag whether the current adjunct is the last one
+            		finalAdjunctsReturned = (nextFollowingAdjunct+1) >= followingAdjuncts.length;
+            		
+            		// Return the current adjunct, incrementing the adjunct index afterwards
             		return followingAdjuncts[nextFollowingAdjunct++];
             	}
             	

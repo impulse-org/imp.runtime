@@ -13,7 +13,9 @@
 package org.eclipse.imp.editor.internal;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Stack;
 
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -156,23 +158,88 @@ public class PresentationController implements IModelListener {
     }
 
     private void submitTextPresentation(final TextPresentation presentation) {
+
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
+            	
+            	// SMS 16 Sep 2008
+            	int charCount;
+            	if (fSourceViewer != null) {
+            		charCount = fSourceViewer.getDocument().getLength();
+            	} else {
+            		charCount = 0;
+            	}
+            	
+            	// Attempt to head off exception due to final range extending beyond
+            	// last character in text
+            	int lastStart = presentation.getLastStyleRange().start;
+            	int lastLength = presentation.getLastStyleRange().length;
+            	int end = lastStart + lastLength;
+        		TextPresentation newPresentation = null;
+            	if (end >= charCount) {
+            		newPresentation = new TextPresentation();
+            		Iterator presIt = presentation.getAllStyleRangeIterator();
+            		while (presIt.hasNext()) {
+            			StyleRange nextRange = (StyleRange) presIt.next();
+            			if (nextRange.start + nextRange.length < charCount)
+            				newPresentation.addStyleRange(nextRange);
+            		}
+            	} else {
+            		newPresentation = presentation;
+            	}
+            	
         	    // SMS 21 Jun 2007 added try-catch block
         	    // Note:  It doesn't work to just eat the exception here; if there is a problematic token
         	    // then an exception is likely to arise downstream in the computation anyway
         	    try {
-        	    	// SMS 04 Dec 2007:
         	    	if (fSourceViewer != null)
-        	    		fSourceViewer.changeTextPresentation(presentation, true);	
+        	    		fSourceViewer.changeTextPresentation(newPresentation, true);
         	    } catch (IllegalArgumentException e) {
-        	        // One possible cause is a negative length in a styleRange in the presentation
-        	    	Iterator ranges = presentation.getAllStyleRangeIterator();
-        	    	while (ranges.hasNext()) {
-        	    		StyleRange range = (StyleRange) ranges.next();
-        	    		System.out.println("\tstart = " + range.start + ", length = " + range.length);
+        	        // Possible causes (not necessarily exclusive:
+        	    	// - negative length in a style range
+        	    	// - overlapping ranges
+        	    	// - range extends beyond last character in file
+        	    	Iterator<StyleRange> ranges = presentation.getAllStyleRangeIterator();
+        	    	List<StyleRange> rangesList = new ArrayList<StyleRange>();
+        	    	while(ranges.hasNext())
+        	    		rangesList.add((StyleRange)ranges.next());
+        	    	String explanation = null;
+        	    	if (rangesList.size() > 0) {
+        	    		StyleRange firstRange = rangesList.get(0);
+        	    		if (firstRange.length < 0)
+        	    			explanation = "Style range with start = " + firstRange.start + " has negative length = " + firstRange.length;
+        	    		if (explanation == null) {
+        	       	    	for (int i = 1; i < rangesList.size(); i++) {
+        	       	    		int currStart = rangesList.get(i).start;
+        	       	    		int currLength = rangesList.get(i).length;
+        	       	    		if (currLength <0) {
+        	       	    			explanation = "Style range with start = " + currStart + " has negative length = " + currLength;
+        	       	    			break;
+        	       	    		}
+        	       	    		
+        	       	    		int prevStart = rangesList.get(i-1).start;
+        	       	    		int prevLength = rangesList.get(i-1).length;
+                	    		if (prevStart + prevLength - 1 >= currStart) {
+                	    			explanation = "Style range with start = " + prevStart + " and length = " + prevLength + 
+                	    				"overlaps style range with start = " + currStart;
+                	    			break;
+                	    		}
+                	    	}
+        	    		}
+        	    		if (explanation == null) {
+        	            	int finalStart = presentation.getLastStyleRange().start;
+        	            	int finalLength = presentation.getLastStyleRange().length;
+        	            	int finalEnd = finalStart + finalLength;
+        	            	if (finalEnd >= charCount) {
+            	    			explanation = "Final style range with start = " + finalStart + " and length = " + finalLength + 
+            	    				"extends beyond last character (character count = " + charCount + ")";
+        	            	}
+        	    		}
+        	    		if (explanation == null)
+        	    			explanation = "Cause not identified";        	    		
         	    	}
-        	        ErrorHandler.logError("PresentationController.changeTextPresentation:  Caught IllegalArgumentException; rethrowing", e);
+ 
+        	        ErrorHandler.logError("PresentationController.submitTextPresentation:  IllegalArgumentException:  " + explanation, e);
         	        throw e;
         	    }
             }

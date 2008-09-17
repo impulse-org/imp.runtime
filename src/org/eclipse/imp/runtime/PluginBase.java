@@ -61,7 +61,7 @@ public abstract class PluginBase extends AbstractUIPlugin implements IPluginLog 
 
     public void logException(String msg, Throwable t) {
     	if (msg == null) {
-    		if (t.getMessage() == null)
+    		if (t == null || t.getMessage() == null)
         		msg = "No message given";
     		else
     			msg = t.getMessage();

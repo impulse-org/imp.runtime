@@ -194,7 +194,14 @@ public abstract class SimpleLPGParseController implements IParseController
             }
             
             // The following adjuncts (for the last token only)
-            IToken[] followingAdjuncts = stream.getFollowingAdjuncts(lastTokIdx);
+            IToken[] followingAdjuncts;
+            {
+            	if (lastTokIdx <= 0)
+            		followingAdjuncts = new IToken[0];
+            	else
+            		followingAdjuncts = stream.getFollowingAdjuncts(lastTokIdx);
+            }
+            
             
             // The current index for the array of following adjuncts
             int nextFollowingAdjunct;
@@ -206,7 +213,7 @@ public abstract class SimpleLPGParseController implements IParseController
             }
             
             // To support hasNext(); initial values may be reset if appropriate
-            private boolean finalTokenReturned = regionEnd < 1;
+            private boolean finalTokenReturned = regionEnd < 1 || lastTokIdx <= 0;
             private boolean finalAdjunctsReturned = !(followingAdjuncts.length > 0);
 
             

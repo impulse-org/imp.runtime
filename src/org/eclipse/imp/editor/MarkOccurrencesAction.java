@@ -31,7 +31,6 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
 import org.eclipse.jface.text.ISynchronizable;
 import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -40,7 +39,6 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
@@ -71,7 +69,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     private ISelectionChangedListener fSelectionListener;
 
     private IDocumentListener fDocumentListener;
-    
+
     /**
      * Listens to document changes and invalidates the AST cache to force a re-parsing.
      */
@@ -83,7 +81,41 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 		    fCompilationUnit= null;
 		}
     }
-
+    
+	
+	/*
+	 * Notes on the interaction of text folding and occurrence marking:
+	 * 
+	 * When you click on a text-folding widget, you can generate two events:  one signaling a
+	 * change to the project model, the other signaling a change to the text selection (even
+	 * though you have not directly clicked in text).  The selection-changed event is propagated
+	 * to the listener posted by MarkOccurrencesAction, just as selection-changed events that
+	 * actually correspond to changes of selections within the text.  Only selection-changed
+	 * events originating within the text are of interest here.  More to the point, selection-
+	 * changed events from the folding widgets should be ignored because they may cause the
+	 * selection (and dependent markings) to be changed in unanticipated and undesirable ways.
+	 * In general, we do not expect the text selection and dependent markings to change just
+	 * because the text has been folded (or unfolded).
+	 * 
+	 * Unfortunately, while we can listen for updates to the projection annotation model,
+	 * there appears to be no definite way to correlate changes in that model to changes in
+	 * the annotation model that contains the selection annotations.  The projection annotation
+	 * events seem to be generated after the corresponding selection-changed events, and they
+	 * lack a text position or timestamp that would allow them to be correlated with the
+	 * selection-changed events.
+	 * 
+	 * The one potentially useful characteristic of the selection-changed events that come
+	 * from changes to the projection annotation model is that they seem to have a length of 0.
+	 * On that basis, the selection listener implemented below filters out events of 0 length.
+	 * This approach assumes that such events can be ignored.  In practice this does prevent
+	 * changes to the projection annotation model from causing inappropriate updates to the
+	 * text selection.  Some genuine selections of length 0 may be missed by this approach,
+	 * but perhaps most text selections of interest will have length greater than 0.  If not,
+	 * then we can revisit this issue.
+	 */
+	
+	
+    
     /**
      * Listens to selection changes and forces a recomputation of the annotations.
      * The analysis is performed once each time the compilation unit in the active
@@ -98,28 +130,32 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 		    this.document = document;
 		}
 	
+		
 		public void selectionChanged(SelectionChangedEvent event) {
 		    ISelection selection= event.getSelection();
 		    if (selection instanceof ITextSelection) {
 		    	if (previousSelection != null && previousSelection.equals(selection)) {
-//		    		System.out.println("Repeated selection--not recomputing annotations");
 		    		return;
 		    	}
+				
 		    	previousSelection = selection;
 				ITextSelection textSel= (ITextSelection) selection;
 				int offset= textSel.getOffset();
 				int length= textSel.getLength();
+				
+				if (length == 0)
+					return;
+				
 				recomputeAnnotationsForSelection(offset, length, document);
 		    }
 		}
     }
-
+    
     
     public MarkOccurrencesAction() { }
 
     
     public void run(IAction action) {
-//		System.out.println("Run");
     	fMarkingEnabled = action.isChecked();
 		if (fMarkingEnabled) {
 			setUpActiveEditor(
@@ -369,7 +405,6 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			}
 
 			public void partBroughtToTop(IWorkbenchPart part) {
-				// TODO Auto-generated method stub
 //				System.out.println("partBroughtToTop");
 			}
 
@@ -386,12 +421,10 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			}
 
 			public void partDeactivated(IWorkbenchPart part) {
-				// TODO Auto-generated method stub
 //				System.out.println("partDeactivated");
 			}
 
 			public void partOpened(IWorkbenchPart part) {
-				// TODO Auto-generated method stub
 //				System.out.println("partOpened");
 			}
     	});

@@ -59,19 +59,16 @@ public class MarkerCreator implements IMessageHandler {
 
     public void handleSimpleMessage(String msg, int startOffset, int endOffset,
             int startCol, int endCol,
-            int startLine, int endLine) {
+            int startLine, int endLine)
+    {	
         try {
             // Based closely on the Eclipse "FAQ How do I create problem markers for my compiler?"
             IMarker m = file.createMarker(problemType);
-            m.setAttribute(IMarker.LINE_NUMBER, startLine);
-            // SMS 23 Apr 2007
-            // Removed previously added adjustment to start offset that seems
-            // to have been rendered unnecessary by a fix somewhere else
-            m.setAttribute(IMarker.CHAR_START, startOffset);
-            m.setAttribute(IMarker.CHAR_END, endOffset);
-            m.setAttribute(IMarker.MESSAGE, msg);
-            m.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_HIGH);
-            m.setAttribute(IMarker.SEVERITY, IMarker.SEVERITY_ERROR);
+
+            String[] attributeNames = new String[] {IMarker.LINE_NUMBER, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.MESSAGE, IMarker.PRIORITY, IMarker.SEVERITY};
+            Object[] values = new Object[] {startLine, startOffset, endOffset, msg, IMarker.PRIORITY_HIGH, IMarker.SEVERITY_ERROR};
+            m.setAttributes(attributeNames, values);
+ 
         } catch (CoreException e) {
             System.err.println("MarkerCreator.handleMessage:  CoreException trying to create marker");
         }

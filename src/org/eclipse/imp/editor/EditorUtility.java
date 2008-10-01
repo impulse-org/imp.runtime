@@ -188,9 +188,11 @@ public class EditorUtility {
                     protected void execute(IProgressMonitor monitor) throws CoreException {
                         IMarker marker= null;
                         try {
-                            marker= ((IFileEditorInput) input).getFile().createMarker(IMarker.TEXT);
-                            marker.setAttribute(IMarker.CHAR_START, offset);
-                            marker.setAttribute(IMarker.CHAR_END, offset + length);
+                            marker = ((IFileEditorInput) input).getFile().createMarker(IMarker.TEXT);
+                        	String [] attributeNames = new String[] {IMarker.CHAR_START, IMarker.CHAR_END};
+                        	Object [] values = new Object[] {offset, offset + length};
+                            marker.setAttributes(attributeNames, values);
+                            
                             gotoMarkerTarget.gotoMarker(marker);
                         } finally {
                             if (marker != null)

@@ -283,28 +283,32 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * information.
      * @param errorResource
      * @param startLine the line with which the error is associated
-     * @param startChar the offset of the first character with which the error is associated
-     * @param endChar the offset of the last character with which the error is associated
-     * @param descrip a human-readable text message to appear in the "Problems View"
+     * @param charStart the offset of the first character with which the error is associated               
+     * @param charEnd the offset of the last character with which the error is associated
+     * @param message a human-readable text message to appear in the "Problems View"
      * @param severity the message severity, one of <code>IMarker.SEVERITY_*</code>
      */
-    protected void createMarker(IResource errorResource, int startLine, int startChar, int endChar, String descrip, int severity) {
+    protected void createMarker(IResource errorResource, int startLine, int charStart, int charEnd, String message, int severity) {
         try {
         	// TODO:  Address this situation properly after demo
         	// Issue is resources that are templates and not in user's workspace
         	if (!errorResource.exists())
         		return;
         	
-            IMarker m= errorResource.createMarker(getMarkerIDFor(severity));
-    
-            m.setAttribute(IMarker.SEVERITY, severity);
-            m.setAttribute(IMarker.PRIORITY, IMarker.PRIORITY_NORMAL);
-            m.setAttribute(IMarker.LINE_NUMBER, startLine);
-            m.setAttribute(IMarker.MESSAGE, descrip);
-            if (startChar >= 0)
-        	m.setAttribute(IMarker.CHAR_START, startChar);
-            if (endChar >= 0)
-        	m.setAttribute(IMarker.CHAR_END, endChar);
+            IMarker m = errorResource.createMarker(getMarkerIDFor(severity));
+
+            String[] attributeNames = new String[] {IMarker.LINE_NUMBER, IMarker.MESSAGE, IMarker.PRIORITY, IMarker.SEVERITY};
+            Object[] values = new Object[] {startLine, message, IMarker.PRIORITY_HIGH, IMarker.SEVERITY_ERROR};        
+            m.setAttributes(attributeNames, values);
+            
+            if (charStart >= 0 && charEnd >= 0) {
+            	attributeNames = new String[] {IMarker.CHAR_START, IMarker.CHAR_END};
+            	values = new Object[] {charStart, charEnd};
+                m.setAttributes(attributeNames, values);
+            } else if (charStart >= 0) {
+            	m.setAttribute(IMarker.CHAR_START, charStart);
+            } else if (charEnd >= 0)
+            	m.setAttribute(IMarker.CHAR_END, charEnd);
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Unable to create marker: " + e.getMessage());
         }

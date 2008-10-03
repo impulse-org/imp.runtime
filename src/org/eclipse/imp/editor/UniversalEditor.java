@@ -586,7 +586,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         if (fLanguageServiceManager.getParseController() != null) {
             fServiceControllerManager.setSourceViewer(getSourceViewer());
-            instantiateServiceControllers();
+            initiateServiceControllers();
         }
 
         // SMS 4 Apr 2007:  Call no longer needed because preferences for the
@@ -612,14 +612,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         initializeEditorContributors();
 
-        watchDocument();
+        // SMS 3 Oct 2008:  moved call to watchDocument(..) to initiateServiceControllers().
 
         watchForSourceMove();
     }
 
-    private static final int REPARSE_SCHEDULE_DELAY= 100;
 
-    private void watchDocument() {
+
+    private void watchDocument(final long reparse_schedule_delay) {
 
         if (fLanguageServiceManager.getParseController() == null) {
             return;
@@ -631,12 +631,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             public void documentAboutToBeChanged(DocumentEvent event) {}
             public void documentChanged(DocumentEvent event) {
                 fParserScheduler.cancel();
-                fParserScheduler.schedule(REPARSE_SCHEDULE_DELAY);
+                fParserScheduler.schedule(reparse_schedule_delay);
             }
         });
-        fParserScheduler.schedule(REPARSE_SCHEDULE_DELAY); // start things off
+        // SMS 3 Oct 2008:  removed call to fParserScheduler.schedule(..)
     }
 
+
+    
     private class BracketInserter implements VerifyKeyListener {
         private final Map<String,String> fFencePairs= new HashMap<String, String>();
         private final String fOpenFences;
@@ -786,7 +788,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         return prefStore;
     }
 
-    private void instantiateServiceControllers() {
+    private void initiateServiceControllers() {
         try {
             StructuredSourceViewer sourceViewer= (StructuredSourceViewer) getSourceViewer();
 
@@ -837,13 +839,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // if (this.fOccurrenceMarker == null)
             // getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
 
-
             installExternalEditorServices();
+            watchDocument(REPARSE_SCHEDULE_DELAY);
             fParserScheduler.run(new NullProgressMonitor());
+            
         } catch (Exception e) {
             ErrorHandler.reportError("Error while creating service controllers", e);
         }
     }
+    
+    private static final int REPARSE_SCHEDULE_DELAY= 100;
 
     private void setTitleImageFromLanguageIcon() {
         // Only set the editor's title bar icon if the language has a label provider

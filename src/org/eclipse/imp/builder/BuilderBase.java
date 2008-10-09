@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.runtime.PluginBase;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.utils.UnimplementedError;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PlatformUI;
@@ -49,9 +50,16 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     protected abstract PluginBase getPlugin();
 
     /**
+     * @return the extension ID of this builder
+     */
+    public String getBuilderID() {
+    	throw new UnimplementedError("Not implemented for builder for plug-in " + getPlugin().getID());
+    }
+    
+    /**
      * @return true iff the given file is a source file that this builder should compile.
      */
-    protected abstract boolean isSourceFile(IFile resource);
+    protected abstract boolean isSourceFile(IFile file);
 
     /**
      * @return true iff the given file is a source file that this builder should scan
@@ -59,7 +67,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * <code>isNonRootSourceFile()</code> and <code>isSourceFile()</code> should never
      * return true for the same file.
      */
-    protected abstract boolean isNonRootSourceFile(IFile resource);
+    protected abstract boolean isNonRootSourceFile(IFile file);
 
     /**
      * @return true iff the given resource is an output folder
@@ -68,10 +76,10 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     /**
      * Does whatever is necessary to "compile" the given "source file".
-     * @param resource the "source file" to compile
+     * @param file the "source file" to compile
      * @param monitor used to indicate progress in the UI
      */
-    protected abstract void compile(IFile resource, IProgressMonitor monitor);
+    protected abstract void compile(IFile file, IProgressMonitor monitor);
 
     /**
      * Collects compilation-unit dependencies for the given file, and records

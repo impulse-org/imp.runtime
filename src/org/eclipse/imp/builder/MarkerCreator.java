@@ -33,9 +33,9 @@ import org.eclipse.imp.parser.IParseController;
  */
 public class MarkerCreator implements IMessageHandler {
 	
-    private IParseController parseController = null;
-    private IFile file = null;
-    private String problemType = IMarker.PROBLEM;
+    protected IParseController parseController = null;
+    protected IFile file = null;
+    protected String problemType = IMarker.PROBLEM;
 
     public MarkerCreator(IFile file, IParseController parseController)
     {
@@ -71,6 +71,8 @@ public class MarkerCreator implements IMessageHandler {
  
         } catch (CoreException e) {
             System.err.println("MarkerCreator.handleMessage:  CoreException trying to create marker");
+        } catch (Exception e) {
+            System.err.println("MarkerCreator.handleMessage:  Exception trying to create marker");
         }
     }
 

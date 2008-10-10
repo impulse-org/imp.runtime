@@ -34,6 +34,7 @@ import org.eclipse.jface.text.IRegion;
  * used here.
  * 
  * @author rfuhrer
+ * @author Stan Sutton (suttons@us.ibm.com): rewrote token iterator
  */
 public abstract class SimpleLPGParseController implements IParseController
 {

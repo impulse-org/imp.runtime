@@ -32,49 +32,62 @@ public class ErrorHandler {
     private static final boolean LOG= true;
 
     public static void reportError(String message, Throwable e) {
-	reportError(message, false, e);
+    	if (message == null)
+    		message = "No message given";
+    	reportError(message, false, e);
     }
 
     public static void reportError(String message, boolean showDialog, Throwable e) {
-	if (PRINT)
-	    System.err.println(message);
-	if (DUMP)
-	    e.printStackTrace();
-	if (LOG)
-	    logError(message, e);
-	if (showDialog)
-	    MessageDialog.openError(null, "IMP Error", message);
+	    if (message == null)
+	    		message = "No message given";
+		if (PRINT)
+		    System.err.println(message);
+		if (DUMP)
+		    e.printStackTrace();
+		if (LOG)
+		    logError(message, e);
+		if (showDialog)
+		    MessageDialog.openError(null, "IMP Error", message);
     }
 
     public static void reportError(String message) {
-	reportError(message, false);
+    	if (message == null)
+    		message = "No message given";
+    	reportError(message, false);
     }
 
     public static void reportError(String message, boolean showDialog) {
-	reportError(message, showDialog, DUMP);
+    	if (message == null)
+    		message = "No message given";
+    	reportError(message, showDialog, DUMP);
     }
 
     public static void reportError(final String message, boolean showDialog, boolean noDump) {
-	if (PRINT)
-	    System.err.println(message);
-	if (!noDump)
-	    new Error(message).printStackTrace();
-	if (LOG || PreferenceCache.emitMessages)
-	    logError(message, new Error(message));
-	if (showDialog) {
-	    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
-		public void run() {
-		    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "IMP Error", message);
+    	final String checkedMessage = message != null ? message : "No message given"; 
+		if (PRINT)
+		    System.err.println(checkedMessage);
+		if (!noDump)
+		    new Error(checkedMessage).printStackTrace();
+		if (LOG || PreferenceCache.emitMessages)
+		    logError(checkedMessage, new Error(checkedMessage));
+		if (showDialog) {
+		    PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+			public void run() {
+			    MessageDialog.openError(PlatformUI.getWorkbench().getDisplay().getActiveShell(), "IMP Error", checkedMessage);
+			}
+		    });
 		}
-	    });
-	}
     }
 
     public static void logError(String msg, Throwable e) {
-	RuntimePlugin.getInstance().logException(msg, e);
+    	if (msg == null)
+    		msg = "No message given";
+    	RuntimePlugin.getInstance().logException(msg, e);
     }
 
     public static void logMessage(String msg, Throwable e) {
-	RuntimePlugin.getInstance().logException(msg, e);
+    	if (msg == null)
+    		msg = "No message given";
+    	RuntimePlugin.getInstance().logException(msg, e);
     }
 }

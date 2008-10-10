@@ -24,9 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.core.runtime.IExtensionPoint;
 import org.eclipse.core.runtime.IPath;
@@ -41,10 +38,7 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
-import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IFileEditorMapping;
-import org.eclipse.ui.IPathEditorInput;
-import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
@@ -61,6 +55,7 @@ import org.osgi.framework.Bundle;
  * @author Claffra
  * @author rfuhrer@watson.ibm.com
  * @author jurgen@vinju.org
+ * @author Stan Sutton (suttons@us.ibm.com)
  * 
  * Registry for IMP language contributors.
  */
@@ -129,7 +124,12 @@ public class LanguageRegistry
 				}
 			}
 		} catch (InvalidRegistryObjectException e) {
-			ErrorHandler.reportError("IMP LanguageRegistry error", e);
+			if (PreferenceCache.emitMessages) {
+				RuntimePlugin.getInstance().writeErrorMsg(
+						"IMP LanguageRegistry error in preInitEditorRegistry():  InvalidRegistryObjectException:  " + e);
+			} else {
+				ErrorHandler.reportError("IMP LanguageRegistry error", e);
+			}
 		}
 	}
 	
@@ -188,7 +188,7 @@ public class LanguageRegistry
 		}
 
 		if (PreferenceCache.emitMessages) {
-			RuntimePlugin.getInstance().writeInfoMsg(
+			RuntimePlugin.getInstance().writeErrorMsg(
 					"No language support for text/source file of type '" +
 					 extension + "'.");
 		} else {
@@ -254,7 +254,7 @@ public class LanguageRegistry
 	 * all registered languages are bound to the IMP universal editor.
 	 * 
 	 * This method is called at earlyStartup time to initialize the registry.
-	 * It is also called from wihtin UniversalEditor.createPartControl(..)
+	 * It is also called from within UniversalEditor.createPartControl(..)
 	 * (probably as a way to make sure that the registry is initialized if it
 	 * hasn't been already).  It is also called from various accessor methods
 	 * of the LanguageRegistry class to similarly assure that the registry is
@@ -382,8 +382,13 @@ public class LanguageRegistry
 		}
 
 		if (universalEditor == null) {
-			ErrorHandler.logError(
-					"Unable to locate universal editor descriptor", null);
+			if (PreferenceCache.emitMessages) {
+				RuntimePlugin.getInstance().writeErrorMsg(
+					"IMP LanguageRegistry error in initializeUniversalEditorDescroptor():  unable to initialize Universal Editor");
+			} else {
+				ErrorHandler.reportError(
+					"Unable to locate Universal Editor descriptor", null);
+			}
 		}
 	}
 

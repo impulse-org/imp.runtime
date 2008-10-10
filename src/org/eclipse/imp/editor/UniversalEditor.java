@@ -559,6 +559,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public void createPartControl(Composite parent) {
         fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
 
+        // SMS 10 Oct 2008:  null check added per bug #242949
+        if (fLanguage == null)
+            throw new NullPointerException("No language support found for files of type '" +
+            		EditorInputUtils.getPath(getEditorInput()).getFileExtension() + "'");
+        
         // Create language service extensions now, since some services could
         // get accessed via super.createPartControl() (in particular, while
         // setting up the ISourceViewer).

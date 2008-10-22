@@ -19,6 +19,7 @@ import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 public class AnnotationCreator implements IMessageHandler {
@@ -61,7 +62,13 @@ public class AnnotationCreator implements IMessageHandler {
     }
 
     public void removeAnnotations() {
-        IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+        final IDocumentProvider docProvider= fEditor.getDocumentProvider();
+
+        if (docProvider == null) {
+            return;
+        }
+
+        IAnnotationModel model= docProvider.getAnnotationModel(fEditor.getEditorInput());
 
         if (model == null)
             return;

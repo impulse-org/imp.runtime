@@ -230,6 +230,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
+//      RuntimePlugin.EDITOR_START_TIME= System.currentTimeMillis();
         if (PreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("Creating UniversalEditor instance");
         // SMS 4 Apr 2007
@@ -743,6 +744,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void watchForSourceMove() {
+        if (fLanguageServiceManager.getParseController().getProject() == null) {
+            return;
+        }
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
             public void resourceChanged(IResourceChangeEvent event) {
                 if (event.getType() != IResourceChangeEvent.POST_CHANGE)
@@ -1310,12 +1314,21 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     /**
-     * Add a Model listener to this editor. Anytime the underlying AST is recomputed, the listener is notified.
+     * Add a Model listener to this editor. Any time the underlying AST is recomputed, the listener is notified.
      * 
      * @param listener the listener to notify of Model changes
      */
     public void addModelListener(IModelListener listener) {
         fParserScheduler.addModelListener(listener);
+    }
+
+    /**
+     * Remove a Model listener from this editor.
+     * 
+     * @param listener the listener to remove
+     */
+    public void removeModelListener(IModelListener listener) {
+        fParserScheduler.removeModelListener(listener);
     }
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
@@ -1418,13 +1431,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 IInformationProvider provider= new IInformationProvider() { // this should be language-specific
                     private IDocumentationProvider fDocProvider= fLanguageServiceManager.getDocProvider();
                     private IParseController fParseController= fLanguageServiceManager.getParseController();
-                    private ISourcePositionLocator fNodeLocator= fParseController.getNodeLocator();
+                    private ISourcePositionLocator fNodeLocator= (fParseController != null) ? fParseController.getNodeLocator() : null;
 
                     public IRegion getSubject(ITextViewer textViewer, int offset) {
+                        if (fNodeLocator == null) {
+                            return new Region(offset, 0);
+                        }
                         Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), offset);
                         return new Region(fNodeLocator.getStartOffset(selNode), fNodeLocator.getLength(selNode));
                     }
                     public String getInformation(ITextViewer textViewer, IRegion subject) {
+                        if (fNodeLocator == null) {
+                            return "";
+                        }
                         Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), subject.getOffset());
                         return (fDocProvider != null) ? fDocProvider.getDocumentation(selNode, fParseController) : "No documentation available on the selected entity.";
                     }

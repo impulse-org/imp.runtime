@@ -93,6 +93,10 @@ public class ParserScheduler extends Job {
         fAstListeners.add(listener);
     }
 
+    public void removeModelListener(IModelListener listener) {
+        fAstListeners.remove(listener);
+    }
+
     public void notifyModelListeners(IProgressMonitor monitor) {
         // Suppress the notification if there's no AST (e.g. due to a parse error)
         if (fParseController != null) {
@@ -113,6 +117,12 @@ public class ParserScheduler extends Job {
                 if (listener.getAnalysisRequired().level() <= analysisLevel)
                     listener.update(fParseController, monitor);
             }
+//            long curTime= System.currentTimeMillis();
+//            System.out.println("All model listeners notified; time = " + curTime);
+//            long diffToRuntimeStart= curTime - RuntimePlugin.PRE_STARTUP_TIME;
+//            long diffToEditorStart= curTime - RuntimePlugin.EDITOR_START_TIME;
+//            System.out.println("Time from runtime start: " + diffToRuntimeStart);
+//            System.out.println("Time from editor start: " + diffToEditorStart);
         } else if (PreferenceCache.emitMessages)
             RuntimePlugin.getInstance().writeInfoMsg("No AST; bypassing listener notification.");
     }

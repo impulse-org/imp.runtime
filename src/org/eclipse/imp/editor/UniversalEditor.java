@@ -561,9 +561,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fLanguage= LanguageRegistry.findLanguage(getEditorInput(), getDocumentProvider());
 
         // SMS 10 Oct 2008:  null check added per bug #242949
-        if (fLanguage == null)
-            throw new NullPointerException("No language support found for files of type '" +
+        if (fLanguage == null) {
+            throw new IllegalArgumentException("No language support found for files of type '" +
             		EditorInputUtils.getPath(getEditorInput()).getFileExtension() + "'");
+        }
         
         // Create language service extensions now, since some services could
         // get accessed via super.createPartControl() (in particular, while
@@ -574,17 +575,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             fServiceControllerManager= new ServiceControllerManager(this, fLanguageServiceManager);
             fServiceControllerManager.initialize();
             if (fLanguageServiceManager.getParseController() != null) {
-                // Initialize the parse controller now, since the initialization of other things (like the context help support) might depend on it being so.
-                IEditorInput editorInput= getEditorInput();
-                IFile file= EditorInputUtils.getFile(editorInput);
-                IPath filePath= EditorInputUtils.getPath(editorInput);
-                try {
-                    ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
-
-                    fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
-                } catch (ModelException e) {
-                    ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
-                }
+                initializeParseController();
             }
         }
 
@@ -619,14 +610,24 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         initializeEditorContributors();
 
         // SMS 3 Oct 2008:  moved call to watchDocument(..) to initiateServiceControllers().
-
         watchForSourceMove();
     }
 
+    private void initializeParseController() {
+        // Initialize the parse controller now, since the initialization of other things (like the context help support) might depend on it being so.
+        IEditorInput editorInput= getEditorInput();
+        IFile file= EditorInputUtils.getFile(editorInput);
+        IPath filePath= EditorInputUtils.getPath(editorInput);
+        try {
+            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
 
+            fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
+        } catch (ModelException e) {
+            ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
+        }
+    }
 
     private void watchDocument(final long reparse_schedule_delay) {
-
         if (fLanguageServiceManager.getParseController() == null) {
             return;
         }
@@ -642,8 +643,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         });
         // SMS 3 Oct 2008:  removed call to fParserScheduler.schedule(..)
     }
-
-
     
     private class BracketInserter implements VerifyKeyListener {
         private final Map<String,String> fFencePairs= new HashMap<String, String>();

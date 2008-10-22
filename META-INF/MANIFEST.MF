@@ -54,3 +54,4 @@ Export-Package: org.eclipse.imp.builder,
  org.eclipse.imp.utils,
  org.eclipse.imp.wizards,
  org.eclipse.imp.wizards.fields
+Bundle-RequiredExecutionEnvironment: J2SE-1.5

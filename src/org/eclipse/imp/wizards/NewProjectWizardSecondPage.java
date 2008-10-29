@@ -50,7 +50,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.SubProgressMonitor;
 import org.eclipse.imp.builder.ProjectNatureBase;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.imp.x10dt.core.X10Plugin;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;

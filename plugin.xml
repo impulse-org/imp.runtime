@@ -231,4 +231,12 @@
             class="org.eclipse.imp.preferences.PreferenceInitializer">
       </initializer>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            name="IMP"
+            class="org.eclipse.imp.preferences.PreferencePage"
+            id="org.eclipse.imp.runtime.preferencePage">
+      </page>
+   </extension>
 </plugin>

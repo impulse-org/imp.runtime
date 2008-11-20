@@ -321,7 +321,18 @@ public class LanguageRegistry
 	        if (defaultEditor == null || defaultEditor.getId().equals("")) {
 	            fem.setDefaultEditor((EditorDescriptor) universalEditor);
 	        } else {
-                    fem.addEditor((EditorDescriptor) universalEditor);
+	        	// SMS 19 Nov 2008
+	        	// Revised else branch according to patch provided by Edward Willink
+	        	// Bug #242967, attachment id=109002
+	        	boolean gotIt = false;
+	        	for (IEditorDescriptor editor : fem.getEditors()) {
+	        	    if (editor == universalEditor) {
+	        	    	gotIt = true;
+	        	    	break;
+	        	    }
+	        	}
+	        	if (!gotIt)
+	        		fem.addEditor((EditorDescriptor) universalEditor);
 	        }
 	        newMap.add(mapping);
 	    }

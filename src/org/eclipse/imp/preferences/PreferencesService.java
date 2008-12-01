@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import lpg.runtime.IAst;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
@@ -33,6 +33,14 @@ import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.imp.preferences.PreferenceValueParser.ASTNode;
+import org.eclipse.imp.preferences.PreferenceValueParser.AbstractVisitor;
+import org.eclipse.imp.preferences.PreferenceValueParser.escapedChar;
+import org.eclipse.imp.preferences.PreferenceValueParser.optParameter;
+import org.eclipse.imp.preferences.PreferenceValueParser.simpleStringPrefixed;
+import org.eclipse.imp.preferences.PreferenceValueParser.substPrefixed;
+import org.eclipse.imp.preferences.PreferenceValueParser.substitution;
+import org.eclipse.imp.preferences.PreferenceValueParser.substitutionList;
 import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.BackingStoreException;
 
@@ -94,7 +102,7 @@ public class PreferencesService implements IPreferencesService
 	
 	private void getPreferencesServiceAndRoot() {
 	    preferencesService = Platform.getPreferencesService();
-	    preferencesRoot = preferencesService.getRootNode();
+	    preferencesRoot = (preferencesService != null) ? preferencesService.getRootNode() : null;
 	}	
 	
 	private static IProject getProjectFromName(String name) {
@@ -631,44 +639,193 @@ public class PreferencesService implements IPreferencesService
             });
         }
 
-        private static final Pattern sSimpleSubstRegexp= Pattern.compile("\\$\\{([a-zA-Z][a-zA-Z0-9_]*)\\}");
-        private static final Pattern sParamSubstRegexp= Pattern.compile("\\$\\{([a-zA-Z][a-zA-Z0-9_]*):([^}]+)\\}");
+        private static void initializeForTesting() {
+            sConstantMap.clear();
+            sConstantMap.put("workspaceLoc", new ConstantEvaluator() {
+                public String getValue() {
+                    return "~/eclipse/workspace";
+                }
+            });
+            sConstantMap.put("os", new ConstantEvaluator() {
+                public String getValue() {
+                    return "macosx";
+                }
+            });
+            sConstantMap.put("arch", new ConstantEvaluator() {
+                public String getValue() {
+                    return "x86";
+                }
+            });
+            sConstantMap.put("nl", new ConstantEvaluator() {
+                public String getValue() {
+                    return "enUS";
+                }
+            });
+            sConstantMap.put("ws", new ConstantEvaluator() {
+                public String getValue() {
+                    return "mac";
+                }
+            });
+            sParamMap.clear();
+            sParamMap.put("pluginLoc", new ParamEvaluator() {
+                public String getValue(String pluginID) {
+                    return "/System/Library/eclipse-3.3.2/plugins/" + pluginID;
+                }
+            });
+            sParamMap.put("pluginResource", new ParamEvaluator() {
+                public String getValue(String pluginResourceLoc) {
+                    int idx= pluginResourceLoc.indexOf('/');
+                    if (idx <= 0) {
+                        return "<error in pluginResource specification: no plugin ID found: " + pluginResourceLoc + ">";
+                    }
+                    String pluginID= pluginResourceLoc.substring(0, idx);
+                    String resourcePath= pluginResourceLoc.substring(idx+1);
+                    return "/System/Library/eclipse-3.3.2/plugins/" + pluginID + "/" + resourcePath;
+                }
+            });
+            sParamMap.put("pluginVersion", new ParamEvaluator() {
+                public String getValue(String pluginID) {
+                    return "1.0.0";
+                }
+            });
+            sParamMap.put("projectLoc", new ParamEvaluator() {
+                public String getValue(String projectName) {
+                    return "~/eclipse/workspace/" + projectName;
+                }
+            });
+        }
+
+        public static void main(String args[]) {
+            initializeForTesting();
+            PreferencesService svc= new PreferencesService();
+            String[][] testPairs= new String[][] {
+                    { "foo",               "foo", },
+                    { "${os}",             "macosx" },
+                    { "foo-${os}",         "foo-macosx" },
+                    { "${os}-bar",         "macosx-bar" },
+                    { "foo-${os}-bar",     "foo-macosx-bar" },
+                    { "${os}-${arch}",     "macosx-x86" },
+                    { "${os}${arch}",      "macosxx86" },
+
+                    { "${projectLoc:foo}", "~/eclipse/workspace/foo" },
+                    { "${pluginResource:lpg.runtime/templates}",                    "/System/Library/eclipse-3.3.2/plugins/lpg.runtime/templates" },
+                    { "${pluginResource:lpg.runtime/lpgexe/lpg-${os}_${arch}.exe}", "/System/Library/eclipse-3.3.2/plugins/lpg.runtime/lpgexe/lpg-macosx_x86.exe" },
+
+                    { "\\$",               "$" },
+                    { "\\$abc",            "$abc" },
+                    { "\\$\\$",            "$$" },
+                    { "\\${blah\\}",       "${blah}" },
+                    { "\\a",               "a" },
+                    { "\\a\\b",            "ab" },
+                    { "\\a-\\b",           "a-b" },
+
+                    { "${blah",  "Invalid preference: '${blah': unexpected end of string" },
+                    { "$blah}",  "Invalid preference: '$blah}': unexpected character 'b' at offset 1" },
+                    { "${}",     "Invalid preference: '${}': unexpected character '}' at offset 2" },
+                    { "$",       "Invalid preference: '$': unexpected end of string" },
+            };
+            int failedCount= 0;
+
+            for(int i= 0; i < testPairs.length; i++) {
+                String input= testPairs[i][0];
+                String expectedOutput= testPairs[i][1];
+                String result= svc.performSubstitutions(input);
+
+                System.out.println("Input  = '" + input + "'");
+                System.out.println("Result = '" + result + "'");
+                if (!expectedOutput.equals(result)) {
+                    System.err.println("Test failed: expected output '" + expectedOutput + "'!");
+                    failedCount++;
+                } else {
+                    System.out.println("Test passed.");
+                }
+                System.out.println();
+            }
+            if (failedCount > 0) {
+                System.err.println("" + failedCount + " tests failed.");
+            }
+        }
 
         public String performSubstitutions(String value) {
             return performSubstitutions(value, null);
         }
 
-        public String performSubstitutions(String value, IProject project) {
-            if (value == null) {
+        public String performSubstitutions(final String value, final IProject project) {
+            if (value == null || value.length() == 0) {
                 return value;
             }
-            do {
-                Matcher pm= sParamSubstRegexp.matcher(value);
-                if (pm.find(0)) {
-                    String id= pm.group(1);
-                    String param= pm.group(2);
+            PreferenceValueParser parser= new PreferenceValueParser();
 
-                    ParamEvaluator e= sParamMap.get(id);
-                    String prefValue= (e != null) ? e.getValue(param) : ("<no such preference: " + id + ">");
+            ASTNode ast= parser.parser(value);
 
-                    value= value.substring(0, pm.start()) + prefValue + value.substring(pm.end());
-                } else {
-                    Matcher sm= sSimpleSubstRegexp.matcher(value);
-                    if (sm.find(0)) {
-                        String id= sm.group(1);
-                        String prefValue;
-                        if (sConstantMap.containsKey(id)) {
-                            prefValue= sConstantMap.get(id).getValue();
+            if (ast == null) { return "Invalid preference: '" + value + "': " + parser.getErrorMessage(); }
+
+            final Map<IAst,String> valueMap= new HashMap<IAst, String>();
+
+            ast.accept(new AbstractVisitor() {
+                public void postVisit(IAst node) {
+//                  System.out.println("post-visiting node '" + node + "'");
+                    if (node instanceof escapedChar) {
+                        escapedChar ch= (escapedChar) node;
+                        valueMap.put(node, nodeString(ch).substring(1));
+                    } else if (node instanceof simpleStringPrefixed) {
+                        simpleStringPrefixed strPref= (simpleStringPrefixed) node;
+                        String valString= nodeString((ASTNode) strPref.getvalStringNoSubst());
+                        valString= valString.replaceAll("\\\\(.)", "$1");
+                        if (strPref.getsubstPrefixed() != null) {
+                            String result= valString + valueMap.get(strPref.getsubstPrefixed());
+                            valueMap.put(node, result);
                         } else {
-                            prefValue= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
+                            valueMap.put(node, valString);
                         }
-                        value= value.substring(0, sm.start()) + prefValue + value.substring(sm.end());
-                    } else {
-                        break;
+                    } else if (node instanceof substPrefixed) {
+                        substPrefixed subPref= (substPrefixed) node;
+                        if (subPref.getsimpleStringPrefixed() != null) {
+                            String result= valueMap.get(subPref.getsubstitutionList()) + valueMap.get(subPref.getsimpleStringPrefixed());
+                            valueMap.put(node, result);
+                        } else {
+                            valueMap.put(node, valueMap.get(subPref.getsubstitutionList()));
+                        }
+                    } else if (node instanceof substitutionList) {
+                        substitutionList subList= (substitutionList) node;
+                        StringBuilder sb= new StringBuilder();
+                        for(int i=0; i < subList.size(); i++) {
+                            sb.append(valueMap.get(subList.getsubstitutionAt(i)));
+                        }
+                        valueMap.put(node, sb.toString());
+                    } else if (node instanceof substitution) {
+                        substitution sub= (substitution) node;
+                        String id= nodeString(sub.getident());
+                        optParameter parm= sub.getoptParameter();
+
+                        if (parm != null) {
+                            ParamEvaluator e= sParamMap.get(id);
+                            String parmStr= valueMap.get(parm.getvalue());
+                            String parmVal= (e != null) ? e.getValue(parmStr) : ("<no such preference: " + id + ">");
+
+                            valueMap.put(node, parmVal);
+                        } else {
+                            if (sConstantMap.containsKey(id)) {
+                                String constVal= sConstantMap.get(id).getValue();
+                                valueMap.put(node, constVal);
+                            } else {
+                                String refVal= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
+                                valueMap.put(node, refVal);
+                            }
+                        }
                     }
                 }
-            } while (true);
-            return value;
+                public boolean preVisit(IAst element) {
+                    return true;
+                }
+                private String nodeString(ASTNode node) {
+                    return value.substring(node.leftIToken.getStartOffset(), node.rightIToken.getEndOffset()+1);
+                }
+                @Override
+                public void unimplementedVisitor(String s) { }
+            });
+            String result= valueMap.get(ast);
+            return result;
         }
 	
 	/*	
@@ -1544,7 +1701,7 @@ public class PreferencesService implements IPreferencesService
 	 */
 	
 	
-	private List projectSelectionListeners = new ArrayList();
+	private List<IProjectSelectionListener> projectSelectionListeners = new ArrayList<IProjectSelectionListener>();
 	
 	public void addProjectSelectionListener(IProjectSelectionListener listener) {
 		projectSelectionListeners.add(listener);
@@ -1560,7 +1717,7 @@ public class PreferencesService implements IPreferencesService
 			return;
 		//Object[] listeners = projectSelectionListeners.toArray();
 		for (int i = 0; i < projectSelectionListeners.size(); i++) {
-			final IProjectSelectionListener listener = (IProjectSelectionListener) projectSelectionListeners.get(i);
+			final IProjectSelectionListener listener = projectSelectionListeners.get(i);
 			ISafeRunnable job = new ISafeRunnable() {
 				public void handleException(Throwable exception) {
 					// already logged in Platform#run()

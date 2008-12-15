@@ -120,8 +120,8 @@ public class LanguageServiceManager {
             fHyperLinkDetector= new HyperlinkDetector(fLanguage);
 
         if (fParseController == null) {
-            ErrorHandler.reportError("Unable to instantiate parser for " + fLanguage.getName()
-                    + "; parser-related services will be disabled.");
+            ErrorHandler.reportError("Unable to instantiate parser for language '" + fLanguage.getName()
+                    + "'; parser-related services will be disabled.", true, true);
         }
     }
 

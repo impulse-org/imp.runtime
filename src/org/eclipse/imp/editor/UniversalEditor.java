@@ -743,7 +743,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void watchForSourceMove() {
-        if (fLanguageServiceManager.getParseController().getProject() == null) {
+        if (fLanguageServiceManager.getParseController() == null ||
+            fLanguageServiceManager.getParseController().getProject() == null) {
             return;
         }
         ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {

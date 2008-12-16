@@ -296,7 +296,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * @param message a human-readable text message to appear in the "Problems View"
      * @param severity the message severity, one of <code>IMarker.SEVERITY_*</code>
      */
-    protected void createMarker(IResource errorResource, int startLine, int charStart, int charEnd, String message, int severity) {
+    public void createMarker(IResource errorResource, int startLine, int charStart, int charEnd, String message, int severity) {
         try {
         	// TODO:  Address this situation properly after demo
         	// Issue is resources that are templates and not in user's workspace

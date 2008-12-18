@@ -44,7 +44,7 @@ public class CompletionProcessor implements IContentAssistProcessor, IModelListe
     }
 
     public AnalysisRequired getAnalysisRequired() {
-        return AnalysisRequired.TYPE_ANALYSIS;
+        return AnalysisRequired.LEXICAL_ANALYSIS;
     }
 
     public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {

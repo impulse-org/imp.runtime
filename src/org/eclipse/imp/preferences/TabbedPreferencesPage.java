@@ -61,10 +61,7 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
         // Create the tabs that go into the tab folder	
         tabs = createTabs(prefService, this, tabFolder);
         setInitialStateForTabs();
-        
-        
 
-        
         // The validity of the page depends on the validity of its tabs,
         // so refresh the valid state of the page now that all of the
         // tabs have been created
@@ -73,6 +70,12 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
         // Set the font on the page
 		Dialog.applyDialogFont(parent);
 
+        // If there's more than 1 tab, start out by selecting the 2nd tab
+        // (usually the "Workspace" tab), rather than the "Project" tab,
+        // which doesn't even show values until the user selects a project.
+		if (tabs.length > 1) {
+		    tabFolder.setSelection(1);
+		}
 		return tabFolder;
 	}
 
@@ -199,7 +202,10 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
     	// allow for a negative return
     	boolean result = true;
 		for (int i = 0; i < tabs.length; i++) {
-			result = result && tabs[i].performCancel();
+		    // If there was a problem initializing the tabs, one or more might be null now.
+			if (tabs[i] != null) {
+				result = result && tabs[i].performCancel();
+			}
 		}
 
         return result;

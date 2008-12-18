@@ -21,6 +21,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
 import org.eclipse.imp.preferences.fields.ComboFieldEditor;
+import org.eclipse.imp.preferences.fields.FontFieldEditor;
 import org.eclipse.imp.preferences.fields.RadioGroupFieldEditor;
 import org.eclipse.imp.preferences.fields.StringFieldEditor;
 import org.eclipse.imp.ui.dialogs.ListSelectionDialog;
@@ -356,6 +357,23 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	}
 	
 	
+    protected void addProjectPreferenceChangeListeners(FontFieldEditor field, String key, Composite composite)
+    {
+        IEclipsePreferences[] nodes = fPrefService.getNodesForLevels();
+        for (int i = IPreferencesService.PROJECT_INDEX; i < nodes.length; i++) {
+            if (nodes[i] != null) {
+                PreferencesUtilities.FontPreferenceChangeListener listener = 
+                    fPrefUtils.new FontPreferenceChangeListener(field, key, composite);
+                nodes[i].addPreferenceChangeListener(listener);
+                currentListeners.add(listener);
+                currentListenerNodes.add(nodes[i]);
+            } else {
+                //System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+            }
+        }   
+    }
+    
+    
 	protected void addProjectPreferenceChangeListeners(ComboFieldEditor field, String key, Composite composite)
 	{
 		IEclipsePreferences[] nodes = fPrefService.getNodesForLevels();

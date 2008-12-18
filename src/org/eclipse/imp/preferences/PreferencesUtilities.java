@@ -13,6 +13,8 @@
 package org.eclipse.imp.preferences;
 
 
+import java.util.List;
+
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
@@ -20,11 +22,13 @@ import org.eclipse.imp.preferences.fields.ComboFieldEditor;
 import org.eclipse.imp.preferences.fields.DirectoryListFieldEditor;
 import org.eclipse.imp.preferences.fields.FieldEditor;
 import org.eclipse.imp.preferences.fields.FileFieldEditor;
+import org.eclipse.imp.preferences.fields.FontFieldEditor;
 import org.eclipse.imp.preferences.fields.IntegerFieldEditor;
 import org.eclipse.imp.preferences.fields.RadioGroupFieldEditor;
 import org.eclipse.imp.preferences.fields.StringFieldEditor;
 import org.eclipse.imp.preferences.fields.details.DetailsDialogForBooleanFields;
 import org.eclipse.imp.preferences.fields.details.DetailsDialogForComboFields;
+import org.eclipse.imp.preferences.fields.details.DetailsDialogForFontFields;
 import org.eclipse.imp.preferences.fields.details.DetailsDialogForRadioGroupFields;
 import org.eclipse.imp.preferences.fields.details.DetailsDialogForStringFields;
 import org.eclipse.jface.dialogs.Dialog;
@@ -37,6 +41,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -51,11 +56,12 @@ import org.eclipse.swt.widgets.Text;
 
 public class PreferencesUtilities {
 
-	
+    public static final Color colorBlack = new Color(null, 0, 0, 0);
 	public static final Color colorWhite = new Color(null, 255, 255, 255);
 	public static final Color colorBluish = new Color(null, 175, 207, 239);
 	public static final Color colorGreenish = new Color(null, 0, 127, 239);
 	public static final Color colorLightGray = new Color(null, 224, 223, 226);
+    public static final Color colorRed = new Color(null, 255, 0, 0);
 	
 	public static final String comboDefaultValue = "none selected";
 	public static final String comboDefaultName = "None selected";
@@ -84,7 +90,7 @@ public class PreferencesUtilities {
 		// care of this elsewhere but, until that is verified, keep
 		// doing it here.
 		// Note also:  loadWithInheritance (which calls setField(..))
-		// won't know that project == null and will try toset the field
+		// won't know that project == null and will try to set the field
 		// from some higher level
 		if (IPreferencesService.PROJECT_LEVEL.equals(level) &&
 			service.getProject() == null)
@@ -183,8 +189,8 @@ public class PreferencesUtilities {
 				// Assume that editability on the project level is set
 				// appropriately by a project-selection listener
 				//field.getTextControl(composite).setEditable(false);
-				field.getComboBoxControl(composite).setBackground(colorWhite);
-				Control[] children = field.getComboBoxControl(composite).getChildren();
+				field.getComboBoxControl().setBackground(colorWhite);
+				Control[] children = field.getComboBoxControl().getChildren();
 		    	if (children != null) {
 		    		for (int i = 0; i < children.length; i++) {
 		    			Button button = (Button) children[i];
@@ -226,7 +232,7 @@ public class PreferencesUtilities {
 	
 	public String setField(ComboFieldEditor field, Composite composite, String value)
 	{
-		final String whoiam = "PreferenesUtilities.setField(ComboFieldEditor field, composite, value):  ";
+		final String whoiam = "PreferencesUtilities.setField(ComboFieldEditor field, composite, value):  ";
 		
 		if (field == null)
 			throw new IllegalArgumentException(whoiam + "given field is null");
@@ -246,11 +252,37 @@ public class PreferencesUtilities {
 		field.setFieldValueFromOutside(value);
 		// setString(value) takes care of setting isInherited
 		// and presentsDefaultValue, but not ...
-		field.getComboBoxControl(composite).setBackground(colorWhite);
+		field.getComboBoxControl().setBackground(colorWhite);
 
 		return level;
 	}
 
+    public String setField(FontFieldEditor field, Composite composite, FontData[] value)
+    {
+        final String whoiam = "PreferencesUtilities.setField(ComboFieldEditor field, composite, value):  ";
+        
+        if (field == null)
+            throw new IllegalArgumentException(whoiam + "given field is null");
+        if (composite == null)
+            throw new IllegalArgumentException(whoiam + "given composite is null");
+        if (value == null)
+            throw new IllegalArgumentException(whoiam + "given value is null");
+        
+        if (composite.isDisposed())
+            throw new IllegalStateException(whoiam + "composite is disposed");
+        if (IPreferencesService.PROJECT_LEVEL.equals(field.getPreferencesLevel()) &&
+                service.getProject() == null)
+            throw new IllegalStateException(whoiam + "field represents a project-level preference and project is not set");
+        
+        String level = field.getPreferencesLevel();
+                
+        field.setFieldValueFromOutside(value);
+        // setString(value) takes care of setting isInherited
+        // and presentsDefaultValue, but not ...
+        field.getChangeControl().setBackground(colorWhite);
+
+        return level;
+    }
 
 	
 	public String setField(RadioGroupFieldEditor field, Composite composite)
@@ -446,8 +478,68 @@ public class PreferencesUtilities {
 	}
 	
 	
-	
+    public String setField(FontFieldEditor field, Composite parent)
+    {
+        // TODO:  Add checks on input validity (see below)
+        // Note:  so far assumes that the given level is the one to which the
+        // field belongs (which should be true but isn't guaranteed (?))
 
+        String level = field.getPreferencesLevel();
+        
+        // If the level is "project" and project == null then just set
+        // the field here (as a special case).
+        // Note:  without some project selected the field should not be
+        // editable.  Field will have to be set back to editable when
+        // (and probably where) a project is selected.  We might take
+        // care of this elsewhere but, until that is verified, keep
+        // doing it here.
+        // Note also:  loadWithInheritance (which calls setField(..))
+        // won't know that project == null and will try to set the field
+        // from some higher level
+        if (IPreferencesService.PROJECT_LEVEL.equals(level) &&
+            service.getProject() == null)
+        {
+            if (parent == null) {
+                System.err.println("PreferencesUtilities.setField():  parent is null");
+            }   
+            if (parent.isDisposed()) {
+                System.err.println("PreferencesUtilities.setField():  parent is disposed");
+            }   
+            field.setFieldValueFromOutside(null);
+            if (!parent.isDisposed()) {
+                field.getChangeControl().setEnabled(false);
+                field.getChangeControl().setBackground(colorBluish);
+            }
+            // Pretend that this was set at the project level?
+            // (It was certainly cleared at that level)
+            return IPreferencesService.PROJECT_LEVEL;
+        }
+        
+        // Otherwise, we have a legitimate level, so set normally
+        String levelFromWhichSet = field.loadWithInheritance();
+        
+        // Note:  You can evidently load a field even when it's control
+        // is disposed.  In that case (evidently) you can change the
+        // text in the field but not the background color.  
+        
+        if (parent != null && !parent.isDisposed()) {
+            if (level != null && level.equals(levelFromWhichSet)) {
+                field.getChangeControl().setBackground(colorWhite);
+            } else if (level != null && field.getChangeControl().getEnabled()) {
+                field.getChangeControl().setBackground(colorBluish);
+            }
+        } else {
+            // If composite.isDisposed(), then both field.getTextControl(composite)
+            // and field.getTextControl() will return null; if needed, a text control
+            // must be obtained from somewhere else--but I have no idea where that
+            // might be.  Not sure why composite.isDisposed() here in the first place,
+            // especially considering that the field can be set
+        }
+
+        return levelFromWhichSet;
+    }
+    
+    
 	
 	public BooleanFieldEditor makeNewBooleanField(
 	   		PreferencePage page, PreferencesTab tab,
@@ -495,8 +587,9 @@ public class PreferencesUtilities {
 	public ComboFieldEditor makeNewComboField(
 	   		PreferencePage page, PreferencesTab tab,
 	   		IPreferencesService service, String level,
-	   		String name, String labelText, String[][] entryNamesAndValues, Composite parent,
-	   		boolean isEnabled, boolean hasSpecialValue, String specialValue, boolean isRemovable)
+	   		String name, String labelText,
+	   		int numColumns, String[] valueList, String[] labelList,
+	   		Composite parent, boolean isEnabled, boolean isRemovable)
 	{	
 		//System.err.println("SPU.makeNewRadioGroupField() starting for key = " + key);
 			
@@ -514,8 +607,8 @@ public class PreferencesUtilities {
 	    
 	    ComboFieldEditor field = new ComboFieldEditor(
 	    		page, tab, service, level,
-	    		name, labelText, entryNamesAndValues, fieldHolder,
-	    		isEnabled, hasSpecialValue, specialValue, isRemovable);
+	    		name, labelText, valueList, labelList, numColumns, fieldHolder,
+	    		isEnabled, isRemovable);
 	    
 	    //Composite comboControl = field.getComboBoxControl(parent);
 	    //Composite radioBoxControlParent = field.getComboBoxControl(parent).getParent();
@@ -726,11 +819,58 @@ public class PreferencesUtilities {
 	}
 
 	
-	public RadioGroupFieldEditor makeNewRadioGroupField(
+    public FontFieldEditor makeNewFontField(
+            PreferencePage page,
+            PreferencesTab tab,
+            IPreferencesService service,
+            String level, String key, String text,
+            Composite parent,
+            boolean isEnabled, boolean isEditable,
+            boolean isRemovable)
+    {
+        //System.err.println("SPU.makeNewIntegerField() starting for key = " + key);
+        Composite fieldHolder = new Composite(parent, SWT.NONE);
+        fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+        boolean onProjectLevelWithNullProject =
+            level != null && level.equals(IPreferencesService.PROJECT_LEVEL) && service.getProject() == null;
+        boolean notOnARealLevel = level == null;
+        boolean onAFunctioningLevel = !onProjectLevelWithNullProject && !notOnARealLevel;
+
+        FontFieldEditor field = new FontFieldEditor(page, tab, service, level, key, text, fieldHolder);
+
+        if (!onProjectLevelWithNullProject) {
+            setField(field, fieldHolder);
+            addFontPropertyChangeListeners(service, level, field, key, fieldHolder);
+        } else {
+            //setField(field, fieldHolder);
+            //addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
+        }
+
+        if (onProjectLevelWithNullProject || notOnARealLevel) {
+            field.getPreviewControl().setEnabled(false);
+//          field.getPreviewControl().setEditable(false);
+            field.setEnabled(false, field.getParent());
+        } else if (onAFunctioningLevel) {
+            field.getPreviewControl().setEnabled(isEnabled);
+//          field.getTextControl().setEditable(isEditable);
+            field.setEnabled(isEnabled, field.getParent());
+        }
+
+        if (level == null) field.setRemovable(false);   // can never remove from a field that doesn't have a stored value
+        else if (level.equals(IPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);    // can never remove from Default level
+        else field.setRemovable(isRemovable);
+
+        //System.err.println("SPU.makeNewFontField() ending for key = " + key);
+        return field;
+    }
+
+    
+    public RadioGroupFieldEditor makeNewRadioGroupField(
 		PreferencePage page, PreferencesTab tab,
 		IPreferencesService service, String level,	
 		String name, String labelText, int numColumns,
-        String[][] labelAndValues, Composite parent, boolean useGroup,
+        String[] values, String[] labels, Composite parent, boolean useGroup,
 		boolean isEnabled, boolean isRemovable)	
 	{	
 		//System.err.println("SPU.makeNewRadioGroupField() starting for key = " + key);
@@ -749,7 +889,7 @@ public class PreferencesUtilities {
 	    
 	    RadioGroupFieldEditor field = new RadioGroupFieldEditor(
 	    		page, tab, service, level, name, labelText, numColumns,
-	    		labelAndValues, parent, useGroup);
+	    		values, labels, parent, useGroup);
 	    
 	    //Composite radioBoxControl = field.getRadioBoxControl(parent);
 	    //Composite radioBoxControlParent = field.getRadioBoxControl(parent).getParent();
@@ -1025,6 +1165,16 @@ public class PreferencesUtilities {
 		}
 	}
 
+    public class FontPreferenceChangeListener extends PreferenceChangeListener {
+        
+        public FontPreferenceChangeListener(FieldEditor field, String key, Composite composite) {
+            super(field, key, composite);
+        }
+        
+        protected void setFieldByListener(FieldEditor field, Composite composite) {
+            setField((FontFieldEditor) field, composite);
+        }
+    }
 	
 	
 	private void addComboPropertyChangeListeners(
@@ -1075,7 +1225,23 @@ public class PreferencesUtilities {
 	}
 
 
-	
+	private void addFontPropertyChangeListeners(
+	           IPreferencesService service, String level, FontFieldEditor field, String key, Composite composite)
+	{   
+	    int levelIndex = service.getIndexForLevel(level);
+	    IEclipsePreferences[] nodes = service.getNodesForLevels();
+
+	    for (int i = levelIndex + 1; i < nodes.length; i++) {
+	        if (nodes[i] != null) {
+	            nodes[i].addPreferenceChangeListener(new FontPreferenceChangeListener(field, key, composite));   
+	        } else {
+	            //System.err.println("JsdivConfigurationPreferencesPage.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+	        }
+	    }
+	}
+
+
+
 	public boolean firstLevelAboveSecond(String first, String second) {
 		return service.indexForLevel(first) > service.indexForLevel(second);
 	}
@@ -1217,7 +1383,6 @@ public class PreferencesUtilities {
 	}
 
 	
-	
 	public Link createDetailsLink(Composite detailsHolder, final ComboFieldEditor field, final Composite fieldHolder, String text)
 	{
 		Link link = new Link(detailsHolder, SWT.NONE);
@@ -1245,10 +1410,6 @@ public class PreferencesUtilities {
 	
 		return link;	
 	}
-	
-	
-	
-	
 	
 	
 	public Link createDetailsLink(Composite detailsHolder, final RadioGroupFieldEditor field, final Composite fieldHolder, String text)
@@ -1336,7 +1497,35 @@ public class PreferencesUtilities {
 	}
 
 	
-	
+    public Link createDetailsLink(Composite detailsHolder, final FontFieldEditor field, final Composite fieldHolder, String text)
+    {
+        Link link = new Link(detailsHolder, SWT.NONE);
+        link.setFont(detailsHolder.getFont());
+        // Blanks added ahead of text to better align vertically links
+        // for text fields with links for boolean fields.  This is a
+        // kludge and should be done some better way, but right now
+        // it's not worth the effort to figure that out.
+        link.setText("  <A>" + text + "</A>");
+        
+        final class DetailsLinkListener implements SelectionListener {
+            DetailsLinkListener(Composite fieldHolder) {
+            }
+            public void widgetSelected(SelectionEvent e) {
+                doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+            }
+
+            public void widgetDefaultSelected(SelectionEvent e) {
+                doDetailsLinkActivated((Link) e.widget, field, fieldHolder);
+            }
+        }
+        DetailsLinkListener detailsLinkListener = new DetailsLinkListener(detailsHolder);
+        
+        link.addSelectionListener(detailsLinkListener);
+    
+        return link;    
+    }
+
+
 	final void doDetailsLinkActivated(Link link, BooleanFieldEditor field, Composite fieldHolder) {
 		DetailsDialogForBooleanFields dialog = new DetailsDialogForBooleanFields(fieldHolder.getShell(), field, fieldHolder, service);
 		dialog.open();
@@ -1360,6 +1549,10 @@ public class PreferencesUtilities {
 		dialog.open();
 	}
 	
+    final void doDetailsLinkActivated(Link link, FontFieldEditor field, Composite fieldHolder) {
+        DetailsDialogForFontFields dialog = new DetailsDialogForFontFields(fieldHolder.getShell(), field, fieldHolder, service);
+        dialog.open();
+    }
 
 	
 	

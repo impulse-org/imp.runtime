@@ -12,12 +12,15 @@
 
 package org.eclipse.imp.preferences.fields;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -37,8 +40,6 @@ import org.osgi.service.prefs.BackingStoreException;
  * 
  * 		XXX: Note this is a copy from org.eclipse.search.internal.ui.util<br>
  * 		This class can be removed once a published (non-internal, visible) version is available.
- * 
- * 
  */
 public class ComboFieldEditor extends FieldEditor {
     /**
@@ -58,11 +59,13 @@ public class ComboFieldEditor extends FieldEditor {
     
     
     /**
-     * The names (labels) and underlying values to populate the combo widget.  These should be
-     * arranged as: { {name1, value1}, {name2, value2}, ...}
+     * The names (labels) and underlying values to populate the combo widget.
      */
-    private String[][] fEntryNamesAndValues;
+    private List<String> fEntryLabels;
 
+    private List<String> fEntryValues;
+
+    private int fNumColumns;
 
     /*
      * Note:  The specialValue may be one that is used as a default or
@@ -74,46 +77,35 @@ public class ComboFieldEditor extends FieldEditor {
     public ComboFieldEditor(
    		PreferencePage page, PreferencesTab tab,
    		IPreferencesService service, String level,
-   		String name, String labelText, String[][] entryNamesAndValues, Composite parent,
-   		boolean isEnabled, boolean hasSpecialValue, String specialValue, boolean isRemovable)
+   		String name, String labelText, String[] values, String[] labels, int numColumns,
+   		Composite parent, boolean isEnabled, boolean isRemovable)
     {
+		Assert.isTrue(values.length == labels.length);
 		init(name, labelText);
-		Assert.isTrue(checkArray(entryNamesAndValues));
-		
+
 		preferencesService = service;
 		preferencesLevel = level;
 		this.parent = parent;
 		prefPage = page;
 		setPage(prefPage);
 		prefTab = tab;
-		
-		if (hasSpecialValue) {
-			if (specialValue == null || specialValue.equals(""))
-				specialValue = PreferencesUtilities.comboDefaultName;
-			
-			fEntryNamesAndValues = new String[entryNamesAndValues.length+1][2];
-			fEntryNamesAndValues[0][0] = specialValue == null ? "" : specialValue;
-			fEntryNamesAndValues[0][1] = specialValue == null ? "" : specialValue;
-			for (int i = 0; i < entryNamesAndValues.length; i++) {
-				fEntryNamesAndValues[i+1][0] = entryNamesAndValues[i][0];
-				fEntryNamesAndValues[i+1][1] = entryNamesAndValues[i][1];
-			}
-		} else {
-			fEntryNamesAndValues= entryNamesAndValues;
+
+		fEntryLabels= new ArrayList<String>(labels.length);
+		fEntryValues= new ArrayList<String>(values.length);
+		for(int i=0; i < labels.length; i++) {
+		    fEntryLabels.add(labels[i]);
+		    fEntryValues.add(values[i]);
 		}
-		
+		fNumColumns= numColumns;
+
 		// Create control after setting fEntryNamesAndValues
 		// because that is referenced in creating the control
 		createControl(parent);
-		
-		this.hasSpecialValue = hasSpecialValue;
-		if (hasSpecialValue)
-			this.specialValue = specialValue;
+
 		this.isRemovable = isRemovable;
     }
 
-      
-    
+
     /*
      * Checks whether given <code>String[][]</code> is of "type" 
      * <code>String[][2]</code>.
@@ -133,6 +125,7 @@ public class ComboFieldEditor extends FieldEditor {
 		return true;
     }
 
+
     /*
      * @see FieldEditor#adjustForNumColumns(int)
      */
@@ -150,11 +143,11 @@ public class ComboFieldEditor extends FieldEditor {
     protected void doFillIntoGrid(Composite parent, int numColumns) {
 			Control control= getLabelControl(parent);
 			GridData gd= new GridData();
-			gd.horizontalSpan= numColumns;
+			gd.horizontalSpan= 1;
 			control.setLayoutData(gd);
-			control= getComboBoxControl(parent);
+			control= getComboBoxControl();
 			gd= new GridData();
-			gd.horizontalSpan= numColumns;
+			gd.horizontalSpan= 1;
 			control.setLayoutData(gd);
     }
 
@@ -276,31 +269,26 @@ public class ComboFieldEditor extends FieldEditor {
        		levelLoaded = levels[levelAtWhichFound];
        		break;	
     	}
-    	
-    	// We loaded it at this level or inherited it from some other level
-    	// (should be called before updateComboForValue)
+
+    	levelFromWhichLoaded = levelLoaded;
     	setInherited(fieldLevelIndex != levelAtWhichFound);
-    	
+    	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+
     	// Set the field to the value we found
         updateComboForValue(value);
-    	
-    	// Since we just loaded some new value, it won't be modified yet
-    	fieldModified = false;
-    	
-    	// TODO:  Check on use of previous value
-       	previousValue = value;
+
+    	fieldModified = false; // Since we just loaded some new value, it won't be modified yet
+       	previousValue = value; // TODO: Check on use of previous value
        	
        	// Set the background color of the field according to where found
        	setFieldColors();
 
-        //System.out.println("doLoadWithInheritance:  preferencesName = " + getPreferenceName() + "; preferenceLevel = " + preferencesLevel + "; levelLoaded = " + levelLoaded);
-        
         return levelLoaded;
     }
  
 
     protected void setFieldColors() {
-        Control comboBox = getComboBoxControl(parent);
+        Control comboBox = getComboBoxControl();
         Color color = isInherited() ?
         		PreferencesUtilities.colorBluish :
         		PreferencesUtilities.colorWhite;
@@ -343,36 +331,34 @@ public class ComboFieldEditor extends FieldEditor {
     }
     
     
-    
-    
     /*
      * @see FieldEditor#getNumberOfControls()
      */
     public int getNumberOfControls() {
-    	return 2;
+    	return fNumColumns;
     }
 
     /*
      * Lazily create and return the Combo control.
      */
-    public Combo getComboBoxControl(Composite parent) {
+    public Combo getComboBoxControl() {
 		if (fCombo == null) {
 		    fCombo= new Combo(parent, SWT.READ_ONLY);
-		    for(int i= 0; i < fEntryNamesAndValues.length; i++) {
-			fCombo.add(fEntryNamesAndValues[i][0], i);
+		    for(String entryName: fEntryLabels) {
+		        fCombo.add(entryName);
 		    }
 		    fCombo.setFont(parent.getFont());
 		    fCombo.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent evt) {
-			    String oldValue= fValue;
-			    String name= fCombo.getText();
-			    fValue= getValueForName(name);
-			    setPresentsDefaultValue(false);
-			    // SMS 23 Dec 2006
-				fieldModified = true;
-				setInherited(false);
-			    boolean valueChanged = valueChanged();
-			}
+		        public void widgetSelected(SelectionEvent evt) {
+		            String oldValue= fValue;
+    			    String name= fCombo.getText();
+    			    fValue= getValueForName(name);
+    			    setPresentsDefaultValue(false);
+    			    // SMS 23 Dec 2006
+    				fieldModified = true;
+    				setInherited(false);
+    			    boolean valueChanged = valueChanged();
+    			}
 		    });
 		}
 		return fCombo;
@@ -382,33 +368,24 @@ public class ComboFieldEditor extends FieldEditor {
      * Given the name (label) of an entry, return the corresponding value.
      */
     protected String getValueForName(String name) {
-		for(int i= 0; i < fEntryNamesAndValues.length; i++) {
-		    String[] entry= fEntryNamesAndValues[i];
-		    if (name.equals(entry[0])) {
-			return entry[1];
-		    }
-		}
-		return fEntryNamesAndValues[0][0];
+        int idx= fEntryLabels.indexOf(name);
+        return (idx >= 0) ? fEntryValues.get(idx) : "";
     }
 
     /*
      * Set the name in the combo widget to match the specified value.
      */
     protected void updateComboForValue(String value) {
+        if (value == null)
+            value = "";
     	previousValue = getStringValue();
     	setPreviousStringValue(getStringValue());
-		fValue = null;
-		for(int i= 0; i < fEntryNamesAndValues.length; i++) {
-		    if (value.equals(fEntryNamesAndValues[i][1])) {
-		    	fValue = fEntryNamesAndValues[i][1];
-				fCombo.setText(fEntryNamesAndValues[i][0]);
-				break;
-		    }
-		}
-		if (fValue == null && fEntryNamesAndValues.length > 0) {
-		    fValue= fEntryNamesAndValues[0][1];
-		    fCombo.setText(fEntryNamesAndValues[0][0]);
-		}
+
+    	int idx= fEntryValues.indexOf(value);
+
+    	if (idx < 0) { idx = 0; }
+    	fValue = fEntryValues.get(idx);
+        fCombo.setText(fEntryLabels.get(idx));
 
 		valueChanged();
     }
@@ -466,8 +443,7 @@ public class ComboFieldEditor extends FieldEditor {
         return valueChanged;
     }
 
-  
-    
+
     /**
      * 
      */
@@ -502,11 +478,8 @@ public class ComboFieldEditor extends FieldEditor {
     	levelFromWhichLoaded = null;
     	updateComboForValue(newValue);
     }
-  
-    
-    
-    
-    
+
+
     /**
      * Gets the current String value of the field, corresponding
      * to the currently selected item.
@@ -518,16 +491,15 @@ public class ComboFieldEditor extends FieldEditor {
     	return fValue;
     }
 
-    
+
     public String getSpecialStringValue() {
     	if (!hasSpecialValue) {
 			throw new IllegalStateException("ComboFieldEditor.getSpecialValue():  field does not have a special value");
     	}
     	return (String) specialValue;
     }
-    
-    
-    
+
+
 	/**
 	 * Set the special value associated with this field to be the given string.
 	 * Overrides the method in the supertype to check that the given value is
@@ -538,15 +510,6 @@ public class ComboFieldEditor extends FieldEditor {
 	 * @throws IllegalArgumentException	if the given value is null or empty
 	 */
 	public void setSpecialValue(String specialValue) {
-		if (!hasSpecialValue()) {
-			throw new IllegalStateException("ComboField.setSpecialValue(String):  field has no special value");			
-		} else if (specialValue == null || specialValue == "") {
-			throw new IllegalArgumentException("ComboFieldEditor.setSpecialValue(String):  special value cannot be null or empty");
-		}
-		fEntryNamesAndValues[0][0] = specialValue;
+	    throw new IllegalStateException("ComboField.setSpecialValue(String):  field has no special value");			
 	}
-
-    
-    
-    
 }

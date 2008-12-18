@@ -16,6 +16,7 @@ package org.eclipse.imp.preferences.fields.details;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.imp.preferences.fields.ComboFieldEditor;
+import org.eclipse.imp.preferences.fields.FontFieldEditor;
 import org.eclipse.imp.preferences.fields.PreferenceDialogConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceColors;
@@ -25,6 +26,7 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -35,18 +37,18 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.internal.dialogs.ProductInfoDialog;
 
 
-public class DetailsDialogForComboFields extends ProductInfoDialog {
+public class DetailsDialogForFontFields extends ProductInfoDialog {
 
 	Shell parent = null;
-	ComboFieldEditor field = null;
+	FontFieldEditor field = null;
 	Composite fieldHolder = null;
 	IPreferencesService preferencesService = null;
 	
 	private PreferencesUtilities prefUtils = null;
 		
-	public DetailsDialogForComboFields (
+	public DetailsDialogForFontFields (
 			Shell parent,
-			ComboFieldEditor field,
+			FontFieldEditor field,
 			Composite fieldHolder,
 			IPreferencesService preferencesService)
 	{
@@ -83,8 +85,8 @@ public class DetailsDialogForComboFields extends ProductInfoDialog {
 	        switch (buttonId) {
 	        case COPY_ID:
 	        	if (!field.isInherited()) break;
-	        	String value = field.getComboBoxControl().getText();
-	        	prefUtils.setField(field, fieldHolder, value);
+	        	FontData[] fontData = field.getSelectedFont();
+	        	prefUtils.setField(field, fieldHolder, fontData);
 	            break;
 	        case REMOVE_ID:
 	        	// Can't clear a field that doesn't have a preference stored to start with;
@@ -96,9 +98,9 @@ public class DetailsDialogForComboFields extends ProductInfoDialog {
 	        	}
 	        	prefUtils.setField(field, fieldHolder);
 	        	break;
-	        case SPECIAL_ID:
-	        	prefUtils.setField(field, fieldHolder, field.getSpecialStringValue());
-	            break;
+//	        case SPECIAL_ID:
+//	        	prefUtils.setField(field, fieldHolder, field.getSpecialStringValue());
+//	            break;
 //	        case EMPTY_ID:
 //	        	prefUtils.setField(field, fieldHolder, field.getEmptyValue());
 //	        	break;
@@ -144,13 +146,13 @@ public class DetailsDialogForComboFields extends ProductInfoDialog {
 	        if (!field.getPreferencesLevel().equals(IPreferencesService.DEFAULT_LEVEL)) {
 	        	copyButton = createButton(parent, COPY_ID, PreferenceDialogConstants.COPY_LABEL, false);
 	        	copyButton.setEnabled(field.getPreferencesLevel() != null &&
-	        			field.isInherited() && field.getComboBoxControl().isEnabled());
+	        			field.isInherited() && field.getChangeControl().isEnabled());
 	        }
 	        
 	        specialButton = createButton(parent, SPECIAL_ID, PreferenceDialogConstants.SPECIAL_LABEL, false);
 	        specialButton.setEnabled(field.getPreferencesLevel() != null &&
 	        	field.hasSpecialValue() && field.getSpecialValue() != null &&	
-	        	field.getComboBoxControl().isEnabled());
+	        	field.getChangeControl().isEnabled());
 	        
 //	        emptyButton = createButton(parent, EMPTY_ID, PreferenceDialogConstants.EMPTY_LABEL, false);
 //	        emptyButton.setEnabled(field.getPreferencesLevel() != null &&
@@ -161,7 +163,7 @@ public class DetailsDialogForComboFields extends ProductInfoDialog {
 	        		(field.getPreferencesLevel() != null) &&
 	        		!field.isInherited() &&
 	        		field.isRemovable()  && 
-		        	field.getComboBoxControl().isEnabled());
+		        	field.getChangeControl().isEnabled());
 
 	        Label l = new Label(parent, SWT.NONE);
 	        l.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
@@ -285,7 +287,7 @@ public class DetailsDialogForComboFields extends ProductInfoDialog {
 	        label.setBackground(prefUtils.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);
-	        label.setText("\tCurrent value:  '" + field.getStringValue() + "'");
+	        label.setText("\tCurrent value:  '" + field.getFieldEditorFontName() + "'");
 	        label.setBackground(prefUtils.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);

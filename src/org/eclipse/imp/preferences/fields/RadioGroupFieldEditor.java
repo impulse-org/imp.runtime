@@ -12,13 +12,13 @@
 
 package org.eclipse.imp.preferences.fields;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.Markings;
 import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -39,23 +39,20 @@ import org.osgi.service.prefs.BackingStoreException;
  * The choices are presented as a list of radio buttons.
  */
 public class RadioGroupFieldEditor extends FieldEditor {
-
-	// All fields in RadioGroupFieldEditor, which were private there,
-	// copied here and made protected.
-	// Remove any here that turn out to not be needed.
-	
-    /**
+	/**
      * List of radio button entries of the form [label,value].
      */
-    protected String[][] labelsAndValues;
+    protected String[] values;
+
+    protected String[] labels;
 
     /**
      * Number of columns into which to arrange the radio buttons.
      */
-   protected int numColumns;
+    protected int numColumns;
 
     /**
-     * Indent used for the first column of the radion button matrix.
+     * Indent used for the first column of the radio button matrix.
      */
     protected int indent = HORIZONTAL_GAP;
     
@@ -120,10 +117,11 @@ public class RadioGroupFieldEditor extends FieldEditor {
 			PreferencePage page, PreferencesTab tab,
     		IPreferencesService service, String level,
     		String name, String labelText, int numColumns,
-            String[][] labelAndValues, Composite parent)
+            String[] values, String[] labels, Composite parent,
+            boolean isEnabled, boolean isRemovable)
     {
         this(page, tab, service, level,
-        	name, labelText, numColumns, labelAndValues, parent, false);
+        	name, labelText, numColumns, values, labels, parent, false);
     }
 
     /**
@@ -154,18 +152,17 @@ public class RadioGroupFieldEditor extends FieldEditor {
 			PreferencePage page, PreferencesTab tab,
     		IPreferencesService service, String level,	
     		String name, String labelText, int numColumns,
-            String[][] labelAndValues, Composite parent, boolean useGroup)
+            String[] values, String[] labels, Composite parent, boolean useGroup)
     {
     	super(page, tab, service, level, name, labelText, parent);
     	
     	// Adapted from RadioGroupFieldEditor
-        Assert.isTrue(checkArray(labelAndValues));
-        this.labelsAndValues = labelAndValues;
+        Assert.isTrue(values.length == labels.length);
+        this.values = values;
         this.numColumns = numColumns;
         this.useGroup = useGroup;
-    	this.labelsAndValues = labelAndValues;
+    	this.labels= labels;
         createControl(parent);
-        
     }
     
 
@@ -525,13 +522,12 @@ public class RadioGroupFieldEditor extends FieldEditor {
                 radioBox.setFont(font);
             }
 
-            radioButtons = new Button[labelsAndValues.length];
-            for (int i = 0; i < labelsAndValues.length; i++) {
+            radioButtons = new Button[values.length];
+            for (int i = 0; i < values.length; i++) {
                 Button radio = new Button(radioBox, SWT.RADIO | SWT.LEFT);
                 radioButtons[i] = radio;
-                String[] labelAndValue = labelsAndValues[i];
-                radio.setText(labelAndValue[0]);
-                radio.setData(labelAndValue[1]);
+                radio.setText(labels[i]);
+                radio.setData(values[i]);
                 radio.setFont(font);
                 radio.addSelectionListener(new SelectionAdapter() {
                     public void widgetSelected(SelectionEvent event) {

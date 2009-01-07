@@ -730,6 +730,10 @@ public class StringFieldEditor extends FieldEditor
         if (textField == null) {
             textField = new Text(parent, SWT.SINGLE | SWT.BORDER);
             textField.setFont(parent.getFont());
+            String toolTipText = getToolTipText();
+            if (toolTipText != null) {
+                textField.setToolTipText(toolTipText);
+            }
             switch (validateStrategy) {
             case org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE:
                 textField.addKeyListener(new KeyAdapter() {
@@ -853,6 +857,12 @@ public class StringFieldEditor extends FieldEditor
         textField.setLayoutData(gd);
     }
     
+    @Override
+    protected void doSetToolTip() {
+        if (toolTipText != null) {
+            getTextControl().setToolTipText(toolTipText);
+        }
+    }
     
     /**
      * Returns the number of controls in this editor.

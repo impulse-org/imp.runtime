@@ -220,8 +220,13 @@ public class RadioGroupFieldEditor extends FieldEditor {
 
     }
 
-    
-   
+    @Override
+    protected void doSetToolTip() {
+        if (toolTipText != null) {
+            getRadioBoxControl().setToolTipText(toolTipText);
+        }
+    }
+
 
     /**
      *

@@ -538,6 +538,7 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
      */
     protected void doFillIntoGrid(Composite parent, int numColumns) {
         String text = getLabelText();
+        String toolTipText = getToolTipText();
         switch (style) {
         case SEPARATE_LABEL:
             getLabelControl(parent);
@@ -548,11 +549,21 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
             GridData gd = new GridData();
             gd.horizontalSpan = numColumns;
             checkBox.setLayoutData(gd);
-            if (text != null)
+            if (text != null) {
                 checkBox.setText(text);
+                if (toolTipText != null) {
+                    checkBox.setToolTipText(toolTipText);
+                }
+            }
         }
     }
 
+    @Override
+    protected void doSetToolTip() {
+        if (toolTipText != null) {
+            getChangeControl().setToolTipText(toolTipText);
+        }
+    }
     
     /* (non-Javadoc)
      * Method declared on FieldEditor.

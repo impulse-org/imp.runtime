@@ -126,7 +126,9 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
     
     
     protected Object previousValue = null;
-    
+
+    protected String toolTipText = null;
+
     //
     // Fields in FieldEditor:
     //
@@ -921,19 +923,28 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
     	prefTab.clearErrorMessages(this);
     }
 
-    
     protected void setErrorMessage(String msg) {
     	prefTab.setErrorMessage(this, msg);
     }
 
-    
 	public boolean hasErrorMessage() {
 		return prefTab.errorMessages.containsKey(this);
 	}
 
-	
+
 	public String getFieldMessagePrefix() {
 		return /*prefTab.getTabItem().getText() + " Tab:  " +*/ getLabelText() + ":  ";
 	}
-    
+
+
+    protected abstract void doSetToolTip();
+
+    public void setToolTipText(String toolTipText) {
+        this.toolTipText= toolTipText;
+        doSetToolTip();
+    }
+
+    public String getToolTipText() {
+        return toolTipText;
+    }
 }

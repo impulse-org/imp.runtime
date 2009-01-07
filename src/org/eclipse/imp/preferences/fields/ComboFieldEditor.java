@@ -151,6 +151,13 @@ public class ComboFieldEditor extends FieldEditor {
 			control.setLayoutData(gd);
     }
 
+    @Override
+    protected void doSetToolTip() {
+        if (toolTipText != null) {
+            getComboBoxControl().setToolTipText(toolTipText);
+        }
+    }
+    
     
     /**
      * Overrides method defined in FieldEditor.

@@ -224,6 +224,13 @@ public class FontFieldEditor extends FieldEditor {
 
 	    }
 
+	    @Override
+	    protected void doSetToolTip() {
+	        if (toolTipText != null) {
+	            getValueControl(parent).setToolTipText(toolTipText);
+	        }
+	    }
+
 	    /* (non-Javadoc)
 	     * Method declared on FieldEditor.
 	     */

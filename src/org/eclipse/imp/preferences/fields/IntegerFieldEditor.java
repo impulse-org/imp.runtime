@@ -131,6 +131,7 @@ public class IntegerFieldEditor extends StringFieldEditor {
 
        
         String numberString = text.getText();
+        if (numberString==null || numberString.equals("")) numberString="0";
         try {
             int number = Integer.valueOf(numberString).intValue();
             if (number >= minValidValue && number <= maxValidValue) {

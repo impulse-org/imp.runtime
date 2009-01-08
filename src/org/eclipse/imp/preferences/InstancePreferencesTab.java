@@ -22,17 +22,20 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
-public class InstancePreferencesTab extends PreferencesTab {
+public abstract class InstancePreferencesTab extends PreferencesTab {
 	
-	public InstancePreferencesTab(IPreferencesService prefService) {
+	public InstancePreferencesTab(IPreferencesService prefService, boolean noDetails) {
+	    super(IPreferencesService.INSTANCE_LEVEL, noDetails);
 		this.fPrefService = prefService;
 		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 	
-	
-	public Composite createInstancePreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
+    @Override
+	public Composite createTabContents(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
 		fPrefPage = page;
+
+		int numColumns= getNoDetails() ? 1 : 2;
 
         final Composite composite= new Composite(tabFolder, SWT.NONE);
         composite.setFont(tabFolder.getFont());
@@ -43,7 +46,7 @@ public class InstancePreferencesTab extends PreferencesTab {
         composite.setLayoutData(gd);
 		
 		GridLayout gl = new GridLayout();
-		gl.numColumns = 2;
+		gl.numColumns = numColumns;
 		composite.setLayout(gl);
 		
 		fTabItem = new TabItem(tabFolder, SWT.NONE);
@@ -57,16 +60,13 @@ public class InstancePreferencesTab extends PreferencesTab {
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
-		fFields = createFields(page, this, IPreferencesService.INSTANCE_LEVEL, composite);
+		fFields = createFields(page, composite);
 
-		
-		PreferencesUtilities.fillGridPlace(composite, 2);
-		
+		PreferencesUtilities.fillGridPlace(composite, numColumns);
 
 		// Don't want newly created fields to be flagged as modified
 		clearModifiedMarksOnLabels();
-		
-		
+
 		// Put notes on bottom
 		
 		final Composite bottom = new Composite(composite, SWT.BOTTOM | SWT.WRAP);
@@ -84,12 +84,9 @@ public class InstancePreferencesTab extends PreferencesTab {
         			Markings.TAB_ERROR_NOTE);
         
 		PreferencesUtilities.fillGridPlace(bottom, 1);
-		
 		 
-		// Put bottons on the bottom
+		// Put buttons on the bottom
         fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
-        Button defaultsButton = (Button) fButtons[0];
-        Button applyButton = (Button) fButtons[1];
 		
 		return composite;
 	}

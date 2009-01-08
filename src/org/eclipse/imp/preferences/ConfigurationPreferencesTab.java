@@ -22,18 +22,20 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 
-public class ConfigurationPreferencesTab  extends PreferencesTab
+public abstract class ConfigurationPreferencesTab  extends PreferencesTab
 {
 
-	public ConfigurationPreferencesTab(IPreferencesService prefService) {
+	public ConfigurationPreferencesTab(IPreferencesService prefService, boolean noDetails) {
+	    super(IPreferencesService.CONFIGURATION_LEVEL, noDetails);
 		this.fPrefService = prefService;
 		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 	
-	
-	public Composite createConfigurationPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
-		
+    @Override
+	public Composite createTabContents(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		fPrefPage = page;
+
+		int numColumns= getNoDetails() ? 1 : 2;
 
         final Composite composite= new Composite(tabFolder, SWT.NONE);
         composite.setFont(tabFolder.getFont());
@@ -44,7 +46,7 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
         composite.setLayoutData(gd);
 		
 		GridLayout gl = new GridLayout();
-		gl.numColumns = 2;
+        gl.numColumns = numColumns;
 		composite.setLayout(gl);
 		
 		fTabItem = new TabItem(tabFolder, SWT.NONE);
@@ -59,9 +61,9 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 		 * Add the elements relating to preferences fields and their associated "details" links.
 		 */	
 		//fields = createFields(composite);
-		fFields = createFields(page, this, IPreferencesService.CONFIGURATION_LEVEL, composite);
+		fFields = createFields(page, composite);
 		
-		PreferencesUtilities.fillGridPlace(composite, 2);
+		PreferencesUtilities.fillGridPlace(composite, numColumns);
 		
 		// Don't want newly created fields to be flagged as modified
 		clearModifiedMarksOnLabels();
@@ -88,8 +90,6 @@ public class ConfigurationPreferencesTab  extends PreferencesTab
 		
 		// Put buttons on bottom
         fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
-        //Button defaultButton = (Button) buttons[0];
-        //Button applyButton = (Button) buttons[1];
 
 		return composite;
 	}

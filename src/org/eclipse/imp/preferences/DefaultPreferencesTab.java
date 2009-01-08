@@ -12,30 +12,30 @@
 
 package org.eclipse.imp.preferences;
 
-import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
-public class DefaultPreferencesTab extends PreferencesTab
+public abstract class DefaultPreferencesTab extends PreferencesTab
 {	
 
-	
-	public DefaultPreferencesTab(IPreferencesService prefService) {
+	public DefaultPreferencesTab(IPreferencesService prefService, boolean noDetails) {
+	    super(IPreferencesService.DEFAULT_LEVEL, noDetails);
 		this.fPrefService = prefService;
 		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 	
-	
-	public Composite createDefaultPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
+	@Override
+	public Composite createTabContents(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		
 		fPrefPage = page;
 		
+        int numColumns= getNoDetails() ? 1 : 2;
+
         final Composite composite = new Composite(tabFolder, SWT.NONE);
         composite.setFont(tabFolder.getFont());
         final GridData gd= new GridData(SWT.FILL, SWT.CENTER, true, false);
@@ -45,7 +45,7 @@ public class DefaultPreferencesTab extends PreferencesTab
         composite.setLayoutData(gd);
 		
 		GridLayout gl = new GridLayout();
-		gl.numColumns = 2;
+		gl.numColumns = numColumns;
 		composite.setLayout(gl);
 		
 		fTabItem = new TabItem(tabFolder, SWT.NONE);
@@ -54,25 +54,19 @@ public class DefaultPreferencesTab extends PreferencesTab
 		PreferencesTab.TabSelectionListener listener = 
 			new PreferencesTab.TabSelectionListener(fPrefPage, fTabItem);
 		tabFolder.addSelectionListener(listener);
-		
+
 
 		// Don't want newly created fields to be flagged as modified
 		// page, this, prefService, "default", 	
-		fFields = createFields(page, this, IPreferencesService.DEFAULT_LEVEL, composite);
+		fFields = createFields(page, composite);
 		
-//		BooleanFieldEditor boolField = prefUtils.makeNewBooleanField(
-//				prefsPage, prefsTab, prefsService,
-//				tabLevel, fieldInfo.getName(), fieldInfo.getName(),		// tab level, key, text
-//				parent,
-
-
 
 		// Being newly loaded, the fields may be displayed with some
 		// indication that they have been modified.  This should reset
 		// that marking.
 		clearModifiedMarksOnLabels();
 		
-		PreferencesUtilities.fillGridPlace(composite, 2);	
+		PreferencesUtilities.fillGridPlace(composite, numColumns);
 		
 		// Put notes on bottom
 	
@@ -91,12 +85,10 @@ public class DefaultPreferencesTab extends PreferencesTab
         			Markings.MODIFIED_NOTE + "\n\n" +
         			Markings.TAB_ERROR_NOTE);
         
-        fPrefUtils.fillGridPlace(bottom, 1);
+        PreferencesUtilities.fillGridPlace(bottom, 1);
  
         // Put buttons on the bottom
         fButtons = fPrefUtils.createDefaultAndApplyButtons(composite, this);
-        Button defaultsButton = (Button) fButtons[0];
-        Button applyButton = (Button) fButtons[1];
         
 		return composite;
 	}

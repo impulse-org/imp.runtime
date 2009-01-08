@@ -46,10 +46,10 @@ import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.osgi.service.prefs.Preferences;
 
 
-public class ProjectPreferencesTab extends PreferencesTab {
+public abstract class ProjectPreferencesTab extends PreferencesTab {
 	
 	protected org.eclipse.jface.preference.StringFieldEditor selectedProjectName = null;
-	protected List detailsLinks = new ArrayList();
+	protected List<Link> detailsLinks = new ArrayList<Link>();
 
 	protected IJavaProject javaProject = null;
 	
@@ -57,19 +57,18 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	protected IProject fProject = null;
 
 	
-	public ProjectPreferencesTab(IPreferencesService prefService) {
+	public ProjectPreferencesTab(IPreferencesService prefService, boolean noDetails) {
+	    super(IPreferencesService.PROJECT_LEVEL, noDetails);
 		this.fPrefService = prefService;
 		fPrefUtils = new PreferencesUtilities(prefService);
 	}
 
-	public Composite createProjectPreferencesTab(TabbedPreferencesPage page, final TabFolder tabFolder) {
-		
+	@Override
+    public Composite createTabContents(TabbedPreferencesPage page, final TabFolder tabFolder) {
 		fPrefPage = page;
 
-		/*
-		 * Prepare the body of the tab
-		 */
-	
+        int numColumns= getNoDetails() ? 1 : 2;
+
 		GridLayout layout = null;
 		
 		final Composite composite= new Composite(tabFolder, SWT.NONE);
@@ -81,7 +80,7 @@ public class ProjectPreferencesTab extends PreferencesTab {
 	        composite.setLayoutData(gd);
 		
 		layout = new GridLayout();
-		layout.numColumns = 2;
+		layout.numColumns = numColumns;
 		composite.setLayout(layout);
 		
 		// The "tab" on the tab folder
@@ -94,14 +93,13 @@ public class ProjectPreferencesTab extends PreferencesTab {
 		
 		/*
 		 * Add the elements relating to preferences fields and their associated "details" links.
-		 */	
-		fFields = createFields(page, this, IPreferencesService.PROJECT_LEVEL, composite);
+		 */
+		fFields = createFields(page, composite);
 
 
 		// Clear some space
-		PreferencesUtilities.fillGridPlace(composite, 2);
+		PreferencesUtilities.fillGridPlace(composite, numColumns);
 
-		
 		// Disable the details links since no project is selected at the start	
 		for (int i = 0; i < detailsLinks.size(); i++) {
 			((Link)detailsLinks.get(i)).setEnabled(false);

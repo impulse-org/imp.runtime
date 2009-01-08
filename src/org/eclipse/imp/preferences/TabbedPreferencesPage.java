@@ -13,7 +13,6 @@
 package org.eclipse.imp.preferences;
 
 
-import org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.swt.SWT;
@@ -74,7 +73,15 @@ public abstract class TabbedPreferencesPage extends PreferencePage implements IW
         // (usually the "Workspace" tab), rather than the "Project" tab,
         // which doesn't even show values until the user selects a project.
 		if (tabs.length > 1) {
-		    tabFolder.setSelection(1);
+		    int idx= -1;
+		    for(int i= 0; i < tabs.length; i++) {
+		        if (tabs[i].getLevel().equals(IPreferencesService.INSTANCE_LEVEL)) {
+		            idx= i;
+		        }
+		    }
+		    if (idx > 0) {
+		        tabFolder.setSelection(idx);
+		    }
 		}
 		return tabFolder;
 	}

@@ -13,8 +13,6 @@
 package org.eclipse.imp.preferences;
 
 
-import java.util.List;
-
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
@@ -66,7 +64,7 @@ public class PreferencesUtilities {
 	public static final String comboDefaultValue = "none selected";
 	public static final String comboDefaultName = "None selected";
 	
-	IPreferencesService service = null;
+	protected IPreferencesService service = null;
 	
 	public PreferencesUtilities(IPreferencesService service)
 	{
@@ -544,7 +542,7 @@ public class PreferencesUtilities {
 	public BooleanFieldEditor makeNewBooleanField(
 	   		PreferencePage page, PreferencesTab tab,
 			IPreferencesService service,
-			String level, String key, String text,
+			String level, String key, String text, String toolTip,
 			Composite parent,
 			boolean isEnabled, boolean isEditable,	
 			boolean hasSpecialValue, boolean specialValue,
@@ -557,6 +555,8 @@ public class PreferencesUtilities {
 
 		BooleanFieldEditor field =
 			new BooleanFieldEditor(page, tab, service, level, key, text, fieldHolder);
+
+		field.setToolTipText(toolTip);
 		if (level != null && level.equals(IPreferencesService.PROJECT_LEVEL) && service.getProject() != null) {
 			setField(field, fieldHolder);
 			addBooleanPropertyChangeListeners(service, level, field, key, fieldHolder);
@@ -587,7 +587,7 @@ public class PreferencesUtilities {
 	public ComboFieldEditor makeNewComboField(
 	   		PreferencePage page, PreferencesTab tab,
 	   		IPreferencesService service, String level,
-	   		String name, String labelText,
+	   		String name, String labelText, String toolTip,
 	   		int numColumns, String[] valueList, String[] labelList,
 	   		Composite parent, boolean isEnabled, boolean isRemovable)
 	{	
@@ -610,6 +610,7 @@ public class PreferencesUtilities {
 	    		name, labelText, valueList, labelList, numColumns, fieldHolder,
 	    		isEnabled, isRemovable);
 	    
+	    field.setToolTipText(toolTip);
 	    //Composite comboControl = field.getComboBoxControl(parent);
 	    //Composite radioBoxControlParent = field.getComboBoxControl(parent).getParent();
 	    
@@ -637,7 +638,7 @@ public class PreferencesUtilities {
 			PreferencePage page,
 			PreferencesTab tab,
 			IPreferencesService service,
-			String level, String key, String text,
+			String level, String key, String text, String toolTip,
 			Composite parent,
 			boolean isEnabled, boolean isEditable,
 			boolean hasSpecialValue, String specialValue,
@@ -656,6 +657,7 @@ public class PreferencesUtilities {
 	    
 	    DirectoryListFieldEditor field = new DirectoryListFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		
+	    field.setToolTipText(toolTip);
 //		if (!onProjectLevelWithNullProject) {
 //			setField(field, fieldHolder);
 //			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
@@ -705,7 +707,7 @@ public class PreferencesUtilities {
 			PreferencePage page,
 			PreferencesTab tab,
 			IPreferencesService service,
-			String level, String key, String text,
+			String level, String key, String text, String toolTip,
 			Composite parent,
 			boolean isEnabled, boolean isEditable,
 			boolean hasSpecialValue, String specialValue,
@@ -724,6 +726,7 @@ public class PreferencesUtilities {
 	    
 		FileFieldEditor field = new FileFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		
+		field.setToolTipText(toolTip);
 		if (!onProjectLevelWithNullProject) {
 			setField(field, fieldHolder);
 			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
@@ -768,7 +771,7 @@ public class PreferencesUtilities {
 			PreferencePage page,
 			PreferencesTab tab,
 			IPreferencesService service,
-			String level, String key, String text,
+			String level, String key, String text, String toolTip,
 			Composite parent,
 			boolean isEnabled, boolean isEditable,
 			boolean hasSpecialValue, String specialValue,
@@ -786,6 +789,7 @@ public class PreferencesUtilities {
 	    
 		IntegerFieldEditor field = new IntegerFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		
+		field.setToolTipText(toolTip);
 		if (!onProjectLevelWithNullProject) {
 			setField(field, fieldHolder);
 			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
@@ -823,7 +827,7 @@ public class PreferencesUtilities {
             PreferencePage page,
             PreferencesTab tab,
             IPreferencesService service,
-            String level, String key, String text,
+            String level, String key, String text, String toolTip,
             Composite parent,
             boolean isEnabled, boolean isEditable,
             boolean isRemovable)
@@ -839,6 +843,7 @@ public class PreferencesUtilities {
 
         FontFieldEditor field = new FontFieldEditor(page, tab, service, level, key, text, fieldHolder);
 
+        field.setToolTipText(toolTip);
         if (!onProjectLevelWithNullProject) {
             setField(field, fieldHolder);
             addFontPropertyChangeListeners(service, level, field, key, fieldHolder);
@@ -869,7 +874,7 @@ public class PreferencesUtilities {
     public RadioGroupFieldEditor makeNewRadioGroupField(
 		PreferencePage page, PreferencesTab tab,
 		IPreferencesService service, String level,	
-		String name, String labelText, int numColumns,
+		String name, String labelText, String toolTip, int numColumns,
         String[] values, String[] labels, Composite parent, boolean useGroup,
 		boolean isEnabled, boolean isRemovable)	
 	{	
@@ -891,6 +896,7 @@ public class PreferencesUtilities {
 	    		page, tab, service, level, name, labelText, numColumns,
 	    		values, labels, parent, useGroup);
 	    
+	    field.setToolTipText(toolTip);
 	    //Composite radioBoxControl = field.getRadioBoxControl(parent);
 	    //Composite radioBoxControlParent = field.getRadioBoxControl(parent).getParent();
 	    
@@ -936,7 +942,7 @@ public class PreferencesUtilities {
 			PreferencePage page,
 			PreferencesTab tab,
 			IPreferencesService service,
-			String level, String key, String text,
+			String level, String key, String text, String toolTip,
 			Composite parent,
 			boolean isEnabled, boolean isEditable,
 			boolean hasSpecialValue, String specialValue,
@@ -954,6 +960,7 @@ public class PreferencesUtilities {
 	    
 		StringFieldEditor field = new StringFieldEditor(page, tab, service, level, key, text, fieldHolder);
 		
+		field.setToolTipText(toolTip);
 		if (!onProjectLevelWithNullProject) {
 			setField(field, fieldHolder);
 			addStringPropertyChangeListeners(service, level, field, key, fieldHolder);
@@ -1052,12 +1059,6 @@ public class PreferencesUtilities {
 		return field;
 	}
 
-
-
-
-	
-	
-	
 	
 	
 	private void addBooleanPropertyChangeListeners(
@@ -1679,12 +1680,9 @@ public class PreferencesUtilities {
 	}
 	
 	
-	
 	/*
-	 * For laying out grid data in 	wigets for preferences pages (or anythink else)
+	 * For laying out grid data in widgets for preferences pages (or anything else)
 	 */
-	
-	
 	public static void fillGridPlace(Composite composite, int num) {
 		int count = num < 0 ? 0 : num;
 		for (int i = 1; i <= num; i++) {

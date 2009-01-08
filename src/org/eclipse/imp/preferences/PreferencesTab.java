@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Link;
+import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 
 public abstract class PreferencesTab
@@ -46,11 +47,15 @@ public abstract class PreferencesTab
 	
 	// The fields that occur on this tab
 	protected FieldEditor[] fFields = null;
-	
+
+	protected boolean fNoDetails = false;
+
 	// The details links that are associated with the fields
 	// (to be in one-to-one correspondence)
-	protected List<Link> fDetailsLinks = new ArrayList();
-	
+	protected List<Link> fDetailsLinks = new ArrayList<Link>();
+
+	protected String fLevel;
+
 	// Whether this tab is valid, that is, whether
 	// all of its fields are valid
 	protected boolean fIsValid = true;
@@ -58,51 +63,45 @@ public abstract class PreferencesTab
 	// The buttons on this tab
 	protected Control[] fButtons = null;
 	
-	
-	
 	// SMS 17 Nov 2006
 	protected TabItem fTabItem = null;
-	
+
+
+	public PreferencesTab(String level, boolean noDetails) {
+	    fLevel= level;
+	    fNoDetails= noDetails;
+	}
+
 	public TabItem getTabItem() {
 		return fTabItem;
 	}
-	
-	
-	
-	/**
-	 * To create specific preferences fields.  At this level does nothing.
-	 * To be overridden.
-	 *
-	 */
-	protected FieldEditor[] createFields(Composite composite) {
-		// TODO:  create specific preferences fields here
-		System.out.println("PreferencesTab.createFields():  unimplemented");
-		return null;
+
+	public String getLevel() {
+	    return fLevel;
 	}
-	
-	
-	/**
-	 * To create specific preferences fields.  At this level does nothing.
-	 * To be overridden.
-	 * 
-	 * This version is adapted for use in automatically generating the tabs.
-	 */
-	protected FieldEditor[] createFields(
-			TabbedPreferencesPage page,
-			PreferencesTab tab,
-			String level,
-			Composite parent)
-    {
-		// TODO:  create specific preferences fields here
-		System.out.println("PreferencesTab.createFields():  unimplemented");
-		return null;
+
+	public boolean getNoDetails() {
+	    return fNoDetails;
 	}
-	
-	
+
+	/**
+	 * Creates specific preferences fields.
+	 * Must be overridden, typically by language-specific tab classes.
+	 */
+	protected abstract FieldEditor[] createFields(TabbedPreferencesPage page, Composite parent);
+
+
+	/**
+	 * Creates the contents of the entire tab. Calls createFields().
+	 * Overridden by level-specific tab classes, but not typically overridden in language-specific
+	 * tab classes (which, instead, override createFields()).
+	 */
+    public abstract Composite createTabContents(TabbedPreferencesPage page, final TabFolder tabFolder);
+    
+
 	/*
 	 * Methods to set or clear an "error mark" on tab labels
 	 */
-
 
 	public void setErrorMarkOnTab() {
 		if (errorMessages.isEmpty()) {
@@ -163,7 +162,6 @@ public abstract class PreferencesTab
 	public void setErrorMessage(Object key, String msg) {
 		if (key != null && msg != null) {
 //			System.out.println("Tab = " + tabItem.getText() + ", field = " + ((FieldEditor)key).getPreferenceName() + ":  setErrorMessage(), setting message to:  " + msg);
-			errorMessages.remove(key);
 			errorMessages.put(key, msg);
 			fPrefPage.setErrorMessage(msg);
 		}
@@ -335,5 +333,4 @@ public abstract class PreferencesTab
 		}
 		
 	}
-	
 }

@@ -15,9 +15,9 @@
  */
 package org.eclipse.imp.runtime;
 
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.ILog;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
@@ -27,6 +27,8 @@ public abstract class PluginBase extends AbstractUIPlugin implements IPluginLog 
     protected boolean fEmitInfoMessages= false;
 
     public abstract String getID();
+
+    public abstract String getLanguageID();
 
     public void maybeWriteInfoMsg(String msg) {
         if (!fEmitInfoMessages)
@@ -76,18 +78,29 @@ public abstract class PluginBase extends AbstractUIPlugin implements IPluginLog 
     }
 
     public void refreshPrefs() {
-	// default: do nothing, no preferences
+        // default: do nothing, no preferences
     }
-    
-    
-    // SMS 22 Aug 2006
-    protected static PreferencesService preferencesService = null;
-    public static PreferencesService getPreferencesService() {
+
+    /**
+     * The unique project-independent preferences service for this plugin.
+     * Uses whatever this plugin activator's getLanguageID() method returns as the language.
+     */
+    protected PreferencesService preferencesService = null;
+
+    public PreferencesService getPreferencesService() {
     	if (preferencesService == null) {
-    		preferencesService = new PreferencesService(ResourcesPlugin.getWorkspace().getRoot().getProject());
+    		preferencesService = new PreferencesService();
+    		preferencesService.setLanguageName(getLanguageID());
+            // To trigger the automatic invocation of the preferences initializer:
+            try {
+                new DefaultScope().getNode(getID());
+            } catch (Exception e) {
+                // If this ever happens, it will probably be because the preferences
+                // and their initializer haven't been defined yet.  In that situation
+                // there's not really anything to do--you can't initialize preferences
+                // that don't exist.  So swallow the exception and continue ...
+            }
     	}
     	return preferencesService;
     }
-
-    
 }

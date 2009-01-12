@@ -7,14 +7,12 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences.fields;
 
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.imp.preferences.IPreferencesService;
-import org.eclipse.imp.preferences.Markings;
 import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
@@ -23,16 +21,25 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.PlatformUI;
 import org.osgi.service.prefs.BackingStoreException;
 
-
-public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
+/**
+ * FieldEditor implementation for boolean preferences that support the 4-level
+ * presentation (default, installation, workspace, and project) and "details links".
+ * Based on the org.eclipse.jface.preference class of the same name.
+ * @author sutton
+ * @author rfuhrer
+ */
+public class BooleanFieldEditor extends FieldEditor
 {
 	/*
-	 * Fields copied from BooleanFieldEditor
+	 * Fields copied from jface's BooleanFieldEditor
 	 */
 	
 	/**
@@ -98,9 +105,8 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
         this(page, tab, service, level, name, labelText, DEFAULT, parent);
     }
 
-    
-  
-    
+
+
     /*
      * Methods related to loading values from the preferences service
      * into the preferences store.
@@ -200,14 +206,6 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
     	String[] levels = IPreferencesService.levels;
     	int fieldLevelIndex = preferencesService.getIndexForLevel(preferencesLevel);
     		
-    	// If we're loading with inheritance for some field that is
-    	// not attached to a preferences level (such as the "applicable"
-    	// field, which inherits values from all of the real fields)
-    	// then assume that we should just search from the bottom up
-    	String tmpPreferencesLevel = (preferencesLevel == null)?
-    			levels[0] :
-    			preferencesLevel;
-     	
     	boolean value = false;
     	int levelAtWhichFound = -1;
     	
@@ -231,20 +229,25 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
     			break;
     		}
     	}
-    	
-    	// Ok, now have all necessary information to set everyting that needs to be set
+
+    	String previousLevelFromWhichLoaded = levelFromWhichLoaded;
+   	
+    	// Ok, now have all necessary information to set everything that needs to be set
     	levelFromWhichLoaded = levelLoaded;
     	setInherited(fieldLevelIndex != levelAtWhichFound);
        	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
        	setPreviousBooleanValue(getBooleanValue());
-    	setBooleanValue(value);
-    	
+       	boolean valueChanged = previousValue==null || ((Boolean)previousValue).booleanValue()!=value;
+       	boolean levelChanged = previousLevelFromWhichLoaded==null && levelFromWhichLoaded!=null || previousLevelFromWhichLoaded!=null && levelFromWhichLoaded==null || !previousLevelFromWhichLoaded.equals(levelFromWhichLoaded);
+       	if (levelChanged || valueChanged) {
+       		setBooleanValue(value);		// sets fieldModified and previousValue
+       	}
+   	
     	if (!isInherited())
     		getChangeControl().setBackground(PreferencesUtilities.colorWhite);
     	else
     		getChangeControl().setBackground(PreferencesUtilities.colorBluish);	
     	setPresentsDefaultValue(levelAtWhichFound == IPreferencesService.DEFAULT_INDEX);
-    	fieldModified = true;
 
         return levelLoaded;
     }
@@ -381,7 +384,7 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
         			setPreviousBooleanValue(!currentValue);
             	button.setSelection(newValue);
                 fieldModified = true;
-                setModifiedMarkOnLabel();
+//              setModifiedMarkOnLabel();
                 valueChanged();
         } else if (button.isDisposed()){
         	throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is disposed");
@@ -421,10 +424,42 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
         // Set modify mark in any case because field may
         // have changed, e.g., going from inherited to not
         // or vice versa, without the value changing
-        //setModifyMarkOnLabel();
+        setModifiedMarkOnLabel();
         return changed;
     }
     
+//   public static final org.eclipse.swt.graphics.FontData changedFontData = new org.eclipse.swt.graphics.FontData("Monaco", 11, 2);
+    private static final FontData[] arialFonts = PlatformUI.getWorkbench().getDisplay().getFontList("Arial", true);
+    private static FontData[] labelFonts;
+    
+    /**
+     * Initialize fonts for use in checkbox labels
+     * @return true if appropriate fonts available on system; false if not.
+     */
+    private boolean getLabelFonts() {
+    	if (labelFonts==null) {
+    		labelFonts = new FontData[2];
+	
+	    	for (FontData fd: arialFonts) {
+	    		if (fd.getHeight() <=10) {
+	    			switch (fd.getStyle()) {
+	    			case SWT.NORMAL: 
+	    				labelFonts[0] = fd;
+	    				break;
+	    			case SWT.ITALIC:
+	    				labelFonts[1] = fd;
+	    				break;
+	    			}
+	    		}
+	    	}
+    	}
+    	if (labelFonts[0]==null || labelFonts[1] == null) { // only vary font if reasonable fonts exist for both modified/unmodified
+    		return false;
+    	}
+    	return true;
+    	
+    }
+
     /*
      * For boolean fields we override the following two methods because
      * the means of accessing the text to be modified is different.
@@ -440,21 +475,31 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
     	// the marking
     	// if (isInherited) return;
     	if (checkBox != null) {
-	        String labelText = checkBox.getText();
-	        if (!labelText.startsWith(Markings.MODIFIED_MARK)) {
-		        labelText = Markings.MODIFIED_MARK + labelText;
-		        checkBox.setText(labelText);
-	        }
+//	        String labelText = checkBox.getText();
+//	        if (!labelText.startsWith(Markings.MODIFIED_MARK)) {
+//		        labelText = Markings.MODIFIED_MARK + labelText;
+//		        checkBox.setText(labelText);
+//	        }
+        	// replace changed mark by color to eliminate text-box overflow bug
+			checkBox.setForeground(PreferencesUtilities.colorRed); // this doesn't work on MacOSX: use font if possible
+	    	if (getLabelFonts()==false) return;
+	    	checkBox.setFont(new Font(getPage().getShell().getDisplay(), labelFonts[1]));
     	}
     }
 
     
     public void clearModifiedMarkOnLabel() {
+    	if (getLabelFonts()==false) return;
     	if (checkBox != null) {
-	        String labelText = checkBox.getText();
-	        if (labelText.startsWith(Markings.MODIFIED_MARK))
-	        		labelText = labelText.substring(1);
-	        checkBox.setText(labelText);
+//	        String labelText = checkBox.getText();
+//	        if (labelText.startsWith(Markings.MODIFIED_MARK))
+//	        		labelText = labelText.substring(1);
+//	        checkBox.setText(labelText);
+        	// replace changed mark by color to eliminate text-box overflow bug
+	        checkBox.setForeground(PreferencesUtilities.colorBlack); // this doesn't work on MacOSX: use font if possible
+	    	if (getLabelFonts()==false) return;
+	    	checkBox.setFont(new Font(getPage().getShell().getDisplay(), labelFonts[0]));
+
     	}
     }
  
@@ -462,7 +507,7 @@ public class BooleanFieldEditor extends FieldEditor //BooleanFieldEditor
      
     /*
      * Returns the change button for this field editor.
-     * This overrides the corresopnding superclass method so that we can set
+     * This overrides the corresponding superclass method so that we can set
      * a listener on the control for our purposes.
      * 
      */

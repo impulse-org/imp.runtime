@@ -271,10 +271,14 @@ public abstract class PreferencesTab
 	 * 
 	 */
 	public boolean performOk() {
-		for (int i = 0; i < fFields.length; i++) {
-			fFields[i].store();
-			fFields[i].clearModifiedMarkOnLabel();
-		}
+	    if (fFields != null) {
+    		for (int i = 0; i < fFields.length; i++) {
+    			fFields[i].store();
+    			fFields[i].clearModifiedMarkOnLabel();
+    			// RMF 1/9/2009 - For some reason, some performOk() implementations (like the X10DT's)
+    			// call setPresentsDefaultValue(false), which seems wrong...
+    		}
+	    }
 		return true;
 	}
 

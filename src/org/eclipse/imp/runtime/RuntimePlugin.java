@@ -42,18 +42,23 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     private static RuntimePlugin sPlugin;
 
     public RuntimePlugin() {
-	sPlugin= this;
+        sPlugin= this;
     }
 
     /**
      * Returns the singleton instance.
      */
     public static RuntimePlugin getInstance() {
-	return sPlugin;
+        return sPlugin;
     }
 
     public String getID() {
-	return IMP_RUNTIME;
+        return IMP_RUNTIME;
+    }
+
+    @Override
+    public String getLanguageID() {
+        return "IMP"; // used only as a preference path prefix
     }
 
     public FontRegistry getFontRegistry() {
@@ -69,9 +74,9 @@ public class RuntimePlugin extends PluginBase implements IStartup {
      * This method is called upon plug-in activation
      */
     public void start(BundleContext context) throws Exception {
-	super.start(context);
+        super.start(context);
 
-	// Initialize the Preferences fields with the preference store data.
+        // Initialize the Preferences fields with the preference store data.
         IPreferenceStore prefStore= getPreferenceStore();
 
         PreferenceCache.emitMessages= prefStore.getBoolean(PreferenceConstants.P_EMIT_MESSAGES);
@@ -84,8 +89,8 @@ public class RuntimePlugin extends PluginBase implements IStartup {
      * This method is called when the plug-in is stopped
      */
     public void stop(BundleContext context) throws Exception {
-	super.stop(context);
-	sPlugin= null;
+        super.stop(context);
+        sPlugin= null;
     }
 
     /**
@@ -95,7 +100,7 @@ public class RuntimePlugin extends PluginBase implements IStartup {
      * @return the image descriptor
      */
     public static ImageDescriptor getImageDescriptor(String path) {
-	return AbstractUIPlugin.imageDescriptorFromPlugin(IMP_RUNTIME, path);
+        return AbstractUIPlugin.imageDescriptorFromPlugin(IMP_RUNTIME, path);
     }
 
     private ImageDescriptorRegistry fImageDescriptorRegistry;
@@ -111,6 +116,6 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     }
 
     public void earlyStartup() {
-	LanguageRegistry.initializeRegistryAsNeeded();
+        LanguageRegistry.initializeRegistryAsNeeded();
     }
 }

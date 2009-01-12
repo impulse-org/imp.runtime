@@ -12,13 +12,13 @@
 
 package org.eclipse.imp.preferences.fields;
 
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -34,12 +34,8 @@ import org.eclipse.swt.widgets.Text;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
- * Things to note:
- * 
  * @author sutton
- *
  */
-
 public class StringFieldEditor extends FieldEditor
 {
     
@@ -115,14 +111,6 @@ public class StringFieldEditor extends FieldEditor
     {
     	super(page, tab, service, level, name, labelText, parent);
 
-    	// Relating to IMP things
-//    	preferencesService = service;
-//    	preferencesLevel = level;
-//    	this.parent = parent;
-//    	prefPage = page;
-//    	setPage(prefPage);
-//    	prefTab = tab;	
-    	
     	// Relating to StrinfFieldEditor things
         init(name, labelText);
         widthInChars = width;
@@ -341,13 +329,6 @@ public class StringFieldEditor extends FieldEditor
            	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
             setStringValue(value);
         }
-        // SMS 28 Nov 2006 added here
-       	// Set the background color of the field according to where found
-        Text text = getTextControl(parent);
-        if (isInherited())
-        	text.setBackground(PreferencesUtilities.colorBluish);
-        else
-        	text.setBackground(PreferencesUtilities.colorWhite);
     }
 
  
@@ -652,6 +633,13 @@ public class StringFieldEditor extends FieldEditor
             fieldModified = true;
             setPreviousStringValue(newValue);
 	        setModifiedMarkOnLabel();
+	        // SMS 28 Nov 2006 added here
+	        // Set the background color of the field according to where found
+	        Text text = getTextControl(parent);
+	        if (isInherited())
+	            text.setBackground(PreferencesUtilities.colorBluish);
+	        else
+	            text.setBackground(PreferencesUtilities.colorWhite);
         }
         
         return valueChanged;

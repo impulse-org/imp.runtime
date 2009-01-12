@@ -257,7 +257,7 @@ public class PreferencesUtilities {
 
     public String setField(FontFieldEditor field, Composite composite, FontData[] value)
     {
-        final String whoiam = "PreferencesUtilities.setField(ComboFieldEditor field, composite, value):  ";
+        final String whoiam = "PreferencesUtilities.setField(FontFieldEditor field, composite, value): ";
         
         if (field == null)
             throw new IllegalArgumentException(whoiam + "given field is null");
@@ -381,8 +381,6 @@ public class PreferencesUtilities {
 	}
 
 	
-	
-	
 	public String setField(StringFieldEditor field, Composite composite)
 	{
 		// TODO:  Add checks on input validity (see below)
@@ -442,7 +440,6 @@ public class PreferencesUtilities {
 		return levelFromWhichSet;
 	}
 	
-	
 
 	public String setField(StringFieldEditor field, Composite composite, String value)
 	{
@@ -483,7 +480,7 @@ public class PreferencesUtilities {
         // field belongs (which should be true but isn't guaranteed (?))
 
         String level = field.getPreferencesLevel();
-        
+
         // If the level is "project" and project == null then just set
         // the field here (as a special case).
         // Note:  without some project selected the field should not be
@@ -506,21 +503,23 @@ public class PreferencesUtilities {
             field.setFieldValueFromOutside(null);
             if (!parent.isDisposed()) {
                 field.getChangeControl().setEnabled(false);
+                // TODO RMF 1/10/2009 - The change control probably isn't the control whose color we ought to change...
                 field.getChangeControl().setBackground(colorBluish);
             }
             // Pretend that this was set at the project level?
             // (It was certainly cleared at that level)
             return IPreferencesService.PROJECT_LEVEL;
         }
-        
+
         // Otherwise, we have a legitimate level, so set normally
         String levelFromWhichSet = field.loadWithInheritance();
-        
-        // Note:  You can evidently load a field even when it's control
+
+        // Note:  You can evidently load a field even when its control
         // is disposed.  In that case (evidently) you can change the
         // text in the field but not the background color.  
-        
+
         if (parent != null && !parent.isDisposed()) {
+            // TODO RMF 1/10/2009 - The change control probably isn't the control whose color we ought to change...
             if (level != null && level.equals(levelFromWhichSet)) {
                 field.getChangeControl().setBackground(colorWhite);
             } else if (level != null && field.getChangeControl().getEnabled()) {
@@ -537,7 +536,14 @@ public class PreferencesUtilities {
         return levelFromWhichSet;
     }
     
-    
+    // RMF 1/10/2009 - Not sure this is at all necessary... but does it hurt? The X10DT PrefUtils did this...
+    protected void initializeField(FieldEditor pe, PreferencePage page) {
+        if (page instanceof IPropertyChangeListener) {
+            pe.setPropertyChangeListener((IPropertyChangeListener)page);
+        }
+        pe.setPreferenceStore(page.getPreferenceStore());
+
+    }
 	
 	public BooleanFieldEditor makeNewBooleanField(
 	   		PreferencePage page, PreferencesTab tab,
@@ -578,6 +584,7 @@ public class PreferencesUtilities {
 		else if (level.equals(IPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);
 		else field.setRemovable(isRemovable);
 
+        initializeField(field, page);
 		//System.err.println("SPU.makeNewBooleanField() ending for key = " + key);
 		return field;
 	}	
@@ -818,7 +825,7 @@ public class PreferencesUtilities {
 		else if (level.equals(IPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
 		else field.setRemovable(isRemovable);
 		
-		//System.err.println("SPU.makeNewIntegerField() ending for key = " + key);
+        initializeField(field, page);
 		return field;
 	}
 
@@ -832,7 +839,6 @@ public class PreferencesUtilities {
             boolean isEnabled, boolean isEditable,
             boolean isRemovable)
     {
-        //System.err.println("SPU.makeNewIntegerField() starting for key = " + key);
         Composite fieldHolder = new Composite(parent, SWT.NONE);
         fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -866,7 +872,7 @@ public class PreferencesUtilities {
         else if (level.equals(IPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);    // can never remove from Default level
         else field.setRemovable(isRemovable);
 
-        //System.err.println("SPU.makeNewFontField() ending for key = " + key);
+        initializeField(field, page);
         return field;
     }
 
@@ -949,7 +955,6 @@ public class PreferencesUtilities {
 			boolean emptyValueAllowed, String emptyValue,
 			boolean isRemovable)
 	{
-		//System.err.println("SPU.makeNewStringField() starting for key = " + key);
 		Composite fieldHolder = new Composite(parent, SWT.NONE);
 		fieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
@@ -992,7 +997,7 @@ public class PreferencesUtilities {
 		else if (level.equals(IPreferencesService.DEFAULT_LEVEL)) field.setRemovable(false);	// can never remove from Default level
 		else field.setRemovable(isRemovable);
 		
-		//System.err.println("SPU.makeNewStringField() ending for key = " + key);
+        initializeField(field, page);
 		return field;
 	}
 
@@ -1178,7 +1183,7 @@ public class PreferencesUtilities {
     }
 	
 	
-	private void addComboPropertyChangeListeners(
+	protected void addComboPropertyChangeListeners(
 		IPreferencesService service, String level, ComboFieldEditor field, String key, Composite composite)
 	{
 		int levelIndex = service.getIndexForLevel(level);
@@ -1194,7 +1199,7 @@ public class PreferencesUtilities {
 	}
 	
 
-	private void addRadioGroupPropertyChangeListeners(
+	protected void addRadioGroupPropertyChangeListeners(
 		IPreferencesService service, String level, RadioGroupFieldEditor field, String key, Composite composite)
 	{
 		int levelIndex = service.getIndexForLevel(level);
@@ -1210,7 +1215,7 @@ public class PreferencesUtilities {
 	}
 	
 
-	private void addStringPropertyChangeListeners(
+	protected void addStringPropertyChangeListeners(
 		IPreferencesService service, String level, StringFieldEditor field, String key, Composite composite)
 	{
 		int levelIndex = service.getIndexForLevel(level);
@@ -1226,7 +1231,7 @@ public class PreferencesUtilities {
 	}
 
 
-	private void addFontPropertyChangeListeners(
+	protected void addFontPropertyChangeListeners(
 	           IPreferencesService service, String level, FontFieldEditor field, String key, Composite composite)
 	{   
 	    int levelIndex = service.getIndexForLevel(level);
@@ -1684,13 +1689,10 @@ public class PreferencesUtilities {
 	 * For laying out grid data in widgets for preferences pages (or anything else)
 	 */
 	public static void fillGridPlace(Composite composite, int num) {
-		int count = num < 0 ? 0 : num;
 		for (int i = 1; i <= num; i++) {
 			Label label = new Label(composite, SWT.NONE);
 			label.setText("This space intentionally left blank");
 			label.setVisible(false);
 		}
 	}
-
-	
 }

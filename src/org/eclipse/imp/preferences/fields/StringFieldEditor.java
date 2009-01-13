@@ -38,8 +38,15 @@ import org.osgi.service.prefs.BackingStoreException;
  */
 public class StringFieldEditor extends FieldEditor
 {
-    
-	/**
+    public interface Validator {
+        /**
+         * @param value
+         * @return a non-null error message if the value fails validation
+         */
+        String validate(String value);
+    }
+
+    /**
      * Cached valid state.
      */
     private boolean isValid;
@@ -87,7 +94,8 @@ public class StringFieldEditor extends FieldEditor
      */
     protected int validateStrategy = org.eclipse.jface.preference.StringFieldEditor.VALIDATE_ON_KEY_STROKE;
 
- 
+
+    protected Validator validator;
 	
 	
     /**
@@ -191,6 +199,9 @@ public class StringFieldEditor extends FieldEditor
         validateStrategy = value;
     }
 
+    public void setValidator(Validator validator) {
+        this.validator = validator;
+    }
     
     /*
      * Methods related to a special value for this field, treated
@@ -690,7 +701,14 @@ public class StringFieldEditor extends FieldEditor
      * @return	Whether the state is okay based on additional checks
      */
     protected boolean doCheckState() {
-    	clearErrorMessage();
+        if (validator != null) {
+            String msg= validator.validate(getStringValue());
+            if (msg != null) {
+                setErrorMessage(msg);
+                return false;
+            }
+        }
+        clearErrorMessage();
     	return true;
     }
     

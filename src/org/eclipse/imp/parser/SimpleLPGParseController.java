@@ -299,14 +299,15 @@ public abstract class SimpleLPGParseController implements IParseController
     protected void cacheKeywordsOnce() {
         if (fKeywords == null) {
             try {
-                String tokenKindNames[]= getParser().orderedTerminalSymbols();
+                IParser parser = getParser();
+				String tokenKindNames[]= parser.orderedTerminalSymbols();
                 this.fIsKeyword= new boolean[tokenKindNames.length];
                 this.fKeywords= new char[tokenKindNames.length][];
                 int[] keywordKinds= getLexer().getKeywordKinds();
                 for(int i= 1; i < keywordKinds.length; i++) {
-                    int index= getParser().getParseStream().mapKind(keywordKinds[i]);
+                    int index= parser.getParseStream().mapKind(keywordKinds[i]);
                     fIsKeyword[index]= true;
-                    fKeywords[index]= getParser().orderedTerminalSymbols()[index].toCharArray();
+                    fKeywords[index]= parser.orderedTerminalSymbols()[index].toCharArray();
                 }
             } catch (NullPointerException e) {
                 System.err.println("SimpleLPGParseController.cacheKeywordsOnce():  NullPointerException; trapped and discarded");

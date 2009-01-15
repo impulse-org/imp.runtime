@@ -16,6 +16,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
 import org.eclipse.compare.IEncodedStreamContentAccessor;
 import org.eclipse.compare.IStreamContentAccessor;
@@ -49,16 +51,16 @@ public class StreamUtils {
     }
 
     /**
-     * Reads the contents of the given input stream into a string using the given encoding.
-     * Returns null if an error occurred.
+     * Reads the contents of the given reader into a string using the encoding
+     * associated with the reader. Returns null if an error occurred.
      */
-    public static String readStreamContents(InputStream is, String encoding) {
+    public static String readReaderContents(Reader r) {
         BufferedReader reader= null;
         try {
             StringBuffer buffer= new StringBuffer();
             char[] part= new char[2048];
             int read= 0;
-            reader= new BufferedReader(new InputStreamReader(is, encoding));
+            reader= new BufferedReader(r);
     
             while ((read= reader.read(part)) != -1)
                 buffer.append(part, 0, read);
@@ -78,7 +80,19 @@ public class StreamUtils {
         return null;
     }
 
+    /**
+     * Reads the contents of the given input stream into a string using the given encoding.
+     * Returns null if an error occurred.
+     */
+    public static String readStreamContents(InputStream is, String encoding) {
+    	try {
+			return readReaderContents(new InputStreamReader(is, encoding));
+		} catch (UnsupportedEncodingException e) {
+			return null;
+		}
+    }
+
     public static String readStreamContents(InputStream is) {
-	return readStreamContents(is, ResourcesPlugin.getEncoding());
+    	return readStreamContents(is, ResourcesPlugin.getEncoding());
     }
 }

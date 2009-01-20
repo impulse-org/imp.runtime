@@ -1491,13 +1491,13 @@ public class PreferencesService implements IPreferencesService
 	{
 		// Level == null okay, as we can start at the bottom in that case
 		
-		if (!isaPreferencesLevel(level)) {
+		if (level != null && !isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException("PreferencesService.getApplicableLevel (with project):  given level '" + level + "' is not a real level");
 		}
 		if (key == null) {
 			throw new IllegalArgumentException("PreferencesService.getApplicableLevel (with project):  given key is null");
 		}
-		if (level.equals(PROJECT_LEVEL) && projectScope == null) {
+		if (level != null && level.equals(PROJECT_LEVEL) && projectScope == null) {
 			throw new IllegalStateException("PreferencesService.getApplicableLevel (with project):  node for project requested when project scope is null");
 		}
 		

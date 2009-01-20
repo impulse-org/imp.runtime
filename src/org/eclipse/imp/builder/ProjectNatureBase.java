@@ -48,7 +48,7 @@ public abstract class ProjectNatureBase implements IProjectNature {
      */
     // TODO this should be a property of the builder itself...
     protected String getDownstreamBuilderID() {
-	return null; // by default, no such dependency
+        return null; // by default, no such dependency
     }
 
     /**
@@ -57,151 +57,152 @@ public abstract class ProjectNatureBase implements IProjectNature {
      */
     // TODO this should be a property of the builder itself...
     protected String getUpstreamBuilderID() {
-	return null; // by default, no such dependency
+        return null; // by default, no such dependency
     }
 
     public void addToProject(IProject project) {
-	String natureID= getNatureID();
+        String natureID= getNatureID();
 
-	refreshPrefs();
-	// SMS 16 Apr 2007
-	// You can find log null here if the plugin hasn't been started yet.
-	// It is intended that the manifest file for the IDE plugin should have autostart
-	// set to true, in which case the log should not come back null, but if the
-	// manifest file has been corrupted (which can happen if you regenerate services
-	// over prior implementations) then the autostart property may be lost and the
-	// pluin may not be started yet.
-	IPluginLog log = getLog();
-	log.maybeWriteInfoMsg("Attempting to add nature " + natureID);
+        refreshPrefs();
+        // SMS 16 Apr 2007
+        // You can find log null here if the plugin hasn't been started yet.
+        // It is intended that the manifest file for the IDE plugin should have autostart
+        // set to true, in which case the log should not come back null, but if the
+        // manifest file has been corrupted (which can happen if you regenerate services
+        // over prior implementations) then the autostart property may be lost and the
+        // pluin may not be started yet.
+        IPluginLog log = getLog();
+        log.maybeWriteInfoMsg("Attempting to add nature " + natureID);
 
-	try {
-	    IProjectDescription	description= project.getDescription();
-	    String[] natures= description.getNatureIds();
-	    String[] newNatures= new String[natures.length + 1];
+        try {
+            IProjectDescription description= project.getDescription();
+            String[] natures= description.getNatureIds();
+            String[] newNatures= new String[natures.length + 1];
 
-	    System.arraycopy(natures, 0, newNatures, 0, natures.length);
-	    newNatures[natures.length]= natureID;
+            System.arraycopy(natures, 0, newNatures, 0, natures.length);
+            newNatures[natures.length]= natureID;
 
-	    description.setNatureIds(newNatures);
-	    project.setDescription(description, null);
+            description.setNatureIds(newNatures);
+            project.setDescription(description, null);
 
-	    // At this point, this nature's builder should be in the project description,
-	    // but since the description holds only nature ID's, the Eclipse framework ends
-	    // up instantiating the nature itself and calling configure() on that instance.
-	    // It uses the default (no-arg) ctor to do this, so that instance won't have
-	    // enough info to properly populate the builder arguments, if any. So: we need
-	    // to find the builder now and set its arguments using getBuilderArguments().
-	    // N.B.: As an added twist, we have to ask Eclipse for the project description
-	    // again, rather than using the one we got above, since the latter won't have
-	    // the builder in it.
-	    IProjectDescription newDesc= project.getDescription();
-	    ICommand[] builders= newDesc.getBuildSpec();
+            // At this point, this nature's builder should be in the project description,
+            // but since the description holds only nature ID's, the Eclipse framework ends
+            // up instantiating the nature itself and calling configure() on that instance.
+            // It uses the default (no-arg) ctor to do this, so that instance won't have
+            // enough info to properly populate the builder arguments, if any. So: we need
+            // to find the builder now and set its arguments using getBuilderArguments().
+            // N.B.: As an added twist, we have to ask Eclipse for the project description
+            // again, rather than using the one we got above, since the latter won't have
+            // the builder in it.
+            IProjectDescription newDesc= project.getDescription();
+            ICommand[] builders= newDesc.getBuildSpec();
+            String builderID= getBuilderID();
 
-	    for(int i= 0; i < builders.length; i++) {
-		if (builders[i].getBuilderName().equals(getBuilderID())) {
-		    builders[i].setArguments(getBuilderArguments());
-		}
-	    }
-	    newDesc.setBuildSpec(builders);
-	    project.setDescription(newDesc, null);
-	    getLog().maybeWriteInfoMsg("Added nature " + natureID);
-	} catch (CoreException e) {
-	    // Something went wrong
-	    getLog().writeErrorMsg("Failed to add nature " + natureID + ": " + e.getMessage());
-	}
+            for(int i= 0; i < builders.length; i++) {
+                if (builders[i].getBuilderName().equals(builderID)) {
+                    builders[i].setArguments(getBuilderArguments());
+                }
+            }
+            newDesc.setBuildSpec(builders);
+            project.setDescription(newDesc, null);
+            getLog().maybeWriteInfoMsg("Added nature " + natureID);
+        } catch (CoreException e) {
+            // Something went wrong
+            getLog().writeErrorMsg("Failed to add nature " + natureID + ": " + e.getMessage());
+        }
     }
 
     public void configure() throws CoreException {
-	IProjectDescription desc= getProject().getDescription();
-	String builderID= getBuilderID();
-	ICommand[] cmds= desc.getBuildSpec();
+        IProjectDescription desc= getProject().getDescription();
+        String builderID= getBuilderID();
+        ICommand[] cmds= desc.getBuildSpec();
 
-	// Check: is the builder already in this project?
-	for(int i=0; i < cmds.length; i++) {
-	    if (cmds[i].getBuilderName().equals(builderID))
-		return; // relevant command is already in there...
-	}
+        // Check: is the builder already in this project?
+        for(int i=0; i < cmds.length; i++) {
+            if (cmds[i].getBuilderName().equals(builderID))
+                return; // relevant command is already in there...
+        }
 
-	int beforeWhere= cmds.length;
-	String downstreamBuilderID= getDownstreamBuilderID();
+        int beforeWhere= cmds.length;
+        String downstreamBuilderID= getDownstreamBuilderID();
 
-	if (downstreamBuilderID != null) {
-	    // Since this builder produces artifacts that another one will
-	    // post-process, it needs to run *before* that one.
-	    // So, find the right spot (in front of that builder) to put this one.
-	    for(beforeWhere--; beforeWhere >= 0; beforeWhere--) {
-		if (cmds[beforeWhere].getBuilderName().equals(downstreamBuilderID))
-		    break; // found it
-	    }
-	    if (beforeWhere < 0)
-		getLog().writeErrorMsg("Unable to find downstream builder '" + downstreamBuilderID + "' for builder '" + builderID + "'.");
-	}
+        if (downstreamBuilderID != null) {
+            // Since this builder produces artifacts that another one will
+            // post-process, it needs to run *before* that one.
+            // So, find the right spot (in front of that builder) to put this one.
+            for(beforeWhere--; beforeWhere >= 0; beforeWhere--) {
+                if (cmds[beforeWhere].getBuilderName().equals(downstreamBuilderID))
+                    break; // found it
+            }
+            if (beforeWhere < 0)
+                getLog().writeErrorMsg("Unable to find downstream builder '" + downstreamBuilderID + "' for builder '" + builderID + "'.");
+        }
 
-	int afterWhere= -1;
-	String upstreamBuilderID= getUpstreamBuilderID();
+        int afterWhere= -1;
+        String upstreamBuilderID= getUpstreamBuilderID();
 
-	if (upstreamBuilderID != null) {
-	    // This builder consumes artifacts that another one will produce,
-	    // so it needs to run *after* that one.
-	    // So, find the right spot (after that builder) to put this one.
-	    for(afterWhere= 0; afterWhere < cmds.length; afterWhere++) {
-		if (cmds[afterWhere].getBuilderName().equals(upstreamBuilderID))
-		    break; // found it
-	    }
-	    if (afterWhere == cmds.length)
-		getLog().writeErrorMsg("Unable to find upstream builder '" + upstreamBuilderID + "' for builder '" + builderID + "'.");
-	}
+        if (upstreamBuilderID != null) {
+            // This builder consumes artifacts that another one will produce,
+            // so it needs to run *after* that one.
+            // So, find the right spot (after that builder) to put this one.
+            for(afterWhere= 0; afterWhere < cmds.length; afterWhere++) {
+                if (cmds[afterWhere].getBuilderName().equals(upstreamBuilderID))
+                    break; // found it
+            }
+            if (afterWhere == cmds.length)
+                getLog().writeErrorMsg("Unable to find upstream builder '" + upstreamBuilderID + "' for builder '" + builderID + "'.");
+        }
 
-	if (beforeWhere <= afterWhere)
-	    getLog().writeErrorMsg("Error: builder '" + builderID + "' needs to be before downstream builder '" + downstreamBuilderID + "' but after builder " + upstreamBuilderID + ", but " + downstreamBuilderID + " comes after " + upstreamBuilderID + "!");
-	if (beforeWhere == cmds.length && afterWhere >= 0)
-	    beforeWhere= afterWhere + 1;
+        if (beforeWhere <= afterWhere)
+            getLog().writeErrorMsg("Error: builder '" + builderID + "' needs to be before downstream builder '" + downstreamBuilderID + "' but after builder " + upstreamBuilderID + ", but " + downstreamBuilderID + " comes after " + upstreamBuilderID + "!");
+        if (beforeWhere == cmds.length && afterWhere >= 0)
+            beforeWhere= afterWhere + 1;
 
-	ICommand compilerCmd= desc.newCommand();
+        ICommand compilerCmd= desc.newCommand();
 
-	compilerCmd.setBuilderName(builderID);
-	// RMF 8/9/2006 - Don't bother trying to set the builder arguments here; this instance of
-	// the nature will have been constructed with the no-arg ctor (by the Eclipse framework),
-	// and won't have enough info to compute the builder arguments. Do it later, in addToProject(),
-	// which will hopefully be executed by a nature instance that does have the necessary info.
-//	compilerCmd.setArguments(getBuilderArguments());
+        compilerCmd.setBuilderName(builderID);
+        // RMF 8/9/2006 - Don't bother trying to set the builder arguments here; this instance of
+        // the nature will have been constructed with the no-arg ctor (by the Eclipse framework),
+        // and won't have enough info to compute the builder arguments. Do it later, in addToProject(),
+        // which will hopefully be executed by a nature instance that does have the necessary info.
+        //   compilerCmd.setArguments(getBuilderArguments());
 
-	ICommand[] newCmds= new ICommand[cmds.length+1];
+        ICommand[] newCmds= new ICommand[cmds.length+1];
 
-	System.arraycopy(cmds, 0, newCmds, 0, beforeWhere);
-	newCmds[beforeWhere] = compilerCmd;
-	System.arraycopy(cmds, beforeWhere, newCmds, beforeWhere+1, cmds.length-beforeWhere);
-	desc.setBuildSpec(newCmds);
-	getProject().setDescription(desc, null);
+        System.arraycopy(cmds, 0, newCmds, 0, beforeWhere);
+        newCmds[beforeWhere] = compilerCmd;
+        System.arraycopy(cmds, beforeWhere, newCmds, beforeWhere+1, cmds.length-beforeWhere);
+        desc.setBuildSpec(newCmds);
+        getProject().setDescription(desc, null);
     }
 
     protected Map getBuilderArguments() {
-	return new HashMap();
+        return new HashMap();
     }
 
     public void deconfigure() throws CoreException {
-	IProjectDescription desc= getProject().getDescription();
-	String builderID= getBuilderID();
-	ICommand[] cmds= desc.getBuildSpec();
+        IProjectDescription desc= getProject().getDescription();
+        String builderID= getBuilderID();
+        ICommand[] cmds= desc.getBuildSpec();
 
-	for(int i=0; i < cmds.length; ++i) {
-	    if (cmds[i].getBuilderName().equals(builderID)) {
-		ICommand[] newCmds= new ICommand[cmds.length - 1];
+        for(int i=0; i < cmds.length; ++i) {
+            if (cmds[i].getBuilderName().equals(builderID)) {
+                ICommand[] newCmds= new ICommand[cmds.length - 1];
 
-		System.arraycopy(cmds, 0, newCmds, 0, i);
-		System.arraycopy(cmds, i + 1, newCmds, i, cmds.length - i - 1);
-		desc.setBuildSpec(newCmds);
-		getProject().setDescription(desc, null);
-		return;
-	    }
-	}
+                System.arraycopy(cmds, 0, newCmds, 0, i);
+                System.arraycopy(cmds, i + 1, newCmds, i, cmds.length - i - 1);
+                desc.setBuildSpec(newCmds);
+                getProject().setDescription(desc, null);
+                return;
+            }
+        }
     }
 
     public IProject getProject() {
-	return fProject;
+        return fProject;
     }
 
     public void setProject(IProject project) {
-	fProject= project;
+        fProject= project;
     }
 }

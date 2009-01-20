@@ -431,7 +431,7 @@ public class RadioGroupFieldEditor extends FieldEditor {
     	try {
     		if (node != null) node.flush();
     	} catch (BackingStoreException e) {
-    		System.err.println("StringFieldEditor.():  BackingStoreException flushing node;  node may not have been flushed:" + 
+    		System.err.println("StringFieldEditor.doStore():  BackingStoreException flushing node;  node may not have been flushed:" + 
     				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
     	}
     }
@@ -447,7 +447,7 @@ public class RadioGroupFieldEditor extends FieldEditor {
      * text on which "modified" marks are set and cleared.  The implementations of
      * the methods that set and clear the marks assume the use of a group to hold
      * the buttons.  If groups are not used for this purpose, then the methods to
-     * set and clear the marks will need to be adapted accordinly.
+     * set and clear the marks will need to be adapted accordingly.
      * 
      * @see org.eclipse.imp.preferences.fields.FieldEditor#setModifiedMarkOnLabel()
      * @see org.eclipse.imp.preferences.fields.FieldEditor#clearModifiedMarkOnLabel()
@@ -457,11 +457,8 @@ public class RadioGroupFieldEditor extends FieldEditor {
     public void setModifiedMarkOnLabel() {
     	if (radioBox != null && useGroup) {
     		Group radioGroup = (Group) radioBox;
-	        String labelText = radioGroup.getText();
-	        if (!labelText.startsWith(Markings.MODIFIED_MARK)) {
-		        labelText = Markings.MODIFIED_MARK + labelText;
-		        radioGroup.setText(labelText);
-	        }
+
+    		radioGroup.setForeground(PreferencesUtilities.colorRed);
     	}
     }
 
@@ -469,10 +466,8 @@ public class RadioGroupFieldEditor extends FieldEditor {
     public void clearModifiedMarkOnLabel() {
     	if (radioBox != null && useGroup) {
     		Group radioGroup = (Group) radioBox;
-	        String labelText = radioGroup.getText();
-	        if (labelText.startsWith(Markings.MODIFIED_MARK))
-	        		labelText = labelText.substring(Markings.MODIFIED_MARK.length());
-	        radioGroup.setText(labelText);
+
+            radioGroup.setForeground(PreferencesUtilities.colorBlack);
     	}
     }
     

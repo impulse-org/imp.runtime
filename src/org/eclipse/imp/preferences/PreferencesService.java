@@ -1502,7 +1502,7 @@ public class PreferencesService implements IPreferencesService
 		}
 		
 
-		int startIndex = level == null ? 0 : getIndexForLevel(level);
+		int startIndex = level == null ? (project != null ? PROJECT_INDEX : INSTANCE_INDEX) : getIndexForLevel(level);
 
 		if (startIndex == PROJECT_INDEX) {
 			IScopeContext context = getScopeForProject(project);

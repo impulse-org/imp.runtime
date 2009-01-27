@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Stack;
 
 import lpg.runtime.IToken;
+import lpg.runtime.PrsStream;
 
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.parser.IParseController;
@@ -391,8 +392,9 @@ public abstract class OutlinerBase implements IOutliner
     	// (for simplicity assume that current values are not null)
     	
     	// Get current values for comparison to previous
-    	ArrayList tokens = ((SimpleLPGParseController) controller).getParser().getParseStream().getTokens();
-    	char[] chars = ((SimpleLPGParseController) controller).getLexer().getLexStream().getInputChars();
+    	final PrsStream parseStream= ((SimpleLPGParseController) controller).getParser().getParseStream();
+        ArrayList tokens = parseStream.getTokens();
+    	char[] chars = parseStream.getInputChars();
     	
     	// Get previous values for comparison to current
     	IParseController previousController = (IParseController) previous[0];

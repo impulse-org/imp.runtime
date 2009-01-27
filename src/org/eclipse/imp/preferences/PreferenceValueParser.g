@@ -398,6 +398,8 @@
 
 	    public IPrsStream getPrsStream() { return null; }
 	    public LpgLexStream getLexStream() { return lexStream; }
+        public IPrsStream getIPrsStream() { return null; }
+        public LpgLexStream getILexStream() { return lexStream; }
 
 	    public int getLine() { return lexStream.getLine(offset); }
 	    public int getColumn() { return lexStream.getColumn(offset); }

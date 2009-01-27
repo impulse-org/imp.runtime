@@ -1547,7 +1547,7 @@ public class PreferencesService implements IPreferencesService
 	}
 		
 	public boolean isDefined(IProject project, String key) {
-		return getApplicableLevel(project, key, null) == null;
+		return getApplicableLevel(project, key, null) != null;
 	}
 	
 	

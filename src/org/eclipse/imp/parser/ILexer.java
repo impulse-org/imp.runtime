@@ -12,14 +12,14 @@
 
 package org.eclipse.imp.parser;
 
+import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
-import lpg.runtime.LexStream;
 import lpg.runtime.Monitor;
 
 public interface ILexer {
     public int[] getKeywordKinds();
 
-    public LexStream getLexStream();
+    public ILexStream getLexStream();
 
     public void initialize(char[] contents, String filename);
 

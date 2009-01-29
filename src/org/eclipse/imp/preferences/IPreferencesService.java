@@ -15,6 +15,8 @@ package org.eclipse.imp.preferences;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
+import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
 import org.osgi.service.prefs.Preferences;
 
 
@@ -368,6 +370,69 @@ public interface IPreferencesService {
 	public int getIndexForLevel(String level);
 	
 	
+    public abstract class PreferenceServiceListener implements IPreferenceChangeListener {
+        private final String fKey;
+        private final IEclipsePreferences fConfigLevel;
+        private final IEclipsePreferences fWSLevel;
+        private final IEclipsePreferences fProjLevel;
+
+        PreferenceServiceListener(IPreferencesService service, String key) {
+            fKey= key;
+            fConfigLevel= service.getPreferences(IPreferencesService.CONFIGURATION_LEVEL);
+            fWSLevel= service.getPreferences(IPreferencesService.INSTANCE_LEVEL);
+            fProjLevel= service.getPreferences(IPreferencesService.PROJECT_LEVEL);
+
+            fConfigLevel.addPreferenceChangeListener(this);
+            fWSLevel.addPreferenceChangeListener(this);
+            fProjLevel.addPreferenceChangeListener(this);
+        }
+
+        public void preferenceChange(PreferenceChangeEvent event) {
+            if (!event.getKey().equals(fKey))
+                return;
+            handleChange(event.getOldValue(), event.getNewValue());
+        }
+
+        public void dispose() {
+            fConfigLevel.removePreferenceChangeListener(this);
+            fWSLevel.removePreferenceChangeListener(this);
+            fProjLevel.removePreferenceChangeListener(this);
+        }
+
+        protected abstract void handleChange(Object oldValue, Object newValue);
+    }
+
+    public abstract class StringPreferenceListener extends PreferenceServiceListener {
+        public StringPreferenceListener(IPreferencesService service, String key) {
+            super(service, key);
+        }
+        @Override
+        protected final void handleChange(Object oldValue, Object newValue) {
+            changed((String) oldValue, (String) newValue);
+        }
+        public abstract void changed(String oldValue, String newValue);
+    }
+
+    public abstract class BooleanPreferenceListener extends PreferenceServiceListener {
+        public BooleanPreferenceListener(IPreferencesService service, String key) {
+            super(service, key);
+        }
+        @Override
+        protected final void handleChange(Object oldValue, Object newValue) {
+            changed(Boolean.parseBoolean((String) oldValue), Boolean.parseBoolean((String) newValue));
+        }
+        public abstract void changed(boolean oldValue, boolean newValue);
+    }
+
+    public abstract class IntegerPreferenceListener extends PreferenceServiceListener {
+        public IntegerPreferenceListener(IPreferencesService service, String key) {
+            super(service, key);
+        }
+        protected final void handleChange(Object oldValue, Object newValue) {
+            changed(Integer.parseInt((String) oldValue), Integer.parseInt((String) newValue));
+        }
+        public abstract void changed(int oldValue, int newValue);
+    }
 
 	
 	/*

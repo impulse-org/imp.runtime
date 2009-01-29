@@ -12,11 +12,6 @@
 
 package org.eclipse.imp.editor;
 
-/*
- * Licensed Materials - Property of IBM,
- * (c) Copyright IBM Corp. 1998, 2004  All Rights Reserved
- */
-
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -29,6 +24,7 @@ import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -57,8 +53,13 @@ import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
+import org.eclipse.imp.preferences.PreferencesService;
+import org.eclipse.imp.preferences.IPreferencesService.IntegerPreferenceListener;
+import org.eclipse.imp.preferences.IPreferencesService.PreferenceServiceListener;
+import org.eclipse.imp.preferences.IPreferencesService.StringPreferenceListener;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
@@ -82,7 +83,6 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.internal.text.html.BrowserInformationControl;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
@@ -158,7 +158,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
@@ -184,7 +183,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".showOutlineCommand";
 
-    //mmk 8/4/08
     public static final String INDENT_SELECTION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".indentSelection";
 
     /**
@@ -222,6 +220,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private SubActionBars fActionBars;
 
     private DefaultPartListener fRefreshContributions;
+
+    private IPreferencesService fLangSpecificPrefs;
+
+    private PreferenceServiceListener fFontListener;
+
+    private PreferenceServiceListener fTabListener;
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
@@ -288,7 +292,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
 
-        // mmk 8/4/08
         action= new TextOperationAction(bundle, "IndentSelection.", this, StructuredSourceViewer.INDENT_SELECTION); //$NON-NLS-1$
         action.setActionDefinitionId(INDENT_SELECTION_COMMAND);
         setAction(INDENT_SELECTION_COMMAND, action); //$NON-NLS-1$
@@ -565,7 +568,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             throw new IllegalArgumentException("No language support found for files of type '" +
             		EditorInputUtils.getPath(getEditorInput()).getFileExtension() + "'");
         }
-        
+
         // Create language service extensions now, since some services could
         // get accessed via super.createPartControl() (in particular, while
         // setting up the ISourceViewer).
@@ -577,6 +580,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             if (fLanguageServiceManager.getParseController() != null) {
                 initializeParseController();
             }
+            findLanguageSpecificPreferences();
         }
 
         super.createPartControl(parent);
@@ -596,16 +600,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         setTitleImageFromLanguageIcon();
 
-        IPreferenceStore prefStore= setSourceFontFromPreference();
+        setSourceFontFromPreference();
+        setupBracketCloser();
 
-        setupBracketCloser(prefStore);
-
-        // N.B.: The editor's preference store is not the same as the IMP plugin's
-        // preference store, which gets manipulated by the preference dialog fields.
-        // (the editor's preference store is defined by AbstractTextEditor).
-        // So don't bother listening to what this.getPreferenceStore() returns.
-//      getPreferenceStore().addPropertyChangeListener(fPrefStoreListener);
-        prefStore.addPropertyChangeListener(fPrefStoreListener);
+        setupSourcePrefListeners();
 
         initializeEditorContributors();
 
@@ -625,6 +623,37 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         } catch (ModelException e) {
             ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
         }
+    }
+
+    private void findLanguageSpecificPreferences() {
+        IProject project= fLanguageServiceManager.getParseController().getProject().getRawProject();
+
+        fLangSpecificPrefs= new PreferencesService(project, fLanguage.getName());
+    }
+
+    private void setupSourcePrefListeners() {
+        fFontListener= new StringPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SOURCE_FONT) {
+            @Override
+            public void changed(String oldValue, String newValue) {
+                FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
+   
+                if (!fontRegistry.hasValueFor(newValue)) {
+                    fontRegistry.put(newValue, PreferenceConverter.readFontData(newValue));
+                }
+                Font sourceFont= fontRegistry.get(newValue);
+   
+                if (sourceFont != null) {
+                    getSourceViewer().getTextWidget().setFont(sourceFont);
+                }
+            }
+        };
+        fTabListener= new IntegerPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_TAB_WIDTH) {
+            @Override
+            public void changed(int oldValue, int newValue) {
+                if (getSourceViewer() != null)
+                    getSourceViewer().getTextWidget().setTabs(newValue);
+            }
+        };
     }
 
     private void watchDocument(final long reparse_schedule_delay) {
@@ -724,7 +753,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private BracketInserter fBracketInserter;
     private final String CLOSE_FENCES= PreferenceConstants.EDITOR_CLOSE_FENCES;
 
-    private void setupBracketCloser(IPreferenceStore preferenceStore) {
+    private void setupBracketCloser() {
         if (true) return; // Bug #536: Disable for now, until we can be more intelligent about when to overwrite an existing (subsequent) close-fence char.
         IParseController parseController= fLanguageServiceManager.getParseController();
         if (parseController == null || parseController.getSyntaxProperties() == null || parseController.getSyntaxProperties().getFences() == null) {
@@ -732,7 +761,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         /** Preference key for automatically closing brackets and parenthesis */
-        boolean closeFences= preferenceStore.getBoolean(CLOSE_FENCES);
+        boolean closeFences= fLangSpecificPrefs.getBooleanPreference(CLOSE_FENCES); // false if no lang-specific setting
 
         fBracketInserter= new BracketInserter();
         fBracketInserter.setCloseFencesEnabled(closeFences);
@@ -780,10 +809,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         });
     }
 
-    private IPreferenceStore setSourceFontFromPreference() {
-        IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
+    private void setSourceFontFromPreference() {
+        String fontName= fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
+        if (fontName == null) {
+            IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
 
-        String fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
+            fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
+        }
         FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
 
         if (!fontRegistry.hasValueFor(fontName)) {
@@ -794,7 +826,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (sourceFont != null) {
             getSourceViewer().getTextWidget().setFont(sourceFont);
         }
-        return prefStore;
     }
 
     private void initiateServiceControllers() {
@@ -952,8 +983,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 	
     public void dispose() {
-        // Remove the pref store listener *before* calling super; super nulls out the pref store.
-        RuntimePlugin.getInstance().getPreferenceStore().removePropertyChangeListener(fPrefStoreListener);
+        fFontListener.dispose();
+        fTabListener.dispose();
+
         unregisterEditorContributionsActivator();
         if (fEditorErrorTickUpdater != null) {
         	fProblemMarkerManager.removeListener(fEditorErrorTickUpdater);
@@ -1333,8 +1365,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
         public int getTabWidth(ISourceViewer sourceViewer) {
-            return PreferenceCache.tabWidth;
-            // return fPreferenceStore.getInt(PreferenceConstants.P_TAB_WIDTH);
+            boolean langSpecificSetting= fLangSpecificPrefs != null && fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH);
+
+            return langSpecificSetting ? fLangSpecificPrefs.getIntPreference(PreferenceConstants.P_TAB_WIDTH) : PreferenceCache.tabWidth;
         }
 
         public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
@@ -1629,30 +1662,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private IMessageHandler fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
-
-    private final IPropertyChangeListener fPrefStoreListener= new IPropertyChangeListener() {
-        public void propertyChange(PropertyChangeEvent event) {
-            if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-                FontRegistry fontReg= RuntimePlugin.getInstance().getFontRegistry();
-
-                fontReg.put(PreferenceConstants.P_SOURCE_FONT, (FontData[]) event.getNewValue());
-
-                Font sourceFont= fontReg.get(PreferenceConstants.P_SOURCE_FONT);
-
-                if (getSourceViewer() != null)
-                    getSourceViewer().getTextWidget().setFont(sourceFont);
-            } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
-                int newTab= (event.getNewValue() instanceof String) ? Integer.parseInt((String) event.getNewValue()) : ((Integer) event.getNewValue()).intValue();
-                PreferenceCache.tabWidth= newTab;
-                if (getSourceViewer() != null)
-                    getSourceViewer().getTextWidget().setTabs(PreferenceCache.tabWidth);
-            } else if (event.getProperty().equals(PreferenceConstants.P_EMIT_MESSAGES)) {
-                PreferenceCache.emitMessages= ((Boolean) event.getNewValue()).booleanValue();
-            } else if (event.getProperty().equals(PreferenceConstants.P_DUMP_TOKENS)) {
-                PreferenceCache.dumpTokens= ((Boolean) event.getNewValue()).booleanValue();
-            }
-        }
-    };
 
     private final IRegionSelectionService fRegionSelector= new IRegionSelectionService() {
         public void selectAndReveal(int startOffset, int length) {

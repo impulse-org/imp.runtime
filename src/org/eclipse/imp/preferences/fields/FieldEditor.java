@@ -12,6 +12,9 @@
 
 package org.eclipse.imp.preferences.fields;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.Markings;
 import org.eclipse.imp.preferences.PreferencesTab;
@@ -40,7 +43,9 @@ import org.eclipse.swt.widgets.Label;
 
 public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEditor
 {
-	/**
+	protected static final List<String> PREFS_LEVELS_AS_LIST= Arrays.asList(IPreferencesService.levels);
+
+    /**
 	 *  The preferences page on which the tab that contains this
 	 *  field is displayed
 	 */ 
@@ -272,7 +277,7 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
     
     
     /**
-     * @return Whether the inheritence state of this field has changed
+     * @return Whether the inheritance state of this field has changed
      * from its previous value	
      */
     protected boolean inheritanceChanged() {
@@ -657,14 +662,14 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
     	// Don't store if the preferences service is null, since that may
     	// represent an illegal state and anyway we need to refer to it below
     	if (preferencesService == null) {
-    		throw new IllegalStateException("SafairFieldEditor.store():  attempt to store when preferences service is null");
+    		throw new IllegalStateException("FieldEditor.store():  attempt to store when preferences service is null");
     	}
     	
     	// Can't store the value If there is no valid level (not having a preferences level
     	// isn't necessarily an error, but it does prevent storing)
         //if (preferencesLevel == null) return;
     	if (preferencesService == null) {
-    		throw new IllegalStateException("SafairFieldEditor.store():  attempt to store when preferences level is null");
+    		throw new IllegalStateException("FieldEditor.store():  attempt to store when preferences level is null");
     	}
 
         // Don't store a value that comes from some other level
@@ -679,7 +684,7 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
         if (IPreferencesService.PROJECT_LEVEL.equals(preferencesLevel) &&
         	preferencesService.getProject() == null)
         {
-       		throw new IllegalStateException("SafairFieldEditor.store():  attempt to store project preference when project is not set"); 
+       		throw new IllegalStateException("FieldEditor.store():  attempt to store project preference when project is not set"); 
         }
         
         // If the level is the default level, go ahead and store it even

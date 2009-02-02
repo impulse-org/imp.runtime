@@ -11,8 +11,6 @@
 *******************************************************************************/
 package org.eclipse.imp.preferences.fields;
 
-import java.util.Arrays;
-import java.util.List;
 
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesTab;
@@ -45,9 +43,7 @@ import org.eclipse.swt.widgets.Text;
 public class FontFieldEditor extends FieldEditor {
 	    private static final String DEFAULT_FONT_DESCRIPTOR= new FontData("courier", 12, SWT.NORMAL).toString();
 
-        private static final List<String> PREFS_LEVELS_AS_LIST = Arrays.asList(IPreferencesService.levels);
-
-		/**
+        /**
 	     * The change font button, or <code>null</code> if none
 	     * (before creation and after disposal).
 	     */

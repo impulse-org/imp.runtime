@@ -856,7 +856,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
             sourceViewer.setFormatter(formatter);
 
-            fServiceControllerManager.getPresentationController().damage(new Region(0, sourceViewer.getDocument().getLength()));
+            try {
+                fServiceControllerManager.getPresentationController().damage(new Region(0, sourceViewer.getDocument().getLength()));
+            } catch (Exception e) {
+                ErrorHandler.reportError("Error during initial damage repair", e);
+            }
             // SMS 29 May 2007 (to give viewer access to single-line comment prefix)
             sourceViewer.setParseController(fLanguageServiceManager.getParseController());
 
@@ -896,7 +900,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             IEditorInput editorInput= getEditorInput();
             IFile file= EditorInputUtils.getFile(editorInput);
 
-            setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(file));
+            try {
+                setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(file));
+            } catch (Exception e) {
+                ErrorHandler.reportError("Error while setting source editor title icon from label provider", e);
+            }
         }
     }
 

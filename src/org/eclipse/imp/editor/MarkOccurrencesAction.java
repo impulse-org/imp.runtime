@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.runtime.RuntimePlugin;
@@ -227,10 +228,18 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			// can lead to stack overflow, so just return.
 			return;
 		}
-		List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
-		Position[] positions= convertRefNodesToPositions(occurrences);
+		try {
+		    List<Object> occurrences= fOccurrenceMarker.getOccurrencesOf(fParseController, selectedNode);
+		    if (occurrences != null) {
+		        Position[] positions= convertRefNodesToPositions(occurrences);
 
-        placeAnnotations(convertPositionsToAnnotationMap(positions, document), annotationModel);
+		        placeAnnotations(convertPositionsToAnnotationMap(positions, document), annotationModel);
+		    } else {
+		        ErrorHandler.reportError("Occurrence marker returned a null list of occurrences.");
+		    }
+		} catch (Exception e) {
+		    ErrorHandler.reportError("Error obtaining occurrences of selected node", e);
+		}
     }
 
     private Map<Annotation, Position> convertPositionsToAnnotationMap(Position[] positions, IDocument document) {

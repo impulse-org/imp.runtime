@@ -87,8 +87,12 @@ public class PresentationController implements IModelListener {
     public void damage(IRegion region) {
         if (fColorer == null)
             return;
+
         IRegion bigRegion= fColorer.calculateDamageExtent(region);
-        fWorkItems.push(bigRegion);
+
+        if (bigRegion != null) {
+            fWorkItems.push(bigRegion);
+        }
     }
 
     public void update(IParseController controller, IProgressMonitor monitor) {

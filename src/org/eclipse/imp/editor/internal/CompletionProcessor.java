@@ -55,7 +55,7 @@ public class CompletionProcessor implements IContentAssistProcessor, IModelListe
             // TODO Once we move to 3.2, delegate to the HippieProposalProcessor
             // return hippieProcessor.computeCompletionProposals(viewer, offset);
         } catch (Throwable e) {
-            ErrorHandler.reportError("Universal Editor Error", e);
+            ErrorHandler.reportError("Exception caught from language-specific content proposer implementation", e);
         }
         return NO_COMPLETIONS;
     }

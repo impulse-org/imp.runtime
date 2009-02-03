@@ -14,6 +14,7 @@ package org.eclipse.imp.services.base;
 
 import java.util.Stack;
 
+import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.ModelTreeNode;
 import org.eclipse.imp.language.ILanguageService;
 
@@ -24,7 +25,11 @@ public abstract class TreeModelBuilderBase implements ILanguageService {
 
     public final ModelTreeNode buildTree(Object rootASTNode) {
         fItemStack.push(fModelRoot= createTopItem(new ModelTreeNode(rootASTNode)));
-        visitTree(rootASTNode);
+        try {
+            visitTree(rootASTNode);
+        } catch (Exception e) {
+            ErrorHandler.reportError("Exception caught from invocation of language-specific tree model builder implementation", e);
+        }
         fItemStack.pop();
         return fModelRoot;
     }

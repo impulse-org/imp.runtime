@@ -36,6 +36,7 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.smapi.LineMapBuilder;
+import org.eclipse.imp.utils.BreakpointUtils;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
@@ -149,7 +150,8 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
             // TODO Enable the breakpoint if there is already one that's disabled, rather than just blindly removing it.
 
         
-           final IJavaLineBreakpoint existingBreakpoint= JDIDebugModel.lineBreakpointExists(javaFile, typeName, origSrcLineNumber.intValue());
+//           final IJavaLineBreakpoint existingBreakpoint= BreakpointUtils.lineBreakpointExists(javaFile, typeName, origSrcLineNumber.intValue());
+           final IJavaLineBreakpoint existingBreakpoint= BreakpointUtils.lineBreakpointExists(origSrcFile, typeName, origSrcLineNumber.intValue());
            
             IWorkspaceRunnable wr= new IWorkspaceRunnable() {
                 public void run(IProgressMonitor monitor) throws CoreException {
@@ -172,43 +174,45 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
                     // At this point, we know there is no existing breakpoint at this line #.
 
                     Map<String,String> bkptAttributes= new HashMap<String, String>();
-                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
-                    final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
-                          bkptAttributes);
-                    
-                    
-                   
-
-                    // At this point, the Debug framework has been told there's a line breakpoint,
-                    // and there's a marker in the *Java* source, but not in the original source.
-                    // So create another marker that has basically all the same attributes as
-                    // the Java marker, but is instead on the original source file at the
-                    // corresponding line #.
-                    final IMarker javaMarker= bkpt.getMarker();
-
-                    // create the marker
-                    IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
-              
-                    Map javaMarkerAttrs= javaMarker.getAttributes();
-                    for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {
-                        String key= (String) iter.next();
-                        Object value= javaMarkerAttrs.get(key);
-                        if (key.equals(IMarker.LINE_NUMBER)) {
-                            value= origSrcLineNumber;
-                        }
-                        if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
-                            continue;
-                        origSrcMarker.setAttribute(key, value);
-                        
-                        //System.out.println("Attribute added for marker " + key + "-> " + value);
-                    }
-                    origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
-                    
-                    //bkptToSrcMarkerMap.put(bkpt, origSrcMarker);
-
-                    // bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
-                    //bkpt.setMarker(origSrcMarker);
-
+//                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
+//                    final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
+//                          bkptAttributes);
+//                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", origSrcFileName);
+                    final IBreakpoint bkpt= JDIDebugModel.createStratumBreakpoint(origSrcFile , "x10", origSrcFile.getName(), /*origSrcFile.getFullPath().toString()*/null, null, origSrcLineNumber.intValue(), -1, -1, 0, true, bkptAttributes);
+//                    
+//                    
+//                   
+//
+//                    // At this point, the Debug framework has been told there's a line breakpoint,
+//                    // and there's a marker in the *Java* source, but not in the original source.
+//                    // So create another marker that has basically all the same attributes as
+//                    // the Java marker, but is instead on the original source file at the
+//                    // corresponding line #.
+//                    final IMarker javaMarker= bkpt.getMarker();
+//
+//                    // create the marker
+//                    IMarker origSrcMarker= origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
+//              
+//                    Map javaMarkerAttrs= javaMarker.getAttributes();
+//                    for(Iterator iter= javaMarkerAttrs.keySet().iterator(); iter.hasNext();) {
+//                        String key= (String) iter.next();
+//                        Object value= javaMarkerAttrs.get(key);
+//                        if (key.equals(IMarker.LINE_NUMBER)) {
+//                            value= origSrcLineNumber;
+//                        }
+//                        if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
+//                            continue;
+//                        origSrcMarker.setAttribute(key, value);
+//                        
+//                        //System.out.println("Attribute added for marker " + key + "-> " + value);
+//                    }
+//                    origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
+//                    
+//                    //bkptToSrcMarkerMap.put(bkpt, origSrcMarker);
+//
+//                    // bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
+//                    //bkpt.setMarker(origSrcMarker);
+//
                 }
 
 				
@@ -236,7 +240,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 	}
 
 	private IMarker findMarker(IFile origSrcFile, int lineNumber) throws CoreException {
-    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, false, IResource.DEPTH_INFINITE);
+    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, /*false*/true, IResource.DEPTH_INFINITE);
     	for (int k = 0; k < markers.length; k++ ){
     		if (((Integer)markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == lineNumber){
     			return markers[k];

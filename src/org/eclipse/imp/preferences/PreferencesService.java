@@ -767,11 +767,18 @@ public class PreferencesService implements IPreferencesService
 //                  System.out.println("post-visiting node '" + node + "'");
                     if (node instanceof escapedChar) {
                         escapedChar ch= (escapedChar) node;
-                        valueMap.put(node, nodeString(ch).substring(1));
+                        String nodeStr= nodeString(ch);
+
+                        if (nodeStr.charAt(1) == '$') {
+                            valueMap.put(node, nodeStr.substring(1));
+                        } else {
+                            valueMap.put(node, nodeStr);
+                        }
                     } else if (node instanceof simpleStringPrefixed) {
                         simpleStringPrefixed strPref= (simpleStringPrefixed) node;
                         String valString= nodeString((ASTNode) strPref.getvalStringNoSubst());
-                        valString= valString.replaceAll("\\\\(.)", "$1");
+
+                        valString= valString.replaceAll("\\\\\\$", "$").replace("\\\\}", "}");
                         if (strPref.getsubstPrefixed() != null) {
                             String result= valString + valueMap.get(strPref.getsubstPrefixed());
                             valueMap.put(node, result);
@@ -780,6 +787,7 @@ public class PreferencesService implements IPreferencesService
                         }
                     } else if (node instanceof substPrefixed) {
                         substPrefixed subPref= (substPrefixed) node;
+
                         if (subPref.getsimpleStringPrefixed() != null) {
                             String result= valueMap.get(subPref.getsubstitutionList()) + valueMap.get(subPref.getsimpleStringPrefixed());
                             valueMap.put(node, result);
@@ -789,6 +797,7 @@ public class PreferencesService implements IPreferencesService
                     } else if (node instanceof substitutionList) {
                         substitutionList subList= (substitutionList) node;
                         StringBuilder sb= new StringBuilder();
+
                         for(int i=0; i < subList.size(); i++) {
                             sb.append(valueMap.get(subList.getsubstitutionAt(i)));
                         }

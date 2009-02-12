@@ -238,7 +238,7 @@ public class BooleanFieldEditor extends FieldEditor
        	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
        	setPreviousBooleanValue(getBooleanValue());
        	boolean valueChanged = previousValue==null || ((Boolean)previousValue).booleanValue()!=value;
-       	boolean levelChanged = previousLevelFromWhichLoaded==null && levelFromWhichLoaded!=null || previousLevelFromWhichLoaded!=null && levelFromWhichLoaded==null || !previousLevelFromWhichLoaded.equals(levelFromWhichLoaded);
+       	boolean levelChanged = previousLevelFromWhichLoaded==null && levelFromWhichLoaded!=null || previousLevelFromWhichLoaded!=null && levelFromWhichLoaded==null || previousLevelFromWhichLoaded != null && !previousLevelFromWhichLoaded.equals(levelFromWhichLoaded);
        	if (levelChanged || valueChanged) {
        		setBooleanValue(value);		// sets fieldModified and previousValue
        	}

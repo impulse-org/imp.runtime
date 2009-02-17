@@ -100,7 +100,7 @@ public class DependencyInfo {
      * @return a Map from workspace-relative unit paths to Sets of dependent
      * workspace-relative unit paths
      */
-    public Map/*<String path,Set<String path>>*/ getDependencies() {
+    public Map<String /*path*/, Set<String /*path*/>> getDependencies() {
         return Collections.unmodifiableMap(fDependsUpon);
     }
 
@@ -108,19 +108,19 @@ public class DependencyInfo {
      * @param unitPath should be workspace-relative
      * @return a Set of dependent workspace--relative unit paths
      */
-    public Set/*<String path>*/ getDependentsOf(String unitPath) {
+    public Set<String /*path*/> getDependentsOf(String unitPath) {
         return (Set) fIsDependedUponBy.get(unitPath);
     }
 
     public void dump() {
         System.out.println("*** Dependencies ***:");
-        for(Iterator iter= fDependsUpon.keySet().iterator(); iter.hasNext(); ) {
-            String unit= (String) iter.next();
-            Set/*<String path>*/ dependents= (Set) fDependsUpon.get(unit);
+        for(Iterator<String> iter= fDependsUpon.keySet().iterator(); iter.hasNext(); ) {
+            String unit= iter.next();
+            Set<String /*path*/> dependents= (Set) fDependsUpon.get(unit);
     
             System.out.println("Unit " + unit + ": ");
-            for(Iterator iterator= dependents.iterator(); iterator.hasNext(); ) {
-                String uponUnit= (String) iterator.next();
+            for(Iterator<String> iterator= dependents.iterator(); iterator.hasNext(); ) {
+                String uponUnit= iterator.next();
                 System.out.print("  ");
                 System.out.print(uponUnit);
                 if (iterator.hasNext()) System.out.print(", ");

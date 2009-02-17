@@ -306,7 +306,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
             IMarker m = errorResource.createMarker(getMarkerIDFor(severity));
 
             String[] attributeNames = new String[] {IMarker.LINE_NUMBER, IMarker.MESSAGE, IMarker.PRIORITY, IMarker.SEVERITY};
-            Object[] values = new Object[] {startLine, message, IMarker.PRIORITY_HIGH, IMarker.SEVERITY_ERROR};        
+            Object[] values = new Object[] {startLine, message, IMarker.PRIORITY_HIGH, severity};        
             m.setAttributes(attributeNames, values);
             
             if (charStart >= 0 && charEnd >= 0) {

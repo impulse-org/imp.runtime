@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -100,13 +101,34 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
     protected abstract ProjectNatureBase getProjectNature();
 
     /**
+     * Sub-classes may override if they need to contribute only one classpath entry to the
+     * new project. In that case, they should not override createLanguageRuntimeEntries()
+     * as well.
      * @return the IClasspathEntry for the language-specific runtime (jar, whatever) that
      * will be placed in the new project's classpath.
      * This used to return an IPath, but this class would always create a "variable"
      * classpath entry, which is not always appropriate. We now let the language-specific
      * implementation decide what kind of classpath entry to create.
      */
-    protected abstract IClasspathEntry createLanguageRuntimeEntry();
+    protected IClasspathEntry createLanguageRuntimeEntry() {
+        return null;
+    }
+
+    /**
+     * Sub-classes may override if they need to contribute multiple classpath entries to the
+     * new project. If they do, they shouldn't also override createLanguageRuntimeEntry().
+     * The default implementation returns whatever createLanguageRuntimeEntry() returns.
+     * @return the list of IClasspathEntry's for the language-specific runtime components
+     * (jars, whatever) that will be placed in the new project's classpath.
+     */
+    protected List<IClasspathEntry> createLanguageRuntimeEntries() {
+        IClasspathEntry uniqueEntry= createLanguageRuntimeEntry();
+
+        if (uniqueEntry != null) {
+            return Arrays.asList(uniqueEntry);
+        }
+        return Collections.emptyList();
+    }
 
     public NewProjectWizardSecondPage(NewProjectWizardFirstPage firstPage) {
     	super();
@@ -422,7 +444,12 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
 
     private IClasspathEntry[] getDefaultClasspathEntry() {
         // First create a classpath entry for the language-specific runtime
-        IClasspathEntry langRuntimeCPE= createLanguageRuntimeEntry();
+        List<IClasspathEntry> cpEntries= new ArrayList<IClasspathEntry>();
+        List<IClasspathEntry> langRuntimeCPEs= createLanguageRuntimeEntries();
+
+        if (langRuntimeCPEs != null) {
+            cpEntries.addAll(langRuntimeCPEs);
+        }
 
         // Now try to find a compatible JRE
         String compliance= fFirstPage.getJRECompliance();
@@ -431,17 +458,17 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
 
         if (inst != null) {
             IPath newPath= jreContainerPath.append(inst.getVMInstallType().getId()).append(inst.getName());
-            return new IClasspathEntry[] { langRuntimeCPE, JavaCore.newContainerEntry(newPath) };
+            IClasspathEntry jreCPE= JavaCore.newContainerEntry(newPath);
+            cpEntries.add(jreCPE);
+        } else {
+            // Didn't find a compatible JRE; use the default
+            IClasspathEntry[] defaultJRELibrary= PreferenceConstants.getDefaultJRELibrary();
+
+            for(int i=0; i < defaultJRELibrary.length; i++) {
+                cpEntries.add(defaultJRELibrary[i]);
+            }
         }
-
-        // Didn't find a compatible JRE; use the default
-        IClasspathEntry[] defaultJRELibrary= PreferenceConstants.getDefaultJRELibrary();
-        IClasspathEntry[] allEntries= new IClasspathEntry[defaultJRELibrary.length + 1];
-
-        System.arraycopy(defaultJRELibrary, 0, allEntries, 0, defaultJRELibrary.length);
-        allEntries[allEntries.length - 1]= langRuntimeCPE;
-
-        return allEntries;
+        return cpEntries.toArray(new IClasspathEntry[cpEntries.size()]);
     }
 
     private IVMInstall findMatchingJREInstall(String compliance) {

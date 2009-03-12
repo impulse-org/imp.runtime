@@ -1,16 +1,10 @@
 package org.eclipse.imp.services.base;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
 import lpg.runtime.Adjunct;
 import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
-
-import org.eclipse.jface.text.Position;
-import org.eclipse.jface.text.source.Annotation;
 
 public abstract class LPGFolderBase extends FolderBase {
     protected IPrsStream prsStream;
@@ -40,12 +34,11 @@ public abstract class LPGFolderBase extends FolderBase {
     }
 
     protected void makeAdjunctAnnotations() {
-        ILexStream lexStream = prsStream.getLexStream();
+        ILexStream lexStream = prsStream.getILexStream();
         if (lexStream == null)
             return;
         ArrayList adjuncts = (ArrayList) prsStream.getAdjuncts();
-        for (int i = 0; i < adjuncts.size();)
-        {
+        for (int i = 0; i < adjuncts.size(); ) {
             Adjunct adjunct = (Adjunct) adjuncts.get(i);
 
             IToken previous_token = prsStream.getIToken(adjunct.getTokenIndex()),

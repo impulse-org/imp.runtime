@@ -25,7 +25,7 @@ public class SimpleAnnotationTypeInfo implements IAnnotationTypeInfo {
 
     private static List<String> problemMarkerTypes= new ArrayList<String>();
 
-    public List getProblemMarkerTypes() {
+    public List<String> getProblemMarkerTypes() {
         return problemMarkerTypes;
     }
 

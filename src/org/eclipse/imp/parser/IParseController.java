@@ -50,6 +50,20 @@ public interface IParseController extends ILanguageService {
     IPath getPath();
 
     /**
+     * Parse the given source and return the resulting AST. If possible,
+     * and if parsing takes long, should check the {@link IProgressMonitor}
+     * for cancellation requests (e.g., if the user started editing again).
+     * The AST should typically be cached, so that immediately after a
+     * successful parse, getCurrentAst() returns the same AST as this method
+     * produced.
+     * @param input the source text to parse
+     * @param scanOnly deprecated; ignore
+     * @param monitor
+     * @return the AST, if any, resulting from the parse
+     */
+    Object parse(String input, boolean scanOnly, IProgressMonitor monitor);
+
+    /**
      * @return the AST corresponding to the most recently-parsed source text,
      * if an AST was successfully produced. In general, there may be an AST
      * even when parse errors were detected (e.g., if error recovery was
@@ -58,21 +72,28 @@ public interface IParseController extends ILanguageService {
     Object getCurrentAst();
 
     /**
-     * @return an ISourcePositionLocator that can be used to correlate
-     * program entities (AST nodes, tokens, etc.) to source positions
-     */
-    ISourcePositionLocator getNodeLocator();
-
-    /**
      * @return an Iterator that iterates over the tokens contained within
      * the given region, including any tokens that are only partially
      * contained
      */
     Iterator getTokenIterator(IRegion region);
 
-    Object parse(String input, boolean scanOnly, IProgressMonitor monitor);
+    /**
+     * @return an ISourcePositionLocator that can be used to correlate
+     * program entities (AST nodes, tokens, etc.) to source positions
+     */
+    ISourcePositionLocator getNodeLocator();
 
+    /**
+     * @return an implementation of {@link ILanguageSyntaxProperties} that
+     * describes certain syntactic features of this language
+     */
     ILanguageSyntaxProperties getSyntaxProperties();
 
+    /**
+     * @return an implementation of {@link IAnnotationTypeInfo} that
+     * describes the kinds of parser annotations that pertain to this
+     * language
+     */
     IAnnotationTypeInfo getAnnotationTypeInfo();
 }

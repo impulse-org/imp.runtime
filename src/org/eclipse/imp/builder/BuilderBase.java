@@ -35,6 +35,8 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.imp.runtime.PluginBase;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.utils.UnimplementedError;
@@ -106,9 +108,11 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      */
     protected abstract String getInfoMarkerID();
 
-    private final ResourceVisitor fResourceVisitor= new ResourceVisitor();
+    private final IResourceVisitor fResourceVisitor= new SourceCollectorVisitor();
 
-    private final DeltaVisitor fDeltaVisitor= new DeltaVisitor();
+    private final IResourceDeltaVisitor fDeltaVisitor= new SourceDeltaVisitor();
+
+    protected IPreferencesService prefService= new PreferencesService(null, getPlugin().getLanguageID());
 
     protected DependencyInfo fDependencyInfo;
 
@@ -118,13 +122,13 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     private final Collection<IFile> fSourcesForDeps= new HashSet<IFile>();
 
-    private final class DeltaVisitor implements IResourceDeltaVisitor {
+    private final class SourceDeltaVisitor implements IResourceDeltaVisitor {
         public boolean visit(IResourceDelta delta) throws CoreException {
             return processResource(delta.getResource());
         }
     }
 
-    private class ResourceVisitor implements IResourceVisitor {
+    private class SourceCollectorVisitor implements IResourceVisitor {
         public boolean visit(IResource res) throws CoreException {
             return processResource(res);
         }
@@ -176,12 +180,16 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     @SuppressWarnings("unchecked")
     protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
-        boolean partialDeps= true;
-        Collection<IFile> allSources= new ArrayList<IFile>();
+        if (prefService.getProject() == null) {
+            prefService.setProject(getProject());
+        }
 
         fChangedSources.clear();
         fSourcesForDeps.clear();
         fSourcesToCompile.clear();
+
+        boolean partialDeps= true;
+        Collection<IFile> allSources= new ArrayList<IFile>();
 
         if (fDependencyInfo == null || kind == FULL_BUILD || kind == CLEAN_BUILD) {
             fDependencyInfo= createDependencyInfo(getProject());
@@ -212,6 +220,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
                 collectDependencies(monitor);
             }
             compileNecessarySources(monitor);
+            // TODO Diagnostic output should be made conditional on the value of a language-specific preference
             fDependencyInfo.dump();
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Build failed: " + e.getMessage());

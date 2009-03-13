@@ -17,6 +17,7 @@ package org.eclipse.imp.builder;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,9 @@ import org.eclipse.core.resources.IResourceVisitor;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.runtime.PluginBase;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.utils.UnimplementedError;
@@ -109,7 +112,11 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     protected DependencyInfo fDependencyInfo;
 
-    private final Collection<IFile> fSourcesToCompile= new ArrayList<IFile>();
+    private final Collection<IFile> fChangedSources= new HashSet<IFile>();
+
+    private final Collection<IFile> fSourcesToCompile= new HashSet<IFile>();
+
+    private final Collection<IFile> fSourcesForDeps= new HashSet<IFile>();
 
     private final class DeltaVisitor implements IResourceDeltaVisitor {
         public boolean visit(IResourceDelta delta) throws CoreException {
@@ -128,27 +135,82 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
             IFile file= (IFile) resource;
 
             if (file.exists()) {
-        	if (isSourceFile(file) || isNonRootSourceFile(file))
-        	    fSourcesToCompile.add(file);
+                if (isSourceFile(file) || isNonRootSourceFile(file)) {
+                    fChangedSources.add(file);
+                }
             }
             return false;
-        } else if (isOutputFolder(resource))
+        } else if (isOutputFolder(resource)) {
             return false;
+        }
         return true;
+    }
+
+    private class AllSourcesVisitor implements IResourceVisitor {
+        private final Collection<IFile> fResult;
+
+        public AllSourcesVisitor(Collection<IFile> result) {
+            fResult= result;
+        }
+
+        public boolean visit(IResource resource) throws CoreException {
+            if (resource instanceof IFile) {
+                IFile file= (IFile) resource;
+
+                if (file.exists()) {
+                    if (isSourceFile(file) || isNonRootSourceFile(file)) {
+                        fResult.add(file);
+                    }
+                }
+                return false;
+            } else if (isOutputFolder(resource)) {
+                return false;
+            }
+            return true;
+        }
     }
 
     protected DependencyInfo createDependencyInfo(IProject project) {
         return new DependencyInfo(project);
     }
 
+    @SuppressWarnings("unchecked")
     protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
-        if (fDependencyInfo == null || kind == FULL_BUILD || kind == CLEAN_BUILD)
+        boolean partialDeps= true;
+        Collection<IFile> allSources= new ArrayList<IFile>();
+
+        fChangedSources.clear();
+        fSourcesForDeps.clear();
+        fSourcesToCompile.clear();
+
+        if (fDependencyInfo == null || kind == FULL_BUILD || kind == CLEAN_BUILD) {
             fDependencyInfo= createDependencyInfo(getProject());
+            try {
+                getProject().accept(new AllSourcesVisitor(allSources));
+            } catch (CoreException e) {
+                getPlugin().getLog().log(new Status(IStatus.ERROR, getPlugin().getID(), e.getLocalizedMessage(), e));
+            }
+            fSourcesForDeps.addAll(allSources);
+            // Collect deps now, so we can compile everything necessary in the case where
+            // we have no dep info yet (e.g. first build for this Eclipse invocation --
+            // we don't persist the dep info yet) but we've been asked to do an auto build
+            // b/c of workspace changes.
+            collectDependencies(monitor);
+            partialDeps= false;
+        }
+
+        if (kind == FULL_BUILD || kind == CLEAN_BUILD) {
+            clearMarkersOn(allSources);
+        }
 
         try {
-            fSourcesToCompile.clear();
             collectSourcesToCompile(monitor);
             clearDependencyInfoForChangedFiles();
+            if (partialDeps) {
+                fSourcesForDeps.addAll(fSourcesToCompile);
+                fSourcesForDeps.addAll(fChangedSources);
+                collectDependencies(monitor);
+            }
             compileNecessarySources(monitor);
             fDependencyInfo.dump();
         } catch (CoreException e) {
@@ -162,10 +224,15 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
             IFile srcFile= iter.next();
 
             clearMarkersOn(srcFile);
-            if (isSourceFile(srcFile))
-        	compile(srcFile, monitor);
-            else if (isNonRootSourceFile(srcFile)) // predicate is implied, but clearer this way
-        	collectDependencies(srcFile);
+            if (isSourceFile(srcFile)) {
+                compile(srcFile, monitor);
+            }
+        }
+    }
+
+    protected void collectDependencies(IProgressMonitor monitor) {
+        for(IFile srcFile: fSourcesForDeps) {
+            collectDependencies(srcFile);
         }
     }
 
@@ -174,19 +241,25 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * from the given file. A utility method for the use of derived builder classes.
      */
     protected void clearMarkersOn(IFile file) {
-	try {
-		// SMS 28 Mar 2007
-		// Clear the markers for this builder only (and clear all of them)
-		// (may be a simpler way to do this, given a more complex set up of
-		// marker types)
-	    //file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
-	    file.deleteMarkers(getErrorMarkerID(), true, IResource.DEPTH_INFINITE);
-	    file.deleteMarkers(getWarningMarkerID(), true, IResource.DEPTH_INFINITE);
-	    file.deleteMarkers(getInfoMarkerID(), true, IResource.DEPTH_INFINITE);
-	} catch (CoreException e) {
-	}
+        try {
+            // SMS 28 Mar 2007
+    		// Clear the markers for this builder only (and clear all of them)
+    		// (may be a simpler way to do this, given a more complex set up of
+    		// marker types)
+    	    //file.deleteMarkers(IMarker.PROBLEM, true, IResource.DEPTH_INFINITE);
+    	    file.deleteMarkers(getErrorMarkerID(), true, IResource.DEPTH_INFINITE);
+    	    file.deleteMarkers(getWarningMarkerID(), true, IResource.DEPTH_INFINITE);
+    	    file.deleteMarkers(getInfoMarkerID(), true, IResource.DEPTH_INFINITE);
+    	} catch (CoreException e) {
+    	}
     }
-    
+
+    protected void clearMarkersOn(Collection<IFile> files) {
+        for(IFile file: files) {
+            clearMarkersOn(file);
+        }
+    }
+
     private void dumpSourceList(Collection<IFile> sourcesToCompile) {
         for(Iterator<IFile> iter= sourcesToCompile.iterator(); iter.hasNext(); ) {
             IFile srcFile= iter.next();
@@ -226,22 +299,38 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
             getPlugin().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
         }
         collectChangeDependents();
+        System.out.println("All files to compile:");
+        dumpSourceList(fSourcesToCompile);
     }
 
     private void collectChangeDependents() {
-        Collection<IFile> changeDependents= new ArrayList<IFile>();
+        if (fChangedSources.size() == 0) return;
+        Collection<IFile> changeDependents= new HashSet<IFile>();
 
+        changeDependents.addAll(fChangedSources);
         // TODO RMF 1/28/2008 - Should enable the following messages based on a debugging flag visible in a prefs page
-//      System.out.println("Changed files:");
-//      dumpSourceList(fSourcesToCompile);
-        scanSourceList(fSourcesToCompile, changeDependents);
-        fSourcesToCompile.addAll(changeDependents);
+        System.out.println("Changed files:");
+        dumpSourceList(changeDependents);
+
+        boolean changed= false;
+        do {
+            Collection<IFile> additions= new HashSet<IFile>();
+            scanSourceList(changeDependents, additions);
+            changed= changeDependents.addAll(additions);
+        } while (changed);
+
+        for(IFile f: changeDependents) {
+            if (isSourceFile(f)) {
+                fSourcesToCompile.add(f);
+            }
+        }
 //      System.out.println("Changed files + dependents:");
 //      dumpSourceList(fSourcesToCompile);
     }
 
-    private void scanSourceList(Collection<IFile> srcList, Collection<IFile> changeDependents) {
-	for(Iterator<IFile> iter= srcList.iterator(); iter.hasNext(); ) {
+    private boolean scanSourceList(Collection<IFile> srcList, Collection<IFile> changeDependents) {
+        boolean result= false;
+        for(Iterator<IFile> iter= srcList.iterator(); iter.hasNext(); ) {
             IFile srcFile= iter.next();
             Set<String> fileDependents= fDependencyInfo.getDependentsOf(srcFile.getFullPath().toString());
 
@@ -250,10 +339,11 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
                     String depPath= iterator.next();
                     IFile depFile= getProject().getWorkspace().getRoot().getFile(new Path(depPath));
 
-                    changeDependents.add(depFile);
+                    result= result || changeDependents.add(depFile);
                 }
             }
         }
+        return result;
     }
 
     /**

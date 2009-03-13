@@ -303,6 +303,9 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
         dumpSourceList(fSourcesToCompile);
     }
 
+    // TODO This really *shouldn't* be transitive; the real problem w/ the LPGBuilder is that it
+    // doesn't account for transitive includes itself when computing its dependency info. That is,
+    // when file A includes B includes C, A should be marked as a dependent of C.
     private void collectChangeDependents() {
         if (fChangedSources.size() == 0) return;
         Collection<IFile> changeDependents= new HashSet<IFile>();

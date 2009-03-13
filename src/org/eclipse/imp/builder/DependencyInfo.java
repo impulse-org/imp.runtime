@@ -113,19 +113,40 @@ public class DependencyInfo {
     }
 
     public void dump() {
-        System.out.println("*** Dependencies ***:");
+        System.out.print(toString());
+//        System.out.println("*** Dependencies ***:");
+//        for(Iterator<String> iter= fDependsUpon.keySet().iterator(); iter.hasNext(); ) {
+//            String unit= iter.next();
+//            Set<String /*path*/> dependents= (Set) fDependsUpon.get(unit);
+//    
+//            System.out.println("Unit " + unit + ": ");
+//            for(Iterator<String> iterator= dependents.iterator(); iterator.hasNext(); ) {
+//                String uponUnit= iterator.next();
+//                System.out.print("  ");
+//                System.out.print(uponUnit);
+//                if (iterator.hasNext()) System.out.print(", ");
+//            }
+//            System.out.println();
+//        }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb= new StringBuilder();
+        sb.append("*** Dependencies ***:\n");
         for(Iterator<String> iter= fDependsUpon.keySet().iterator(); iter.hasNext(); ) {
             String unit= iter.next();
             Set<String /*path*/> dependents= (Set) fDependsUpon.get(unit);
     
-            System.out.println("Unit " + unit + ": ");
+            sb.append("Unit " + unit + ": \n");
             for(Iterator<String> iterator= dependents.iterator(); iterator.hasNext(); ) {
                 String uponUnit= iterator.next();
-                System.out.print("  ");
-                System.out.print(uponUnit);
-                if (iterator.hasNext()) System.out.print(", ");
+                sb.append("  ");
+                sb.append(uponUnit);
+                if (iterator.hasNext()) sb.append(", ");
             }
-            System.out.println();
+            sb.append("\n");
         }
+        return sb.toString();
     }
 }

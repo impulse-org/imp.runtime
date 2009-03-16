@@ -14,6 +14,7 @@ package org.eclipse.imp.services.base;
 
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.ITokenColorer;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextAttribute;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -30,6 +31,10 @@ public abstract class TokenColorerBase implements ITokenColorer {
 //               else
         return null;
 //        }
+    }
+
+    public IRegion calculateDamageExtent(IRegion seed) {
+        return seed;
     }
 
     public TokenColorerBase() {

@@ -27,6 +27,7 @@ import org.eclipse.core.resources.ProjectScope;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.ISafeRunnable;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.ConfigurationScope;
 import org.eclipse.core.runtime.preferences.DefaultScope;
@@ -613,6 +614,10 @@ public class PreferencesService implements IPreferencesService
                             return "<error: no resource '" + resourcePath + "' in plugin " + pluginID + " or its fragments>";
                         }
                         String resourceLoc= FileLocator.toFileURL(resourceEntry).getFile();
+                        // RMF 3/17/2009 Make sure the path is really a valid one: toFileURL().getFile()
+                        // for some reason sometimes produces invalid paths like "/C:/..." on Win32.
+                        // Passing this through Path.toPortableString() seems to address the problem.
+                        resourceLoc= new Path(resourceLoc).toPortableString();
                         return resourceLoc;
                     } catch (IOException e) {
                         return "<error determining location of plugin: " + pluginID + ">";

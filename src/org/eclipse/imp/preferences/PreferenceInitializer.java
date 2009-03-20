@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences;
@@ -18,7 +17,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.ui.PlatformUI;
@@ -35,6 +33,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
 
         store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
+        store.setDefault(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS, false);
 
         // RMF 7/16/2008 - Somehow JFaceResources.getFont(symbolicName) and JFaceResources.getFontDescriptor()
         // return different answers. Seems that getFontDescriptor() gives us a better answer, though.

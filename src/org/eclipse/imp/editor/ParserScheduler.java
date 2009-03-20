@@ -24,7 +24,10 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.preferences.PreferenceConstants;
+import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IEditorInput;
@@ -47,6 +50,8 @@ public class ParserScheduler extends Job {
 
     private final List<IModelListener> fAstListeners= new ArrayList<IModelListener>();
 
+//  private final IPreferencesService fPrefService;
+
     public ParserScheduler(IParseController parseController, IEditorPart editorPart,
             IDocumentProvider docProvider, IMessageHandler msgHandler) {
     	super(LanguageRegistry.findLanguage(EditorInputUtils.getPath(editorPart.getEditorInput()), null).getName() + " ParserScheduler for " + editorPart.getEditorInput().getName());
@@ -55,6 +60,7 @@ public class ParserScheduler extends Job {
         fEditorPart= editorPart;
         fDocumentProvider= docProvider;
         fMsgHandler= msgHandler;
+//      fPrefService= new PreferencesService(fParseController.getProject().getRawProject(), fParseController.getLanguage().getName());
 
         // rmf 7/1/2008 - N.B. The parse controller is now initialized before it gets handed to us here,
         // since some other services may actually depend on that.
@@ -70,9 +76,10 @@ public class ParserScheduler extends Job {
         try {
             IDocument document= fDocumentProvider.getDocument(editorInput);
 
-            if (PreferenceCache.emitMessages)
+            if (PreferenceCache.emitMessages /* fPrefService.getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES) */) {
                 RuntimePlugin.getInstance().writeInfoMsg(
                         "Parsing language " + fParseController.getLanguage().getName() + " for input " + editorInput.getName());
+            }
 
             // Don't need to retrieve the AST; we don't need it.
             // Just make sure the document contents gets parsed once (and only once).
@@ -100,9 +107,16 @@ public class ParserScheduler extends Job {
     public void notifyModelListeners(IProgressMonitor monitor) {
         // Suppress the notification if there's no AST (e.g. due to a parse error)
         if (fParseController != null) {
-            if (PreferenceCache.emitMessages)
+            if (
+                PreferenceCache.emitMessages
+                // TODO RMF Switch to pref svc for this, once the "global" IMP preferences (using the "IMP" pseudo-language name) gets initialized properly
+//              fPrefService.isDefined(PreferenceConstants.P_EMIT_MESSAGES) &&
+//              fPrefService.getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES) ||
+//              RuntimePlugin.getInstance().getPreferencesService().getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES)
+                ) {
                 RuntimePlugin.getInstance().writeInfoMsg(
                         "Notifying AST listeners of change in " + fParseController.getPath().toPortableString());
+            }
             for(int n= fAstListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
                 IModelListener listener= fAstListeners.get(n);
                 // Pretend to get through the highest level of analysis so all services execute (for now)
@@ -123,7 +137,12 @@ public class ParserScheduler extends Job {
 //            long diffToEditorStart= curTime - RuntimePlugin.EDITOR_START_TIME;
 //            System.out.println("Time from runtime start: " + diffToRuntimeStart);
 //            System.out.println("Time from editor start: " + diffToEditorStart);
-        } else if (PreferenceCache.emitMessages)
+        } else if (PreferenceCache.emitMessages
+//                fPrefService.isDefined(PreferenceConstants.P_EMIT_MESSAGES) &&
+//                fPrefService.getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES) ||
+//                RuntimePlugin.getInstance().getPreferencesService().getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES)
+                ) {
             RuntimePlugin.getInstance().writeInfoMsg("No AST; bypassing listener notification.");
+        }
     }
 }

@@ -57,5 +57,14 @@ public class PreferenceConstants {
      */
     public static final String EDITOR_CLOSE_FENCES= "closeFences"; //$NON-NLS-1$
 
+    /**
+     * A named preference that controls whether builders should emit diagnostics. Can be overridden
+     * by a language-specific builder preference of the same key.
+     * <p>
+     * Value is of type <code>Boolean</code>.
+     * </p>
+     */
+    public static final String P_EMIT_BUILDER_DIAGNOSTICS= "emitBuilderDiagnostics"; //$NON-NLS-1$
+
     private PreferenceConstants() { }
 }

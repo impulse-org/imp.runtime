@@ -7,7 +7,7 @@ import java.util.HashMap;
  * the parser/resolver produces). Parent/child relationship is intended to
  * represent lexical nesting of scopes.
  */
-public class SymbolTable<T> extends HashMap<String,Object> {
+public class SymbolTable<T> extends HashMap<String,T> {
     private final SymbolTable<T> parent;
 
     public SymbolTable(SymbolTable<T> parent) { this.parent = parent; }

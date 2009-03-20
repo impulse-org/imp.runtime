@@ -7,12 +7,8 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/*
- * Created on Nov 1, 2005
- */
 package org.eclipse.imp.builder;
 
 import java.util.ArrayList;
@@ -36,6 +32,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.preferences.IPreferencesService;
+import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.imp.runtime.PluginBase;
 import org.eclipse.imp.runtime.RuntimePlugin;
@@ -47,8 +44,15 @@ import org.eclipse.ui.console.ConsolePlugin;
 import org.eclipse.ui.console.IConsole;
 import org.eclipse.ui.console.IConsoleManager;
 import org.eclipse.ui.console.MessageConsole;
+import org.eclipse.ui.console.MessageConsoleStream;
 
 public abstract class BuilderBase extends IncrementalProjectBuilder {
+    /**
+     * The name of the console used for any builders that don't provide an override
+     * of getConsoleName() to use their own unique console
+     */
+    public static final String IMP_BUILDER_CONSOLE= "IMP Builders";
+
     /**
      * @return the plugin associated with this builder instance
      */
@@ -112,7 +116,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     private final IResourceDeltaVisitor fDeltaVisitor= new SourceDeltaVisitor();
 
-    protected IPreferencesService prefService= new PreferencesService(null, getPlugin().getLanguageID());
+    protected IPreferencesService fPrefService= new PreferencesService(null, getPlugin().getLanguageID());
 
     protected DependencyInfo fDependencyInfo;
 
@@ -180,8 +184,8 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     @SuppressWarnings("unchecked")
     protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
-        if (prefService.getProject() == null) {
-            prefService.setProject(getProject());
+        if (fPrefService.getProject() == null) {
+            fPrefService.setProject(getProject());
         }
 
         fChangedSources.clear();
@@ -221,7 +225,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
             }
             compileNecessarySources(monitor);
             // TODO Diagnostic output should be made conditional on the value of a language-specific preference
-            fDependencyInfo.dump();
+            getConsoleStream().print(fDependencyInfo.toString());
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Build failed: " + e.getMessage());
         }
@@ -270,10 +274,12 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     }
 
     private void dumpSourceList(Collection<IFile> sourcesToCompile) {
+        MessageConsoleStream consoleStream= getConsoleStream();
+
         for(Iterator<IFile> iter= sourcesToCompile.iterator(); iter.hasNext(); ) {
             IFile srcFile= iter.next();
 
-            System.out.println("  " + srcFile.getFullPath());
+            consoleStream.println("  " + srcFile.getFullPath());
         }
     }
 
@@ -289,6 +295,16 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
         }
     }
 
+    protected boolean getDiagPreference() {
+        final IPreferencesService builderPrefSvc= getPlugin().getPreferencesService();
+        final IPreferencesService impPrefSvc= RuntimePlugin.getInstance().getPreferencesService();
+        
+        boolean msgs= builderPrefSvc.isDefined(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS) ?
+            builderPrefSvc.getBooleanPreference(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS) :
+                impPrefSvc.getBooleanPreference(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS);
+        return msgs;
+    }
+
     /**
      * Visits the project delta, if any, or the entire project, and determines the set
      * of files needed recompilation, and adds them to <code>fSourcesToCompile</code>.
@@ -297,19 +313,26 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      */
     private void collectSourcesToCompile(IProgressMonitor monitor) throws CoreException {
         IResourceDelta delta= getDelta(getProject());
+        boolean emitDiags= getDiagPreference();
 
         if (delta != null) {
-            getPlugin().maybeWriteInfoMsg("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
+            if (emitDiags)
+                getPlugin().maybeWriteInfoMsg("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
             delta.accept(fDeltaVisitor);
-            getPlugin().maybeWriteInfoMsg("Delta scan completed for project '" + getProject().getName() + "'...");
+            if (emitDiags)
+                getPlugin().maybeWriteInfoMsg("Delta scan completed for project '" + getProject().getName() + "'...");
         } else {
-            getPlugin().maybeWriteInfoMsg("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
+            if (emitDiags)
+                getPlugin().maybeWriteInfoMsg("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
             getProject().accept(fResourceVisitor);
-            getPlugin().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
+            if (emitDiags)
+                getPlugin().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
         }
         collectChangeDependents();
-        System.out.println("All files to compile:");
-        dumpSourceList(fSourcesToCompile);
+        if (emitDiags) {
+            getConsoleStream().println("All files to compile:");
+            dumpSourceList(fSourcesToCompile);
+        }
     }
 
     // TODO This really *shouldn't* be transitive; the real problem w/ the LPGBuilder is that it
@@ -321,7 +344,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
         changeDependents.addAll(fChangedSources);
         // TODO RMF 1/28/2008 - Should enable the following messages based on a debugging flag visible in a prefs page
-        System.out.println("Changed files:");
+        getConsoleStream().println("Changed files:");
         dumpSourceList(changeDependents);
 
         boolean changed= false;
@@ -336,7 +359,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
                 fSourcesToCompile.add(f);
             }
         }
-//      System.out.println("Changed files + dependents:");
+//      getConsoleStream().println("Changed files + dependents:");
 //      dumpSourceList(fSourcesToCompile);
     }
 
@@ -460,7 +483,33 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
         });
     }
 
+    /**
+     * Derived classes may override to specify a unique name for a separate console;
+     * otherwise, all IMP builders share a single console. @see IMP_BUILDER_CONSOLE.
+     * @return the name of the console to use for diagnostic output, if any
+     */
+    protected String getConsoleName() {
+        return IMP_BUILDER_CONSOLE;
+    }
+
+    /**
+     * If you want your builder to have its own console, be sure to override
+     * getConsoleName().
+     * @return the console whose name is returned by getConsoleName()
+     */
+    protected MessageConsoleStream getConsoleStream() {
+        return findConsole(getConsoleName()).newMessageStream();
+    }
+
+    /**
+     * Find or create the console with the given name
+     * @param consoleName
+     */
     protected MessageConsole findConsole(String consoleName) {
+        if (consoleName == null) {
+            RuntimePlugin.getInstance().getLog().log(new Status(IStatus.ERROR, RuntimePlugin.IMP_RUNTIME, "BuilderBase.findConsole() called with a null console name; substituting default console"));
+            consoleName= IMP_BUILDER_CONSOLE;
+        }
         MessageConsole myConsole= null;
         final IConsoleManager consoleManager= ConsolePlugin.getDefault().getConsoleManager();
         IConsole[] consoles= consoleManager.getConsoles();
@@ -473,7 +522,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
             myConsole= new MessageConsole(consoleName, null);
             consoleManager.addConsoles(new IConsole[] { myConsole });
         }
-        consoleManager.showConsoleView(myConsole);
+//      consoleManager.showConsoleView(myConsole);
         return myConsole;
     }
 }

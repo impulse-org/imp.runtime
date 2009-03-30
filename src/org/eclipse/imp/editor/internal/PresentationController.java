@@ -119,7 +119,7 @@ public class PresentationController implements IModelListener {
         }
 
         final TextPresentation presentation= new TextPresentation();
-        ISourcePositionLocator locator= parseController.getNodeLocator();
+        ISourcePositionLocator locator= parseController.getSourcePositionLocator();
 
         aggregateTextPresentation(parseController, monitor, damage, presentation, locator);
         if (!monitor.isCanceled() && !presentation.isEmpty()) {

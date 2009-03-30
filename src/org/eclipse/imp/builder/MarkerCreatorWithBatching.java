@@ -22,10 +22,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lpg.runtime.PrsStream;
+import lpg.runtime.IPrsStream;
 
-import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.runtime.CoreException;
@@ -315,10 +315,7 @@ public class MarkerCreatorWithBatching extends MarkerCreator
     public void startMessageGroup(String groupName) { }
 
 	
-	protected PrsStream getParseStream() {
-		return ((SimpleLPGParseController)parseController).getParser().getParseStream();
+	protected IPrsStream getParseStream() {
+		return ((SimpleLPGParseController)parseController).getParser().getIPrsStream();
 	}
-	
-	
-	
 }

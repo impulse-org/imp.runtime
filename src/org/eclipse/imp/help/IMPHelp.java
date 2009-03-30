@@ -94,7 +94,7 @@ public class IMPHelp {
             super(contextId);
             fHelpService= svcManager.getContextHelp();
             fParseController= svcManager.getParseController();
-            fLocator= fParseController.getNodeLocator();
+            fLocator= fParseController.getSourcePositionLocator();
             fEditor= editor;
         }
 

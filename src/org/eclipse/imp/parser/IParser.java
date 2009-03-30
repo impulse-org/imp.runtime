@@ -12,8 +12,9 @@
 
 package org.eclipse.imp.parser;
 
+import lpg.runtime.ILexStream;
+import lpg.runtime.IPrsStream;
 import lpg.runtime.Monitor;
-import lpg.runtime.PrsStream;
 
 /*
  * Licensed Materials - Property of IBM,
@@ -32,7 +33,7 @@ public interface IParser {
      */
     public Object parser(Monitor monitor, int error_repair_count);
 
-    public PrsStream getParseStream();
+    public IPrsStream getIPrsStream();
 
     /**
      * @return array of keywords in the order in which they are mapped to integers.
@@ -48,4 +49,6 @@ public interface IParser {
      * @return the token kind for the EOF token
      */
     public int getEOFTokenKind();
+
+    public void reset(ILexStream lexStream);
 }

@@ -46,30 +46,28 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
     private final IParseController fParseController;
     private final IRegionSelectionService regionSelector;
 
-    public IMPOutlinePage(IParseController parseController, // OutlineContentProviderBase contentProvider,
+    public IMPOutlinePage(IParseController parseController,
             TreeModelBuilderBase modelBuilder,
             ILabelProvider labelProvider, IElementImageProvider imageProvider,
             IRegionSelectionService regionSelector) {
         fParseController= parseController;
-//      fContentProvider= contentProvider;
         fModelBuilder= modelBuilder;
         fLabelProvider= labelProvider;
         fImageProvider= imageProvider;
-//        this.regionSelector= regionSelector;
         
         // SMS 21 Aug 2008
         if (regionSelector != null)
         	this.regionSelector = regionSelector;
-        else
+        else {
         	this.regionSelector = new IRegionSelectionService() {
-        	        public void selectAndReveal(int startOffset, int length) {
-        	            IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
-//        	            AbstractTextEditor textEditor= (AbstractTextEditor) activeEditor;
-        	            ITextEditor textEditor= (ITextEditor) activeEditor;
-        	            
-        	            textEditor.selectAndReveal(startOffset, length);
-        	        }
-        	    };
+        	    public void selectAndReveal(int startOffset, int length) {
+        	        IEditorPart activeEditor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+        	        ITextEditor textEditor= (ITextEditor) activeEditor;
+
+        	        textEditor.selectAndReveal(startOffset, length);
+        	    }
+        	};
+        }
 
         fContentProvider= new OutlineContentProviderBase(null) {
             private ModelTreeNode fOldTree= null;
@@ -98,8 +96,7 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
         return IModelListener.AnalysisRequired.SYNTACTIC_ANALYSIS;
     }
 
-    public void update(final IParseController parseController,
-            IProgressMonitor monitor) {
+    public void update(final IParseController parseController, IProgressMonitor monitor) {
         if (getTreeViewer() != null) {
             getTreeViewer().getTree().getDisplay().asyncExec(new Runnable() {
                 public void run() {
@@ -118,7 +115,7 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
             return;
 
         ModelTreeNode first= (ModelTreeNode) sel.getFirstElement();
-        ISourcePositionLocator locator= fParseController.getNodeLocator();
+        ISourcePositionLocator locator= fParseController.getSourcePositionLocator();
         Object node= first.getASTNode();
         int startOffset= locator.getStartOffset(node);
         int endOffset= locator.getEndOffset(node);
@@ -165,7 +162,7 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
                 return cat1 - cat2;
             }
         };
-        private ISourcePositionLocator fLocator= fParseController.getNodeLocator();
+        private ISourcePositionLocator fLocator= fParseController.getSourcePositionLocator();
 
         private ViewerComparator fPositionComparator= new ViewerComparator() {
             @Override

@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.language;
@@ -20,17 +19,12 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.imp.core.ErrorHandler;
 
-/*
- * Licensed Materials - Property of IBM, (c) Copyright IBM Corp. 2005,2008 All
- * Rights Reserved
- */
-
 /**
  * @author Claffra
  * @author jurgen@vinju.org
  * 
  * API representation for org.eclipse.imp.runtime.languageDescription
- * contributor. Used by org.eclipse.imp.core.LanguageRegistry to discover and
+ * contributor. Used by org.eclipse.imp.language.LanguageRegistry to discover and
  * manage a language registry.
  */
 public class Language {
@@ -40,7 +34,7 @@ public class Language {
 	 */
 	public static final String LANGUAGE_ID_ATTR = "language";
 
-	private String language;
+	private String fLanguage;
 
 	/**
 	 * Extension element attribute ID for the base language ID associated with a
@@ -48,7 +42,7 @@ public class Language {
 	 */
 	public static final String DERIVED_FROM_ATTR = "derivedFrom";
 
-	private String derivedFrom;
+	private String fDerivedFrom;
 
 	/**
 	 * Extension element attribute ID for the list of file-name extensions
@@ -64,7 +58,7 @@ public class Language {
 	 */
 	public static final String VALIDATOR_ATTR = "validator";
 
-	private LanguageValidator validator;
+	private LanguageValidator fValidator;
 
 	/**
 	 * Extension element attribute ID for the user-readable description of a
@@ -72,7 +66,7 @@ public class Language {
 	 */
 	public static final String DESCRIPTION_ATTR = "description";
 
-	private String description;
+	private String fDescription;
 
 	/**
 	 * Extension element attribute ID for the optional nature ID associated with
@@ -80,7 +74,7 @@ public class Language {
 	 */
 	public static final String NATURE_ID_ATTR = "natureID";
 
-	private String natureId;
+	private String fNatureId;
 
 	/**
 	 * Extension element attribute ID for the optional list of synonyms
@@ -90,49 +84,59 @@ public class Language {
 
 	private Collection<String> fSynonyms;
 
+    /**
+     * Extension element attribute ID for the optional icon associated with a
+     * given language descriptor.
+     */
+    public static final String ICON_ATTR = "icon";
+
+    private String fIconPath;
+
 	/**
 	 * Extension element attribute ID for the optional URL associated with a
 	 * given language descriptor.
 	 */
 	public static final String URL_ATTR = "url";
 
-	private String url;
+	private String fURL;
+
+	private String fBundleID;
 
 	/**
-	 * Creates a language
+	 * Creates a language from an extension point contribution
 	 * 
-	 * @param element
-	 *            the extension point contribution this language belongs to
+	 * @param element the extension point contribution this language belongs to
 	 */
 	Language(IConfigurationElement element) {
 		try {
-			language = element.getAttribute(LANGUAGE_ID_ATTR);
-			natureId = element.getAttribute(NATURE_ID_ATTR);
-			description = element.getAttribute(DESCRIPTION_ATTR);
-			derivedFrom = element.getAttribute(DERIVED_FROM_ATTR);
-			url = element.getAttribute(URL_ATTR);
-			fFilenameExtensions = parseList(element
-					.getAttribute(EXTENSIONS_ATTR));
+			fLanguage = element.getAttribute(LANGUAGE_ID_ATTR);
+			fNatureId = element.getAttribute(NATURE_ID_ATTR);
+			fDescription = element.getAttribute(DESCRIPTION_ATTR);
+			fDerivedFrom = element.getAttribute(DERIVED_FROM_ATTR);
+            fIconPath = element.getAttribute(ICON_ATTR);
+            fBundleID = element.getNamespaceIdentifier();
+			fURL = element.getAttribute(URL_ATTR);
+			fFilenameExtensions = parseList(element.getAttribute(EXTENSIONS_ATTR));
 			fSynonyms = parseList(element.getAttribute(SYNONYMS_ATTR));
-
-			validator = (LanguageValidator) element
-					.createExecutableExtension(VALIDATOR_ATTR);
+			fValidator = (LanguageValidator) element.createExecutableExtension(VALIDATOR_ATTR);
 		} catch (CoreException e) {
-			validator = null;
+			fValidator = null;
 		}
 	}
 
 	public Language(String language, String natureId, String description,
-			String derivedFrom, String url, String fileNameExtensions,
+			String derivedFrom, String iconPath, String url, String bundleID, String fileNameExtensions,
 			String synonyms, LanguageValidator validator) {
-		this.language = language;
-		this.natureId = natureId;
-		this.description = description;
-		this.derivedFrom = derivedFrom;
-		this.url = url;
+		this.fLanguage = language;
+		this.fNatureId = natureId;
+		this.fDescription = description;
+		this.fDerivedFrom = derivedFrom;
+		this.fIconPath = iconPath;
+		this.fBundleID = bundleID;
+		this.fURL = url;
 		this.fFilenameExtensions = parseList(fileNameExtensions);
 		this.fSynonyms = parseList(synonyms);
-		this.validator = validator;
+		this.fValidator = validator;
 	}
 
 	/**
@@ -141,11 +145,11 @@ public class Language {
 	 * @return the canonical language name
 	 */
 	public String getName() {
-		return language;
+		return fLanguage;
 	}
 
 	public String getNatureID() {
-		return natureId;
+		return fNatureId;
 	}
 
 	/**
@@ -155,7 +159,7 @@ public class Language {
 	 * @return a description for this language
 	 */
 	public String getDescription() {
-		return description;
+		return fDescription;
 	}
 
 	/**
@@ -165,16 +169,32 @@ public class Language {
 	 * @return the canonical language name this language is derived from
 	 */
 	public String getDerivedFrom() {
-		return derivedFrom;
+		return fDerivedFrom;
 	}
 
-	/**
+    /**
+     * Returns the file path to the icon to be used for source files in this language
+     * 
+     * @return the file path to the icon for this language
+     */
+    public String getIconPath() {
+        return fIconPath;
+    }
+
+    /**
+     * @return the ID of the bundle containing the language descriptor and icon for this language
+     */
+    public String getBundleID() {
+        return fBundleID;
+    }
+
+    /**
 	 * Returns the website with more information about this language
 	 * 
 	 * @return something like http://www.php.org
 	 */
 	public String getUrl() {
-		return url;
+		return fURL;
 	}
 
 	/**
@@ -234,7 +254,7 @@ public class Language {
 	 * @return null if no validator was specified
 	 */
 	public LanguageValidator getValidator() {
-		return validator;
+		return fValidator;
 	}
 
 	/*
@@ -244,32 +264,19 @@ public class Language {
 		Collection<String> result = new ArrayList<String>();
 
 		if (list != null) {
-			int length = list.length();
-			int size = length > 0 ? 1 : 0;
-
-			for (int n = 0; n < length; n++) {
-				if (list.charAt(n) == ',') {
-					size++;
-				}
-			}
-
-			StringTokenizer st = new StringTokenizer(list, ",");
+            StringTokenizer st = new StringTokenizer(list, ",");
 
 			for (int n = 0; st.hasMoreElements(); n++) {
 				String exten = st.nextToken().trim();
 
 				if (exten.startsWith(".")) {
-					ErrorHandler.logMessage(
-							"Ignoring leading '.' in file-name extension "
-									+ exten + " for language '" + getName()
-									+ "'.", null);
+					ErrorHandler.logMessage("Ignoring leading '.' in file-name extension "
+									+ exten + " for language '" + getName() + "'.", null);
 					exten = exten.substring(1);
 				}
-
 				result.add(exten);
 			}
 		}
-
 		return result;
 	}
 

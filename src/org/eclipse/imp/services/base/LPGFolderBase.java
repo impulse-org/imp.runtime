@@ -2,6 +2,7 @@ package org.eclipse.imp.services.base;
 
 import java.util.ArrayList;
 import lpg.runtime.Adjunct;
+import lpg.runtime.IAst;
 import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
@@ -9,7 +10,7 @@ import lpg.runtime.IToken;
 public abstract class LPGFolderBase extends FolderBase {
     protected IPrsStream prsStream;
 
-    protected void makeAnnotationWithOffsets(int first_offset, int last_offset) {
+    protected void makeFoldableByOffsets(int first_offset, int last_offset) {
         super.makeAnnotation(first_offset, last_offset - first_offset + 1);
     }
     
@@ -17,23 +18,36 @@ public abstract class LPGFolderBase extends FolderBase {
     // Use this version of makeAnnotation when you have a range of 
     // tokens to fold.
     //
-    protected void makeAnnotation(IToken first_token, IToken last_token) {
+    protected void makeFoldable(IToken first_token, IToken last_token) {
         if (last_token.getEndLine() > first_token.getLine()) {
-            IToken next_token = prsStream.getIToken(prsStream.getNext(last_token.getTokenIndex()));
-            IToken[] adjuncts = next_token.getPrecedingAdjuncts();
-            IToken gate_token = adjuncts.length == 0 ? next_token : adjuncts[0];
-            makeAnnotationWithOffsets(first_token.getStartOffset(), last_token.getEndOffset());
-            // SMS 29 Sep 2009:  modified the above to extend the foldable region just to the end
-            // of the last token rather than to the beginning of the next token (as commented out
-            // below), since that seems to simplify some aspects of annotation management (and is
-            // also consistent with the JDT Java editor).
-//                                      gate_token.getLine() > last_token.getEndLine()
-//                                          ? prsStream.getLexStream().getLineOffset(gate_token.getLine() - 1)
-//                                          : last_token.getEndOffset());
+            ILexStream lexStream = prsStream.getILexStream();
+            int start = first_token.getStartOffset();
+            int end = last_token.getEndOffset();
+
+            // Following may be necessary if one edits an empty source file; there
+            // may be an AST with an empty textual extent, which causes Position()
+            // a heartache.
+            if (end <= start) {
+                return;
+            }
+
+            while (end < lexStream.getStreamLength() && (lexStream.getCharValue(end) == ' ' || lexStream.getCharValue(end) == '\t')) {
+                end++;
+            }
+            // For some reason, simply testing against Character.LINE_SEPARATOR here doesn't work.
+            if (end < lexStream.getStreamLength()-1 && (lexStream.getCharValue(end+1) == '\n' || lexStream.getCharValue(end+1) == '\r')) {
+                end++;
+            }
+
+            makeFoldableByOffsets(start, end);
         }
     }
 
-    protected void makeAdjunctAnnotations() {
+    protected void makeFoldable(IAst n) {
+        makeFoldable(n.getLeftIToken(), n.getRightIToken());
+    }
+
+    protected void makeAdjunctsFoldable() {
         ILexStream lexStream = prsStream.getILexStream();
         if (lexStream == null)
             return;
@@ -51,7 +65,7 @@ public abstract class LPGFolderBase extends FolderBase {
                 if (comment.getEndLine() > comment.getLine())
                 {
                     IToken gate_token = k + 1 < comments.length ? comments[k + 1] : next_token;
-                    makeAnnotationWithOffsets(comment.getStartOffset(),
+                    makeFoldableByOffsets(comment.getStartOffset(),
                                               gate_token.getLine() > comment.getEndLine()
                                                   ? lexStream.getLineOffset(gate_token.getLine() - 1)
                                                   : comment.getEndOffset());

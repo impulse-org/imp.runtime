@@ -7,32 +7,56 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.runtime;
 
 import java.io.PrintStream;
 
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.IAdapterFactory;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ISourceEntity;
+import org.eclipse.imp.model.ModelFactory;
+import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.utils.ConsoleUtil;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.IStartup;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 /**
- * The main plugin class to be used in the desktop.
+ * The bundle activator class for the IMP runtime.
  */
 public class RuntimePlugin extends PluginBase implements IStartup {
+    /**
+     * An IAdapterFactory implementation that adapts IResources to ISourceEntity's.
+     * @author rfuhrer@watson.ibm.com
+     */
+    private static final class ResourceToSourceEntityAdapter implements IAdapterFactory {
+        private Class[] fTypes= new Class[] { ISourceEntity.class };
+
+        public Object getAdapter(Object adaptableObject, Class adapterType) {
+            if (adaptableObject instanceof IResource && adapterType == ISourceEntity.class) {
+                try {
+                    return ModelFactory.open((IResource) adaptableObject);
+                } catch (ModelException e) {
+                    RuntimePlugin.getInstance().logException("Unable to adapt " + adaptableObject.getClass().getName() + " to " + adapterType.getName(), e);
+                }
+            }
+            return null;
+        }
+
+        public Class[] getAdapterList() {
+            return fTypes;
+        }
+    }
+
     private static final String CONSOLE_NAME= "IMP Runtime";
 
     public static final String IMP_RUNTIME= "org.eclipse.imp.runtime"; // must match plugin ID in MANIFEST.MF
@@ -48,6 +72,12 @@ public class RuntimePlugin extends PluginBase implements IStartup {
 
     // The singleton instance.
     private static RuntimePlugin sPlugin;
+
+    private static boolean EMIT_TIMING_INFO= false;
+
+    public static long PRE_STARTUP_TIME;
+
+    public static long EDITOR_START_TIME;
 
     public RuntimePlugin() {
         sPlugin= this;
@@ -82,7 +112,13 @@ public class RuntimePlugin extends PluginBase implements IStartup {
      * This method is called upon plug-in activation
      */
     public void start(BundleContext context) throws Exception {
+        PRE_STARTUP_TIME= System.currentTimeMillis();
+
         super.start(context);
+
+        if (EMIT_TIMING_INFO) {
+            getConsoleStream().println("Entered RuntimePlugin.start(); time is " + PRE_STARTUP_TIME);
+        }
 
         // Initialize the Preferences fields with the preference store data.
         IPreferenceStore prefStore= getPreferenceStore();
@@ -91,6 +127,8 @@ public class RuntimePlugin extends PluginBase implements IStartup {
         PreferenceCache.tabWidth= prefStore.getInt(PreferenceConstants.P_TAB_WIDTH);
 
 //      PreferenceCache.sourceFont= new Font(PlatformUI.getWorkbench().getDisplay(), PreferenceConverter.getFontData(prefStore, PreferenceConstants.P_SOURCE_FONT));
+
+        Platform.getAdapterManager().registerAdapters(new ResourceToSourceEntityAdapter(), IResource.class);
     }
 
     /**
@@ -131,6 +169,10 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     }
 
     public void earlyStartup() {
+        if (EMIT_TIMING_INFO) {
+            final long curTime= System.currentTimeMillis();
+            getConsoleStream().println("Entered RuntimePlugin.earlyStartup(); time is " + curTime);
+        }
         LanguageRegistry.initializeRegistryAsNeeded();
     }
 }

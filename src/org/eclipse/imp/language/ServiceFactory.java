@@ -21,7 +21,7 @@ import org.eclipse.imp.indexing.IndexContributorBase;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.imp.services.IASTAdapter;
+import org.eclipse.imp.services.IASTMatchAdapter;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
@@ -68,7 +68,7 @@ import org.eclipse.imp.utils.ExtensionException;
 public class ServiceFactory {
     private static ServiceFactory sInstance;
 
-	static final String AUTO_EDIT_SERVICE = "autoEditStrategy";
+	static final String AUTO_EDIT_STRATEGY_SERVICE = "autoEditStrategy";
 
 	static final String ANNOTATION_HOVER_SERVICE = "annotationHover";
 
@@ -78,15 +78,15 @@ public class ServiceFactory {
 
 	static final String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
 
-	static final String EDITOR_ACTION_SERVICE = "editorActionContributions";
+	static final String EDITOR_ACTION_CONTRIBUTIONS_SERVICE = "editorActionContributions";
 
-	static final String FOLDING_SERVICE = "foldingUpdater";
+	static final String FOLDING_UPDATER_SERVICE = "foldingUpdater";
 
 	static final String FORMATTER_SERVICE = "formatter";
 
 	static final String HOVER_HELPER_SERVICE = "hoverHelper";
 
-	static final String HYPERLINK_SERVICE = "hyperLink";
+	static final String HYPER_LINK_SERVICE = "hyperLink";
 
 	static final String IMAGE_DECORATOR_SERVICE = "imageDecorator";
 
@@ -94,11 +94,11 @@ public class ServiceFactory {
 
 	static final String LABEL_PROVIDER_SERVICE = "labelProvider";
 
-	static final String LISTENER_SERVICE = "modelListener";
+	static final String MODEL_LISTENER_SERVICE = "modelListener";
 
-	static final String MODEL_BUILDER_SERVICE = "modelTreeBuilder";
+	static final String MODEL_TREE_BUILDER_SERVICE = "modelTreeBuilder";
 
-    static final String OCCURRENCE_MARKER = "markOccurrences";
+    static final String MARK_OCCURRENCES_SERVICE = "markOccurrences";
 
 	static final String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
 
@@ -114,7 +114,7 @@ public class ServiceFactory {
 
 	static final String REFERENCE_RESOLVER_SERVICE = "referenceResolvers";
 
-	static final String SYNTAX_PROPS = "syntaxProps";
+	static final String SYNTAX_PROPS_SERVICE = "syntaxProps";
 
 	static final String TOKEN_COLORER_SERVICE = "tokenColorer";
 
@@ -125,8 +125,7 @@ public class ServiceFactory {
 	static final String CONTEXT_HELPER_SERVICE= "contextHelper";
 
  
-    protected ServiceFactory() {
-    }
+    protected ServiceFactory() { }
 
     /**
      * Returns the {@link ServiceFactory}. IMP services are configured with
@@ -207,7 +206,7 @@ public class ServiceFactory {
     public TreeModelBuilderBase getTreeModelBuilder(Language lang) {
         try {
             return (TreeModelBuilderBase) loadService(lang,
-                    MODEL_BUILDER_SERVICE);
+                    MODEL_TREE_BUILDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of MODEL_BUILDER_SERVICE does not implement TreeModelBuilderBase",
@@ -218,7 +217,7 @@ public class ServiceFactory {
 
     public IModelListener getModelListener(Language lang) {
         try {
-            return (IModelListener) loadService(lang, LISTENER_SERVICE);
+            return (IModelListener) loadService(lang, MODEL_LISTENER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of LISTENER_SERVICE does not implement IModelListener",
@@ -229,7 +228,7 @@ public class ServiceFactory {
 
     public IAutoEditStrategy getAutoEditStrategy(Language lang) {
         try {
-            return (IAutoEditStrategy) loadService(lang, AUTO_EDIT_SERVICE);
+            return (IAutoEditStrategy) loadService(lang, AUTO_EDIT_STRATEGY_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of AUTO_EDIT_SERVICE does not implement IAutoEditStrategy",
@@ -240,7 +239,7 @@ public class ServiceFactory {
 
     public IFoldingUpdater getFoldingUpdater(Language lang) {
         try {
-            return (IFoldingUpdater) loadService(lang, FOLDING_SERVICE);
+            return (IFoldingUpdater) loadService(lang, FOLDING_UPDATER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of FOLDING_SERVICE does not implement IFoldingUpdater",
@@ -275,7 +274,7 @@ public class ServiceFactory {
     public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang) {
         try {
             return (ISourceHyperlinkDetector) loadService(lang,
-                    HYPERLINK_SERVICE);
+                    HYPER_LINK_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of HYPERLINK_SERVICE does not implement ISourceHyperlinkDetector",
@@ -342,7 +341,7 @@ public class ServiceFactory {
             Language lang) {
         try {
             Set<ILanguageService> services = loadServices(lang,
-                    EDITOR_ACTION_SERVICE);
+                    EDITOR_ACTION_CONTRIBUTIONS_SERVICE);
 
             Set<ILanguageActionsContributor> actionContributors = new HashSet<ILanguageActionsContributor>();
 
@@ -373,7 +372,7 @@ public class ServiceFactory {
 
     public IOccurrenceMarker getOccurrenceMarker(Language lang) {
         try {
-            return (IOccurrenceMarker) loadService(lang, OCCURRENCE_MARKER);
+            return (IOccurrenceMarker) loadService(lang, MARK_OCCURRENCES_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of OCCURRENCE_MARKER does not implement IOccurrenceMarker",
@@ -384,7 +383,7 @@ public class ServiceFactory {
 
     public ILanguageSyntaxProperties getSyntaxProperties(Language lang) {
         try {
-            return (ILanguageSyntaxProperties) loadService(lang, SYNTAX_PROPS);
+            return (ILanguageSyntaxProperties) loadService(lang, SYNTAX_PROPS_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of SYNTAX_PROPS does not implement ILanguageSyntaxProperties",
@@ -416,9 +415,9 @@ public class ServiceFactory {
         }
     }
 
-    public IASTAdapter getASTAdapter(Language lang) {
+    public IASTMatchAdapter getASTAdapter(Language lang) {
         try {
-            return (IASTAdapter) loadService(lang, AST_ADAPTER_SERVICE);
+            return (IASTMatchAdapter) loadService(lang, AST_ADAPTER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of AST_ADAPTER_SERVICE does not implement IASTAdapter",

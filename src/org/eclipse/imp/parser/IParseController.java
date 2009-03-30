@@ -61,7 +61,7 @@ public interface IParseController extends ILanguageService {
      * @param monitor
      * @return the AST, if any, resulting from the parse
      */
-    Object parse(String input, boolean scanOnly, IProgressMonitor monitor);
+    Object parse(String input, IProgressMonitor monitor);
 
     /**
      * @return the AST corresponding to the most recently-parsed source text,
@@ -82,7 +82,7 @@ public interface IParseController extends ILanguageService {
      * @return an ISourcePositionLocator that can be used to correlate
      * program entities (AST nodes, tokens, etc.) to source positions
      */
-    ISourcePositionLocator getNodeLocator();
+    ISourcePositionLocator getSourcePositionLocator();
 
     /**
      * @return an implementation of {@link ILanguageSyntaxProperties} that

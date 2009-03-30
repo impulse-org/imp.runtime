@@ -14,9 +14,9 @@ package org.eclipse.imp.parser;
 
 import java.util.Iterator;
 
+import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 import lpg.runtime.Monitor;
-import lpg.runtime.PrsStream;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
@@ -34,6 +34,10 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 	private char fKeywords[][];
 
 	private boolean fIsKeyword[];
+
+    protected IParser fParser;
+
+    protected ILexer fLexer;
 
 	private final SimpleAnnotationTypeInfo fSimpleAnnotationTypeInfo= new SimpleAnnotationTypeInfo();
 
@@ -64,9 +68,17 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 		super(languageID);
 	}
 
-	public abstract IParser getParser();
+    public IParser getParser() {
+        return fParser;
+    }
 
-	public abstract ILexer getLexer();
+    public ILexer getLexer() {
+        return fLexer;
+    }
+
+	public ISourcePositionLocator getSourcePositionLocator() {
+	    return new LPGSourcePositionLocator(this);
+	}
 
 	public Iterator<IToken> getTokenIterator(final IRegion region) {
 		final int regionOffset= region.getOffset();
@@ -74,8 +86,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 		final int regionEnd= regionOffset + regionLength - 1;
 
 		return new Iterator<IToken>() {
-			final PrsStream stream= SimpleLPGParseController.this.getParser()
-					.getParseStream();
+			final IPrsStream stream= SimpleLPGParseController.this.getParser().getIPrsStream();
 			final int firstTokIdx= getTokenIndexAtCharacter(regionOffset);
 			final int lastTokIdx;
 			{
@@ -90,14 +101,11 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 						endIdx--;
 					}
 				} catch (ArrayIndexOutOfBoundsException e) {
-					ErrorHandler
-							.logError(
+					ErrorHandler.logError(
 									"SimpleLPGParseController.getTokenIterator(IRegion):  error initializing lastTokIdx",
 									e);
-					// System.err.println("getTokenIterator: new
-					// Iterator(..)<init>: ArrayIndexOutOfBoundsException");
-					// System.err.println(" regionEnd = " + regionEnd + ",
-					// endIdx = " + endIdx + ", streamLen = " + streamLen + ",
+					// System.err.println("getTokenIterator: new Iterator(..)<init>: ArrayIndexOutOfBoundsException");
+					// System.err.println(" regionEnd = " + regionEnd + ", endIdx = " + endIdx + ", streamLen = " + streamLen + ",
 					// inputChars.length = " + streamChars.length);
 				}
 				lastTokIdx= endIdx;
@@ -107,22 +115,16 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 
 			private int getTokenIndexAtCharacter(int offset) {
 				int result= stream.getTokenIndexAtCharacter(offset);
-				// getTokenIndexAtCharacter() answers the negative of the index
-				// of the
-				// preceding token if the given offset is not actually within a
-				// token.
+				// getTokenIndexAtCharacter() answers the negative of the index of the
+				// preceding token if the given offset is not actually within a token.
 				if (result < 0) {
 					result= -result + 1;
 				}
 
-				// The above may leave result set to a value that is one more
-				// than the
-				// last token index, so return the last token index if that's
-				// the case
-				// (This can happen if the end of the file contains some text
-				// that
-				// does not correspond to a token--e.g., if the text represents
-				// an adjunct
+				// The above may leave result set to a value that is one more than the
+				// last token index, so return the last token index if that's the case
+				// (This can happen if the end of the file contains some text that
+				// does not correspond to a token--e.g., if the text represents an adjunct
 				// or something unrecognized)
 				if (result >= stream.getTokens().size())
 					result= stream.getTokens().size() - 1;
@@ -133,8 +135,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 			// The following declarations cover the whole input stream, which
 			// may be a proper superset of the range of the given region.
 			// For now, that's a simple way to collect the information, and
-			// most often the given region corresponds to the whole input
-			// anyway.
+			// most often the given region corresponds to the whole input anyway.
 			// In any case, iteration is based on the range of the given region.
 
 			// The preceding adjuncts for each token
@@ -271,7 +272,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
 				this.fKeywords= new char[tokenKindNames.length][];
 				int[] keywordKinds= getLexer().getKeywordKinds();
 				for(int i= 1; i < keywordKinds.length; i++) {
-					int index= parser.getParseStream().mapKind(keywordKinds[i]);
+					int index= parser.getIPrsStream().mapKind(keywordKinds[i]);
 					fIsKeyword[index]= true;
 					fKeywords[index]= parser.orderedTerminalSymbols()[index].toCharArray();
 				}

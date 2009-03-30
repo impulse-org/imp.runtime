@@ -56,7 +56,7 @@ public class CachingServiceFactory extends ServiceFactory {
     private ISourceFormatter sourceFormatter;
     private IAnnotationHover annotationHover;
     private IFoldingUpdater foldingUpdater;
-    private IAutoEditStrategy autoEditStrategy;
+    private Set<IAutoEditStrategy> autoEditStrategies;
     private IModelListener modelListener;
     private TreeModelBuilderBase treeModelBuilder;
     private IParseController parseController;
@@ -68,6 +68,7 @@ public class CachingServiceFactory extends ServiceFactory {
     public CachingServiceFactory() {
     }
 
+    @Override
     public IContentProposer getContentProposer(Language lang)
             {
         if (contentProposer != null) {
@@ -77,6 +78,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return contentProposer;
     }
 
+    @Override
     public IHoverHelper getHoverHelper(Language lang) {
         if (hoverHelper != null) {
             hoverHelper = super.getHoverHelper(lang);
@@ -85,6 +87,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return hoverHelper;
     }
 
+    @Override
     public ITokenColorer getTokenColorer(Language lang) {
         if (tokenColorer != null) {
             tokenColorer = super.getTokenColorer(lang);
@@ -93,8 +96,8 @@ public class CachingServiceFactory extends ServiceFactory {
         return tokenColorer;
     }
 
-    public IndexContributorBase getIndexContributor(Language lang)
-            {
+    @Override
+    public IndexContributorBase getIndexContributor(Language lang) {
         if (indexContributor != null) {
             indexContributor = super.getIndexContributor(lang);
         }
@@ -102,6 +105,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return indexContributor;
     }
 
+    @Override
     public IParseController getParseController(Language lang)
             {
         if (parseController != null) {
@@ -111,6 +115,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return parseController;
     }
 
+    @Override
     public TreeModelBuilderBase getTreeModelBuilder(Language lang)
             {
         if (treeModelBuilder != null) {
@@ -120,6 +125,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return treeModelBuilder;
     }
 
+    @Override
     public IModelListener getModelListener(Language lang)
             {
         if (modelListener != null) {
@@ -129,15 +135,16 @@ public class CachingServiceFactory extends ServiceFactory {
         return modelListener;
     }
 
-    public IAutoEditStrategy getAutoEditStrategy(Language lang)
-            {
-        if (autoEditStrategy != null) {
-            autoEditStrategy = super.getAutoEditStrategy(lang);
+    @Override
+    public Set<IAutoEditStrategy> getAutoEditStrategies(Language lang) {
+        if (autoEditStrategies != null) {
+            autoEditStrategies = super.getAutoEditStrategies(lang);
         }
 
-        return autoEditStrategy;
+        return autoEditStrategies;
     }
 
+    @Override
     public IFoldingUpdater getFoldingUpdater(Language lang)
             {
         if (foldingUpdater != null) {
@@ -147,6 +154,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return foldingUpdater;
     }
 
+    @Override
     public IAnnotationHover getAnnotationHover(Language lang)
             {
         if (annotationHover != null) {
@@ -156,8 +164,8 @@ public class CachingServiceFactory extends ServiceFactory {
         return annotationHover;
     }
 
-    public ISourceFormatter getSourceFormatter(Language lang)
-            {
+    @Override
+    public ISourceFormatter getSourceFormatter(Language lang) {
         if (sourceFormatter != null) {
             sourceFormatter = super.getSourceFormatter(lang);
         }
@@ -165,8 +173,8 @@ public class CachingServiceFactory extends ServiceFactory {
         return sourceFormatter;
     }
 
-    public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang)
-            {
+    @Override
+    public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang) {
         if (sourceHyperlinkDetector != null) {
             sourceHyperlinkDetector = super.getSourceHyperlinkDetector(lang);
         }
@@ -174,6 +182,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return sourceHyperlinkDetector;
     }
 
+    @Override
     public ILabelProvider getLabelProvider(Language lang) {
         if (labelProvider != null) {
             labelProvider = super.getLabelProvider(lang);
@@ -182,6 +191,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return labelProvider;
     }
 
+    @Override
     public OutlineContentProviderBase getOutlineContentProvider(Language lang) {
         if (outlineContentProvider != null) {
             outlineContentProvider = super.getOutlineContentProvider(lang);
@@ -190,6 +200,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return outlineContentProvider;
     }
 
+    @Override
     public Set<IRefactoringContributor> getRefactoringContributors(Language lang) {
         if (refactoringContributors != null) {
             refactoringContributors = super.getRefactoringContributors(lang);
@@ -198,6 +209,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return refactoringContributors;
     }
 
+    @Override
     public IReferenceResolver getReferenceResolver(Language lang) {
         if (referenceResolver != null) {
             referenceResolver = super.getReferenceResolver(lang);
@@ -206,6 +218,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return referenceResolver;
     }
 
+    @Override
     @SuppressWarnings("unchecked")
     public Set<ILanguageActionsContributor> getLanguageActionsContributors(
             Language lang) {
@@ -217,6 +230,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return languageActionsContributors;
     }
 
+    @Override
     public IDocumentationProvider getDocumentationProvider(Language lang) {
         if (documentationProvider != null) {
             documentationProvider = super.getDocumentationProvider(lang);
@@ -225,6 +239,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return documentationProvider;
     }
 
+    @Override
     public IOccurrenceMarker getOccurrenceMarker(Language lang) {
         if (occurrenceMarker != null) {
             occurrenceMarker = super.getOccurrenceMarker(lang);
@@ -233,6 +248,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return occurrenceMarker;
     }
 
+    @Override
     public ILanguageSyntaxProperties getSyntaxProperties(Language lang) {
         if (syntaxProperties != null) {
             syntaxProperties = super.getSyntaxProperties(lang);
@@ -241,6 +257,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return syntaxProperties;
     }
 
+    @Override
     public IElementImageProvider getElementImageProvider(Language lang)
             {
         if (elementImageProvider != null) {
@@ -250,6 +267,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return elementImageProvider;
     }
 
+    @Override
     public IOutliner getOutliner(Language lang) {
         if (outliner != null) {
             outliner = super.getOutliner(lang);
@@ -258,6 +276,7 @@ public class CachingServiceFactory extends ServiceFactory {
         return outliner;
     }
 
+    @Override
     public IASTAdapter getASTAdapter(Language lang) {
         if (astAdapter != null) {
             astAdapter = super.getASTAdapter(lang);

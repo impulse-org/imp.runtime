@@ -226,9 +226,16 @@ public class ServiceFactory {
         }
     }
 
-    public IAutoEditStrategy getAutoEditStrategy(Language lang) {
+    public Set<IAutoEditStrategy> getAutoEditStrategies(Language lang) {
         try {
-            return (IAutoEditStrategy) loadService(lang, AUTO_EDIT_STRATEGY_SERVICE);
+            Set<ILanguageService> services = loadServices(lang, AUTO_EDIT_STRATEGY_SERVICE);
+            Set<IAutoEditStrategy> autoEditStrategies = new HashSet<IAutoEditStrategy>();
+
+            for (ILanguageService s : services) {
+                autoEditStrategies.add((IAutoEditStrategy) s);
+            }
+
+            return autoEditStrategies;
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of AUTO_EDIT_SERVICE does not implement IAutoEditStrategy",

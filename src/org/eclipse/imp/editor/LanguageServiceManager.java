@@ -25,6 +25,7 @@ import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IFoldingUpdater;
@@ -37,7 +38,6 @@ import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
-import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.ui.IEditorPart;
@@ -71,7 +71,7 @@ public class LanguageServiceManager {
 
     private ISourceFormatter fFormattingStrategy;
 
-    private IAutoEditStrategy fAutoEditStrategy;
+    private Set<IAutoEditStrategy> fAutoEditStrategies;
 
     private IContentProposer fContentProposer;
 
@@ -100,7 +100,7 @@ public class LanguageServiceManager {
 
         fActionContributors= fServiceFactory.getLanguageActionsContributors(fLanguage);
         fAnnotationHover= fServiceFactory.getAnnotationHover(fLanguage);
-        fAutoEditStrategy= fServiceFactory.getAutoEditStrategy(fLanguage);
+        fAutoEditStrategies= fServiceFactory.getAutoEditStrategies(fLanguage);
         fContentProposer= fServiceFactory.getContentProposer(fLanguage);
         fContextHelper= fServiceFactory.getContextHelper(fLanguage);
         fDocProvider= fServiceFactory.getDocumentationProvider(fLanguage);
@@ -181,9 +181,8 @@ public class LanguageServiceManager {
         return fAnnotationHover;
     }
 
-    // TODO Permit multiple auto-edit strategies
-    public IAutoEditStrategy getAutoEditStrategy() {
-        return fAutoEditStrategy;
+    public Set<IAutoEditStrategy> getAutoEditStrategies() {
+        return fAutoEditStrategies;
     }
 
     public IDocumentationProvider getDocProvider() {

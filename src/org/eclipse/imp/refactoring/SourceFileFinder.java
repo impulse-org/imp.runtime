@@ -85,7 +85,7 @@ public abstract class SourceFileFinder implements IResourceVisitor {
         }
 
         IDocument document= fProvider.getDocument(fileInput);
-        Object astRoot= parseCtrlr.parse(document.get(), false, new NullProgressMonitor()); // TODO get a real monitor from somewhere...
+        Object astRoot= parseCtrlr.parse(document.get(), new NullProgressMonitor()); // TODO get a real monitor from somewhere...
 
         fVisitor.enterFile(file);
         doVisit(file, document, astRoot);

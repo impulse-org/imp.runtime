@@ -1,18 +1,14 @@
 /*******************************************************************************
-* Copyright (c) 2007 IBM Corporation.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
-*
-* Contributors:
-*    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+ *******************************************************************************/
 
-*******************************************************************************/
-
-/*
- * Created on Mar 13, 2007
- */
 package org.eclipse.imp.model.internal;
 
 import java.io.File;
@@ -45,13 +41,14 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
 
 public class CompilationUnitRef implements ICompilationUnit {
     /**
-     * The containing ISourceProject. May be null if the associated path is workspace-absolute.
+     * The containing ISourceProject. May be null if the associated path is
+     * workspace-absolute.
      */
     final ISourceProject fProject;
 
     /**
-     * Path may be either workspace-absolute or project-relative. If workspace-absolute,
-     * fProject will be null.
+     * Path may be either workspace-absolute or project-relative. If
+     * workspace-absolute, fProject will be null.
      */
     final IPath fPath; // possibly src-folder-relative?
 
@@ -59,42 +56,48 @@ public class CompilationUnitRef implements ICompilationUnit {
     private IParseController fParseCtrlr;
 
     /**
-     * @param path may be either workspace-absolute or project-relative
-     * @param proj may be null if path is workspace-absolute
+     * @param path
+     *            may be either workspace-absolute or project-relative
+     * @param proj
+     *            may be null if path is workspace-absolute
      */
     public CompilationUnitRef(IPath path, ISourceProject proj) {
-	fProject= proj;
-	fPath= path;
+        fProject= proj;
+        fPath= path;
     }
 
     /**
-     * @return the associated ISourceProject. May be null if the unit's path is workspace-absolute.
+     * @return the associated ISourceProject. May be null if the unit's path is
+     *         workspace-absolute.
      */
     public ISourceProject getProject() {
-	return fProject;
+        return fProject;
     }
 
     /**
-     * @return the associated IPath, which may be either workspace-absolute or project-relative
+     * @return the associated IPath, which may be either workspace-absolute or
+     *         project-relative
      */
     public IPath getPath() {
-	return fPath;
+        return fPath;
     }
 
     public String getName() {
         return fPath.lastSegment();
-//	if (fPath.isAbsolute())
-//	    return fPath.toPortableString();
-//	return fProject.getRawProject().getName() + ":" + fPath;
+        // if (fPath.isAbsolute())
+        // return fPath.toPortableString();
+        // return fProject.getRawProject().getName() + ":" + fPath;
     }
 
     public ISourceEntity getParent() {
-        IContainer parent= (IContainer) fProject.getRawProject().findMember(fPath.removeLastSegments(1));
+        IContainer parent= (IContainer) fProject.getRawProject().findMember(
+                fPath.removeLastSegments(1));
 
         try {
             return ModelFactory.open(parent);
         } catch (ModelException e) {
-            RuntimePlugin.getInstance().logException("Error obtaining parent of " + getName(), e);
+            RuntimePlugin.getInstance().logException(
+                    "Error obtaining parent of " + getName(), e);
             return null;
         }
     }
@@ -117,61 +120,71 @@ public class CompilationUnitRef implements ICompilationUnit {
     }
 
     public IFile getFile() {
-	if (fPath.getDevice() != null && fPath.getDevice().length() > 0)
-	    return null; // This is a filesystem-absolute path; can't build an IFile for that
-	if (fPath.isAbsolute())
-	    return fProject.getRawProject().getWorkspace().getRoot().getFile(fPath);
-	return fProject.getRawProject().getFile(fPath);
+        if (fPath.getDevice() != null && fPath.getDevice().length() > 0)
+            return null; // This is a filesystem-absolute path; can't build
+                            // an IFile for that
+        if (fPath.isAbsolute())
+            return fProject.getRawProject().getWorkspace().getRoot().getFile(
+                    fPath);
+        return fProject.getRawProject().getFile(fPath);
     }
 
     public Object getAST(IMessageHandler msgHandler, IProgressMonitor monitor) {
-	IFile file= getFile();
-	TextFileDocumentProvider tfdp= new TextFileDocumentProvider();
-	IDocument doc= (file != null) ? tfdp.getDocument(file) : null;
+        IFile file= getFile();
+        TextFileDocumentProvider tfdp= new TextFileDocumentProvider();
+        IDocument doc= (file != null) ? tfdp.getDocument(file) : null;
 
-//	if (file == null)
-//	    return null;
+        // if (file == null)
+        // return null;
 
-	if (fParseCtrlr == null) {
-	    Language lang= LanguageRegistry.findLanguage(fPath, doc);
+        if (fParseCtrlr == null) {
+            Language lang= LanguageRegistry.findLanguage(fPath, doc);
 
-	    fParseCtrlr= ServiceFactory.getInstance().getParseController(lang);
-	}
-	IPath projRelPath= fPath.isAbsolute() ? fPath.removeFirstSegments(1) : fPath;
-	fParseCtrlr.initialize(projRelPath, fProject, msgHandler);
-	return fParseCtrlr.parse(getSource(), false, monitor);
+            fParseCtrlr= ServiceFactory.getInstance().getParseController(lang);
+        }
+        IPath projRelPath= fPath.isAbsolute() ? fPath.removeFirstSegments(1)
+                : fPath;
+        fParseCtrlr.initialize(projRelPath, fProject, msgHandler);
+        return fParseCtrlr.parse(getSource(), monitor);
     }
 
     public String getSource() {
-	String absPath= (fPath.getDevice() != null) ? fPath.toOSString() :
-	    (fPath.isAbsolute() ? ResourcesPlugin.getWorkspace().getRoot().getLocation().append(fPath).toOSString() :
-		fProject.getRawProject().getLocation().append(fPath).toOSString());
+        String absPath= (fPath.getDevice() != null) ? fPath.toOSString()
+                : (fPath.isAbsolute() ? ResourcesPlugin.getWorkspace()
+                        .getRoot().getLocation().append(fPath).toOSString()
+                        : fProject.getRawProject().getLocation().append(fPath)
+                                .toOSString());
         File inFile= new File(absPath);
 
         if (!inFile.exists() || !inFile.canRead()) {
             throw new IllegalArgumentException(
-                "CompilationUnitRef.getSource(): file does not exist or cannot be read: " + this);
+                    "CompilationUnitRef.getSource(): file does not exist or cannot be read: "
+                            + this);
         }
 
         // Get a buffered reader for the input file
         FileReader fileReader= null;
         long fileLen= inFile.length();
         try {
-            fileReader = new FileReader(inFile);
+            fileReader= new FileReader(inFile);
             char[] buffer= new char[(int) fileLen];
             fileReader.read(buffer);
             return new String(buffer);
-        } catch(FileNotFoundException e) {
-            ErrorHandler.reportError("CompilationUnitRef.getSource(): file not found: " + this);
+        } catch (FileNotFoundException e) {
+            ErrorHandler
+                    .reportError("CompilationUnitRef.getSource(): file not found: "
+                            + this);
             return null;
         } catch (IOException e) {
-            ErrorHandler.reportError("CompilationUnitRef.getSource(): cannot read file: " + this);
+            ErrorHandler
+                    .reportError("CompilationUnitRef.getSource(): cannot read file: "
+                            + this);
             return null;
-	}
+        }
     }
 
     public void commit(IProgressMonitor mon) {
-	// do nothing
+        // do nothing
     }
 
     @Override
@@ -191,6 +204,6 @@ public class CompilationUnitRef implements ICompilationUnit {
     }
 
     public String toString() {
-	return "<compilation unit " + getPath().toPortableString() + ">";
+        return "<compilation unit " + getPath().toPortableString() + ">";
     }
 }

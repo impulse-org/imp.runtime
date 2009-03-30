@@ -56,7 +56,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         Object ast= parseController.getCurrentAst();
         if (ast == null) return null;
         int offset= region.getOffset();
-        ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
+        ISourcePositionLocator nodeLocator = parseController.getSourcePositionLocator();
 
         // Get link source node
         Object source = nodeLocator.findNode(ast, offset);
@@ -94,7 +94,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // an empty path, so test for that here and assume it means that the link target is in 
         // the same unit as the link source
         IPath wsPath= ResourcesPlugin.getWorkspace().getRoot().getLocation();
-        boolean isSamePath= targetPath.equals(srcPath) || srcPath.removeFirstSegments(wsPath.segmentCount()).setDevice(null).equals(targetPath);
+        boolean isSamePath= targetPath.equals(srcPath) || srcPath.removeFirstSegments(wsPath.segmentCount()).setDevice(null).makeAbsolute().equals(targetPath);
         
         // SMS 5 Aug 2008
         // The above test for isSamePath doesn't necessarily work because the default node

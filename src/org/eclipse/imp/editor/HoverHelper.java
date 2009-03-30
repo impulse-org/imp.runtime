@@ -57,7 +57,7 @@ public class HoverHelper implements IHoverHelper {
 
     	IReferenceResolver refResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
         Object root= parseController.getCurrentAst();
-        ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
+        ISourcePositionLocator nodeLocator = parseController.getSourcePositionLocator();
 
         if (root == null) return null;
 

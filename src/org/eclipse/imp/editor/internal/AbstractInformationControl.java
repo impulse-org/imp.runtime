@@ -748,7 +748,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		    IEditorPart editor= p.getActiveEditor();
 		    UniversalEditor ue= (UniversalEditor) editor;
 		    IParseController parseController= ue.getParseController();
-		    ISourcePositionLocator locator= parseController.getNodeLocator();
+		    ISourcePositionLocator locator= parseController.getSourcePositionLocator();
                     Object element= selectedElement;
 
                     if (element instanceof ModelTreeNode)

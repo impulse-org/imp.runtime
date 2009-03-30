@@ -7,16 +7,13 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/*
- * (C) Copyright IBM Corporation 2007, 2008
- * 
- * This file is part of the Eclipse IMP.
- */
 package org.eclipse.imp.language;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -34,7 +31,11 @@ import org.eclipse.imp.editor.EditorInputUtils;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.SWTException;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
@@ -46,11 +47,6 @@ import org.eclipse.ui.internal.registry.FileEditorMapping;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 
-/*
- * Licensed Materials - Property of IBM, (c) Copyright IBM Corp. 2005, 2008 All
- * Rights Reserved
- */
-
 /**
  * @author Claffra
  * @author rfuhrer@watson.ibm.com
@@ -60,35 +56,31 @@ import org.osgi.framework.Bundle;
  * Registry for IMP language contributors.
  */
 @SuppressWarnings("restriction")
-public class LanguageRegistry
-{
-	private static Object statusCheckMutex = new Object();
-	private static boolean isFullyInitialized = false;
+public class LanguageRegistry {
+    private static final String EXTENSION = "languageDescription";
+
+	private static Object sStatusCheckMutex = new Object();
+	private static boolean sIsFullyInitialized = false;
 	
-	private static Map<String, Language> fRegister;
+	private static Map<String, Language> sRegister;
 
-	private static final String EXTENSION = "languageDescription";
+	private static IEditorDescriptor sUniversalEditor;
 
-	private static IEditorDescriptor universalEditor;
+	private static EditorRegistry sEditorRegistry;
 
-	private static EditorRegistry editorRegistry;
-
-	
 	/*
 	 * No one should instantiate this class.
 	 * TODO:  Perhaps should be a singleton class.
 	 */
 	private LanguageRegistry() {}
 	
-
 	private static Map<String, Language> getRegister() {
-		if(fRegister == null) {
-			fRegister = new HashMap<String, Language>();
+		if(sRegister == null) {
+			sRegister = new HashMap<String, Language>();
 		}
-		return fRegister;
+		return sRegister;
 	}
-	
-	
+
 	/**
 	 * Initialize the registry. Discover all contributors to the
 	 * languageDescription extension point. The registry will not be fully
@@ -96,26 +88,21 @@ public class LanguageRegistry
 	 */
 	private static void preInitEditorRegistry() {
 	 	try {
-			editorRegistry = (EditorRegistry) PlatformUI.getWorkbench()
-					.getEditorRegistry();
-			initializeUniversalEditorDescriptor(editorRegistry);
+			sEditorRegistry = (EditorRegistry) PlatformUI.getWorkbench().getEditorRegistry();
+			initializeUniversalEditorDescriptor(sEditorRegistry);
 	
-			IExtensionPoint extensionPoint = Platform.getExtensionRegistry()
-					.getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
+			IExtensionPoint extensionPoint =
+			    Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
 	
 			if (extensionPoint == null) {
-				ErrorHandler
-						.reportError("Nonexistent extension point called \"" +
+				ErrorHandler.reportError("Nonexistent extension point called \"" +
 						 RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
 			} else {
-				IConfigurationElement[] elements = extensionPoint
-						.getConfigurationElements();
+				IConfigurationElement[] elements = extensionPoint.getConfigurationElements();
 	
 				if (elements != null) {
 					for (IConfigurationElement element : elements) {
-						Bundle bundle = Platform.getBundle(element
-								.getDeclaringExtension()
-								.getNamespaceIdentifier());
+						Bundle bundle = Platform.getBundle(element.getDeclaringExtension().getNamespaceIdentifier());
 	
 						if (bundle != null) {
 							register(new Language(element));
@@ -145,7 +132,7 @@ public class LanguageRegistry
 	 *         extension/content
 	 */
 	public static Language findLanguage(IEditorInput editorInput, IDocumentProvider docProvider) {
-		if (!isFullyInitialized)
+		if (!sIsFullyInitialized)
 			initializeRegistryAsNeeded();
 		IPath path= EditorInputUtils.getPath(editorInput);
 
@@ -166,11 +153,11 @@ public class LanguageRegistry
 		if (!isFullyInitialized())
 			initializeRegistryAsNeeded();
 		String extension= path.getFileExtension();
-                String docContents= (doc != null) ? doc.get() : null;
+		String docContents= (doc != null) ? doc.get() : null;
 
 		// N.B. It's ok for multiple language descriptors to specify the same
 		// file name extension; the associated validators should use the file
-                // contents to identify the dialects.
+		// contents to identify the dialects.
 		if (extension != null) {
 		    for (Language lang : getRegister().values()) {
 		        if (lang.hasExtension(extension)) {
@@ -188,12 +175,10 @@ public class LanguageRegistry
 		}
 
 		if (PreferenceCache.emitMessages) {
-			RuntimePlugin.getInstance().writeErrorMsg(
-					"No language support for text/source file of type '" +
+			RuntimePlugin.getInstance().writeErrorMsg("No language support for text/source file of type '" +
 					 extension + "'.");
 		} else {
-			ErrorHandler
-					.reportError("No language support for text/source file of type '" +
+			ErrorHandler.reportError("No language support for text/source file of type '" +
 					 extension + "'.");
 		}
 
@@ -240,12 +225,12 @@ public class LanguageRegistry
 
 		List<IFileEditorMapping> mappings = new ArrayList<IFileEditorMapping>();
 		Collections.addAll(mappings, getEditorRegistry().getFileEditorMappings());
-		addUniversalEditorMappings(language.getFilenameExtensions(), mappings);
+		addUniversalEditorMappings(language.getName(), language.getIconPath(), language.getFilenameExtensions(), language.getBundleID(), mappings);
 		updateEditorRegistry(mappings);
 	}
 
 	private static EditorRegistry getEditorRegistry() {
-		return editorRegistry;
+		return sEditorRegistry;
 	}
 	
 	/**
@@ -260,30 +245,31 @@ public class LanguageRegistry
 	 * of the LanguageRegistry class to similarly assure that the registry is
 	 * initialized.
 	 * 
-	 * To prevent thread access errors and other possible concurency conflicts,
+	 * To prevent thread access errors and other possible concurrency conflicts,
 	 * this method executes within a synchronized block.  It both tests and sets
 	 * isFullyInitialized within this block, as a means to assure that the registry
 	 * will be initialized serially and only once.  Although isFullyInitialized
 	 * can be tested from anywhere, this is the only place that it should be set.
 	 */
-	public static void initializeRegistryAsNeeded()
-	{	
-		synchronized(statusCheckMutex) {
+	public static void initializeRegistryAsNeeded() {	
+		synchronized(sStatusCheckMutex) {
 			if(isFullyInitialized()) {
 				return;
 			}
 			preInitEditorRegistry();
-			
+
 			if (PreferenceCache.emitMessages) {
 				RuntimePlugin.getInstance().writeInfoMsg(
 						"Looking for IMP language description extensions...");
 			}
-	
-			List<String> langExtens = collectAllLanguageFileNameExtensions();
+
+//			List<String> langExtens= collectAllLanguageFileNameExtensions();
 			List<IFileEditorMapping> newMap = new ArrayList<IFileEditorMapping>();
-			
-			addNonUniversalEditorMappings(newMap);
-			addUniversalEditorMappings(langExtens, newMap);
+
+            addNonUniversalEditorMappings(newMap);
+			for(Language lang : sRegister.values()) {
+	            addUniversalEditorMappings(lang.getName(), lang.getIconPath(), lang.getFilenameExtensions(), lang.getBundleID(), newMap);
+            }
 			updateEditorRegistry(newMap);
 
 			setFullyInitialized();
@@ -291,8 +277,7 @@ public class LanguageRegistry
 	}
 
 	private static void addNonUniversalEditorMappings(List<IFileEditorMapping> newMap) {
-		for (IFileEditorMapping mapping : getEditorRegistry()
-				.getFileEditorMappings()) {
+		for (IFileEditorMapping mapping : getEditorRegistry().getFileEditorMappings()) {
 			IEditorDescriptor defaultEditor = mapping.getDefaultEditor();
 			if (defaultEditor == null
 					|| !defaultEditor.getId().equals(UniversalEditor.EDITOR_ID)) {
@@ -301,41 +286,145 @@ public class LanguageRegistry
 		}
 	}
 
+    private static class BundleImageDescriptor extends ImageDescriptor {
+        private final Bundle bundle;
+        private final String iconPath;
+        private final String langName;
+
+        private BundleImageDescriptor(String iconPath, Bundle bundle, String langName) {
+            this.langName= langName;
+            this.bundle= bundle;
+            this.iconPath= iconPath;
+        }
+
+        @Override
+        public ImageData getImageData() {
+            InputStream in = getStream();
+            ImageData result = null;
+            if (in != null) {
+                try {
+                    result = new ImageData(in);
+                } catch (SWTException e) {
+                    if (e.code != SWT.ERROR_INVALID_IMAGE) {
+                        throw e;
+                    // fall through otherwise
+                    }
+                } finally {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
+                        //System.err.println(getClass().getName()+".getImageData(): "+
+                        //  "Exception while closing InputStream : "+e);
+                    }
+                }
+            }
+            return result;
+        }
+
+        private InputStream getStream() {
+            InputStream is = null;
+
+            try {
+                if (this.iconPath != null) {
+                    is = bundle.getResource(iconPath).openStream();
+                }
+            } catch (IOException e) {
+                RuntimePlugin.getInstance().logException("Unable to find icon for language " + langName, e);
+                return null;
+            }
+
+            if (is == null) {
+                return null;
+            } else {
+                return new BufferedInputStream(is);
+            }
+        }
+    }
+
+    private static class IMPFileEditorMapping extends FileEditorMapping {
+        private ImageDescriptor fImageDescriptor;
+        private IEditorDescriptor fEditor;
+
+        public IMPFileEditorMapping(final String langName, String extension, final String iconPath, String bundleID) {
+            super(extension);
+            final Bundle bundle= Platform.getBundle(bundleID);
+            fImageDescriptor= new BundleImageDescriptor(iconPath, bundle, langName);
+        }
+
+        public void setTheDefaultEditor(IEditorDescriptor editor) {
+            fEditor= editor;
+        }
+
+        @Override
+        public IEditorDescriptor getDefaultEditor() {
+            return fEditor;
+        }
+
+        @Override
+        public ImageDescriptor getImageDescriptor() {
+            return fImageDescriptor;
+        }
+    }
+
 	/**
 	 * Adds new mappings to the universal editor for a set of extensions
 	 * @param extensions
 	 * @param newMap
 	 */
-	private static void addUniversalEditorMappings(Iterable<String> extensions,
-			List<IFileEditorMapping> newMap) {
-	    IFileEditorMapping[] mappings= editorRegistry.getFileEditorMappings();
+	private static void addUniversalEditorMappings(String langName, String langIcon,
+	        Iterable<String> extensions, String bundleID, List<IFileEditorMapping> newMap) {
+	    IFileEditorMapping[] mappings= sEditorRegistry.getFileEditorMappings();
+	    // RMF 3/25/2009 - There doesn't seem to be a way to set the editor's label
+	    // programmatically; (1) IEditorDescriptor doesn't expose enough API, (2) the
+	    // EditorDescriptor ctor is not visible, (3) the class EditorDescriptor is final,
+	    // (4) getEditorRegistry().setFileEditorMappings() will only accept an array
+	    // of FileEditorMappings, and (5) FileEditorMapping requires an EditorDescriptor.
 
-	    for (String ext : extensions) {
+        for (String ext : extensions) {
 	        IFileEditorMapping mapping= findMappingFor(ext, mappings);
-	        if (mapping == null) {
-	            mapping= new FileEditorMapping(ext);
-                    FileEditorMapping fem= (FileEditorMapping) mapping;
+
+	        if (mapping == null || mapping.getDefaultEditor().getId().equals(sUniversalEditor.getId())) {
+	            // Replace the file editor mapping even if it already pointed to the universal editor,
+	            // since the persisted association turns into a FileEditorMapping when re-read, thus
+	            // losing the icon (which FileEditorMapping gets from the IEditorDescriptor).
+	            mapping= new IMPFileEditorMapping(langName, ext, langIcon, bundleID);
 	        }
-	        IEditorDescriptor defaultEditor= mapping.getDefaultEditor();
-                FileEditorMapping fem= (FileEditorMapping) mapping;
-	        if (defaultEditor == null || defaultEditor.getId().equals("")) {
-	            fem.setDefaultEditor((EditorDescriptor) universalEditor);
+            IEditorDescriptor defaultEditor= mapping.getDefaultEditor();
+
+            if (defaultEditor == null || defaultEditor.getId().equals("")) {
+                ((FileEditorMapping) mapping).setDefaultEditor((EditorDescriptor) sUniversalEditor);
 	        } else {
 	        	// SMS 19 Nov 2008
 	        	// Revised else branch according to patch provided by Edward Willink
 	        	// Bug #242967, attachment id=109002
 	        	boolean gotIt = false;
-	        	for (IEditorDescriptor editor : fem.getEditors()) {
-	        	    if (editor == universalEditor) {
+	        	for (IEditorDescriptor editor : mapping.getEditors()) {
+	        	    if (editor == sUniversalEditor) {
 	        	    	gotIt = true;
 	        	    	break;
 	        	    }
 	        	}
 	        	if (!gotIt)
-	        		fem.addEditor((EditorDescriptor) universalEditor);
+	        		((FileEditorMapping) mapping).addEditor((EditorDescriptor) sUniversalEditor);
 	        }
 	        newMap.add(mapping);
 	    }
+	}
+
+	private void addEditorIfNeeded(IMPFileEditorMapping fem, EditorDescriptor editor) {
+        // SMS 19 Nov 2008
+        // Revised else branch according to patch provided by Edward Willink
+        // Bug #242967, attachment id=109002
+        boolean gotIt = false;
+        for (IEditorDescriptor fileEditor : fem.getEditors()) {
+            if (fileEditor.getId().equals(editor.getId())) {
+                gotIt = true;
+                break;
+            }
+        }
+        if (!gotIt) {
+            fem.addEditor(editor);
+        }
 	}
 
 	private static IFileEditorMapping findMappingFor(String ext, IFileEditorMapping[] mappings) {
@@ -363,7 +452,7 @@ public class LanguageRegistry
 	}
 
 	private static List<String> collectAllLanguageFileNameExtensions() {
-		List<String> allExtens = new ArrayList<String>();
+		List<String> allExtens = new ArrayList<String>(getRegister().size());
 
 		for (Language lang : getRegister().values()) {
 			allExtens.addAll(lang.getFilenameExtensions());
@@ -372,27 +461,24 @@ public class LanguageRegistry
 		return allExtens;
 	}
 
-	private static void initializeUniversalEditorDescriptor(
-			EditorRegistry editorRegistry)
-	{
-		final IEditorDescriptor[] allEditors = editorRegistry
-				.getSortedEditorsFromPlugins();
+	private static void initializeUniversalEditorDescriptor(EditorRegistry editorRegistry) {
+		final IEditorDescriptor[] allEditors = editorRegistry.getSortedEditorsFromPlugins();
 
 		for (IEditorDescriptor editor : allEditors) {
 			if (editor.getId().equals(UniversalEditor.EDITOR_ID)) {
-				universalEditor = editor;
+				sUniversalEditor = editor;
 
 				if (PreferenceCache.emitMessages) {
 					RuntimePlugin.getInstance().writeInfoMsg(
 							"Universal editor descriptor: " +
-							 universalEditor.getId() + ":" +
-							 universalEditor.getLabel());
+							 sUniversalEditor.getId() + ":" +
+							 sUniversalEditor.getLabel());
 				}
 				return;
 			}
 		}
 
-		if (universalEditor == null) {
+		if (sUniversalEditor == null) {
 			if (PreferenceCache.emitMessages) {
 				RuntimePlugin.getInstance().writeErrorMsg(
 					"IMP LanguageRegistry error in initializeUniversalEditorDescroptor():  unable to initialize Universal Editor");
@@ -414,11 +500,11 @@ public class LanguageRegistry
 	
 	
 	private static void setFullyInitialized() {
-			isFullyInitialized = true;
+			sIsFullyInitialized = true;
 	}
 	
 	private static boolean isFullyInitialized() {
-			return isFullyInitialized;
+			return sIsFullyInitialized;
 	}
 
 	

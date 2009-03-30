@@ -17,25 +17,27 @@ import java.util.Iterator;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.core.IMPMessages;
 import org.eclipse.imp.editor.EditorUtility;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.ServiceFactory;
+import org.eclipse.imp.model.ICompilationUnit;
 import org.eclipse.imp.model.ISourceEntity;
-import org.eclipse.imp.model.ISourceFolder;
-import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.ui.ActionMessages;
-import org.eclipse.jdt.core.ICompilationUnit;
-import org.eclipse.jdt.core.IJavaElement;
-import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
-import org.eclipse.jdt.internal.ui.actions.ActionUtil;
 import org.eclipse.jdt.ui.actions.SelectionDispatchAction;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.OpenStrategy;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.texteditor.IEditorStatusLine;
 
 /**
  * This action opens a Java editor on a Java element or file.
@@ -114,44 +116,42 @@ public class OpenAction extends SelectionDispatchAction {
     public void run(ITextSelection selection) {
         if (!isProcessable())
             return;
-        ISourceEntity[] elements= null; // SelectionConverter.codeResolveForked(fEditor, false);
-        if (elements == null || elements.length == 0) {
-            IEditorStatusLine statusLine= (IEditorStatusLine) fEditor.getAdapter(IEditorStatusLine.class);
-            if (statusLine != null)
-                statusLine.setMessage(true, ActionMessages.OpenAction_error_messageBadSelection, null);
-            getShell().getDisplay().beep();
-            return;
+
+        IParseController parseCtlr= fEditor.getParseController();
+        ISourcePositionLocator locator= parseCtlr.getSourcePositionLocator();
+        int offset= selection.getOffset();
+        int endOffset= selection.getOffset() + selection.getLength() - 1;
+        Object node= locator.findNode(parseCtlr.getCurrentAst(), offset, endOffset);
+
+        if (node != null) {
+            Language lang= parseCtlr.getLanguage();
+            IReferenceResolver resolver= ServiceFactory.getInstance().getReferenceResolver(lang);
+
+            if (resolver != null) {
+                Object target= resolver.getLinkTarget(node, parseCtlr);
+                if (target != null && target != node) {
+                    IPath path= locator.getPath(target);
+                    int targetOffset= locator.getStartOffset(target);
+                    int targetLength= locator.getLength(target);
+
+                    try {
+                        IEditorPart editor= EditorUtility.openInEditor(path);
+                        EditorUtility.revealInEditor(editor, targetOffset, targetLength);
+                    } catch (PartInitException e) {
+                        RuntimePlugin.getInstance().logException("Unable to open declaration", e);
+                    }
+                }
+            }
         }
-        ISourceEntity element= elements[0];
-        if (elements.length > 1) {
-            element= OpenActionUtil.selectJavaElement(elements, getShell(), getDialogTitle(), ActionMessages.OpenAction_select_element);
-            if (element == null)
-                return;
-        }
-//          int type= element.getElementType();
-        if (element instanceof ISourceProject || element instanceof ISourceFolder /*|| element instanceof ISourceFolderRoot || element instanceof IPACKAGE_FRAGMENT*/)
-            element= EditorUtility.getEditorInputModelElement(fEditor, false);
-        run(new Object[] { element });
     }
 
-//    private boolean isProcessable() {
-//        if (fEditor != null) {
-//            ISourceEntity se= EditorUtility.getEditorInputModelElement(fEditor, false);
-//            if (se instanceof ICompilationUnit && !JavaModelUtil.isPrimary((ICompilationUnit) se))
-//                return true; // can process non-primary working copies
-//        }
-//        return ActionUtil.isProcessable(getShell(), fEditor);
-//    }
-    
     private boolean isProcessable() {
     	ISourceEntity se= EditorUtility.getEditorInputModelElement(fEditor, false);
-    		if (fEditor != null) {
-    			if (se instanceof ICompilationUnit && !JavaModelUtil.isPrimary((ICompilationUnit) se))
-    				return true; // can process non-primary working copies
-    		} else if(se instanceof IJavaElement) {
-    			return ActionUtil.isProcessable(getShell(), (IJavaElement)se);
-    		}
-    		return false;
+    	if (fEditor != null) {
+    	    if (se instanceof ICompilationUnit /*&& !JavaModelUtil.isPrimary((ICompilationUnit) se)*/)
+    	        return true; // can process non-primary working copies
+    	}
+    	return false;
     }
 
 
@@ -194,12 +194,4 @@ public class OpenAction extends SelectionDispatchAction {
             }
         }
     }
-
-    private String getDialogTitle() {
-        return ActionMessages.OpenAction_error_title;
-    }
-
-//    private void showError(InvocationTargetException e) {
-//        ExceptionHandler.handle(e, getShell(), getDialogTitle(), ActionMessages.OpenAction_error_message);
-//    }
 }

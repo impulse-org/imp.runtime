@@ -106,7 +106,7 @@ For example, suppose a PHP source file is opened, but no PHP editor is available
          <attribute name="icon" type="string">
             <annotation>
                <documentation>
-                  The icon that will appear in various views that display source file entities (e.g. the Package Explorer).
+                  The file path to the icon that will appear in various views that display source file entities (e.g. the Package Explorer). The icon must reside in the plugin containing the language descriptor, and the path must be a valid resource location in that plugin.
                </documentation>
             </annotation>
          </attribute>

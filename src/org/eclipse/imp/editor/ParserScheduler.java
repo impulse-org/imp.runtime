@@ -24,10 +24,7 @@ import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferenceCache;
-import org.eclipse.imp.preferences.PreferenceConstants;
-import org.eclipse.imp.preferences.PreferencesService;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.ui.IEditorInput;
@@ -84,7 +81,7 @@ public class ParserScheduler extends Job {
             // Don't need to retrieve the AST; we don't need it.
             // Just make sure the document contents gets parsed once (and only once).
             fMsgHandler.clearMessages();
-            fParseController.parse(document.get(), false, monitor);
+            fParseController.parse(document.get(), monitor);
             if (!monitor.isCanceled())
                 notifyModelListeners(monitor);
         } catch (Exception e) {

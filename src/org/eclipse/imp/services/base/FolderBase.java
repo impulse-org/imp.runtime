@@ -12,6 +12,7 @@
 
 package org.eclipse.imp.services.base;
 
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,11 +20,13 @@ import java.util.List;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
+import org.eclipse.ui.console.MessageConsoleStream;
 
 
 /**
@@ -33,80 +36,71 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
  * visitor to an AST, as both the visitor and AST node types are language
  * specific.
  * 
- * @author 	suttons@us.ibm.com
+ * @author suttons@us.ibm.com
+ * @author rfuhrer@watson.ibm.com
  */
-public abstract class FolderBase implements IFoldingUpdater
-{	
+public abstract class FolderBase implements IFoldingUpdater {
 	// For recording annotations
 	
 	// Maps new annotations to positions
     protected HashMap<Annotation,Position> newAnnotations = new HashMap<Annotation, Position>();
+
     // Lists the new annotations, which are the keys for newAnnotations
     protected List<Annotation> annotations = new ArrayList<Annotation>();
 
     protected IParseController parseController = null;
-    
-    // Methods to make annotations will be called by visitor methods
+
+    // Used to support checking of whether annotations have
+    // changed between invocations of updateFoldingStructure
+    // (because, if they haven't, then it's probably best not
+    // to update the folding structure)
+    private ArrayList<Annotation> oldAnnotationsList = null;
+    private Annotation[] oldAnnotationsArray;
+
+    protected boolean fDebugMode = false;
+
+    // Methods to make annotations will typically be called by visitor methods
     // in the language-specific concrete subtype
-    
+
     /**
      * Make a folding annotation that corresponds to the extent of text
-     * represented by a given AST node.
+     * represented by a given program entity. Usually, this will be an
+     * AST node, but it can be anything for which the language's
+     * ISourcePositionLocator can produce an offset/end offset.
      * 
-     * @param n		an Object that will be taken to represent an AST node
+     * @param n an Object representing a program entity
      */
-    public void makeAnnotation(Object n)
-    {	
-		// Use the parse controller to get a node locator
-    	// (assume that parse controller will have been set)
-		ISourcePositionLocator nodeLocator = parseController.getNodeLocator();
-		
-		// Use the node locator to get the starting and ending offsets of the node
+    public void makeAnnotation(Object n) {	
+		ISourcePositionLocator nodeLocator = parseController.getSourcePositionLocator();
 		int startOffset = 0;
 		int endOffset = 0;
+
 		try {
-			// The methods of nodeLocator typically take an object and cast it
-			// to an ASTNode type without any concern for what it actually is,
-			// so try that here and catch any exception that is thrown
 			startOffset = nodeLocator.getStartOffset(n);
 			endOffset = nodeLocator.getEndOffset(n);
-		} catch (ClassCastException x) {
-			System.err.println("FolderBase.makeAnnotation(Object):  " +
-				"ClassCastException trying to treat event data as AST node type");
+		} catch (Exception e) {
+		    RuntimePlugin.getInstance().logException("Error while attempting to determine position of a foldable source entity", e);
 			return;
 		}
-
-		// Create an annotation corresponding to the node and add it to the list
-		// of annotations that go into the document annotation model
-		ProjectionAnnotation annotation= new ProjectionAnnotation();
-		newAnnotations.put(annotation, new Position(startOffset, endOffset-startOffset+1));
-		annotations.add(annotation);
-    }    
-
+		makeAnnotation(startOffset, endOffset-startOffset+1);
+    }
 
     /**
-     * Make a folding annotation that corresponds to a given range of text,
-     * without any necessary correspondence to an AST node
+     * Make a folding annotation that corresponds to the given range of text.
      * 
      * @param start		The starting offset of the text range
-     * @param len		The ending offset of the text range
+     * @param len		The length of the text range
      */
     public void makeAnnotation(int start, int len) {
+        if (fDebugMode) {
+            PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
+            cons.println("Adding folding annotation for extent [" + start + ":" + len + "]");
+        }
 		ProjectionAnnotation annotation= new ProjectionAnnotation();
 		newAnnotations.put(annotation, new Position(start, len));
 		annotations.add(annotation);
     }
-	
-	
-    
-	// Used to support checking of whether annotations have
-	// changed between invocations of updateFoldingStructure
-	// (because, if they haven't, then it's probably best not
-	// to update the folding structure)
-	private ArrayList<Annotation> oldAnnotationsList = null;
-  	private Annotation[] oldAnnotationsArray;
 
-  	
 	/**
 	 * Update the folding structure for a source text, where the text and its
 	 * AST are represented by a given parse controller and the folding structure
@@ -132,6 +126,10 @@ public abstract class FolderBase implements IFoldingUpdater
 	public synchronized void updateFoldingStructure(
 		IParseController parseController, ProjectionAnnotationModel annotationModel)
 	{
+        if (fDebugMode) {
+            PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
+            cons.println("Collecting folding annotations");
+        }
 		if (parseController != null)
 			this.parseController = parseController;
 		

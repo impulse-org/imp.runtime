@@ -21,7 +21,7 @@ import org.eclipse.imp.indexing.IndexContributorBase;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.imp.services.IASTMatchAdapter;
+import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
@@ -40,8 +40,8 @@ import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
-import org.eclipse.imp.utils.ExtensionFactory;
 import org.eclipse.imp.utils.ExtensionException;
+import org.eclipse.imp.utils.ExtensionFactory;
 
 /**
  * This class stores language services. IMP services are configured with
@@ -415,9 +415,9 @@ public class ServiceFactory {
         }
     }
 
-    public IASTMatchAdapter getASTAdapter(Language lang) {
+    public IASTAdapter getASTAdapter(Language lang) {
         try {
-            return (IASTMatchAdapter) loadService(lang, AST_ADAPTER_SERVICE);
+            return (IASTAdapter) loadService(lang, AST_ADAPTER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of AST_ADAPTER_SERVICE does not implement IASTAdapter",

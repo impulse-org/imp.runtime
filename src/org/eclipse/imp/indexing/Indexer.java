@@ -144,7 +144,7 @@ public class Indexer {
 
                             if (validator == null || validator.validate(file)) {
                         	String contents= StreamUtils.readStreamContents(file.getContents(), file.getCharset());
-                                Object ast= fParser.parse(contents, false, monitor);
+                                Object ast= fParser.parse(contents, monitor);
 
                                 if (ast != null)
                                     fIndexer.contributeEntries(ast, Indexer.this);

@@ -17,10 +17,18 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
+import org.eclipse.core.filesystem.IFileSystem;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.IMPMessages;
 import org.eclipse.imp.model.ICompilationUnit;
@@ -31,7 +39,7 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.text.Assert;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -41,12 +49,15 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
+import org.eclipse.ui.IPathEditorInput;
+import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
+import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.part.FileEditorInput;
@@ -141,26 +152,6 @@ public class EditorUtility {
 //            ((UniversalEditor) part).setSelection(element);
             return;
         }
-        // Support for non-Java editor
-//        try {
-//            ISourceRange range= null;
-//            if (element instanceof ICompilationUnit)
-//                range= null;
-//            else if (element instanceof IClassFile)
-//                range= null;
-//            else if (element instanceof ILocalVariable)
-//                range= ((ILocalVariable) element).getNameRange();
-//            else if (element instanceof IMember)
-//                range= ((IMember) element).getNameRange();
-//            else if (element instanceof ITypeParameter)
-//                range= ((ITypeParameter) element).getNameRange();
-//            else if (element instanceof ISourceReference)
-//                range= ((ISourceReference) element).getSourceRange();
-//            if (range != null)
-//                revealInEditor(part, range.getOffset(), range.getLength());
-//        } catch (ModelException e) {
-//            // don't reveal
-//        }
     }
 
     /**
@@ -334,8 +325,22 @@ public class EditorUtility {
             return getEditorInput((ISourceEntity) input);
         if (input instanceof IFile)
             return new FileEditorInput((IFile) input);
-//      if (input instanceof IStorage)
-//          return new JarEntryEditorInput((IStorage) input);
+        if (input instanceof IPath) {
+            IPath path= (IPath) input;
+            if (path.isAbsolute()) {
+                try {
+                    IFileSystem fileSystem= EFS.getFileSystem("file");
+                    IFileStore fileStore= fileSystem.getStore((IPath) input);
+    
+                    return new FileStoreEditorInput(fileStore);
+                } catch (CoreException e) {
+                    RuntimePlugin.getInstance().logException(e.getLocalizedMessage(), e);
+                }
+            } else {
+                IWorkspace ws= ResourcesPlugin.getWorkspace();
+                return new FileEditorInput(ws.getRoot().getFile(path));
+            }
+        }
         return null;
     }
 

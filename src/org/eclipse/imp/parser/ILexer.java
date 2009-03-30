@@ -19,9 +19,11 @@ import lpg.runtime.Monitor;
 public interface ILexer {
     public int[] getKeywordKinds();
 
-    public ILexStream getLexStream();
+    public ILexStream getILexStream();
 
     public void initialize(char[] contents, String filename);
 
     public void lexer(Monitor monitor, IPrsStream prsStream);
+
+    public void reset(char[] contentsArray, String filePath);
 }

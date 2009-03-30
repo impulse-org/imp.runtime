@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -34,7 +33,9 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
+import org.eclipse.debug.ui.actions.ToggleBreakpointAction;
 import org.eclipse.help.IContextProvider;
+import org.eclipse.imp.actions.RulerEnableDisableBreakpointAction;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.internal.AnnotationCreator;
 import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
@@ -72,6 +73,7 @@ import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
+import org.eclipse.imp.ui.explorer.OpenAction;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jdt.ui.text.IJavaPartitions;
@@ -133,8 +135,6 @@ import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
-import org.eclipse.jface.util.IPropertyChangeListener;
-import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -143,7 +143,6 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
@@ -156,13 +155,14 @@ import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
-import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
+import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
@@ -227,6 +227,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private PreferenceServiceListener fTabListener;
 
+    private IAction fToggleBreakpointAction;
+
+    private IAction fEnableDisableBreakpointAction;
+
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".imp_editor_context";
@@ -275,6 +279,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction("ContentAssistProposal", action);
         markAsStateDependentAction("ContentAssistProposal", true);
 
+        // Not sure how to hook this up - the following class has all the right enablement logic,
+        // but it doesn't implement IAction... How to register it as an action here???
+//        fToggleBreakpointAction= new AbstractRulerActionDelegate() {
+//            protected IAction createAction(ITextEditor editor, IVerticalRulerInfo rulerInfo) {
+//                return new ToggleBreakpointAction(UniversalEditor.this, getDocumentProvider().getDocument(getEditorInput()), getVerticalRuler());
+//            }
+//        }
+        fToggleBreakpointAction= new ToggleBreakpointAction(this, getDocumentProvider().getDocument(getEditorInput()), getVerticalRuler());
+        setAction("ToggleBreakpoint", action);
+        fEnableDisableBreakpointAction= new RulerEnableDisableBreakpointAction(this, getVerticalRuler());
+        setAction("ToggleBreakpoint", action);
+
         action= new TextOperationAction(bundle, "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
         action.setActionDefinitionId(FORMAT_SOURCE_COMMAND);
         setAction("Format", action); //$NON-NLS-1$
@@ -299,9 +315,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         action= new GotoMatchingFenceAction(this);
         action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);
         setAction(GOTO_MATCHING_FENCE_COMMAND, action);
+
+        FoldingActionGroup foldingGroup= new FoldingActionGroup(this, this.getSourceViewer());
     }
 
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
+        menu.add(new OpenAction(this));
         super.editorContextMenuAboutToShow(menu);
 
         contributeRefactoringActions(menu);
@@ -359,6 +378,35 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      */
     protected boolean isOverviewRulerVisible() {
         return true;
+    }
+
+    protected void rulerContextMenuAboutToShow(IMenuManager menu) {
+        addDebugActions(menu);
+
+        super.rulerContextMenuAboutToShow(menu);
+
+        IMenuManager foldingMenu= new MenuManager("Folding", "projection"); //$NON-NLS-1$
+
+        menu.appendToGroup(ITextEditorActionConstants.GROUP_RULERS, foldingMenu);
+
+        IAction action;
+//      action= getAction("FoldingToggle"); //$NON-NLS-1$
+//      foldingMenu.add(action);
+        action= getAction("FoldingExpandAll"); //$NON-NLS-1$
+        foldingMenu.add(action);
+        action= getAction("FoldingCollapseAll"); //$NON-NLS-1$
+        foldingMenu.add(action);
+        action= getAction("FoldingRestore"); //$NON-NLS-1$
+        foldingMenu.add(action);
+        action= getAction("FoldingCollapseMembers"); //$NON-NLS-1$
+        foldingMenu.add(action);
+        action= getAction("FoldingCollapseComments"); //$NON-NLS-1$
+        foldingMenu.add(action);
+    }
+
+    private void addDebugActions(IMenuManager menu) {
+        menu.add(fToggleBreakpointAction);
+        menu.add(fEnableDisableBreakpointAction);
     }
 
     /**
@@ -1405,12 +1453,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-            IAutoEditStrategy autoEdit= fLanguageServiceManager.getAutoEditStrategy();
-            if (autoEdit == null)
-                autoEdit= super.getAutoEditStrategies(sourceViewer, contentType)[0];
+            Set<org.eclipse.imp.services.IAutoEditStrategy> autoEdits= fLanguageServiceManager.getAutoEditStrategies();
 
-            // TODO Permit multiple auto-edit strategies
-            return new IAutoEditStrategy[] { autoEdit };
+            if (autoEdits == null)
+                return super.getAutoEditStrategies(sourceViewer, contentType);
+
+            return autoEdits.toArray(new IAutoEditStrategy[autoEdits.size()]);
         }
 
         public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {

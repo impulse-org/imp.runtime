@@ -221,7 +221,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			System.err.println("MarkOccurrencesAction.recomputeAnnotationsForSelection(..):  root of current AST is null; returning");
 			return;
 		}
-		Object selectedNode= fParseController.getNodeLocator().findNode(root, offset, offset+length-1);
+		Object selectedNode= fParseController.getSourcePositionLocator().findNode(root, offset, offset+length-1);
 		if (fOccurrenceMarker == null) {
 			// It might be possible to set the active editor at this point under
 			// some circumstances, but attempting to do so under other circumstances
@@ -305,7 +305,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
     private Position[] convertRefNodesToPositions(List<Object> refs) {
         Position[] positions= new Position[refs.size()];
         int i= 0;
-        ISourcePositionLocator locator= fParseController.getNodeLocator();
+        ISourcePositionLocator locator= fParseController.getSourcePositionLocator();
 
         for(Iterator iter= refs.iterator(); iter.hasNext(); i++) {
             Object node= iter.next();

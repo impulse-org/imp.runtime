@@ -991,8 +991,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 	
     public void dispose() {
-        fFontListener.dispose();
-        fTabListener.dispose();
+        if (fFontListener != null) {
+            fFontListener.dispose();
+        }
+        if (fTabListener != null) {
+            fTabListener.dispose();
+        }
 
         unregisterEditorContributionsActivator();
         if (fEditorErrorTickUpdater != null) {
@@ -1472,7 +1476,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 IInformationProvider provider= new IInformationProvider() { // this should be language-specific
                     private IDocumentationProvider fDocProvider= fLanguageServiceManager.getDocProvider();
                     private IParseController fParseController= fLanguageServiceManager.getParseController();
-                    private ISourcePositionLocator fNodeLocator= (fParseController != null) ? fParseController.getNodeLocator() : null;
+                    private ISourcePositionLocator fNodeLocator= (fParseController != null) ? fParseController.getSourcePositionLocator() : null;
 
                     public IRegion getSubject(ITextViewer textViewer, int offset) {
                         if (fNodeLocator == null) {

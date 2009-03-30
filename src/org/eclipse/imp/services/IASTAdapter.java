@@ -18,7 +18,7 @@ import java.util.NoSuchElementException;
 /**
  * @author rfuhrer@watson.ibm.com
  */
-public interface IASTAdapter {
+public interface IASTAdapter extends IASTMatchAdapter {
     /**
      * The type of an entity in the target source program, e.g., the declared type of
      * a variable, or the inferred type of an expression. A construct that does not
@@ -65,17 +65,6 @@ public interface IASTAdapter {
      * TODO handle "child roles"
      */
     public Object getValue(String attributeName, Object astNode);
-
-    /**
-     * @return the value of the child of the given AST node at the given position
-     */
-    public Object getChildAtPosition(int pos, Object astNode);
-
-    /**
-     * @return a possibly empty array of immediate children of the given AST node
-     * <code>astNode</code> in positional order
-     */
-    public Object[] getChildren(Object astNode);
 
     /**
      * @return fully-qualified name of the type with the given simple name
@@ -133,6 +122,11 @@ public interface IASTAdapter {
 //    public MatchContext findPreviousMatch(Matcher matcher, Object astRoot, int offset);
 
     /**
+     * If the AST node is a meta variable, return its name.
+     */
+    public abstract String getMetaVariableName(Object astNode);
+
+    /**
      * Returns the file path of the file containing the
      * source text corresponding to the given AST node <code>astNode</code>.
      * The path will be the same as what was provided to the AST creator
@@ -141,33 +135,8 @@ public interface IASTAdapter {
     public String getFile(Object astNode);
 
     /**
-     * Returns the character offset (not the byte offset) of the first character of
-     * source text corresponding to the given AST node <code>astNode</code>.
-     */
-    public int getOffset(Object astNode);
-
-    /**
      * Returns the length in characters (not bytes) of the source text
      * corresponding to the given AST node <code>astNode</code>.
      */
     public int getLength(Object astNode);
-    
-    /**
-     * Returns a boolean value indicating whether or not this AST node is
-     * a meta variable (placeholder) for a real AST node. This is used for matching AST patterns
-     * against real AST's.
-     */
-    public boolean isMetaVariable(Object astNode);
-    
-    /**
-     * If the AST node is a meta variable, return its name.
-     */
-    public String getMetaVariableName(Object astNode);
-    
-   /**
-    * Returns a boolean value indicating whether or not this AST is to be
-    * considered a list. A list node that a varyadic number of children, as
-    * opposed to a normal AST node which has a fixed number of children.
-    */
-    public boolean isList(Object astNode);
 }

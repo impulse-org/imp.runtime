@@ -12,9 +12,12 @@
 
 package org.eclipse.imp.runtime;
 
+import java.io.PrintStream;
+
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
+import org.eclipse.imp.utils.ConsoleUtil;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
@@ -22,6 +25,7 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.ui.IStartup;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.console.MessageConsoleStream;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
@@ -29,6 +33,8 @@ import org.osgi.framework.BundleContext;
  * The main plugin class to be used in the desktop.
  */
 public class RuntimePlugin extends PluginBase implements IStartup {
+    private static final String CONSOLE_NAME= "IMP Runtime";
+
     public static final String IMP_RUNTIME= "org.eclipse.imp.runtime"; // must match plugin ID in MANIFEST.MF
 
     /**
@@ -37,6 +43,8 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     public static String LANGUAGE_DESCRIPTOR= "languageDescription";
 
     private FontRegistry fFontRegistry;
+
+    private PrintStream sConsoleStream;
 
     // The singleton instance.
     private static RuntimePlugin sPlugin;
@@ -91,6 +99,13 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     public void stop(BundleContext context) throws Exception {
         super.stop(context);
         sPlugin= null;
+    }
+
+    public PrintStream getConsoleStream() {
+        if (sConsoleStream == null) {
+            sConsoleStream= ConsoleUtil.findConsoleStream(CONSOLE_NAME);
+        }
+        return sConsoleStream;
     }
 
     /**

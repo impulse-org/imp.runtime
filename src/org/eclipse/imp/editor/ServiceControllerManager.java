@@ -67,7 +67,7 @@ public class ServiceControllerManager {
 
     public void setSourceViewer(ISourceViewer sourceViewer) {
         fSourceViewer= sourceViewer;
-        fPresentationController= new PresentationController(fSourceViewer, fLanguageServiceManager.getLanguage());
+        fPresentationController= new PresentationController(fSourceViewer, fLanguageServiceManager.getParseController(), fLanguageServiceManager.getLanguage());
     }
 
     public void setupModelListeners(ParserScheduler parserScheduler) {

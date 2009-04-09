@@ -51,10 +51,13 @@ public class PresentationController implements IModelListener {
 
     private final ITokenColorer fColorer;
 
+    private final IParseController fParseCtlr;
+
     private final Stack<IRegion> fWorkItems= new Stack<IRegion>();
 
-    public PresentationController(ISourceViewer sourceViewer, Language language) {
+    public PresentationController(ISourceViewer sourceViewer, IParseController parseCtlr, Language language) {
         fSourceViewer= sourceViewer;
+        this.fParseCtlr= parseCtlr;
         fColorer= ServiceFactory.getInstance().getTokenColorer(language);
     }
 
@@ -88,7 +91,7 @@ public class PresentationController implements IModelListener {
         if (fColorer == null)
             return;
 
-        IRegion bigRegion= fColorer.calculateDamageExtent(region);
+        IRegion bigRegion= fColorer.calculateDamageExtent(region, fParseCtlr);
 
         if (bigRegion != null) {
             fWorkItems.push(bigRegion);

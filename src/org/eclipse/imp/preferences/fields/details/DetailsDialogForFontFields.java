@@ -15,7 +15,6 @@ package org.eclipse.imp.preferences.fields.details;
 
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesUtilities;
-import org.eclipse.imp.preferences.fields.ComboFieldEditor;
 import org.eclipse.imp.preferences.fields.FontFieldEditor;
 import org.eclipse.imp.preferences.fields.PreferenceDialogConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
@@ -140,9 +139,7 @@ public class DetailsDialogForFontFields extends ProductInfoDialog {
 	     */
 	    protected void createButtonsForButtonBar(Composite parent) {
 	        parent.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-       
-	        boolean enabled;
-        
+
 	        if (!field.getPreferencesLevel().equals(IPreferencesService.DEFAULT_LEVEL)) {
 	        	copyButton = createButton(parent, COPY_ID, PreferenceDialogConstants.COPY_LABEL, false);
 	        	copyButton.setEnabled(field.getPreferencesLevel() != null &&
@@ -184,7 +181,7 @@ public class DetailsDialogForFontFields extends ProductInfoDialog {
 	     * Creates and returns the contents of the upper part 
 	     * of the dialog (above the button bar).
 	     *
-	     * Subclasses should overide.
+	     * Subclasses should override.
 	     *
 	     * @param parent  the parent composite to contain the dialog area
 	     * @return the dialog area control
@@ -284,16 +281,16 @@ public class DetailsDialogForFontFields extends ProductInfoDialog {
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        label.setText(levelString);
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        label.setText("\tCurrent value:  '" + field.getFieldEditorFontName() + "'");
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        String level = PreferenceDialogConstants.getLevelName(field.getLevelFromWhichLoaded()); 
 	        label.setText("\tLevel at which set:  " + level);
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	            
 	        label = new Label(topContainer, SWT.LEAD);
@@ -302,7 +299,7 @@ public class DetailsDialogForFontFields extends ProductInfoDialog {
 //	        } else {
 //		        label.setText(PreferenceDialogConstants.EMPTY_NOT_OK);
 //	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
         	label = new Label(topContainer, SWT.LEAD);
 	        if (field.hasSpecialValue()) {
@@ -310,7 +307,7 @@ public class DetailsDialogForFontFields extends ProductInfoDialog {
 	        } else {
 	        	label.setText(PreferenceDialogConstants.NO_SPECIAL);
 	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        if ((field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded())) {
 	        	label = new Label(topContainer, SWT.LEAD);
@@ -320,7 +317,7 @@ public class DetailsDialogForFontFields extends ProductInfoDialog {
 		        	label.setText(PreferenceDialogConstants.NOT_REMOVABLE); 
 		        }
 	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(top, SWT.LEAD);
 	        label.setText("~~~");

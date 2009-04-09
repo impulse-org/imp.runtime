@@ -301,8 +301,8 @@ public class BooleanFieldEditor extends FieldEditor
     	if (!preferencesService.isaPreferencesLevel(level)) {
     		throw new IllegalArgumentException("SafairBooleanFieldEditor.setPreferencesLevel:  given level = " + level + " is invalid");
     	}
-    	if (level.equals(preferencesService.PROJECT_LEVEL) && preferencesService.getProject() == null) {
-    		throw new IllegalStateException("SafairBooleanFieldEditor.setPreferenceLevel:  given level is '" + preferencesService.PROJECT_LEVEL +
+    	if (level.equals(IPreferencesService.PROJECT_LEVEL) && preferencesService.getProject() == null) {
+    		throw new IllegalStateException("SafairBooleanFieldEditor.setPreferenceLevel:  given level is '" + IPreferencesService.PROJECT_LEVEL +
     				"' but project is not defined for preferences service");
     	}
     	preferencesLevel = level;

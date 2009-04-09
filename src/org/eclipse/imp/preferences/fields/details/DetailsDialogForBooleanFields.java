@@ -252,16 +252,16 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        label.setText(levelString);
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
         
 	        label = new Label(topContainer, SWT.LEAD);
 	        label.setText("\tCurrent value:  '" + field.getChangeControl().getSelection() + "'");
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        String level = PreferenceDialogConstants.getLevelName(field.getLevelFromWhichLoaded()); 
 	        label.setText("\tLevel at which set:  " + level);
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
         
         	label = new Label(topContainer, SWT.LEAD);	
@@ -270,7 +270,7 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 	        } else {
 	        	label.setText(PreferenceDialogConstants.NO_SPECIAL);
 	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        
 	        if ((field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded())) {
@@ -281,7 +281,7 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 		        	label.setText(PreferenceDialogConstants.NOT_REMOVABLE); 
 		        }
 	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(top, SWT.LEAD);
 	        label.setText("~~~");

@@ -14,7 +14,6 @@ package org.eclipse.imp.preferences.fields.details;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.imp.preferences.fields.ColorFieldEditor;
-import org.eclipse.imp.preferences.fields.FontFieldEditor;
 import org.eclipse.imp.preferences.fields.PreferenceDialogConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceColors;
@@ -25,8 +24,6 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -140,8 +137,6 @@ public class DetailsDialogForColorFields extends ProductInfoDialog {
 	    protected void createButtonsForButtonBar(Composite parent) {
 	        parent.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
        
-	        boolean enabled;
-        
 	        if (!field.getPreferencesLevel().equals(IPreferencesService.DEFAULT_LEVEL)) {
 	        	copyButton = createButton(parent, COPY_ID, PreferenceDialogConstants.COPY_LABEL, false);
 	        	copyButton.setEnabled(field.getPreferencesLevel() != null &&
@@ -283,16 +278,16 @@ public class DetailsDialogForColorFields extends ProductInfoDialog {
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        label.setText(levelString);
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        label.setText("\tCurrent value:  '" + field.getFieldEditorFontName() + "'");
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(topContainer, SWT.LEAD);
 	        String level = PreferenceDialogConstants.getLevelName(field.getLevelFromWhichLoaded()); 
 	        label.setText("\tLevel at which set:  " + level);
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	            
 	        label = new Label(topContainer, SWT.LEAD);
@@ -301,7 +296,7 @@ public class DetailsDialogForColorFields extends ProductInfoDialog {
 //	        } else {
 //		        label.setText(PreferenceDialogConstants.EMPTY_NOT_OK);
 //	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
         	label = new Label(topContainer, SWT.LEAD);
 	        if (field.hasSpecialValue()) {
@@ -309,7 +304,7 @@ public class DetailsDialogForColorFields extends ProductInfoDialog {
 	        } else {
 	        	label.setText(PreferenceDialogConstants.NO_SPECIAL);
 	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        if ((field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded())) {
 	        	label = new Label(topContainer, SWT.LEAD);
@@ -319,7 +314,7 @@ public class DetailsDialogForColorFields extends ProductInfoDialog {
 		        	label.setText(PreferenceDialogConstants.NOT_REMOVABLE); 
 		        }
 	        }
-	        label.setBackground(prefUtils.colorWhite);
+	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        label = new Label(top, SWT.LEAD);
 	        label.setText("~~~");

@@ -24,13 +24,13 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.imp.editor.IProblemChangedListener;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.text.source.AnnotationModelEvent;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.IAnnotationModelListenerExtension;
-import org.eclipse.jface.util.ListenerList;
 import org.eclipse.swt.widgets.Display;
 
 /**
@@ -45,9 +45,9 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
      * Visitors used to look if the element change delta contains a marker change.
      */
     private static class ProjectErrorVisitor implements IResourceDeltaVisitor {
-        private HashSet fChangedElements;
+        private HashSet<IResource> fChangedElements;
 
-        public ProjectErrorVisitor(HashSet changedElements) {
+        public ProjectErrorVisitor(HashSet<IResource> changedElements) {
             fChangedElements= changedElements;
         }
 
@@ -96,14 +96,14 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
     private ListenerList fListeners;
 
     public ProblemMarkerManager() {
-        fListeners= new ListenerList(10);
+        fListeners= new ListenerList();
     }
 
     /*
      * @see IResourceChangeListener#resourceChanged
      */
     public void resourceChanged(IResourceChangeEvent event) {
-        HashSet changedElements= new HashSet();
+        HashSet<IResource> changedElements= new HashSet<IResource>();
 
         try {
             IResourceDelta delta= event.getDelta();

@@ -97,10 +97,11 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
     }
 
     public void update(final IParseController parseController, IProgressMonitor monitor) {
-        if (getTreeViewer() != null) {
+        if (getTreeViewer() != null && !getTreeViewer().getTree().isDisposed()) {
             getTreeViewer().getTree().getDisplay().asyncExec(new Runnable() {
                 public void run() {
-                    getTreeViewer().setInput(fModelBuilder.buildTree(fParseController.getCurrentAst()));
+                	if (getTreeViewer() != null && !getTreeViewer().getTree().isDisposed())
+                		getTreeViewer().setInput(fModelBuilder.buildTree(fParseController.getCurrentAst()));
                 }
             });
         }

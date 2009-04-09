@@ -18,8 +18,8 @@ package org.eclipse.imp.editor;
 import java.util.ArrayList;
 
 import org.eclipse.core.resources.IStorage;
+import org.eclipse.core.runtime.ListenerList;
 import org.eclipse.imp.language.ILanguageService;
-import org.eclipse.jface.util.ListenerList;
 import org.eclipse.jface.viewers.IColorProvider;
 import org.eclipse.jface.viewers.ILabelDecorator;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -32,11 +32,11 @@ public class OutlineLabelProvider implements ILabelProvider, IColorProvider, ILa
 
     private boolean fIsShowingInheritedMembers;
 
-    protected ListenerList fListeners= new ListenerList(1);
+    protected ListenerList fListeners= new ListenerList();
 
     private final ILabelProvider fLanguageLabelProvider;
 
-    private ArrayList/*<ILabelDecorator>*/ fLabelDecorators;
+    private ArrayList<ILabelDecorator> fLabelDecorators;
 
     protected final StorageLabelProvider fStorageLabelProvider;
 
@@ -61,7 +61,7 @@ public class OutlineLabelProvider implements ILabelProvider, IColorProvider, ILa
      */
     public void addLabelDecorator(ILabelDecorator decorator) {
 	if (fLabelDecorators == null) {
-	    fLabelDecorators= new ArrayList(2);
+	    fLabelDecorators= new ArrayList<ILabelDecorator>(2);
 	}
 	fLabelDecorators.add(decorator);
     }

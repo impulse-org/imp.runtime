@@ -29,7 +29,7 @@ public interface ITokenColorer extends ILanguageService {
      * @param seed the nominal damage area
      * @return a possibly expanded region of damage
      */
-    public IRegion calculateDamageExtent(IRegion seed);
+    public IRegion calculateDamageExtent(IRegion seed, IParseController ctlr);
 
     /**
      * Provide coloring and font to use for a given token in the model.

@@ -267,7 +267,7 @@ public class LanguageRegistry {
 			List<IFileEditorMapping> newMap = new ArrayList<IFileEditorMapping>();
 
             addNonUniversalEditorMappings(newMap);
-			for(Language lang : sRegister.values()) {
+			for(Language lang : getRegister().values()) {
 	            addUniversalEditorMappings(lang.getName(), lang.getIconPath(), lang.getFilenameExtensions(), lang.getBundleID(), newMap);
             }
 			updateEditorRegistry(newMap);

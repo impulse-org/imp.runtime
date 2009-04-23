@@ -158,16 +158,16 @@ public abstract class StringButtonFieldEditor extends StringFieldEditor {
      */
     public Button getChangeControl(Composite parent) {
         if (changeButton == null) {
-        	// Set enabled according to the associated text
-        	// field, if defined
-        	boolean enabled = false;
-        	Control[] children = parent.getChildren();
-        	for (int i = 0; i < children.length; i++) {
-        		if (children[i] instanceof Text) {
-        			enabled = children[i].isEnabled();
-        		}
-        	}
-        	
+            // Set enabled according to the associated text
+            // field, if defined
+            boolean enabled = false;
+            Control[] children = parent.getChildren();
+            for (int i = 0; i < children.length; i++) {
+                if (children[i] instanceof Text) {
+                    enabled = children[i].isEnabled();
+                }
+            }
+
             changeButton = new Button(parent, SWT.PUSH);
             if (changeButtonText == null)
                 changeButtonText = JFaceResources.getString("openChange"); //$NON-NLS-1$

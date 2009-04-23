@@ -76,7 +76,7 @@ public class FileFieldEditor extends StringButtonFieldEditor
     
     
     /*
-     * Below copoied from org.eclipse.jface.preference.FileFieldEditor
+     * Below copied from org.eclipse.jface.preference.FileFieldEditor
      */
 
     
@@ -108,15 +108,22 @@ public class FileFieldEditor extends StringButtonFieldEditor
         return d.getAbsolutePath();
     }
 
-    	
+    public boolean getEnforceAbsolute() {
+        return enforceAbsolute;
+    }
+
+
+    public void setEnforceAbsolute(boolean enforceAbsolute) {
+        this.enforceAbsolute = enforceAbsolute;
+    }
+
     /**
      * Helper to open the file chooser dialog.
      * @param startingDirectory the directory to open the dialog on.
      * @return File The File the user selected or <code>null</code> if they
      * do not.
      */
-    private File getFile(File startingDirectory) {
-
+    protected File getFile(File startingDirectory) {
         FileDialog dialog = new FileDialog(getShell(), SWT.OPEN);
         if (startingDirectory != null)
             dialog.setFileName(startingDirectory.getPath());
@@ -128,7 +135,6 @@ public class FileFieldEditor extends StringButtonFieldEditor
             if (file.length() > 0)
                 return new File(file);
         }
-
         return null;
     }
 
@@ -212,7 +218,7 @@ public class FileFieldEditor extends StringButtonFieldEditor
     
     protected boolean doCheckState(String path)
     {	// This is the real work of the original doCheckState()
-    	String msg = null;
+        String msg = null;
         File file = new File(path);
         if (file.isFile()) {
             if (enforceAbsolute && !file.isAbsolute())
@@ -221,17 +227,15 @@ public class FileFieldEditor extends StringButtonFieldEditor
             msg = "Path does not designate a valid file";
         }
 
-	    boolean result = true;
-	    if (msg != null) {
-	    	setErrorMessage(getFieldMessagePrefix() + msg);
-	    	result = false;
-	    } else {
-	    	clearErrorMessage();
-	    	result = true;
-	    }
-	
-		return result;
-    }
-    
+        boolean result = true;
+        if (msg != null) {
+            setErrorMessage(getFieldMessagePrefix() + msg);
+            result = false;
+        } else {
+            clearErrorMessage();
+            result = true;
+        }
 
+        return result;
+    }
 }

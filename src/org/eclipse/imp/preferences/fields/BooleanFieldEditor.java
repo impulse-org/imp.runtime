@@ -36,8 +36,7 @@ import org.osgi.service.prefs.BackingStoreException;
  * @author sutton
  * @author rfuhrer
  */
-public class BooleanFieldEditor extends FieldEditor
-{
+public class BooleanFieldEditor extends ChangeButtonFieldEditor {
 	/*
 	 * Fields copied from jface's BooleanFieldEditor
 	 */
@@ -378,18 +377,18 @@ public class BooleanFieldEditor extends FieldEditor
      */
     protected void setBooleanValue(boolean newValue) {
     	Button button = getChangeControl();
-        if (button != null && !button.isDisposed()) {
-        		boolean currentValue = getBooleanValue();
-        		if (previousValue == null)
-        			setPreviousBooleanValue(!currentValue);
-            	button.setSelection(newValue);
-                fieldModified = true;
-//              setModifiedMarkOnLabel();
-                valueChanged();
-        } else if (button.isDisposed()){
-        	throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is disposed");
+    	if (button != null && !button.isDisposed()) {
+    	    boolean currentValue = getBooleanValue();
+    	    if (previousValue == null)
+    	        setPreviousBooleanValue(!currentValue);
+    	    button.setSelection(newValue);
+    	    fieldModified = true;
+//          setModifiedMarkOnLabel();
+    	    valueChanged();
+        } else if (button.isDisposed()) {
+            throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is disposed");
         } else if (button == null) {
-        	throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is null");
+            throw new IllegalStateException("BooleanFieldEditor.setBooleanValue:  button is null");
         }
     }
 
@@ -513,52 +512,52 @@ public class BooleanFieldEditor extends FieldEditor
      */
     public Button getChangeControl() {
     	if (!parent.isDisposed()) {
-    		if (checkBox == null) {
-	        	// Should actually create checkbox if it doesn't exist
-	        	// so should really never be null
-	        	//checkBox = getChangeControl(parent);
-                checkBox = new Button(parent, SWT.CHECK | SWT.LEFT);
-                checkBox.setFont(parent.getFont());
-	            checkBox.addSelectionListener(new SelectionAdapter() {
-	                public void widgetSelected(SelectionEvent e) {
-	                	// Whenever a new value is set, we have to record the previous value.
-	                	// If we're here, that means that the current value has been changed
-	                	// using the GUI.  Since the value in the GUI has changed, we can't
-	                	// use that to retrieve the previous value.  But, since this is a
-	                	// boolean field, we know that the previous value must have been the
-	                	// negation of the current value, so we can set the previous value
-	                	// from that.  It's important to set the previous value here before
-	                	// calling valueChanged(), because valueChanged() can't assume that
-	                	// a change has occurred--since a value loaded from the preferences
-	                	// service may match the current value of the field--so valueChanged()
-	                	// has to compare the new and previous values.  To make that comparison
-	                	// work, we need to assure that the previous value is set properly here.
-	                	setPreviousBooleanValue(!getBooleanValue());
-	                	fieldModified = true;
-	                	// Should call setInherited(..) before calling valueChanged() because
-	                	// valueChanged() will mark the field as modified, but only if isInherited
-	                	// is false, which it now should be
-    					setInherited(false);
-						levelFromWhichLoaded = preferencesLevel;
-						setBooleanValue(getBooleanValue());
-						// Set presentsDefaultValue to false on the basis that
-						// we've set it independently of the encoded default value
-						// even if we're on the default level.
-				       	setPresentsDefaultValue(false);
-	                	//valueChanged();
-	                	//setPreviousBooleanValue(getBooleanValue());
-	                }
-	            });
-	            checkBox.addDisposeListener(new DisposeListener() {
-	                public void widgetDisposed(DisposeEvent event) {
-	                    //System.out.println("SBFE.button dispose listener (from getChangeControl):  checkBoxNull set to true");
-	                    checkBox = null;
-	                }
-	            });
-    		} else {
-	            checkParent(checkBox, parent);
-	        }
-	    	return checkBox; //getChangeControl(parent);
+    	    if (checkBox == null) {
+    	        // Should actually create checkbox if it doesn't exist
+    	        // so should really never be null
+    	        //checkBox = getChangeControl(parent);
+    	        checkBox = new Button(parent, SWT.CHECK | SWT.LEFT);
+    	        checkBox.setFont(parent.getFont());
+    	        checkBox.addSelectionListener(new SelectionAdapter() {
+    	            public void widgetSelected(SelectionEvent e) {
+    	                // Whenever a new value is set, we have to record the previous value.
+    	                // If we're here, that means that the current value has been changed
+    	                // using the GUI.  Since the value in the GUI has changed, we can't
+    	                // use that to retrieve the previous value.  But, since this is a
+    	                // boolean field, we know that the previous value must have been the
+    	                // negation of the current value, so we can set the previous value
+    	                // from that.  It's important to set the previous value here before
+    	                // calling valueChanged(), because valueChanged() can't assume that
+    	                // a change has occurred--since a value loaded from the preferences
+    	                // service may match the current value of the field--so valueChanged()
+    	                // has to compare the new and previous values.  To make that comparison
+    	                // work, we need to assure that the previous value is set properly here.
+    	                setPreviousBooleanValue(!getBooleanValue());
+    	                fieldModified = true;
+    	                // Should call setInherited(..) before calling valueChanged() because
+    	                // valueChanged() will mark the field as modified, but only if isInherited
+    	                // is false, which it now should be
+    	                setInherited(false);
+    	                levelFromWhichLoaded = preferencesLevel;
+    	                setBooleanValue(getBooleanValue());
+    	                // Set presentsDefaultValue to false on the basis that
+    	                // we've set it independently of the encoded default value
+    	                // even if we're on the default level.
+    	                setPresentsDefaultValue(false);
+    	                //valueChanged();
+    	                //setPreviousBooleanValue(getBooleanValue());
+    	            }
+    	        });
+    	        checkBox.addDisposeListener(new DisposeListener() {
+    	            public void widgetDisposed(DisposeEvent event) {
+    	                //System.out.println("SBFE.button dispose listener (from getChangeControl):  checkBoxNull set to true");
+    	                checkBox = null;
+    	            }
+    	        });
+    	    } else {
+    	        checkParent(checkBox, parent);
+    	    }
+    	    return checkBox; //getChangeControl(parent);
         }
         return null;
     }

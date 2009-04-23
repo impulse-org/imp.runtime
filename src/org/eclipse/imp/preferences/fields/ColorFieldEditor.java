@@ -5,7 +5,6 @@ import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.ColorSelector;
-import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.preference.PreferencePage;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.resource.StringConverter;
@@ -21,7 +20,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.osgi.service.prefs.BackingStoreException;
 
-public class ColorFieldEditor extends FieldEditor {
+public class ColorFieldEditor extends ChangeButtonFieldEditor {
     public static final RGB COLOR_DEFAULT= new RGB(0,0,0);
 
     public static final String COLOR_DEFAULT_SPEC= StringConverter.asString(COLOR_DEFAULT);
@@ -96,6 +95,13 @@ public class ColorFieldEditor extends FieldEditor {
      */
     public ColorSelector getColorSelector() {
         return colorSelector;
+    }
+
+    @Override
+    public Button getChangeControl() {
+        if (colorSelector == null)
+            return null;
+        return colorSelector.getButton();
     }
 
     /**

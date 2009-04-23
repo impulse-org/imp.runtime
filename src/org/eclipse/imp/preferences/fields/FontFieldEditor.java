@@ -40,7 +40,7 @@ import org.eclipse.swt.widgets.Text;
  * Based on ComboFieldEditor with accommodations made for font Control
  * @author rfuhrer@watson.ibm.com
  */
-public class FontFieldEditor extends FieldEditor {
+public class FontFieldEditor extends ChangeButtonFieldEditor {
 	    private static final String DEFAULT_FONT_DESCRIPTOR= new FontData("courier", 12, SWT.NORMAL).toString();
 
         /**

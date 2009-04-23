@@ -627,8 +627,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             fServiceControllerManager.initialize();
             if (fLanguageServiceManager.getParseController() != null) {
                 initializeParseController();
+                findLanguageSpecificPreferences();
             }
-            findLanguageSpecificPreferences();
         }
 
         super.createPartControl(parent);
@@ -680,6 +680,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void setupSourcePrefListeners() {
+        if (fLangSpecificPrefs == null) return;
         fFontListener= new StringPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SOURCE_FONT) {
             @Override
             public void changed(String oldValue, String newValue) {
@@ -858,7 +859,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void setSourceFontFromPreference() {
-        String fontName= fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
+        String fontName= null;
+        if (fLangSpecificPrefs != null) {
+            fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
+        }
         if (fontName == null) {
             IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
 

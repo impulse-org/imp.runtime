@@ -735,7 +735,7 @@ public class PreferencesUtilities {
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
             boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
     {
         Composite fieldHolder = new Composite(parent, SWT.NONE);

@@ -317,16 +317,16 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
         if (delta != null) {
             if (emitDiags)
-                getPlugin().maybeWriteInfoMsg("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
+                getConsoleStream().println("==> Scanning resource delta for project '" + getProject().getName() + "'... <==");
             delta.accept(fDeltaVisitor);
             if (emitDiags)
-                getPlugin().maybeWriteInfoMsg("Delta scan completed for project '" + getProject().getName() + "'...");
+                getConsoleStream().println("Delta scan completed for project '" + getProject().getName() + "'...");
         } else {
             if (emitDiags)
-                getPlugin().maybeWriteInfoMsg("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
+                getConsoleStream().println("==> Scanning for source files in project '" + getProject().getName() + "'... <==");
             getProject().accept(fResourceVisitor);
             if (emitDiags)
-                getPlugin().maybeWriteInfoMsg("Source file scan completed for project '" + getProject().getName() + "'...");
+                getConsoleStream().println("Source file scan completed for project '" + getProject().getName() + "'...");
         }
         collectChangeDependents();
         if (emitDiags) {

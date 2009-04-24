@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences.fields;
@@ -15,7 +14,6 @@ package org.eclipse.imp.preferences.fields;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.imp.preferences.IPreferencesService;
-import org.eclipse.imp.preferences.Markings;
 import org.eclipse.imp.preferences.PreferencesTab;
 import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.jface.preference.PreferencePage;
@@ -531,12 +529,12 @@ public class RadioGroupFieldEditor extends FieldEditor {
                 radio.setFont(font);
                 radio.addSelectionListener(new SelectionAdapter() {
                     public void widgetSelected(SelectionEvent event) {
-                        String oldValue = value;
+//                      String oldValue = value;
                         value = (String) event.widget.getData();
                         setPresentsDefaultValue(false);
                         // SMS 12 Dec 2006
     					setInherited(false);
-                        boolean valueChanged = valueChanged(true);
+//                      boolean valueChanged = valueChanged(true);
                         //fireValueChanged(VALUE, oldValue, value);
                         // Added:
     					//fieldModified = true;

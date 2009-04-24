@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -39,7 +38,6 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -49,8 +47,6 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.IFileEditorInput;
-import org.eclipse.ui.IPathEditorInput;
-import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;

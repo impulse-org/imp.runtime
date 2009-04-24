@@ -33,26 +33,26 @@ import org.eclipse.imp.services.IReferenceResolver;
  */
 public abstract class ReferenceResolver implements IReferenceResolver {
 
-	protected Set<Class> fSourceTypes = new HashSet<Class>();
+	protected Set<Class<?>> fSourceTypes = new HashSet<Class<?>>();
 	
 	public ReferenceResolver() { }
 	
-	public ReferenceResolver(Collection<Class> sourceTypes)
+	public ReferenceResolver(Collection<Class<?>> sourceTypes)
 	{
 	    fSourceTypes.addAll(sourceTypes);
 	}
 	
-	public void setSourceTypes(Collection<Class> sourceTypes) {
+	public void setSourceTypes(Collection<Class<?>> sourceTypes) {
 	    fSourceTypes.clear();
 	    fSourceTypes.addAll(sourceTypes);
 	}
 	
-	public void addSourceType (Class type)
+	public void addSourceType (Class<?> type)
 	{
 	    fSourceTypes.add(type);
 	}
 
-	public void removeSourceType(Class type)
+	public void removeSourceType(Class<?> type)
 	{
 	    fSourceTypes.remove(type);
 	}

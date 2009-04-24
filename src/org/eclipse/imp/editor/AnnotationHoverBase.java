@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 /*
@@ -16,7 +15,6 @@
 package org.eclipse.imp.editor;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -63,15 +61,14 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
         return viewer.getAnnotationModel();
     }
 
-    public static List getSourceAnnotationsForLine(ISourceViewer viewer, int line) {
+    public static List<Annotation> getSourceAnnotationsForLine(ISourceViewer viewer, int line) {
         IAnnotationModel model= getAnnotationModel(viewer);
         if (model == null)
             return null;
 
         IDocument document= viewer.getDocument();
         List<Annotation> srcAnnotations= new ArrayList<Annotation>();
-        HashMap messagesAtPosition= new HashMap();
-        Iterator iterator= model.getAnnotationIterator();
+        Iterator<?> iterator= model.getAnnotationIterator();
     
         while (iterator.hasNext()) {
             Annotation annotation= (Annotation) iterator.next();
@@ -85,18 +82,17 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
 
             if (annotation instanceof AnnotationBag) {
                 AnnotationBag bag= (AnnotationBag) annotation;
-                Iterator e= bag.iterator();
-                while (e.hasNext()) {
-                    annotation= (Annotation) e.next();
-                    position= model.getPosition(annotation);
-                    if (position != null && includeAnnotation(annotation, position, messagesAtPosition))
-                        srcAnnotations.add(annotation);
+                for(Iterator<?> iter= bag.iterator(); iter.hasNext(); ) {
+                    Annotation bagAnnotation= (Annotation) iter.next();
+
+                    position= model.getPosition(bagAnnotation);
+                    if (position != null && includeAnnotation(bagAnnotation, position))
+                        srcAnnotations.add(bagAnnotation);
                 }
-                continue;
+            } else {
+                if (includeAnnotation(annotation, position))
+                    srcAnnotations.add(annotation);
             }
-    
-            if (includeAnnotation(annotation, position, messagesAtPosition))
-                srcAnnotations.add(annotation);
         }
     
         return srcAnnotations;
@@ -120,10 +116,9 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
      * (Don't want to show a hover for a non-visible annotation.)
      * @param annotation
      * @param position
-     * @param messagesAtPosition
      * @return
      */
-    private static boolean includeAnnotation(Annotation annotation, Position position, HashMap messagesAtPosition) {
+    private static boolean includeAnnotation(Annotation annotation, Position position) {
         String type= annotation.getType();
 //        if (!fAnnotationTypes.contains(type)) {
 //            fAnnotationTypes.add(type);
@@ -132,7 +127,7 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
         return !sAnnotationTypesToFilter.contains(type);
     }
 
-    public static String formatAnnotationList(List javaAnnotations) {
+    public static String formatAnnotationList(List<Annotation> javaAnnotations) {
         if (javaAnnotations != null) {
             if (javaAnnotations.size() == 1) {
                 // optimization
@@ -142,11 +137,9 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
                 if (message != null && message.trim().length() > 0)
                     return formatSingleMessage(message);
             } else {
-                List messages= new ArrayList();
-                Iterator e= javaAnnotations.iterator();
+                List<String> messages= new ArrayList<String>(javaAnnotations.size());
 
-                while (e.hasNext()) {
-                    Annotation annotation= (Annotation) e.next();
+                for(Annotation annotation: javaAnnotations) {
                     String message= annotation.getText();
                     if (message != null && message.trim().length() > 0)
                         messages.add(message.trim());
@@ -178,28 +171,28 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
     /**
      * Formats several messages as HTML text.
      */
-    public static String formatMultipleMessages(List messages) {
+    public static String formatMultipleMessages(List<String> messages) {
+        // TODO Hook in the HTML-enabled hover viewer
         if (true) { // until we hook in the HTML-enabled hover viewer
-            StringBuffer buff= new StringBuffer();
-    
-            buff.append("Multiple messages:\n");
-            for(Iterator iter= messages.iterator(); iter.hasNext();) {
-        	String msg= (String) iter.next();
-        	buff.append("  ");
-        	buff.append(msg);
-        	if (iter.hasNext())
-        	    buff.append('\n');
+            StringBuilder sb= new StringBuilder();
+
+            sb.append("Multiple messages:\n");
+            int idx= 0;
+            for(String msg: messages) {
+                if (idx++ > 0) { sb.append('\n'); }
+                sb.append("  ");
+                sb.append(msg);
             }
-            return buff.toString();
+            return sb.toString();
         }
         StringBuffer buffer= new StringBuffer();
         HTMLPrinter.addPageProlog(buffer);
         HTMLPrinter.addParagraph(buffer, HTMLPrinter.convertToHTMLContent("Multiple messages at this line"));
     
         HTMLPrinter.startBulletList(buffer);
-        Iterator e= messages.iterator();
-        while (e.hasNext())
-            HTMLPrinter.addBullet(buffer, HTMLPrinter.convertToHTMLContent((String) e.next()));
+        for(String msg: messages) {
+            HTMLPrinter.addBullet(buffer, HTMLPrinter.convertToHTMLContent(msg));
+        }
         HTMLPrinter.endBulletList(buffer);
     
         HTMLPrinter.addPageEpilog(buffer);
@@ -210,7 +203,7 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
      * @see IVerticalRulerHover#getHoverInfo(ISourceViewer, int)
      */
     public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
-        List javaAnnotations= getSourceAnnotationsForLine(sourceViewer, lineNumber);
+        List<Annotation> javaAnnotations= getSourceAnnotationsForLine(sourceViewer, lineNumber);
 
         return formatAnnotationList(javaAnnotations);
     }

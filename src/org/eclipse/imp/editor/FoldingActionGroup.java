@@ -3,12 +3,9 @@ package org.eclipse.imp.editor;
 import java.util.ResourceBundle;
 
 import org.eclipse.imp.actions.FoldingMessages;
-import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
-import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.text.ITextOperationTarget;
 import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.source.projection.IProjectionListener;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;

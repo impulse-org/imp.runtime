@@ -218,7 +218,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
 			// markings, if any, as they were (which is probably fine)
 			// Also get this when the current AST is null, e.g., as in the event of
 			// a parse error
-			System.err.println("MarkOccurrencesAction.recomputeAnnotationsForSelection(..):  root of current AST is null; returning");
+//			System.err.println("MarkOccurrencesAction.recomputeAnnotationsForSelection(..):  root of current AST is null; returning");
 			return;
 		}
 		Object selectedNode= fParseController.getSourcePositionLocator().findNode(root, offset, offset+length-1);

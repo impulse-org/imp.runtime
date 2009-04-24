@@ -19,6 +19,7 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
+import org.eclipse.imp.preferences.PreferencesUtilities.PreferenceChangeListener;
 import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
 import org.eclipse.imp.preferences.fields.ColorFieldEditor;
 import org.eclipse.imp.preferences.fields.ComboFieldEditor;
@@ -216,8 +217,8 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 	}
 	
 
-	protected List  currentListeners = new ArrayList();
-	protected List 	currentListenerNodes = new ArrayList();
+	protected List<PreferenceChangeListener>  currentListeners = new ArrayList<PreferenceChangeListener>();
+	protected List<IEclipsePreferences> 	currentListenerNodes = new ArrayList<IEclipsePreferences>();
 	
 	
 	protected void addressProjectSelection(IPreferencesService.ProjectSelectionEvent event, Composite composite) {
@@ -226,7 +227,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 
 		// SMS 20 Jun 2007
 		// Adding code from JikesPG project tab implementation to try
-		// to flesh out a skeleton (field-independent) implementaiton)
+		// to flesh out a skeleton (field-independent) implementation)
 		// just to see what there may be of that
 		boolean haveCurrentListeners = false;
 		
@@ -278,7 +279,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				// with what the listener would set.
 				
 				// Used in setting enabled and editable status
-				boolean enabledState = false;
+//				boolean enabledState = false;
 				
 				// Example:
 //				// Pretend field1 is a boolean field (checkbox)
@@ -451,15 +452,15 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 					((IEclipsePreferences.IPreferenceChangeListener)currentListeners.get(i)));
 		}
 		// Clear the lists
-		currentListeners = new ArrayList();
-		currentListenerNodes = new ArrayList();
+		currentListeners = new ArrayList<PreferenceChangeListener>();
+		currentListenerNodes = new ArrayList<IEclipsePreferences>();
 	}
 
 	
 	/**
 	 * 
-	 * @param	composite	the wiget that holds the button
-	 * @param	fieldParent	the wiget that holds the field that will be
+	 * @param	composite	the widget that holds the button
+	 * @param	fieldParent	the widget that holds the field that will be
 	 * 						set when the button is pressed
 	 * 						(needed for posting a listener)
 	 * @param	text		text that appears in the link
@@ -499,7 +500,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 	{		
 		public void doProjectSelectionActivated(Button button, Composite composite)
 		{
-			HashSet projectsWithSpecifics = new HashSet();
+			HashSet<IProject> projectsWithSpecifics = new HashSet<IProject>();
 			try {
 				IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
 				for (int i= 0; i < projects.length; i++) {

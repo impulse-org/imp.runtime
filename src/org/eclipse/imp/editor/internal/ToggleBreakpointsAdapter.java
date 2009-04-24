@@ -7,16 +7,10 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/*
- * Created on Mar 1, 2006
- */
 package org.eclipse.imp.editor.internal;
 
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
@@ -41,7 +35,6 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.debug.core.IJavaLineBreakpoint;
-import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
@@ -124,7 +117,7 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
             
             origExten= ((UniversalEditor) editorPart).fLanguage.getFilenameExtensions().iterator().next();
            
-            final String origSrcFileName= origSrcFile.getName();
+//          final String origSrcFileName= origSrcFile.getName();
             
             final String typeName = getTypeName(origSrcFile);
             
@@ -173,12 +166,12 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 
                     // At this point, we know there is no existing breakpoint at this line #.
 
-                    Map<String,String> bkptAttributes= new HashMap<String, String>();
+//                    Map<String,String> bkptAttributes= new HashMap<String, String>();
 //                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
 //                    final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
 //                          bkptAttributes);
 //                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", origSrcFileName);
-                    final IBreakpoint bkpt= JDIDebugModel.createStratumBreakpoint(origSrcFile , "x10", origSrcFile.getName(), /*origSrcFile.getFullPath().toString()*/null, null, origSrcLineNumber.intValue(), -1, -1, 0, true, bkptAttributes);
+//                    final IBreakpoint bkpt= JDIDebugModel.createStratumBreakpoint(origSrcFile , "x10", origSrcFile.getName(), /*origSrcFile.getFullPath().toString()*/null, null, origSrcLineNumber.intValue(), -1, -1, 0, true, bkptAttributes);
 //                    
 //                    
 //                   

@@ -1,6 +1,7 @@
 package org.eclipse.imp.services.base;
 
-import java.util.ArrayList;
+import java.util.List;
+
 import lpg.runtime.Adjunct;
 import lpg.runtime.IAst;
 import lpg.runtime.ILexStream;
@@ -51,7 +52,7 @@ public abstract class LPGFolderBase extends FolderBase {
         ILexStream lexStream = prsStream.getILexStream();
         if (lexStream == null)
             return;
-        ArrayList adjuncts = (ArrayList) prsStream.getAdjuncts();
+        List<IToken> adjuncts = prsStream.getAdjuncts();
         for (int i = 0; i < adjuncts.size(); ) {
             Adjunct adjunct = (Adjunct) adjuncts.get(i);
 

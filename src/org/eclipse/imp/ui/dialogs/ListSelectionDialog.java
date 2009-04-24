@@ -107,8 +107,8 @@ public class ListSelectionDialog extends SelectionDialog
 	static String DESELECT_ALL_TITLE = WorkbenchMessages.SelectionDialog_deselectLabel;
 
     // SMS:  relating to validation and filtration
-	List<ISelectionValidator> validators = new ArrayList();
-	List<ViewerFilter> filters = new ArrayList();
+	List<ISelectionValidator> validators = new ArrayList<ISelectionValidator>();
+	List<ViewerFilter> filters = new ArrayList<ViewerFilter>();
 	
     // SMS:  the status and error messages
     Label statusMessage;
@@ -179,7 +179,7 @@ public class ListSelectionDialog extends SelectionDialog
      * viewer.
      */
     private void checkInitialSelections() {
-        Iterator itemsToCheck = getInitialElementSelections().iterator();
+        Iterator<?> itemsToCheck = getInitialElementSelections().iterator();
 
         while (itemsToCheck.hasNext()) {
 			listViewer.setChecked(itemsToCheck.next(), true);
@@ -274,7 +274,7 @@ public class ListSelectionDialog extends SelectionDialog
 
         // Build a list of selected children.
         if (children != null) {
-            ArrayList list = new ArrayList();
+            List<Object> list = new ArrayList<Object>();
             for (int i = 0; i < children.length; ++i) {
                 Object element = children[i];
                 if (listViewer.getChecked(element)) {	
@@ -300,7 +300,7 @@ public class ListSelectionDialog extends SelectionDialog
      * @param validator A selection validator (may be null)
      */
     public void setValidator(ISelectionValidator validator) {
-    	validators = new ArrayList();
+    	validators = new ArrayList<ISelectionValidator>();
     	if (validator != null)
     		validators.add(validator);
     }
@@ -316,7 +316,7 @@ public class ListSelectionDialog extends SelectionDialog
      */
     public void addValdator(ISelectionValidator validator) {
     	if (validators == null) {
-    		validators = new ArrayList();
+    		validators = new ArrayList<ISelectionValidator>();
     	}
     	validators.add(validator);
     }

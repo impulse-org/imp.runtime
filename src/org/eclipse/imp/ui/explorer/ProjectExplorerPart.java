@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -29,6 +30,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.core.IMPMessages;
@@ -59,7 +61,6 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.jface.util.DelegatingDragAdapter;
 import org.eclipse.jface.util.DelegatingDropAdapter;
 import org.eclipse.jface.util.IPropertyChangeListener;
@@ -1185,7 +1186,7 @@ public class ProjectExplorerPart extends ViewPart implements ISetSelectionTarget
         IMemento childMem;
         childMem= memento.getChild(TAG_SELECTION);
         if (childMem != null) {
-            ArrayList list= new ArrayList();
+            List<Object> list= new ArrayList<Object>();
             IMemento[] elementMem= childMem.getChildren(TAG_ELEMENT);
             for(int i= 0; i < elementMem.length; i++) {
                 Object element= JavaCore.create(elementMem[i].getString(TAG_PATH));
@@ -1199,7 +1200,7 @@ public class ProjectExplorerPart extends ViewPart implements ISetSelectionTarget
     protected void restoreExpansionState(IMemento memento) {
         IMemento childMem= memento.getChild(TAG_EXPANDED);
         if (childMem != null) {
-            ArrayList elements= new ArrayList();
+            List<Object> elements= new ArrayList<Object>();
             IMemento[] elementMem= childMem.getChildren(TAG_ELEMENT);
             for(int i= 0; i < elementMem.length; i++) {
                 Object element= JavaCore.create(elementMem[i].getString(TAG_PATH));

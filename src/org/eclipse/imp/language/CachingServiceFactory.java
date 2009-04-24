@@ -20,7 +20,6 @@ import org.eclipse.imp.indexing.IndexContributorBase;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.services.IASTAdapter;
-import org.eclipse.imp.services.IASTMatchAdapter;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;

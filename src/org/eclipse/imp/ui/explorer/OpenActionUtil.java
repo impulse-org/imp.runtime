@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.eclipse.imp.editor.EditorUtility;
 import org.eclipse.imp.model.ISourceEntity;
-import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
@@ -50,9 +49,9 @@ public class OpenActionUtil {
     /**
      * Filters out source references from the given code resolve results. A utility method that can be called by subclasses.
      */
-    public static List filterResolveResults(ISourceEntity[] codeResolveResults) {
+    public static List<ISourceEntity> filterResolveResults(ISourceEntity[] codeResolveResults) {
         int nResults= codeResolveResults.length;
-        List refs= new ArrayList(nResults);
+        List<ISourceEntity> refs= new ArrayList<ISourceEntity>(nResults);
         for(int i= 0; i < nResults; i++) {
             if (codeResolveResults[i] instanceof ISourceReference)
                 refs.add(codeResolveResults[i]);

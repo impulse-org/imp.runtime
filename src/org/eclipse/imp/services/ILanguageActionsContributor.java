@@ -17,7 +17,6 @@ package org.eclipse.imp.services;
 
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ILanguageService;
-import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;

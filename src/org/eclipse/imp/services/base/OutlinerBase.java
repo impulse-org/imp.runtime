@@ -7,12 +7,11 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.services.base;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Stack;
 
 import lpg.runtime.IPrsStream;
@@ -393,12 +392,12 @@ public abstract class OutlinerBase implements IOutliner
     	
     	// Get current values for comparison to previous
     	final IPrsStream parseStream= ((SimpleLPGParseController) controller).getParser().getIPrsStream();
-        ArrayList tokens = parseStream.getTokens();
+        List tokens = parseStream.getTokens();
     	char[] chars = parseStream.getInputChars();
     	
     	// Get previous values for comparison to current
     	IParseController previousController = (IParseController) previous[0];
-    	ArrayList previousTokens = (ArrayList) previous[1];
+    	List previousTokens = (List) previous[1];
     	char[] previousChars = (char[]) previous[2];
     	
     	// Update previous values to current values in any case (now that

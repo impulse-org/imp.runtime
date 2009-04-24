@@ -28,7 +28,6 @@ import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
 import org.eclipse.jdt.debug.core.IJavaLineBreakpoint;
 import org.eclipse.jdt.debug.core.JDIDebugModel;
-import org.eclipse.jdt.internal.debug.core.breakpoints.JavaLineBreakpoint;
 
 public class BreakpointUtils {
 

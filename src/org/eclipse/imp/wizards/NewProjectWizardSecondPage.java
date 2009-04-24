@@ -60,7 +60,6 @@ import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
 import org.eclipse.jdt.internal.ui.util.CoreUtility;
 import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.wizards.ClassPathDetector;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.IVMInstall2;
 import org.eclipse.jdt.launching.IVMInstallType;
@@ -150,7 +149,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             String compliance= fFirstPage.getJRECompliance();
             if (compliance != null) {
                 IJavaProject project= JavaCore.create(fCurrProject);
-                Map options= project.getOptions(false);
+                Map<?, ?> options= project.getOptions(false);
                 JavaModelUtil.setCompilanceOptions(options, compliance);
                 project.setOptions(options);
             }
@@ -305,7 +304,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                 final IPath projectPath= fCurrProject.getFullPath();
 
                 // configure the classpath entries, including the default jre library.
-                List cpEntries= new ArrayList();
+                List<IClasspathEntry> cpEntries= new ArrayList<IClasspathEntry>();
                 cpEntries.add(JavaCore.newSourceEntry(projectPath.append(srcPath)));
                 cpEntries.addAll(Arrays.asList(getDefaultClasspathEntry()));
                 entries= (IClasspathEntry[]) cpEntries.toArray(new IClasspathEntry[cpEntries.size()]);
@@ -314,7 +313,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                 outputLocation= projectPath.append(binPath);
             } else {
                 IPath projectPath= fCurrProject.getFullPath();
-                List cpEntries= new ArrayList();
+                List<IClasspathEntry> cpEntries= new ArrayList<IClasspathEntry>();
                 cpEntries.add(JavaCore.newSourceEntry(projectPath));
                 cpEntries.addAll(Arrays.asList(getDefaultClasspathEntry()));
                 entries= (IClasspathEntry[]) cpEntries.toArray(new IClasspathEntry[cpEntries.size()]);

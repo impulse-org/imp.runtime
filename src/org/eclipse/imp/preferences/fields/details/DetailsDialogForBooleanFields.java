@@ -61,7 +61,7 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 
 
 		private final static int REMOVE_ID = IDialogConstants.CLIENT_ID + 1;
-	    private final static int EMPTY_ID = IDialogConstants.CLIENT_ID + 2;
+//	    private final static int EMPTY_ID = IDialogConstants.CLIENT_ID + 2;
 	    private final static int SPECIAL_ID = IDialogConstants.CLIENT_ID + 3;
 
 	    /*

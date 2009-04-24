@@ -36,7 +36,6 @@ import org.eclipse.imp.wizards.fields.StringButtonDialogField;
 import org.eclipse.imp.wizards.fields.StringDialogField;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.internal.ui.preferences.NewJavaProjectPreferencePage;
-import org.eclipse.jdt.internal.ui.wizards.NewWizardMessages;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.ImageDescriptor;

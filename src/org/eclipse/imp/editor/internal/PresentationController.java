@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
@@ -20,14 +19,18 @@ import java.util.Stack;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.editor.LanguageServiceManager;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.preferences.PreferenceCache;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.utils.ConsoleUtil;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextAttribute;
@@ -55,31 +58,45 @@ public class PresentationController implements IModelListener {
 
     private final Stack<IRegion> fWorkItems= new Stack<IRegion>();
 
-    public PresentationController(ISourceViewer sourceViewer, IParseController parseCtlr, Language language) {
+    public PresentationController(ISourceViewer sourceViewer, LanguageServiceManager langServiceMgr) {
         fSourceViewer= sourceViewer;
-        this.fParseCtlr= parseCtlr;
-        fColorer= ServiceFactory.getInstance().getTokenColorer(language);
+        this.fParseCtlr= langServiceMgr.getParseController();
+        fColorer= langServiceMgr.getTokenColorer();
     }
 
     public AnalysisRequired getAnalysisRequired() {
         return AnalysisRequired.LEXICAL_ANALYSIS;
     }
 
-    private void dumpToken(Object token, PrintStream ps) {
-        // TODO Add API to ISourcePositionLocator to give info on tokens
-//      mcs.print( " (" + prs.getKind(i) + ")");
-//      mcs.print(" \t" + prs.getStartOffset(i));
-//      mcs.print(" \t" + prs.getTokenLength(i));
-//      mcs.print(" \t" + prs.getLineNumberOfTokenAt(i));
-//      mcs.print(" \t" + prs.getColumnOfTokenAt(i));
+    private void dumpToken(Object token, ISourcePositionLocator locator, PrintStream ps) {
+        if (locator != null) {
+            try {
+                final IDocument document= fSourceViewer.getDocument();
+                final int startOffset= locator.getStartOffset(token);
+//              ps.print( " (" + prs.getKind(i) + ")");
+                ps.print(" \t" + startOffset);
+                ps.print(" \t" + locator.getLength(token));
+                int line = document.getLineOfOffset(startOffset);
+                ps.print(" \t" + line);
+                ps.print(" \t" + (startOffset - document.getLineOffset(line)));
+            } catch (BadLocationException e) {
+                RuntimePlugin.getInstance().logException("Error computing position of token", e);
+            }
+        }
         ps.print(" \t" + token);
         ps.println();
     }
 
     private void dumpTokens(Iterator<Object> tokenIter, PrintStream ps) {
-        ps.println(" Kind \tOffset \tLen \tLine \tCol \tText");
+        ISourcePositionLocator locator = fParseCtlr.getSourcePositionLocator();
+
+        if (locator != null) {
+            ps.println(" Offset \tLen \tLine \tCol \tText");
+        } else {
+            ps.println(" Text");
+        }
         for(; tokenIter.hasNext(); ) {
-            dumpToken(tokenIter.next(), ps);
+            dumpToken(tokenIter.next(), locator, ps);
         }
     }
 
@@ -100,6 +117,9 @@ public class PresentationController implements IModelListener {
 
     public void update(IParseController controller, IProgressMonitor monitor) {
         if (!monitor.isCanceled()) {
+            if (fWorkItems.size() == 0) {
+                ConsoleUtil.findConsoleStream(PresentationController.CONSOLE_NAME).println("PresentationController.update() called, but no damage in the work queue?");
+            }
             synchronized (fWorkItems) {
                 for(int n= fWorkItems.size() - 1; !monitor.isCanceled() && n >= 0; n--) {
                     Region damage= (Region) fWorkItems.get(n);

@@ -24,6 +24,7 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -32,6 +33,7 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.debug.ui.actions.ToggleBreakpointAction;
 import org.eclipse.help.IContextProvider;
@@ -259,9 +261,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             return fServiceControllerManager.getOutlineController();
         }
         if (IToggleBreakpointsTarget.class.equals(required)) {
-            IToggleBreakpointsHandler d = fLanguageServiceManager.getToggleBreakpointsHandler();
-            if (d != null) {
-                return new ToggleBreakpointsAdapter(this, d);
+            IToggleBreakpointsHandler bkptHandler = fLanguageServiceManager.getToggleBreakpointsHandler();
+            if (bkptHandler != null) {
+                restoreExistingBreakpoints(bkptHandler);
+                return new ToggleBreakpointsAdapter(this, bkptHandler);
             }
         }
         if (IRegionSelectionService.class.equals(required)) {
@@ -443,7 +446,23 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setTitleImage(image);
     }
 
-    
+    private void restoreExistingBreakpoints(IToggleBreakpointsHandler bkptHandler) {
+        // TODO This shouldn't depend on IFileEditorInput, but how to get markers (which exist on resources) otherwise?
+        if (getEditorInput() instanceof IFileEditorInput) {
+            IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
+            IFile file= fileEditorInput.getFile();
+            try {
+                IMarker[] bkptMarkers= file.findMarkers(IBreakpoint.BREAKPOINT_MARKER, true, IResource.DEPTH_ZERO);
+                for(int i= 0; i < bkptMarkers.length; i++) {
+                    IMarker m= bkptMarkers[i];
+                    bkptHandler.setLineBreakpoint(file, m.getAttribute(IMarker.LINE_NUMBER, 1), m);
+                }
+            } catch (CoreException e) {
+                RuntimePlugin.getInstance().logException("Unable to retrieve breakpoint markers for " + file.getFullPath(), e);
+            }
+        }
+    }
+
     // SMS 24 Jan 2007:  Restoring gotoAnnotation (which had been briefly
     // commented out) because it is called by the recently added class
     // GotoAnnotationAction.  Also made return void (since nothing is

@@ -24,26 +24,23 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugException;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.smapi.LineMapBuilder;
-import org.eclipse.imp.utils.BreakpointUtils;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
-import org.eclipse.jdt.debug.core.IJavaLineBreakpoint;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IWorkbenchPart;
 
-
 /**
- * Modified Mar 19 2007
  * Stan Sutton, suttons@us.ibm.com:
  * 
  * Modified constructor to take a UniversalEditor (presumably the one creating
@@ -68,34 +65,30 @@ import org.eclipse.ui.IWorkbenchPart;
  * methods (at least so far).  In any case, the editor is availble here for
  * future implementors of these methods to use or not as they see fit.
  */
-
-
 public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBreakpointListener {
-
     //private static Map /* IJavaLineBreakPoint -> IMarker */bkptToSrcMarkerMap= new HashMap();
-  
-	// SMS 14 Mar 2007
-	// Setting this to null here and letting the constructor take care of it
-	String origExten = 	null;
-	
-	// SMS 19 Mar 2007
-	// Editor that created this adapter
-	UniversalEditor fEditor = null;
-	
+
+	private final String origExten;
+
+	private final UniversalEditor fEditor; // Editor that created this adapter
+
+	private final IToggleBreakpointsHandler fHandler;
 
     // SMS 14 Mar 2007
     // New constructor to take a UniversalEditor as a parameter.  This allows
 	// the field origExten to be initialized with the proper extension for the	
 	// original source file.  We can also save the editor in a new field, in case
 	// it may be useful (see class 	header comments)
-	public ToggleBreakpointsAdapter(UniversalEditor editor) {
+	public ToggleBreakpointsAdapter(UniversalEditor editor, IToggleBreakpointsHandler handler) {
 		fEditor = editor;
+		fHandler = handler;
 		// SMS 19 Apr 2007:
 		// fLanguage may be null, especially if language is no longer
 		// available in workspace, so check for that	
 		if (editor.fLanguage != null) {
-			// TODO: do not pick an arbitrary extension, figure out which it should be really
-			origExten = editor.fLanguage.getFilenameExtensions().iterator().next();
+		    final String name= editor.getEditorInput().getName();
+		    origExten = name.substring(name.lastIndexOf('.'));
+//			origExten = editor.fLanguage.getFilenameExtensions().iterator().next();
 		} else {
 			// And, if null, then the "original extension" should
 			// be meaningless (since that would only be defined and
@@ -104,7 +97,6 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 			// problems.
 			origExten = null;
 		}
-			
 	}
 
     public void toggleLineBreakpoints(IWorkbenchPart part, ISelection selection) throws CoreException {
@@ -113,59 +105,34 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 
             IEditorPart editorPart= (IEditorPart) part.getAdapter(IEditorPart.class);
             IFileEditorInput fileInput= (IFileEditorInput) editorPart.getEditorInput();
-            final IFile origSrcFile= fileInput.getFile();	
-            
-            origExten= ((UniversalEditor) editorPart).fLanguage.getFilenameExtensions().iterator().next();
-           
-//          final String origSrcFileName= origSrcFile.getName();
-            
-            final String typeName = getTypeName(origSrcFile);
-            
-            
-            final IFile javaFile= javaFileForRootSourceFile(origSrcFile);
+            final IFile origSrcFile= fileInput.getFile();
+            final int lineNumber = textSel.getStartLine()+1;
 
-            if (!javaFile.exists()) 
-            	return; // Can't do anything; this file didn't produce a Java file
-
-            // SMS 19 Mar 2007
-            // Commenting these lines out because this version of origExten was never used
-            //int extenStart= origSrcFileName.lastIndexOf('.');
-            //String origExten= origSrcFileName.substring(extenStart+1);
-            
-         
-            final Integer origSrcLineNumber= new Integer(textSel.getStartLine() + 1);
-            
-
-            if (! validateLineNumber(origSrcFile, origSrcLineNumber)	) 
-            	 return;
-            
-            
-            // TODO Enable the breakpoint if there is already one that's disabled, rather than just blindly removing it.
-
-        
-//           final IJavaLineBreakpoint existingBreakpoint= BreakpointUtils.lineBreakpointExists(javaFile, typeName, origSrcLineNumber.intValue());
-           final IJavaLineBreakpoint existingBreakpoint= BreakpointUtils.lineBreakpointExists(origSrcFile, typeName, origSrcLineNumber.intValue());
-           
             IWorkspaceRunnable wr= new IWorkspaceRunnable() {
                 public void run(IProgressMonitor monitor) throws CoreException {
 
-                    if (existingBreakpoint != null) {
-                        //IMarker marker= (IMarker) bkptToSrcMarkerMap.get(existingBreakpoint);
-                    	
-                    	// find the marker first, then delete it
-                    	IMarker marker = findMarker(origSrcFile, origSrcLineNumber.intValue());
-                    	marker.delete();
-                    	
-                    	
-                        //bkptToSrcMarkerMap.remove(existingBreakpoint);
-                        DebugPlugin.getDefault().getBreakpointManager().removeBreakpoint(existingBreakpoint, true);
-                        //System.out.println("******* deleting marker");
+                	IMarker marker = findBreakpointMarker(origSrcFile, lineNumber);
+                	if (marker != null) {
+                		try {
+                			fHandler.clearLineBreakpoint(origSrcFile, lineNumber, marker);
+                			marker.delete();
+                		} catch (Exception e) {
+                			RuntimePlugin.getInstance().logException(e.getMessage(), e);
+                		}
+                	} else {
+                		try {
+                			marker = origSrcFile.createMarker(IBreakpoint.LINE_BREAKPOINT_MARKER);
+                			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+                			marker.setAttribute(IBreakpoint.ENABLED, true);
+                			fHandler.setLineBreakpoint(origSrcFile, lineNumber, marker);
+                		} catch (Exception e) {
+                			RuntimePlugin.getInstance().logException(e.getMessage(), e);
+                			marker.delete();
+                		}
+                	}
 
-                        return;
-                    }
-
-                    // At this point, we know there is no existing breakpoint at this line #.
-
+//                    // At this point, we know there is no existing breakpoint at this line #.
+//
 //                    Map<String,String> bkptAttributes= new HashMap<String, String>();
 //                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", typeName);
 //                    final IBreakpoint bkpt= JDIDebugModel.createLineBreakpoint(javaFile, typeName, origSrcLineNumber.intValue(), -1, -1, 0, true,
@@ -173,9 +140,6 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 //                    bkptAttributes.put("org.eclipse.jdt.debug.core.sourceName", origSrcFileName);
 //                    final IBreakpoint bkpt= JDIDebugModel.createStratumBreakpoint(origSrcFile , "x10", origSrcFile.getName(), /*origSrcFile.getFullPath().toString()*/null, null, origSrcLineNumber.intValue(), -1, -1, 0, true, bkptAttributes);
 //                    
-//                    
-//                   
-//
 //                    // At this point, the Debug framework has been told there's a line breakpoint,
 //                    // and there's a marker in the *Java* source, but not in the original source.
 //                    // So create another marker that has basically all the same attributes as
@@ -196,26 +160,18 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 //                        if (key.equals(IMarker.CHAR_END) || key.equals(IMarker.CHAR_START))
 //                            continue;
 //                        origSrcMarker.setAttribute(key, value);
-//                        
-//                        //System.out.println("Attribute added for marker " + key + "-> " + value);
 //                    }
 //                    origSrcMarker.setAttribute(IMarker.LINE_NUMBER, origSrcLineNumber);
 //                    
 //                    //bkptToSrcMarkerMap.put(bkpt, origSrcMarker);
-//
-//                    // bkptMarker.setAttribute(IMarker.MESSAGE, "foo");
 //                    //bkpt.setMarker(origSrcMarker);
-//
                 }
-
-				
             };
             try {
                 ResourcesPlugin.getWorkspace().run(wr, null);
             } catch (CoreException e) {
                 throw new DebugException(e.getStatus());
             }
-
         }
     }
     
@@ -227,12 +183,9 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
         	return true;
         
         return false;
-            
-       
-		
 	}
 
-	private IMarker findMarker(IFile origSrcFile, int lineNumber) throws CoreException {
+	private IMarker findBreakpointMarker(IFile origSrcFile, int lineNumber) throws CoreException {
     	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, /*false*/true, IResource.DEPTH_INFINITE);
     	for (int k = 0; k < markers.length; k++ ){
     		if (((Integer)markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == lineNumber){
@@ -268,12 +221,9 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
         return false;
     }
 
-	public void breakpointAdded(IBreakpoint breakpoint) {
-		
-	}
+	public void breakpointAdded(IBreakpoint breakpoint) { }
 
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) {
-		
 		IPath path = breakpoint.getMarker().getResource().getRawLocation();
 		String fileName = path.lastSegment();
 		fileName = fileName.substring(0, fileName.indexOf(".") + 1) + origExten; 
@@ -285,26 +235,21 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 		IFile origSrcFile = breakpoint.getMarker().getResource().getProject().getWorkspace().getRoot().getFileForLocation(path);
 		
 		try {
-			IMarker marker = findMarker(origSrcFile, ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
+			IMarker marker = findBreakpointMarker(origSrcFile, ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
 			//System.out.println("deleting marker " + origSrcFile.getFullPath() + " at line " + ((Integer)breakpoint.getMarker().getAttribute(IMarker.LINE_NUMBER)).intValue());
 			if (marker != null)
 				marker.delete();
 		} catch(CoreException e){
 			System.err.println(e);
 		}
-		
 	}
 
-	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) {
-		
-		
-	}
+	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) { }
 	
 	//MV -- This method is called from smapifier to reset the breakpoint in the
 	//Java file when a new build has been done.
 	
 	public static String getTypeName(IFile origSrcFile){
-		
 		IProject project = origSrcFile.getProject();
 		IJavaProject javaProj= JavaCore.create(project);
         final String origSrcFileName= origSrcFile.getName();
@@ -316,13 +261,11 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 		try {
 			projectIsSrcBin = (javaProj.getOutputLocation().matchingFirstSegments(projPath) == projPath.segmentCount()) && 
 									 (javaProj.getOutputLocation().segmentCount() == projPath.segmentCount());
-		
-        
+
 			if (!projectIsSrcBin){
 				String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).substring(1);
 				pathPrefix = pathPrefix + "/" + temp.substring(0,temp.indexOf("/"));
 			}
-		
 		} catch (JavaModelException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

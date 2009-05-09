@@ -70,6 +70,7 @@ import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IRefactoringContributor;
+import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
@@ -258,9 +259,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             return fServiceControllerManager.getOutlineController();
         }
         if (IToggleBreakpointsTarget.class.equals(required)) {
-            // SMS 14 MAR 2007  added "this" parameter
-            // to make use of new constructor
-            return new ToggleBreakpointsAdapter(this);
+            IToggleBreakpointsHandler d = fLanguageServiceManager.getToggleBreakpointsHandler();
+            if (d != null) {
+                return new ToggleBreakpointsAdapter(this, d);
+            }
         }
         if (IRegionSelectionService.class.equals(required)) {
             return fRegionSelector;

@@ -235,6 +235,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private IAction fEnableDisableBreakpointAction;
 
+    private ToggleBreakpointsAdapter fBreakpointHandler;
+
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".imp_editor_context";
@@ -263,8 +265,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (IToggleBreakpointsTarget.class.equals(required)) {
             IToggleBreakpointsHandler bkptHandler = fLanguageServiceManager.getToggleBreakpointsHandler();
             if (bkptHandler != null) {
-                restoreExistingBreakpoints(bkptHandler);
-                return new ToggleBreakpointsAdapter(this, bkptHandler);
+                if (fBreakpointHandler == null) {
+                    fBreakpointHandler= new ToggleBreakpointsAdapter(this, bkptHandler);
+                }
+                return fBreakpointHandler;
             }
         }
         if (IRegionSelectionService.class.equals(required)) {
@@ -447,6 +451,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void restoreExistingBreakpoints(IToggleBreakpointsHandler bkptHandler) {
+        if (bkptHandler == null) {
+            return;
+        }
         // TODO This shouldn't depend on IFileEditorInput, but how to get markers (which exist on resources) otherwise?
         if (getEditorInput() instanceof IFileEditorInput) {
             IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
@@ -672,6 +679,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         setSourceFontFromPreference();
         setupBracketCloser();
+        restoreExistingBreakpoints(fLanguageServiceManager.getToggleBreakpointsHandler());
 
         setupSourcePrefListeners();
 

@@ -37,6 +37,7 @@ import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
+import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.viewers.ILabelProvider;
@@ -50,6 +51,8 @@ public class LanguageServiceManager {
     private ServiceFactory fServiceFactory = ServiceFactory.getInstance();
 
     private IParseController fParseController;
+
+    private ITokenColorer fTokenColorer;
 
     private IReferenceResolver fResolver;
 
@@ -85,10 +88,6 @@ public class LanguageServiceManager {
 
     private IHelpService fContextHelper;
 
-    public Language getLanguage() {
-        return fLanguage;
-    }
-
     public LanguageServiceManager(Language lang) {
         fLanguage= lang;
     }
@@ -115,6 +114,7 @@ public class LanguageServiceManager {
         fParseController= fServiceFactory.getParseController(fLanguage);
         fRefactoringContributors= fServiceFactory.getRefactoringContributors(fLanguage);
         fResolver= fServiceFactory.getReferenceResolver(fLanguage);
+        fTokenColorer= fServiceFactory.getTokenColorer(fLanguage);
 
         if (fHyperLinkDetector == null)
             fHyperLinkDetector= new HyperlinkDetector(fLanguage);
@@ -123,6 +123,10 @@ public class LanguageServiceManager {
             ErrorHandler.reportError("Unable to instantiate parser for language '" + fLanguage.getName()
                     + "'; parser-related services will be disabled.", true, true);
         }
+    }
+
+    public Language getLanguage() {
+        return fLanguage;
     }
 
     public IParseController getParseController() {
@@ -196,7 +200,11 @@ public class LanguageServiceManager {
     public IHelpService getContextHelp() {
         return fContextHelper;
     }
-    
+
+    public ITokenColorer getTokenColorer() {
+        return fTokenColorer;
+    }
+
     private static HashMap<IEditorPart, LanguageServiceManager> editorServiceMap = new HashMap<IEditorPart, LanguageServiceManager>();
     
     public static void saveMyServiceManager(IEditorPart part, LanguageServiceManager manager) {

@@ -186,9 +186,9 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 	}
 
 	private IMarker findBreakpointMarker(IFile origSrcFile, int lineNumber) throws CoreException {
-    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, /*false*/true, IResource.DEPTH_INFINITE);
+    	IMarker[] markers = origSrcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, true, IResource.DEPTH_INFINITE);
     	for (int k = 0; k < markers.length; k++ ){
-    		if (((Integer)markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == lineNumber){
+    		if (((Integer) markers[k].getAttribute(IMarker.LINE_NUMBER)).intValue() == lineNumber){
     			return markers[k];
     		}
     	}

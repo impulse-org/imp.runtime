@@ -70,6 +70,7 @@ import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IRefactoringContributor;
+import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
@@ -1680,14 +1681,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private class PresentationDamager implements IPresentationDamager {
         public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event, boolean documentPartitioningChanged) {
-            // The following always returns the entire document (really, the entire partition, of
-            // which the document has only 1) as the damage region, which is safe, if inefficient.
-            return partition;
-            // The following is more efficient, but also incorrect - really need language-specific
-            // logic to figure out how big the damage region really is.
-//              return new Region(event.getOffset(), Math.max(event.getLength(), event.getText().length()));
-        }
+            // Ask the language's token colorer how much of the document presentation needs to be recomputed.
+            final ITokenColorer tokenColorer= fLanguageServiceManager.getTokenColorer();
 
+            if (tokenColorer != null)
+                return tokenColorer.calculateDamageExtent(partition, fLanguageServiceManager.getParseController());
+            else
+                return partition;
+        }
         public void setDocument(IDocument document) {}
     }
 
@@ -1704,22 +1705,22 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		    if (previousDamage != null && damage.getOffset() == previousDamage.getOffset() && damage.getLength() == previousDamage.getLength()) {
 		        hyperlinkRestore= true;
 		    }
-            previousDamage= damage;
 
-            // BUG Should we really just ignore the presentation passed in???
+		    // BUG Should we really just ignore the presentation passed in???
             // JavaDoc says we're responsible for "merging" our changes in...
             try {
                 if (fServiceControllerManager.getPresentationController() != null) {
-//                    System.out.println("Scheduling repair for damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
+//                  System.out.println("Scheduling repair for damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
                     fServiceControllerManager.getPresentationController().damage(damage);
                     if (hyperlinkRestore) {
-//                        System.out.println("** Forcing repair for hyperlink damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
+//                      System.out.println("** Forcing repair for hyperlink damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
                         fServiceControllerManager.getPresentationController().update(fLanguageServiceManager.getParseController(), fProgressMonitor);
                     }
                 }
             } catch (Exception e) {
                 ErrorHandler.reportError("Could not repair damage ", e);
             }
+            previousDamage= damage;
         }
 
         public void setDocument(IDocument document) { }

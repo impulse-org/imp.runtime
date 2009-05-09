@@ -26,6 +26,7 @@
    <extension-point id="referenceResolvers" name="IMP Reference Resolver" schema="schema/referenceResolvers.exsd"/>
    <extension-point id="tokenColorer" name="IMP Token Colorer" schema="schema/tokenColorer.exsd"/>
    <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
+   <extension-point id="toggleBreakpointHandler" name="Toggle Breakpoint Handler" schema="schema/toggleBreakpointHandler.exsd"/>
 
    <extension
          point="org.eclipse.ui.editors">

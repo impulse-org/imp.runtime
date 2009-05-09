@@ -38,6 +38,7 @@ import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
+import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.utils.ExtensionException;
@@ -123,6 +124,8 @@ public class ServiceFactory {
 	static final String EDITOR_SERVICE= "editorService";
 
 	static final String CONTEXT_HELPER_SERVICE= "contextHelper";
+
+	static final String TOGGLE_BREAKPOINTS_HANDLER_SERVICE= "toggleBreakpointHandler";
 
  
     protected ServiceFactory() { }
@@ -483,9 +486,20 @@ public class ServiceFactory {
             return (IHelpService) loadService(lang, CONTEXT_HELPER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of CONTEXT_HELP_SERVICE does not implement IHelpService",
+                    "Alleged implementation of CONTEXT_HELPER_SERVICE does not implement IHelpService",
                     e);
             return null;
         }
     }
+
+	public IToggleBreakpointsHandler getToggleBreakpointsHandler(Language lang) {
+        try {
+            return (IToggleBreakpointsHandler) loadService(lang, TOGGLE_BREAKPOINTS_HANDLER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of TOGGLE_BREAKPOINTS_HANDLER_SERVICE does not implement IToggleBreakpointsHandler",
+                    e);
+            return null;
+        }
+	}
 }

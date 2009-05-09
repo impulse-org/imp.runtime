@@ -37,6 +37,7 @@ import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
+import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.jface.text.source.IAnnotationHover;
@@ -88,6 +89,8 @@ public class LanguageServiceManager {
 
     private IHelpService fContextHelper;
 
+    private IToggleBreakpointsHandler fToggleBreakpointsHandler;
+
     public LanguageServiceManager(Language lang) {
         fLanguage= lang;
     }
@@ -114,6 +117,7 @@ public class LanguageServiceManager {
         fParseController= fServiceFactory.getParseController(fLanguage);
         fRefactoringContributors= fServiceFactory.getRefactoringContributors(fLanguage);
         fResolver= fServiceFactory.getReferenceResolver(fLanguage);
+        fToggleBreakpointsHandler= fServiceFactory.getToggleBreakpointsHandler(fLanguage);
         fTokenColorer= fServiceFactory.getTokenColorer(fLanguage);
 
         if (fHyperLinkDetector == null)
@@ -128,57 +132,8 @@ public class LanguageServiceManager {
     public Language getLanguage() {
         return fLanguage;
     }
-
-    public IParseController getParseController() {
-        return fParseController;
-    }
-
-    public ILabelProvider getLabelProvider() {
-        return fLabelProvider;
-    }
-
-    public IElementImageProvider getImageProvider() {
-        return fImageProvider;
-    }
-
-    public TreeModelBuilderBase getModelBuilder() {
-        return fModelBuilder;
-    }
-
-    public IOccurrenceMarker getOccurrenceMarker() {
-        return fOccurrenceMarker;
-    }
-
-    public ISourceHyperlinkDetector getHyperLinkDetector() {
-        return fHyperLinkDetector;
-    }
-
-    public IFoldingUpdater getFoldingUpdater() {
-        return fFoldingUpdater;
-    }
-
-    public ISourceFormatter getFormattingStrategy() {
-        return fFormattingStrategy;
-    }
-
-    public IReferenceResolver getResolver() {
-        return fResolver;
-    }
-
-    public IHoverHelper getHoverHelper() {
-        return fHoverHelper;
-    }
-
-    public Set<IRefactoringContributor> getRefactoringContributors() {
-        return fRefactoringContributors;
-    }
-
     public Set<ILanguageActionsContributor> getActionContributors() {
         return fActionContributors;
-    }
-
-    public Set<IModelListener> getEditorServices() {
-        return fEditorServices;
     }
 
     public IAnnotationHover getAnnotationHover() {
@@ -189,16 +144,68 @@ public class LanguageServiceManager {
         return fAutoEditStrategies;
     }
 
-    public IDocumentationProvider getDocProvider() {
-        return fDocProvider;
-    }
-
     public IContentProposer getContentProposer() {
         return fContentProposer;
     }
 
     public IHelpService getContextHelp() {
         return fContextHelper;
+    }
+
+    public IDocumentationProvider getDocProvider() {
+        return fDocProvider;
+    }
+
+    public Set<IModelListener> getEditorServices() {
+        return fEditorServices;
+    }
+
+    public IFoldingUpdater getFoldingUpdater() {
+        return fFoldingUpdater;
+    }
+
+    public ISourceFormatter getFormattingStrategy() {
+        return fFormattingStrategy;
+    }
+
+    public IHoverHelper getHoverHelper() {
+        return fHoverHelper;
+    }
+
+    public ISourceHyperlinkDetector getHyperLinkDetector() {
+        return fHyperLinkDetector;
+    }
+
+    public IElementImageProvider getImageProvider() {
+        return fImageProvider;
+    }
+
+    public ILabelProvider getLabelProvider() {
+        return fLabelProvider;
+    }
+
+    public TreeModelBuilderBase getModelBuilder() {
+        return fModelBuilder;
+    }
+
+    public IOccurrenceMarker getOccurrenceMarker() {
+        return fOccurrenceMarker;
+    }
+
+    public IParseController getParseController() {
+        return fParseController;
+    }
+
+    public Set<IRefactoringContributor> getRefactoringContributors() {
+        return fRefactoringContributors;
+    }
+
+    public IReferenceResolver getResolver() {
+        return fResolver;
+    }
+
+    public IToggleBreakpointsHandler getToggleBreakpointsHandler() {
+        return fToggleBreakpointsHandler;
     }
 
     public ITokenColorer getTokenColorer() {

@@ -450,26 +450,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setTitleImage(image);
     }
 
-    private void restoreExistingBreakpoints(IToggleBreakpointsHandler bkptHandler) {
-        if (bkptHandler == null) {
-            return;
-        }
-        // TODO This shouldn't depend on IFileEditorInput, but how to get markers (which exist on resources) otherwise?
-        if (getEditorInput() instanceof IFileEditorInput) {
-            IFileEditorInput fileEditorInput= (IFileEditorInput) getEditorInput();
-            IFile file= fileEditorInput.getFile();
-            try {
-                IMarker[] bkptMarkers= file.findMarkers(IBreakpoint.BREAKPOINT_MARKER, true, IResource.DEPTH_ZERO);
-                for(int i= 0; i < bkptMarkers.length; i++) {
-                    IMarker m= bkptMarkers[i];
-                    bkptHandler.setLineBreakpoint(file, m.getAttribute(IMarker.LINE_NUMBER, 1), m);
-                }
-            } catch (CoreException e) {
-                RuntimePlugin.getInstance().logException("Unable to retrieve breakpoint markers for " + file.getFullPath(), e);
-            }
-        }
-    }
-
     // SMS 24 Jan 2007:  Restoring gotoAnnotation (which had been briefly
     // commented out) because it is called by the recently added class
     // GotoAnnotationAction.  Also made return void (since nothing is
@@ -676,11 +656,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         //AbstractDecoratedTextEditorPreferenceConstants.initializeDefaultValues(RuntimePlugin.getInstance().getPreferenceStore());
 
         setTitleImageFromLanguageIcon();
-
         setSourceFontFromPreference();
         setupBracketCloser();
-        restoreExistingBreakpoints(fLanguageServiceManager.getToggleBreakpointsHandler());
-
         setupSourcePrefListeners();
 
         initializeEditorContributors();

@@ -89,19 +89,11 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
                 	IMarker marker = findBreakpointMarker(origSrcFile, lineNumber);
 
                 	if (marker != null) {
-                		try {
-                		    // The following will delete the associated marker
-                			fHandler.clearLineBreakpoint(origSrcFile, lineNumber);
-                		} catch (Exception e) {
-                			RuntimePlugin.getInstance().logException(e.getMessage(), e);
-                		}
+                	    // The following will delete the associated marker
+                	    fHandler.clearLineBreakpoint(origSrcFile, lineNumber);
                 	} else {
-                		try {
-                            // The following will create a marker as a side-effect
-                			fHandler.setLineBreakpoint(origSrcFile, lineNumber);
-                		} catch (Exception e) {
-                			RuntimePlugin.getInstance().logException(e.getMessage(), e);
-                		}
+                	    // The following will create a marker as a side-effect
+                	    fHandler.setLineBreakpoint(origSrcFile, lineNumber);
                 	}
                 }
             };

@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences;
@@ -29,7 +28,6 @@ import org.eclipse.imp.preferences.fields.StringFieldEditor;
 import org.eclipse.imp.ui.dialogs.ListSelectionDialog;
 import org.eclipse.imp.ui.dialogs.providers.ContentProviderForAllProjects;
 import org.eclipse.imp.ui.dialogs.providers.LabelProviderForProjects;
-import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
@@ -53,9 +51,6 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 	protected org.eclipse.jface.preference.StringFieldEditor selectedProjectName = null;
 	protected List<Link> detailsLinks = new ArrayList<Link>();
 
-	protected IJavaProject javaProject = null;
-	
-	// SMS 14 Nov 2007
 	protected IProject fProject = null;
 
 	

@@ -20,6 +20,8 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.ListenerList;
+import org.eclipse.imp.runtime.ImageDescriptorRegistry;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jdt.core.ICompilationUnit;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ISourceRange;
@@ -27,7 +29,6 @@ import org.eclipse.jdt.core.ISourceReference;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.JavaPlugin;
 import org.eclipse.jdt.internal.ui.JavaPluginImages;
-import org.eclipse.jdt.internal.ui.viewsupport.ImageDescriptorRegistry;
 import org.eclipse.jdt.internal.ui.viewsupport.ImageImageDescriptor;
 import org.eclipse.jdt.ui.JavaElementImageDescriptor;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -126,7 +127,7 @@ public class ProblemsLabelDecorator implements ILabelDecorator {
 
     private ImageDescriptorRegistry getRegistry() {
 	if (fRegistry == null) {
-	    fRegistry= fUseNewRegistry ? new ImageDescriptorRegistry() : JavaPlugin.getImageDescriptorRegistry();
+	    fRegistry= fUseNewRegistry ? new ImageDescriptorRegistry() : RuntimePlugin.getImageDescriptorRegistry();
 	}
 	return fRegistry;
     }

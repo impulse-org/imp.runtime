@@ -37,7 +37,7 @@ public abstract class JavaBreakpointHandler implements IToggleBreakpointsHandler
         fStratumID= stratumID;
     }
 
-    public void setLineBreakpoint(IFile file, int lineNumber) {
+    public void setLineBreakpoint(IFile file, int lineNumber) throws CoreException {
         String srcFileName= file.getName();
         String typeName= srcFileName.substring(0, srcFileName.lastIndexOf('.'));
         Map<String,String> bkptAttributes= new HashMap<String, String>();
@@ -51,7 +51,7 @@ public abstract class JavaBreakpointHandler implements IToggleBreakpointsHandler
         }
     }
 
-    public void clearLineBreakpoint(IFile file, int lineNumber) {
+    public void clearLineBreakpoint(IFile file, int lineNumber) throws CoreException {
         String srcFileName= file.getName();
         try {
             IBreakpoint lineBkpt= findStratumBreakpoint(file, lineNumber);
@@ -64,7 +64,7 @@ public abstract class JavaBreakpointHandler implements IToggleBreakpointsHandler
         }
     }
 
-    public void disableLineBreakpoint(IFile file, int lineNumber) {
+    public void disableLineBreakpoint(IFile file, int lineNumber) throws CoreException {
         String srcFileName= file.getName();
         try {
             IBreakpoint lineBkpt= findStratumBreakpoint(file, lineNumber);
@@ -77,7 +77,7 @@ public abstract class JavaBreakpointHandler implements IToggleBreakpointsHandler
         }
     }
 
-    public void enableLineBreakpoint(IFile file, int lineNumber) {
+    public void enableLineBreakpoint(IFile file, int lineNumber) throws CoreException {
         String srcFileName= file.getName();
         try {
             IBreakpoint lineBkpt= findStratumBreakpoint(file, lineNumber);

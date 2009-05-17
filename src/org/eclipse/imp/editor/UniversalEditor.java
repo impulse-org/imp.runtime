@@ -80,7 +80,6 @@ import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.imp.ui.explorer.OpenAction;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
 import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
-import org.eclipse.jdt.ui.text.IJavaPartitions;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -783,7 +782,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 // (i.e. whether it would recover by inserting the matching close fence character)
                 // Right now, naively insert the closing fence regardless.
 
-                ITypedRegion partition= TextUtilities.getPartition(document, IJavaPartitions.JAVA_PARTITIONING, offset, true);
+                ITypedRegion partition= TextUtilities.getPartition(document, getSourceViewerConfiguration().getConfiguredDocumentPartitioning(sourceViewer), offset, true);
                 if (!IDocument.DEFAULT_CONTENT_TYPE.equals(partition.getType()))
                     return;
 

@@ -7,14 +7,11 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/**
- * 
- */
 package org.eclipse.imp.parser;
 
+import lpg.runtime.ParseErrorCodes;
 
 public class MessageHandlerAdapter implements lpg.runtime.IMessageHandler {
     private final IMessageHandler fIMPHandler;
@@ -30,9 +27,11 @@ public class MessageHandlerAdapter implements lpg.runtime.IMessageHandler {
         int endLine= msgLocation[lpg.runtime.IMessageHandler.END_LINE_INDEX];
         int startCol= msgLocation[lpg.runtime.IMessageHandler.START_COLUMN_INDEX];
         int endCol= msgLocation[lpg.runtime.IMessageHandler.END_COLUMN_INDEX];
-        String message = "";
+//      String message = MessageFormat.format(ParseErrorCodes.errorMsgText[errorCode], (Object[]) errorInfo);
+        String message = ParseErrorCodes.errorMsgText[errorCode] + ":";
+
         for (int i = 0; i < errorInfo.length; i++)
-            message += (errorInfo[i] + (i < errorInfo.length - 1 ? " " : ""));
+            message += " " + errorInfo[i];
 
         fIMPHandler.handleSimpleMessage(message, startOffset, startOffset + length - 1,
                 startCol, endCol, startLine, endLine);

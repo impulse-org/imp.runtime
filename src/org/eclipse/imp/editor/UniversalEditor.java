@@ -259,10 +259,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {
-            return fServiceControllerManager.getOutlineController();
+            return fServiceControllerManager == null ? null : fServiceControllerManager.getOutlineController();
         }
         if (IToggleBreakpointsTarget.class.equals(required)) {
-            IToggleBreakpointsHandler bkptHandler = fLanguageServiceManager.getToggleBreakpointsHandler();
+            IToggleBreakpointsHandler bkptHandler = fLanguageServiceManager == null ? null : fLanguageServiceManager.getToggleBreakpointsHandler();
             if (bkptHandler != null) {
                 if (fBreakpointHandler == null) {
                     fBreakpointHandler= new ToggleBreakpointsAdapter(this, bkptHandler);
@@ -621,8 +621,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         // SMS 10 Oct 2008:  null check added per bug #242949
         if (fLanguage == null) {
-            throw new IllegalArgumentException("No language support found for files of type '" +
-            		EditorInputUtils.getPath(getEditorInput()).getFileExtension() + "'");
+//            throw new IllegalArgumentException("No language support found for files of type '" +
+//            		EditorInputUtils.getPath(getEditorInput()).getFileExtension() + "'");
         }
 
         // Create language service extensions now, since some services could
@@ -641,7 +641,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         super.createPartControl(parent);
 
-        if (fLanguageServiceManager.getParseController() != null) {
+        if (fLanguageServiceManager != null && fLanguageServiceManager.getParseController() != null) {
             fServiceControllerManager.setSourceViewer(getSourceViewer());
             initiateServiceControllers();
         }
@@ -827,7 +827,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void watchForSourceMove() {
-        if (fLanguageServiceManager.getParseController() == null ||
+        if (fLanguageServiceManager == null ||
+            fLanguageServiceManager.getParseController() == null ||
             fLanguageServiceManager.getParseController().getProject() == null) {
             return;
         }
@@ -954,7 +955,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private void setTitleImageFromLanguageIcon() {
         // Only set the editor's title bar icon if the language has a label provider
-        if (fLanguageServiceManager.getLabelProvider() != null) {
+        if (fLanguageServiceManager != null && fLanguageServiceManager.getLabelProvider() != null) {
             IEditorInput editorInput= getEditorInput();
             IFile file= EditorInputUtils.getFile(editorInput);
 
@@ -1015,7 +1016,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 	}
 	
 	private void unregisterEditorContributionsActivator() {
-        getSite().getPage().removePartListener(fRefreshContributions);
+	    if (fRefreshContributions != null) {
+	        getSite().getPage().removePartListener(fRefreshContributions);
+	    }
         fRefreshContributions= null;
     }
 
@@ -1082,7 +1085,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         ISourceViewer viewer= new StructuredSourceViewer(parent, ruler, getOverviewRuler(), isOverviewRulerVisible(), styles);
         // ensure decoration support has been created and configured.
         getSourceViewerDecorationSupport(viewer);
-        if (fLanguageServiceManager.getParseController() != null) {
+        if (fLanguageServiceManager != null && fLanguageServiceManager.getParseController() != null) {
         	IMPHelp.setHelp(fLanguageServiceManager, this, viewer.getTextWidget(), IMP_EDITOR_CONTEXT);
         }
 	
@@ -1441,6 +1444,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
+            if (fServiceControllerManager == null) {
+                return super.getPresentationReconciler(sourceViewer);
+            }
             // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
             PresentationReconciler reconciler= new PresentationReconciler();
             reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
@@ -1449,6 +1455,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
+            if (fServiceControllerManager == null) {
+                return super.getContentAssistant(sourceViewer);
+            }
             ContentAssistant ca= new ContentAssistant();
             ca.setContentAssistProcessor(fServiceControllerManager.getCompletionProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
             ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
@@ -1456,6 +1465,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
+            if (fLanguageServiceManager == null) {
+                return super.getAnnotationHover(sourceViewer);
+            }
             IAnnotationHover hover= fLanguageServiceManager.getAnnotationHover();
             if (hover == null)
                 hover= new DefaultAnnotationHover();
@@ -1463,6 +1475,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
+            if (fLanguageServiceManager == null) {
+                return super.getAutoEditStrategies(sourceViewer, contentType);
+            }
             Set<org.eclipse.imp.services.IAutoEditStrategy> autoEdits= fLanguageServiceManager.getAutoEditStrategies();
 
             if (autoEdits == null)
@@ -1476,7 +1491,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // N.B.: This will probably always be null, since this method gets called before
             // the formatting controller has been instantiated (which happens in
             // instantiateServiceControllers()).
-            if (fServiceControllerManager.getFormattingController() == null)
+            if (fServiceControllerManager == null || fServiceControllerManager.getFormattingController() == null)
                 return null;
 
             // For now, assumes only one content type (i.e. one kind of partition)
@@ -1495,7 +1510,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-            if (fServiceControllerManager.getHyperLinkController() != null)
+            if (fServiceControllerManager != null && fServiceControllerManager.getHyperLinkController() != null)
                 return new IHyperlinkDetector[] { fServiceControllerManager.getHyperLinkController() };
             return super.getHyperlinkDetectors(sourceViewer);
         }
@@ -1526,6 +1541,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         private InformationPresenter fInfoPresenter;
 
         public IInformationPresenter getInformationPresenter(ISourceViewer sourceViewer) {
+            if (fLanguageServiceManager == null) {
+                return super.getInformationPresenter(sourceViewer);
+            }
             if (fInfoPresenter == null) {
                 fInfoPresenter= new InformationPresenter(getInformationControlCreator(sourceViewer));
                 fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
@@ -1559,6 +1577,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
+            if (fServiceControllerManager == null) {
+                return super.getTextHover(sourceViewer, contentType);
+            }
             return fServiceControllerManager.getHoverHelpController();
         }
 
@@ -1596,6 +1617,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         private IInformationProvider fOutlineElementProvider= new OutlineInformationProvider();
 
         public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
+            if (fLanguageServiceManager == null) {
+                return null;
+            }
             TreeModelBuilderBase modelBuilder= fLanguageServiceManager.getModelBuilder();
             if (modelBuilder == null) {
                 return null;

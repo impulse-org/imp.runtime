@@ -18,13 +18,11 @@ import org.eclipse.imp.preferences.PreferencesUtilities;
 import org.eclipse.imp.preferences.fields.BooleanFieldEditor;
 import org.eclipse.imp.preferences.fields.PreferenceDialogConstants;
 import org.eclipse.jface.dialogs.IDialogConstants;
+import org.eclipse.jface.dialogs.TrayDialog;
 import org.eclipse.jface.resource.JFaceColors;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -32,10 +30,9 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.ui.internal.dialogs.ProductInfoDialog;
 
 
-public class DetailsDialogForBooleanFields extends ProductInfoDialog {
+public class DetailsDialogForBooleanFields extends TrayDialog {
 
 	Shell parent = null;
 	BooleanFieldEditor field = null;
@@ -152,7 +149,7 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 	     * Creates and returns the contents of the upper part 
 	     * of the dialog (above the button bar).
 	     *
-	     * Subclasses should overide.
+	     * Subclasses should override.
 	     *
 	     * @param parent  the parent composite to contain the dialog area
 	     * @return the dialog area control
@@ -161,18 +158,18 @@ public class DetailsDialogForBooleanFields extends ProductInfoDialog {
 	    	
 	    	dialogAreaParent = parent;
 	    	
-	        final Cursor hand = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
-	        final Cursor busy = new Cursor(parent.getDisplay(), SWT.CURSOR_WAIT);
-	        setHandCursor(hand);
-	        setBusyCursor(busy);
-	        getShell().addDisposeListener(new DisposeListener() {
-	            public void widgetDisposed(DisposeEvent e) {
-	                setHandCursor(null);
-	                hand.dispose();
-	                setBusyCursor(null);
-	                busy.dispose();
-	            }
-	        });
+//	        final Cursor hand = new Cursor(parent.getDisplay(), SWT.CURSOR_HAND);
+//	        final Cursor busy = new Cursor(parent.getDisplay(), SWT.CURSOR_WAIT);
+//	        setHandCursor(hand);
+//	        setBusyCursor(busy);
+//	        getShell().addDisposeListener(new DisposeListener() {
+//	            public void widgetDisposed(DisposeEvent e) {
+//	                setHandCursor(null);
+//	                hand.dispose();
+//	                setBusyCursor(null);
+//	                busy.dispose();
+//	            }
+//	        });
 
 	        
 	        // create a composite which is the parent of the top area and the bottom

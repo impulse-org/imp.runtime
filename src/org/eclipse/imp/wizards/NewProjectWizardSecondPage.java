@@ -7,12 +7,8 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/*
- * Created on Feb 6, 2006
- */
 package org.eclipse.imp.wizards;
 
 import java.io.File;
@@ -21,9 +17,11 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.StringWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,11 +31,14 @@ import java.util.Map;
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.filesystem.URIUtil;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceStatus;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -54,11 +55,6 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.internal.corext.util.JavaModelUtil;
-import org.eclipse.jdt.internal.corext.util.Messages;
-import org.eclipse.jdt.internal.ui.dialogs.StatusInfo;
-import org.eclipse.jdt.internal.ui.util.CoreUtility;
-import org.eclipse.jdt.internal.ui.util.ExceptionHandler;
 import org.eclipse.jdt.internal.ui.wizards.ClassPathDetector;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.IVMInstall2;
@@ -68,9 +64,11 @@ import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.jdt.ui.PreferenceConstants;
 import org.eclipse.jdt.ui.wizards.JavaCapabilityConfigurationPage;
 import org.eclipse.jface.dialogs.ErrorDialog;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.operation.IRunnableWithProgress;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -149,18 +147,67 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             String compliance= fFirstPage.getJRECompliance();
             if (compliance != null) {
                 IJavaProject project= JavaCore.create(fCurrProject);
-                Map<?, ?> options= project.getOptions(false);
-                JavaModelUtil.setCompilanceOptions(options, compliance);
+                Map<String, String> options= project.getOptions(false);
+
+                setComplianceOptions(options, compliance);
                 project.setOptions(options);
             }
         } finally {
             monitor.done();
             fCurrProject= null;
             if (fIsAutobuild != null) {
-                CoreUtility.enableAutoBuild(fIsAutobuild.booleanValue());
+                enableAutoBuild(fIsAutobuild.booleanValue());
                 fIsAutobuild= null;
             }
         }
+    }
+
+    public static void setComplianceOptions(Map<String,String> map, String compliance) {
+        if (JavaCore.VERSION_1_6.equals(compliance)) {
+            map.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_6);
+            map.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_6);
+            map.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_6);
+            map.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+            map.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+        } else if (JavaCore.VERSION_1_5.equals(compliance)) {
+            map.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_5);
+            map.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_5);
+            map.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_5);
+            map.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.ERROR);
+            map.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.ERROR);
+        } else if (JavaCore.VERSION_1_4.equals(compliance)) {
+            map.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_4);
+            map.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_3);
+            map.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_2);
+            map.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.WARNING);
+            map.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.WARNING);
+        } else if (JavaCore.VERSION_1_3.equals(compliance)) {
+            map.put(JavaCore.COMPILER_COMPLIANCE, JavaCore.VERSION_1_3);
+            map.put(JavaCore.COMPILER_SOURCE, JavaCore.VERSION_1_3);
+            map.put(JavaCore.COMPILER_CODEGEN_TARGET_PLATFORM, JavaCore.VERSION_1_1);
+            map.put(JavaCore.COMPILER_PB_ASSERT_IDENTIFIER, JavaCore.IGNORE);
+            map.put(JavaCore.COMPILER_PB_ENUM_IDENTIFIER, JavaCore.IGNORE);
+        } else {
+            throw new IllegalArgumentException("Unsupported compliance: " + compliance); //$NON-NLS-1$
+        }
+    }
+    
+    /**
+     * Set the autobuild to the value of the parameter and
+     * return the old one.
+     * 
+     * @param state the value to be set for autobuilding.
+     * @return the old value of the autobuild state
+     */
+    public static boolean enableAutoBuild(boolean state) throws CoreException {
+        IWorkspace workspace= ResourcesPlugin.getWorkspace();
+        IWorkspaceDescription desc= workspace.getDescription();
+        boolean isAutoBuilding= desc.isAutoBuilding();
+        if (isAutoBuilding != state) {
+            desc.setAutoBuilding(state);
+            workspace.setDescription(desc);
+        }
+        return isAutoBuilding;
     }
 
     /* (non-Javadoc)
@@ -193,7 +240,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             public void run(IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
                 try {
                     if (fIsAutobuild == null) {
-                        fIsAutobuild= Boolean.valueOf(CoreUtility.enableAutoBuild(false));
+                        fIsAutobuild= Boolean.valueOf(enableAutoBuild(false));
                     }
                     infoStatus= updateProject(monitor);
                 } catch (CoreException e) {
@@ -212,16 +259,51 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
         } catch (InvocationTargetException e) {
             final String title= "New Java Project"; //NewWizardMessages.JavaProjectWizardSecondPage_error_title; 
             final String message= "An error occurred while creating project. Check log for details."; //NewWizardMessages.JavaProjectWizardSecondPage_error_message; 
-            ExceptionHandler.handle(e, getShell(), title, message);
+            perform(e, getShell(), title, message);
         } catch (InterruptedException e) {
             // cancel pressed
         }
         return null;
     }
 
-    final IStatus updateProject(IProgressMonitor monitor) throws CoreException, InterruptedException {
+    protected void perform(CoreException e, Shell shell, String title, String message) {
+        RuntimePlugin.getInstance().logException(message, e);
+        IStatus status= e.getStatus();
+        if (status != null) {
+            ErrorDialog.openError(shell, title, message, status);
+        } else {
+            displayMessageDialog(e, e.getMessage(), shell, title, message);
+        }
+    }
 
-        IStatus result= StatusInfo.OK_STATUS;
+    protected void perform(InvocationTargetException e, Shell shell, String title, String message) {
+        Throwable target= e.getTargetException();
+        if (target instanceof CoreException) {
+            perform((CoreException)target, shell, title, message);
+        } else {
+            RuntimePlugin.getInstance().logException(message, e);
+            if (e.getMessage() != null && e.getMessage().length() > 0) {
+                displayMessageDialog(e, e.getMessage(), shell, title, message);
+            } else {
+                displayMessageDialog(e, target.getMessage(), shell, title, message);
+            }
+        }
+    }
+    private void displayMessageDialog(Throwable t, String exceptionMessage, Shell shell, String title, String message) {
+        StringWriter msg= new StringWriter();
+        if (message != null) {
+            msg.write(message);
+            msg.write("\n\n"); //$NON-NLS-1$
+        }
+        if (exceptionMessage == null || exceptionMessage.length() == 0)
+            msg.write("See the Error Log for more details.");
+        else
+            msg.write(exceptionMessage);
+        MessageDialog.openError(shell, title, msg.toString());          
+    }   
+
+    final IStatus updateProject(IProgressMonitor monitor) throws CoreException, InterruptedException {
+        IStatus result= new Status(IStatus.OK, RuntimePlugin.IMP_RUNTIME, "Ok");
 
         fCurrProject= fFirstPage.getProjectHandle();
         fCurrProjectLocation= getProjectLocationURI();
@@ -230,8 +312,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             monitor= new NullProgressMonitor();
         }
         try {
-            monitor.beginTask( //NewWizardMessages.JavaProjectWizardSecondPage_operation_initialize
-                    "Initializing project...", 7);
+            monitor.beginTask("Initializing project...", 7);
             if (monitor.isCanceled()) {
                 throw new OperationCanceledException();
             }
@@ -253,12 +334,8 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
                 createProject(fCurrProject, fCurrProjectLocation, new SubProgressMonitor(monitor, 2));
             } catch (CoreException e) {
                 if (e.getStatus().getCode() == IResourceStatus.FAILED_READ_METADATA) {
-                    result= new StatusInfo(
-                            IStatus.INFO,
-                            Messages
-                                    .format(
-                                            //NewWizardMessages.JavaProjectWizardSecondPage_DeleteCorruptProjectFile_message,
-                                            "A problem occurred while creating the project from existing source:\n\n''{0}''\n\nThe corrupt project file will be replaced by a valid one.",
+                    result= new Status(IStatus.INFO, RuntimePlugin.IMP_RUNTIME,
+                            MessageFormat.format("A problem occurred while creating the project from existing source:\n\n''{0}''\n\nThe corrupt project file will be replaced by a valid one.",
                                             e.getLocalizedMessage()));
 
                     deleteProjectFile(realLocation);
@@ -289,14 +366,14 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
 
                 if (srcPath.segmentCount() > 0) {
                     IFolder folder= fCurrProject.getFolder(srcPath);
-                    CoreUtility.createFolder(folder, true, true, new SubProgressMonitor(monitor, 1));
+                    createFolder(folder, true, true, new SubProgressMonitor(monitor, 1));
                 } else {
                     monitor.worked(1);
                 }
 
                 if (binPath.segmentCount() > 0 && !binPath.equals(srcPath)) {
                     IFolder folder= fCurrProject.getFolder(binPath);
-                    CoreUtility.createDerivedFolder(folder, true, true, new SubProgressMonitor(monitor, 1));
+                    createDerivedFolder(folder, true, true, new SubProgressMonitor(monitor, 1));
                 } else {
                     monitor.worked(1);
                 }
@@ -332,6 +409,32 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             monitor.done();
         }
         return result;
+    }
+
+    /**
+     * Creates a folder and all parent folders if not existing.
+     * Project must exist.
+     * <code> org.eclipse.ui.dialogs.ContainerGenerator</code> is too heavy
+     * (creates a runnable)
+     */
+    public static void createFolder(IFolder folder, boolean force, boolean local, IProgressMonitor monitor) throws CoreException {
+        if (!folder.exists()) {
+            IContainer parent= folder.getParent();
+            if (parent instanceof IFolder) {
+                createFolder((IFolder)parent, force, local, null);
+            }
+            folder.create(force, local, monitor);
+        }
+    }
+    
+    public static void createDerivedFolder(IFolder folder, boolean force, boolean local, IProgressMonitor monitor) throws CoreException {
+        if (!folder.exists()) {
+            IContainer parent= folder.getParent();
+            if (parent instanceof IFolder) {
+                createDerivedFolder((IFolder)parent, force, local, null);
+            }
+            folder.create(force ? (IResource.FORCE | IResource.DERIVED) : IResource.DERIVED, local, monitor);
+        }
     }
 
     private URI getProjectLocationURI() throws CoreException {
@@ -403,7 +506,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             copyFile(source, bak);
             return bak;
         } catch (IOException e) {
-            IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, Messages.format(
+            IStatus status= new Status(IStatus.ERROR, JavaUI.ID_PLUGIN, IStatus.ERROR, MessageFormat.format(
             //NewWizardMessages.JavaProjectWizardSecondPage_problem_backup,
                     "Problem while creating backup for ''{0}''", name), e);
             throw new CoreException(status);
@@ -505,7 +608,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
             "Error Creating Java Project";
             final String message= //NewWizardMessages.JavaProjectWizardSecondPage_error_remove_message; 
             "An error occurred while removing a temporary project.";
-            ExceptionHandler.handle(e, getShell(), title, message);
+            perform(e, getShell(), title, message);
         } catch (InterruptedException e) {
             // cancel pressed
         }
@@ -527,7 +630,7 @@ public abstract class NewProjectWizardSecondPage extends JavaCapabilityConfigura
 
                 restoreExistingFiles(projLoc, new SubProgressMonitor(monitor, 1));
             } finally {
-                CoreUtility.enableAutoBuild(fIsAutobuild.booleanValue()); // fIsAutobuild must be set
+                enableAutoBuild(fIsAutobuild.booleanValue()); // fIsAutobuild must be set
                 fIsAutobuild= null;
             }
         } catch (CoreException e) {

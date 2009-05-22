@@ -20,8 +20,6 @@ import java.util.Stack;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.LanguageServiceManager;
-import org.eclipse.imp.language.Language;
-import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
@@ -117,9 +115,9 @@ public class PresentationController implements IModelListener {
 
     public void update(IParseController controller, IProgressMonitor monitor) {
         if (!monitor.isCanceled()) {
-            if (fWorkItems.size() == 0) {
-                ConsoleUtil.findConsoleStream(PresentationController.CONSOLE_NAME).println("PresentationController.update() called, but no damage in the work queue?");
-            }
+//            if (fWorkItems.size() == 0) {
+//                ConsoleUtil.findConsoleStream(PresentationController.CONSOLE_NAME).println("PresentationController.update() called, but no damage in the work queue?");
+//            }
             synchronized (fWorkItems) {
                 for(int n= fWorkItems.size() - 1; !monitor.isCanceled() && n >= 0; n--) {
                     Region damage= (Region) fWorkItems.get(n);

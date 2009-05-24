@@ -125,8 +125,9 @@ public class ParserScheduler extends Job {
                 // TODO Rename IParseController to IAnalysisController
                 // TODO Compute the minimum amount of analysis sufficient for all current listeners, and pass that to
                 // the IAnalysisController.
-                if (listener.getAnalysisRequired().level() <= analysisLevel)
+                if (listener.getAnalysisRequired().level() <= analysisLevel) {
                     listener.update(fParseController, monitor);
+                }
             }
 //            long curTime= System.currentTimeMillis();
 //            System.out.println("All model listeners notified; time = " + curTime);

@@ -26,6 +26,7 @@ import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.ISourceViewer;
 
 /**
@@ -46,14 +47,15 @@ public class HoverHelper implements IHoverHelper {
     }
 
     public String getHoverHelpAt(IParseController parseController, ISourceViewer srcViewer, int offset) {
-		try {
-		    List/*<Annotation>*/ annotations= AnnotationHoverBase.getSourceAnnotationsForLine(srcViewer, srcViewer.getDocument().getLineOfOffset(offset));
-	
-		    if (annotations != null && annotations.size() > 0)
-			return AnnotationHoverBase.formatAnnotationList(annotations);
-		} catch (BadLocationException e) {
-		    return "???";
-		}
+        try {
+            List<Annotation> annotations= AnnotationHoverBase.getSourceAnnotationsForLine(srcViewer, srcViewer.getDocument().getLineOfOffset(offset));
+
+            if (annotations != null && annotations.size() > 0) {
+                return AnnotationHoverBase.formatAnnotationList(annotations);
+            }
+        } catch (BadLocationException e) {
+            return "???";
+        }
 
     	IReferenceResolver refResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
         Object root= parseController.getCurrentAst();

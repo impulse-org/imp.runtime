@@ -15,6 +15,7 @@ package org.eclipse.imp.editor.internal;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 
@@ -33,7 +34,12 @@ public class FoldingController implements IModelListener {
     }
 
     public void update(IParseController parseController, IProgressMonitor monitor) {
-	if (fAnnotationModel != null) // can be null if file is outside workspace
-	    fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
+	if (fAnnotationModel != null) { // can be null if file is outside workspace
+	    try {
+	        fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
+	    } catch (Exception e) {
+	        RuntimePlugin.getInstance().logException("Error while updating folding annotations for " + parseController.getPath(), e);
+	    }
+	}
     }
 }

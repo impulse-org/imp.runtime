@@ -130,10 +130,10 @@ public class PreferencesService implements IPreferencesService
 	
 	
 	public void setProjectName(String projectName) {
-		if (projectName == null || projectName.equals("")) {
-			System.out.println("PreferencesService.setProjectName:  name is null or empty; clearing project, project name, and project scope");
-		}
-		if (projectName.equals("")) projectName = null; 
+//		if (projectName == null || projectName.equals("")) {
+//			System.out.println("PreferencesService.setProjectName:  name is null or empty; clearing project, project name, and project scope");
+//		}
+		if (projectName != null && projectName.equals("")) projectName = null;
 		this.projectName = projectName;
 		project = getProjectFromName(projectName);
 		if (project != null ) {

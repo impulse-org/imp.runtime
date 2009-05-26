@@ -12,29 +12,25 @@
 
 package org.eclipse.imp.editor;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
-
+import org.eclipse.core.filesystem.EFS;
+import org.eclipse.core.filesystem.IFileStore;
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IStorage;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.hyperlink.IHyperlink;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IPersistableElement;
-import org.eclipse.ui.IStorageEditorInput;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
 
 /**
@@ -43,76 +39,6 @@ import org.eclipse.ui.part.FileEditorInput;
  * @author rfuhrer
  */
 public final class TargetLink implements IHyperlink {
-    private static final class ExternalEditorInput implements IStorageEditorInput {
-        private final IStorage fStorage;
-
-        private ExternalEditorInput(IStorage storage) {
-            super();
-            fStorage= storage;
-        }
-
-        public IStorage getStorage() throws CoreException {
-            return fStorage;
-        }
-
-        public boolean exists() {
-            return true;
-        }
-
-        public ImageDescriptor getImageDescriptor() {
-            return null;
-        }
-
-        public String getName() {
-            return fStorage.getName();
-        }
-
-        public IPersistableElement getPersistable() {
-            return null;
-        }
-
-        public String getToolTipText() {
-            return "";
-        }
-
-        public Object getAdapter(Class adapter) {
-            return null;
-        }
-    }
-
-    private static final class ExternalStorage implements IStorage {
-        private final IPath fPath;
-
-        private ExternalStorage(IPath path) {
-            fPath= path;
-        }
-
-        public InputStream getContents() throws CoreException {
-            File file= new File(fPath.toOSString());
-            try {
-                return new FileInputStream(file);
-            } catch (FileNotFoundException fnf) {
-                return null;
-            }
-        }
-
-        public IPath getFullPath() {
-            return fPath;
-        }
-
-        public String getName() {
-            return fPath.lastSegment();
-        }
-
-        public boolean isReadOnly() {
-            return true;
-        }
-
-        public Object getAdapter(Class adapter) {
-            return null;
-        }
-    }
-
     private final String fText;
 
     private final Object fTarget;
@@ -131,13 +57,13 @@ public final class TargetLink implements IHyperlink {
      * @param text
      * @param srcStart
      * @param srcLength
-     * @param target an IPath to the file, if 'editor' is null; otherwise, an object that indicates the particular target within the source file
+     * @param target a workspace-relative or filesystem-absolute IPath to the file,
+     * if 'editor' is null; otherwise, an object that indicates the particular target within the source file
      * @param targetStart
      * @param targetLength
      * @param editor may be null, if the target is in another compilation unit
      */
     public TargetLink(String text, int srcStart, int srcLength, Object target, int targetStart, int targetLength, IRegionSelectionService selService) {
-        super();
         fText= text;
         fStart= srcStart;
         fTarget= target;
@@ -160,50 +86,58 @@ public final class TargetLink implements IHyperlink {
     }
 
     public void open() {
-        if (fSelectionService == null) { // we're presumably opening up a new source file
-        	// SMS 5 Aug 2008:  presumably, but actually it seems to not always be the case.
+        if (fSelectionService == null) {
+            // Either we're opening up a new editor, or there's an existing one open on the target file.
+            // Either way, get a handle to an IEditorPart for the target file, and try to get an
+            // IRegionSelectionService interface on it.
             final IPath targetPath= (IPath) fTarget;
             IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
+            IWorkbenchWindow activeWindow= PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            IWorkbenchPage activePage= activeWindow.getActivePage();
 
             if (ed == null) {
-                MessageDialog.openError(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "Error", "No editor defined for target file "
+                MessageDialog.openError(activeWindow.getShell(), "Error", "No editor defined for target file "
                         + targetPath.toPortableString());
                 return;
             }
 
             IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
             IPath wsLoc= wsRoot.getLocation();
-            IEditorInput editorInput;
+            IEditorPart editor;
 
             // Abortive attempt to support links to class files embedded in jars (e.g., Java rt.jar).
             // if (targetPath.toPortableString().endsWith(".class")) {
-            // IFile jarFile= null; // Can't get an IFile for something not in the workspace... and rt.jar usually isn't... right?
-            // // Anyway, we'll have to use something other than a plain IFileEditorInput.
-            // // JDT has IClassFileEditorInput, but it's internal... Hmmm...
-            // JavaCore.createClassFileFrom(jarFile);
+            //     IFile jarFile= null; // Can't get an IFile for something not in the workspace... and rt.jar usually isn't...
+            //     // Anyway, we'll have to use something other than a plain IFileEditorInput.
+            //     // JDT has IClassFileEditorInput, but it's internal... Hmmm...
+            //     JavaCore.createClassFileFrom(jarFile);
             // } else
 
-            if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
-                // http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
-                final IStorage storage= new ExternalStorage(targetPath);
-                editorInput= new ExternalEditorInput(storage);
-            } else {
-                IFile file= wsRoot.getFile(wsLoc.isPrefixOf(targetPath) ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
-                editorInput= new FileEditorInput(file);
-            }
-
             try {
-                IEditorPart editor= PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().openEditor(editorInput, ed.getId());
+                boolean targetPathHasWSPrefix= wsLoc.isPrefixOf(targetPath);
 
-                // Don't assume the target editor is a text editor; the target might be
-                // in a class file or another kind of binary file.
-                if (editor instanceof IRegionSelectionService)
-                    fSelectionService= (IRegionSelectionService) editor;
-                else
-                    fSelectionService= (IRegionSelectionService) editor.getAdapter(IRegionSelectionService.class);
+                if (targetPathHasWSPrefix || wsRoot.getFile(targetPath).exists()) {
+                    IFile file= wsRoot.getFile(targetPathHasWSPrefix ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
+                    IEditorInput editorInput= new FileEditorInput(file);
+
+                    editor= activePage.openEditor(editorInput, ed.getId());
+                } else {
+//              if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
+                    // http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
+                    IFileStore fileStore = EFS.getLocalFileSystem().getStore(targetPath);
+
+                    editor= IDE.openEditorOnFileStore(activePage, fileStore);
+                }
             } catch (PartInitException e) {
-                e.printStackTrace();
+                RuntimePlugin.getInstance().logException(e.getLocalizedMessage(), e);
+                return;
             }
+            // Don't assume the target editor is a text editor; the target might be
+            // in a class file or another kind of binary file.
+            if (editor instanceof IRegionSelectionService)
+                fSelectionService= (IRegionSelectionService) editor;
+            else
+                fSelectionService= (IRegionSelectionService) editor.getAdapter(IRegionSelectionService.class);
         }
         if (fSelectionService != null)
             fSelectionService.selectAndReveal(fTargetStart, fTargetLength);

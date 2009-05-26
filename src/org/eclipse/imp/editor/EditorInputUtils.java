@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -24,12 +23,13 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPathEditorInput;
 import org.eclipse.ui.IStorageEditorInput;
-import org.eclipse.ui.ide.FileStoreEditorInput;
+import org.eclipse.ui.IURIEditorInput;
 
 public class EditorInputUtils {
     /**
      * @return the IPath corresponding to the given input, or null if none
      */
+    // TODO Determine whether this should always return project-relative paths when possible and document accordingly
     public static IPath getPath(IEditorInput editorInput) {
         IPath path= null;
 
@@ -46,9 +46,13 @@ public class EditorInputUtils {
             } catch (CoreException e) {
                 // do nothing; return null;
             }
-        } else if (editorInput instanceof FileStoreEditorInput) {
-            FileStoreEditorInput fileStoreEditorInput= (FileStoreEditorInput) editorInput;
-            path= new Path(fileStoreEditorInput.getURI().getPath());
+        } else if (editorInput instanceof IURIEditorInput) {
+            IURIEditorInput uriEditorInput= (IURIEditorInput) editorInput;
+            IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
+            path= new Path(uriEditorInput.getURI().getPath());
+            if (wsRoot.getProject(path.segment(0)).exists()) {
+                path= path.removeFirstSegments(1);
+            }
         }
         return path;
     }
@@ -72,15 +76,14 @@ public class EditorInputUtils {
                 // Can't get an IFile for an arbitrary file on the file system; return null
             }
         } else if (editorInput instanceof IStorageEditorInput) {
-            IStorageEditorInput storageEditorInput= (IStorageEditorInput) editorInput;
             file= null; // Can't get an IFile for an arbitrary IStorageEditorInput
-        } else if (editorInput instanceof FileStoreEditorInput) {
+        } else if (editorInput instanceof IURIEditorInput) {
+            IURIEditorInput uriEditorInput= (IURIEditorInput) editorInput;
             IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
-            FileStoreEditorInput fileStoreEditorInput= (FileStoreEditorInput) editorInput;
-            URI uri= fileStoreEditorInput.getURI();
+            URI uri= uriEditorInput.getURI();
             String path= uri.getPath();
             // Bug 526: uri.getHost() can be null for a local file URL
-            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && path.startsWith(wsRoot.getLocation().toOSString())) {
+            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && !path.startsWith(wsRoot.getLocation().toOSString())) {
                 file= wsRoot.getFile(new Path(path));
             }
         }

@@ -101,23 +101,18 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 		// that marking.
 		clearModifiedMarksOnLabels();
 		
-		
 		/*
 		 * Put in the elements related to selecting a project
 		 */
-					
-		// To hold the text selection (label + field) and button
 		Group groupHolder = new Group(composite, SWT.SHADOW_ETCHED_IN);
 		groupHolder.setText("Project selection");
 		groupHolder.setLayout(new GridLayout(2, false));
 		groupHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		
-		// To hold the text selection label + field
-		Composite projectFieldHolder = new Composite(groupHolder, SWT.NONE);
-		projectFieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+        Label projLabel= new Label(groupHolder, SWT.LEFT);
+        projLabel.setText("Project:");
 
-        selectedProjectCombo= new Combo(projectFieldHolder, SWT.DROP_DOWN | SWT.READ_ONLY);
+        selectedProjectCombo= new Combo(groupHolder, SWT.DROP_DOWN | SWT.READ_ONLY);
 		final Combo projCombo= selectedProjectCombo;
 		IProject[] pluginProjects= ResourcesPlugin.getWorkspace().getRoot().getProjects();
 
@@ -134,12 +129,13 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
             }
 		});
 		projCombo.setSize(150, 24);
+		Label pad = new Label(groupHolder, SWT.NONE);
 
 		// Clear these here in case there are any saved from a previous interaction with the page
 		// (assuming that we should start each  new page with no project selected)
 		fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 
-		addProjectSelectionListener(projectFieldHolder);
+		addProjectSelectionListener(composite);
 				
 		PreferencesUtilities.fillGridPlace(composite, 3);
 		

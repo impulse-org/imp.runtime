@@ -80,7 +80,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
     }
 
     public ISourcePositionLocator getSourcePositionLocator() {
-        if (fSourcePositionLocator != null) {
+        if (fSourcePositionLocator == null) {
             fSourcePositionLocator= new LPGSourcePositionLocator(this);
         }
         return fSourcePositionLocator;

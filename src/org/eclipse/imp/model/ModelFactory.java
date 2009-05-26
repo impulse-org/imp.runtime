@@ -247,55 +247,55 @@ public class ModelFactory {
     }
 
     public static ICompilationUnit open(IPath path, ISourceProject srcProject) {
-	return getInstance().doOpen(path, srcProject);
+        return getInstance().doOpen(path, srcProject);
     }
 
     private ICompilationUnit doOpen(IPath path, ISourceProject srcProject) {
-	ICompilationUnit unit;
-	IPath resolvedPath;
+    	ICompilationUnit unit;
+    	IPath resolvedPath;
 
-	if (path.isAbsolute())
-	    unit= new CompilationUnitRef(resolvedPath= path, null);
-	else {
-	    resolvedPath= srcProject.resolvePath(path);
+    	if (path.isAbsolute())
+    	    unit= new CompilationUnitRef(resolvedPath= path, null);
+    	else {
+    	    resolvedPath= srcProject.resolvePath(path);
 
-	    if (resolvedPath == null)
-		return null;
-	    unit= new CompilationUnitRef(resolvedPath, srcProject);
-	}
+    	    if (resolvedPath == null)
+    	        return null;
+    	    unit= new CompilationUnitRef(resolvedPath, srcProject);
+    	}
 
-	// Determine the language of this compilation unit, find the corresponding
-	// factory extender, and invoke it before returning the compilation unit.
-	Language lang= LanguageRegistry.findLanguage(resolvedPath, null);
-	IFactoryExtender ext= fExtenderMap.get(lang);
+    	// Determine the language of this compilation unit, find the corresponding
+    	// factory extender, and invoke it before returning the compilation unit.
+    	Language lang= LanguageRegistry.findLanguage(resolvedPath, null);
+    	IFactoryExtender ext= fExtenderMap.get(lang);
 
-	if (ext != null)
-	    ext.extend(unit);
+    	if (ext != null)
+    	    ext.extend(unit);
 
-	return unit;
+    	return unit;
     }
 
     public static ICompilationUnit open(IFile file, ISourceProject srcProject) {
-	return getInstance().doOpen(file, srcProject);
+        return getInstance().doOpen(file, srcProject);
     }
 
     private ICompilationUnit doOpen(IFile file, ISourceProject srcProject) {
-	if (!file.exists())
-	    return null;
+    	if (!file.exists())
+    	    return null;
 
-	ICompilationUnit unit= new CompilationUnitRef(file.getFullPath(), srcProject);
+    	ICompilationUnit unit= new CompilationUnitRef(file.getFullPath(), srcProject);
 
-	// Determine the language of this compilation unit, find the corresponding
-	// factory extender, and invoke it before returning the compilation unit.
-	TextFileDocumentProvider tfdp= new TextFileDocumentProvider(); // TODO perhaps this should be in a field? or another type of doc provider?
-	IDocument doc= tfdp.getDocument(file);
-	Language lang= LanguageRegistry.findLanguage(file.getLocation(), doc);
-	IFactoryExtender ext= fExtenderMap.get(lang);
+    	// Determine the language of this compilation unit, find the corresponding
+    	// factory extender, and invoke it before returning the compilation unit.
+    	TextFileDocumentProvider tfdp= new TextFileDocumentProvider(); // TODO perhaps this should be in a field? or another type of doc provider?
+    	IDocument doc= tfdp.getDocument(file);
+    	Language lang= LanguageRegistry.findLanguage(file.getLocation(), doc);
+    	IFactoryExtender ext= fExtenderMap.get(lang);
 
-	if (ext != null)
-	    ext.extend(unit);
+    	if (ext != null)
+    	    ext.extend(unit);
 
-	return unit;
+    	return unit;
     }
 
     /**
@@ -306,12 +306,12 @@ public class ModelFactory {
      */
     // TODO needs a progress monitor
     public static ICompilationUnit create(IPath projRelPath, ISourceProject srcProject) throws ModelException {
-	return getInstance().doCreate(projRelPath, srcProject);
+        return getInstance().doCreate(projRelPath, srcProject);
     }
 
     // TODO needs a progress monitor
     private ICompilationUnit doCreate(IPath projRelPath, ISourceProject srcProject) throws ModelException {
-	throw new ModelException(ELEMENT_ALREADY_EXISTS);
+        throw new ModelException(ELEMENT_ALREADY_EXISTS);
     }
 
     /**
@@ -321,16 +321,16 @@ public class ModelFactory {
      */
     // TODO needs a progress monitor
     public static ICompilationUnit create(IFile file, ISourceProject srcProject) throws ModelException {
-	return getInstance().doCreate(file, srcProject);
+        return getInstance().doCreate(file, srcProject);
     }
 
     // TODO needs a progress monitor
     private ICompilationUnit doCreate(IFile file, ISourceProject srcProject) throws ModelException {
-	return doCreate(file.getProjectRelativePath(), srcProject);
+        return doCreate(file.getProjectRelativePath(), srcProject);
     }
 
     // TODO needs a progress monitor
     public static IPathEntry createPathEntry(PathEntryType type, IPath path) {
-	return new PathEntry(type, path);
+        return new PathEntry(type, path);
     }
 }

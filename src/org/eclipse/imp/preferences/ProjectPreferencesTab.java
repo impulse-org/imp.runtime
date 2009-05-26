@@ -12,7 +12,6 @@
 package org.eclipse.imp.preferences;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -25,17 +24,12 @@ import org.eclipse.imp.preferences.fields.ComboFieldEditor;
 import org.eclipse.imp.preferences.fields.FontFieldEditor;
 import org.eclipse.imp.preferences.fields.RadioGroupFieldEditor;
 import org.eclipse.imp.preferences.fields.StringFieldEditor;
-import org.eclipse.imp.ui.dialogs.ListSelectionDialog;
-import org.eclipse.imp.ui.dialogs.providers.ContentProviderForAllProjects;
-import org.eclipse.imp.ui.dialogs.providers.LabelProviderForProjects;
-import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -45,20 +39,18 @@ import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.osgi.service.prefs.Preferences;
 
-
 public abstract class ProjectPreferencesTab extends PreferencesTab {
-	
-	protected org.eclipse.jface.preference.StringFieldEditor selectedProjectName = null;
-	protected List<Link> detailsLinks = new ArrayList<Link>();
+    protected List<Link> detailsLinks = new ArrayList<Link>();
 
-	protected IProject fProject = null;
+    protected IProject fProject = null;
 
-	
-	public ProjectPreferencesTab(IPreferencesService prefService, boolean noDetails) {
-	    super(IPreferencesService.PROJECT_LEVEL, noDetails);
-		this.fPrefService = prefService;
-		fPrefUtils = new PreferencesUtilities(prefService);
-	}
+    protected Combo selectedProjectCombo;
+
+    public ProjectPreferencesTab(IPreferencesService prefService, boolean noDetails) {
+        super(IPreferencesService.PROJECT_LEVEL, noDetails);
+        this.fPrefService = prefService;
+        fPrefUtils = new PreferencesUtilities(prefService);
+    }
 
 	@Override
     public Composite createTabContents(TabbedPreferencesPage page, final TabFolder tabFolder) {
@@ -123,23 +115,30 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 		
 		// To hold the text selection label + field
 		Composite projectFieldHolder = new Composite(groupHolder, SWT.NONE);
-		//layout = new GridLayout();
-		//projectFieldHolder.setLayout(layout);
 		projectFieldHolder.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-		
-		selectedProjectName = 
-			new org.eclipse.jface.preference.StringFieldEditor("SelectedProjectName", "Selected project:  ", projectFieldHolder);
-		selectedProjectName.setStringValue("none selected");
+        selectedProjectCombo= new Combo(projectFieldHolder, SWT.DROP_DOWN | SWT.READ_ONLY);
+		final Combo projCombo= selectedProjectCombo;
+		IProject[] pluginProjects= ResourcesPlugin.getWorkspace().getRoot().getProjects();
+
+		projCombo.add("none selected");
+		for(int i= 0; i < pluginProjects.length; i++) {
+            projCombo.add(pluginProjects[i].getName());
+        }
+		projCombo.addSelectionListener(new SelectionListener() {
+            public void widgetDefaultSelected(SelectionEvent e) { }
+
+            public void widgetSelected(SelectionEvent e) {
+                String projName= projCombo.getText();
+                ProjectPreferencesTab.this.fPrefService.setProjectName(projName);
+            }
+		});
+		projCombo.setSize(150, 24);
+
 		// Clear these here in case there are any saved from a previous interaction with the page
 		// (assuming that we should start each  new page with no project selected)
 		fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
-		// Set the project name field to be non-editable
-		selectedProjectName.getTextControl(projectFieldHolder).setEditable(false);
-		// Set the attribute fields to be non-editable, since without a project selected
-		// it makes no sense for them to be able to take values
 
-		createSelectProjectButton(groupHolder, composite, "Select Project");
 		addProjectSelectionListener(projectFieldHolder);
 				
 		PreferencesUtilities.fillGridPlace(composite, 3);
@@ -217,8 +216,8 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 	
 	
 	protected void addressProjectSelection(IPreferencesService.ProjectSelectionEvent event, Composite composite) {
-		// TODO:  Override in subtype with a real implementation
-		System.err.println("ProjectPreferencesTab.addressProjectSelection(..):  unimplemented");
+		// TODO: Override in subtype with a real implementation
+//      System.err.println("ProjectPreferencesTab.addressProjectSelection(..): unimplemented");
 
 		// SMS 20 Jun 2007
 		// Adding code from JikesPG project tab implementation to try
@@ -243,20 +242,9 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 			// Print an advisory message if you want to
 		}
 
-		
-		// Declare a "holder" for each preference field; not strictly necessary
-		// but helpful in various manipulations of fields and controls to follow
-		//Composite field1Holder = null;
-		//Composite field2Holder = null;
-		//...
-
-		
 		// If we have a new project preferences node, then do various things
 		// to set up the project's preferences
 		if (newNode != null && newNode instanceof IEclipsePreferences) {
-			// Set project name in the selected-project field
-			selectedProjectName.setStringValue(newNode.name());
-			
 			// If the containing composite is not disposed, then set the fields' values
 			// and make them enabled and editable (as appropriate to the type of field)
 			
@@ -278,13 +266,11 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				
 				// Example:
 //				// Pretend field1 is a boolean field (checkbox)
-//				field1Holder = field1.getChangeControl().getParent();
-//				prefUtils.setField(field1, field1Holder);
+//				prefUtils.setField(field1, field1.getHolder());
 //				field1.getChangeControl().setEnabled(true);
 //				
 //				// Pretend field2 is a text-based field
-//				field2Holder = field2.getTextControl().getParent();
-//				prefUtils.setField(field2, field2Holder);
+//				prefUtils.setField(field2, field2.getHolder());
 //				// field2 enabled iff field1 not checked
 //				enabledState = !field1.getBooleanValue();
 //				field2.getTextControl().setEditable(enabledState);
@@ -294,14 +280,12 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				// And so on for other fields
 				
 				clearModifiedMarksOnLabels();
-				
 			}
-			
 
 			// Add property change listeners
 			// Example
-//			if (field1Holder != null) addProjectPreferenceChangeListeners(field1, PreferenceConstants.P_FIELD_1, field1Holder);
-//			if (field2Holder != null) addProjectPreferenceChangeListeners(fieldw, PreferenceConstants.P_FIELD_2, field2Holder);
+//			if (field1.getHolder() != null) addProjectPreferenceChangeListeners(field1, PreferenceConstants.P_FIELD_1, field1.getHolder());
+//			if (field2.getHolder() != null) addProjectPreferenceChangeListeners(fieldw, PreferenceConstants.P_FIELD_2, field2.getHolder());
 			// And so on for other fields ...
 
 			haveCurrentListeners = true;
@@ -312,9 +296,6 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 			// May happen when the preferences page is first brought up, or
 			// if we allow the project to be deselected
 			
-			// Unset project name in the tab
-			selectedProjectName.setStringValue("none selected");
-			
 			// Clear the preferences from the store
 			fPrefService.clearPreferencesAtLevel(IPreferencesService.PROJECT_LEVEL);
 			
@@ -323,10 +304,10 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				// Example:
 //				field1.getChangeControl().setEnabled(false);
 //
-//				field2.getTextControl(field2Holder).setEnabled(false);
-//				field2.getTextControl(field2Holder).setEditable(false);
+//				field2.getTextControl(field2.getHolder()).setEnabled(false);
+//				field2.getTextControl(field2.getHolder()).setEditable(false);
 			}
-			
+
 			// Remove listeners
 			removeProjectPreferenceChangeListeners();
 			haveCurrentListeners = false;
@@ -346,7 +327,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
 			} else {
-				//System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+				//System.err.println("ProjectPreferencesTab.addPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
 			}
 		}	
 	}
@@ -363,7 +344,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
                 currentListeners.add(listener);
                 currentListenerNodes.add(nodes[i]);
             } else {
-                //System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+                //System.err.println("ProjectPreferencesTab.addPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
             }
         }   
     }
@@ -380,7 +361,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
                 currentListeners.add(listener);
                 currentListenerNodes.add(nodes[i]);
             } else {
-                //System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+                //System.err.println("ProjectPreferencesTab.addPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
             }
         }   
     }
@@ -397,7 +378,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
 			} else {
-				//System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+				//System.err.println("ProjectPreferencesTab.addPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
 			}
 		}	
 	}
@@ -414,7 +395,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
 			} else {
-				//System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+				//System.err.println("ProjectPreferencesTab.addPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
 			}
 		}	
 	}
@@ -432,7 +413,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 				currentListeners.add(listener);
 				currentListenerNodes.add(nodes[i]);
 			} else {
-				//System.err.println("ProjectPreferencesTab.addPropetyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
+				//System.err.println("ProjectPreferencesTab.addPropertyChangeListeners(..):  no listener added at level = " + i + "; node at that level is null");
 			}
 		}	
 	}
@@ -452,114 +433,7 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 	}
 
 	
-	/**
-	 * 
-	 * @param	composite	the widget that holds the button
-	 * @param	fieldParent	the widget that holds the field that will be
-	 * 						set when the button is pressed
-	 * 						(needed for posting a listener)
-	 * @param	text		text that appears in the link
-	 */
-	protected Button createSelectProjectButton(Composite composite, final Composite fieldParent, String text)
-	{
-		final Button button = new Button(composite, SWT.NONE);
-		button.setText(text);
-		
-		final class CompositeLinkSelectionListener implements SelectionListener {
-			ProjectSelectionButtonResponder responder = null;
-			// param was Composite parent
-			CompositeLinkSelectionListener(ProjectSelectionButtonResponder responder) {
-				this.responder = responder;
-			}
-			
-			public void widgetSelected(SelectionEvent e) {
-				//doMakeProjectSelectionLinkActivated((Link) e.widget, fieldParent);
-				responder.doProjectSelectionActivated((Button) e.widget, fieldParent);
-			}
-
-			public void widgetDefaultSelected(SelectionEvent e) {
-				//doMakeProjectSelectionLinkActivated((Link) e.widget, fieldParent);
-				responder.doProjectSelectionActivated((Button) e.widget, fieldParent);
-			}
-		}
-
-		CompositeLinkSelectionListener linkSelectionListener =
-			new CompositeLinkSelectionListener(new ProjectSelectionButtonResponder());
-		
-		button.addSelectionListener(linkSelectionListener);
-		return button;
-	}
-	
-	
-	private class ProjectSelectionButtonResponder
-	{		
-		public void doProjectSelectionActivated(Button button, Composite composite)
-		{
-			HashSet<IProject> projectsWithSpecifics = new HashSet<IProject>();
-			try {
-				IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-				for (int i= 0; i < projects.length; i++) {
-					IProject curr = projects[i];
-					//if (hasProjectSpecificOptions(curr.getProject())) {
-					projectsWithSpecifics.add(curr);
-					//}
-				}
-			} catch (Exception e) {
-				System.err.println("ProjectPreferencesTab:  Exception thrown when obtaining projects; no project selected");
-				return;
-			}
-    
-		    // SMS 20 Nov 2007:  Original
-//			ProjectSelectionDialog dialog = new ProjectSelectionDialog(
-//				button.getShell(),
-//				ResourcesPlugin.getWorkspace().getRoot(),
-//				projectContentProvider,
-//				new LabelProviderForProjects(),
-//				"Select Project");
-			// SMS 24 Nov 2007:  Replaced with ...
-			ContentProviderForAllProjects projectContentProvider = new ContentProviderForAllProjects();
-		    ListSelectionDialog dialog = new ListSelectionDialog(
-		    		button.getShell(), ResourcesPlugin.getWorkspace().getRoot(),
-		            projectContentProvider,
-		            new LabelProviderForProjects(), "Select a project");
-			
-			
-			if (dialog.open() == Window.OK) {
-				Object[] results = dialog.getResult();
-				if (results.length > 0) {
-					fProject = (IProject) results[0]; 		//dialog.getFirstResult();
-					if (fProject.exists())	
-						fPrefService.setProject(fProject);
-					else {
-						System.err.println("ProjectPreferencesTab:  Selected project does not exist; no project selected");
-						return;
-					}
-				} else {
-					System.err.println("ProjectPreferencesTab:  No project available for selection");
-					return;
-				}
-			}
-
-			// Enable the details links since now a project is selected
-			for (int i = 0; i < detailsLinks.size(); i++) {
-				((Link)detailsLinks.get(i)).setEnabled(true);
-			}
-			
-			// Also enable the Restore Defaults and Apply buttons (if they should be enabled)
-			for (int i = 0; i < fButtons.length; i++) {
-				if (((Button)fButtons[i]).getText().equals(JFaceResources.getString("defaults"))) {
-					fButtons[i].setEnabled(true);
-				} else if (((Button)fButtons[i]).getText().equals(JFaceResources.getString("apply"))) {
-					fButtons[i].setEnabled(isValid());
-				}
-			}
-			// This will set the enabled state of buttons on the
-			// preference page appropriately
-	        fPrefPage.setValid(isValid());
-		}	
-	}
-	
-    // SMS 20 Nov 2007:  
+	// SMS 20 Nov 2007:  
     protected void setProjectSelectionValidator(
         	ContainerSelectionDialog dialog, boolean validateForPluginProject, boolean validateForIDEProject)
     {
@@ -626,6 +500,4 @@ public abstract class ProjectPreferencesTab extends PreferencesTab {
 		
 		return true;
 	}
-	
-	
 }

@@ -104,7 +104,10 @@ public class BooleanFieldEditor extends ChangeButtonFieldEditor {
         this(page, tab, service, level, name, labelText, DEFAULT, parent);
     }
 
-
+    @Override
+    public Composite getHolder() {
+        return (getChangeControl() != null) ? getChangeControl().getParent() : null;
+    }
 
     /*
      * Methods related to loading values from the preferences service

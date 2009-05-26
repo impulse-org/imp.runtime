@@ -169,14 +169,10 @@ public class StringFieldEditor extends FieldEditor
     }
 
    
-    /**
-     * @return	The parent control of this field editor
-     */
-    public Composite getParent() {
-    	return parent;
+    @Override
+    public Composite getHolder() {
+        return getTextControl().getParent();
     }
- 
-    
     
     /**
      * Sets the strategy for validating the text.

@@ -38,8 +38,8 @@ import org.osgi.service.prefs.BackingStoreException;
  * which itself is a copy from org.eclipse.search.internal.ui.util, as indicated by the
  * following comment (copied from the "original"):
  * 
- * 		XXX: Note this is a copy from org.eclipse.search.internal.ui.util<br>
- * 		This class can be removed once a published (non-internal, visible) version is available.
+ *    XXX: Note this is a copy from org.eclipse.search.internal.ui.util<br>
+ *    This class can be removed once a published (non-internal, visible) version is available.
  */
 public class ComboFieldEditor extends FieldEditor {
     /**
@@ -75,54 +75,34 @@ public class ComboFieldEditor extends FieldEditor {
      * the combo box entries.
      */
     public ComboFieldEditor(
-   		PreferencePage page, PreferencesTab tab,
-   		IPreferencesService service, String level,
-   		String name, String labelText, String[] values, String[] labels, int numColumns,
-   		Composite parent, boolean isEnabled, boolean isRemovable)
+            PreferencePage page, PreferencesTab tab,
+            IPreferencesService service, String level,
+            String name, String labelText, String[] values, String[] labels, int numColumns,
+            Composite parent, boolean isEnabled, boolean isRemovable)
     {
-		Assert.isTrue(values.length == labels.length);
-		init(name, labelText);
+        Assert.isTrue(values.length == labels.length);
+        init(name, labelText);
 
-		preferencesService = service;
-		preferencesLevel = level;
-		this.parent = parent;
-		prefPage = page;
-		setPage(prefPage);
-		prefTab = tab;
+        preferencesService = service;
+        preferencesLevel = level;
+        this.parent = parent;
+        prefPage = page;
+        setPage(prefPage);
+        prefTab = tab;
 
-		fEntryLabels= new ArrayList<String>(labels.length);
-		fEntryValues= new ArrayList<String>(values.length);
-		for(int i=0; i < labels.length; i++) {
-		    fEntryLabels.add(labels[i]);
-		    fEntryValues.add(values[i]);
-		}
-		fNumColumns= numColumns;
+        fEntryLabels= new ArrayList<String>(labels.length);
+        fEntryValues= new ArrayList<String>(values.length);
+        for(int i=0; i < labels.length; i++) {
+            fEntryLabels.add(labels[i]);
+            fEntryValues.add(values[i]);
+        }
+        fNumColumns= numColumns;
 
-		// Create control after setting fEntryNamesAndValues
-		// because that is referenced in creating the control
-		createControl(parent);
+        // Create control after setting fEntryNamesAndValues
+        // because that is referenced in creating the control
+        createControl(parent);
 
-		this.isRemovable = isRemovable;
-    }
-
-
-    /*
-     * Checks whether given <code>String[][]</code> is of "type" 
-     * <code>String[][2]</code>.
-     *
-     * @return <code>true</code> if it is ok, and <code>false</code> otherwise
-     */
-    private boolean checkArray(String[][] table) {
-		if (table == null) {
-		    return false;
-		}
-		for(int i= 0; i < table.length; i++) {
-		    String[] array= table[i];
-		    if (array == null || array.length != 2) {
-			return false;
-		    }
-		}
-		return true;
+        this.isRemovable = isRemovable;
     }
 
 
@@ -130,25 +110,25 @@ public class ComboFieldEditor extends FieldEditor {
      * @see FieldEditor#adjustForNumColumns(int)
      */
     protected void adjustForNumColumns(int numColumns) {
-		Control control= getLabelControl();
-		if (control != null) {
-		    ((GridData) control.getLayoutData()).horizontalSpan= numColumns;
-		}
-		((GridData) fCombo.getLayoutData()).horizontalSpan= numColumns;
+        Control control= getLabelControl();
+        if (control != null) {
+            ((GridData) control.getLayoutData()).horizontalSpan= numColumns;
+        }
+        ((GridData) fCombo.getLayoutData()).horizontalSpan= numColumns;
     }
 
     /*
      * @see FieldEditor#(Composite, int)
      */
     protected void doFillIntoGrid(Composite parent, int numColumns) {
-			Control control= getLabelControl(parent);
-			GridData gd= new GridData();
-			gd.horizontalSpan= 1;
-			control.setLayoutData(gd);
-			control= getComboBoxControl();
-			gd= new GridData();
-			gd.horizontalSpan= 1;
-			control.setLayoutData(gd);
+        Control control= getLabelControl(parent);
+        GridData gd= new GridData();
+        gd.horizontalSpan= 1;
+        control.setLayoutData(gd);
+        control= getComboBoxControl();
+        gd= new GridData();
+        gd.horizontalSpan= 1;
+        control.setLayoutData(gd);
     }
 
     @Override
@@ -178,29 +158,27 @@ public class ComboFieldEditor extends FieldEditor {
      * @see FieldEditor#doLoad()
      */
     protected void doLoad() {
-
         //if (getTextControl() != null) {
         if (fCombo != null) {
-        	String value = null;
-        	if (preferencesLevel != null) {
-        		// The "normal" case, in which field corresponds to a preferences level
-        		value = preferencesService.getStringPreference(preferencesLevel, getPreferenceName());
-        		levelFromWhichLoaded = preferencesLevel;
-        		setInherited(false);
-        	}
-        	else {
-        		// Not normal, exactly, but possible if loading is being done into a
-        		// field that is not associated with a specific level
-        		value = preferencesService.getStringPreference(getPreferenceName());
-        		levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
-    			setInherited(true);	
-        	}
+            String value = null;
+            if (preferencesLevel != null) {
+                // The "normal" case, in which field corresponds to a preferences level
+                value = preferencesService.getStringPreference(preferencesLevel, getPreferenceName());
+                levelFromWhichLoaded = preferencesLevel;
+                setInherited(false);
+            } else {
+                // Not normal, exactly, but possible if loading is being done into a
+                // field that is not associated with a specific level
+                value = preferencesService.getStringPreference(getPreferenceName());
+                levelFromWhichLoaded = preferencesService.getApplicableLevel(getPreferenceName(), preferencesLevel);
+                setInherited(true);
+            }
             if (IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded))
-            	setPresentsDefaultValue(true);
+                setPresentsDefaultValue(true);
 
             previousValue = value;
 
-        	updateComboForValue(value);
+            updateComboForValue(value);
         }
     }
     
@@ -217,9 +195,9 @@ public class ComboFieldEditor extends FieldEditor {
      */
     protected void doLoadDefault() {
         //updateComboForValue(getPreferenceStore().getDefaultString(getPreferenceName()));
-    	
+
         if (fCombo != null) {
-            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL,	getPreferenceName());
+            String value = preferencesService.getStringPreference(IPreferencesService.DEFAULT_LEVEL, getPreferenceName());
             updateComboForValue(value);
         }
     }
@@ -237,7 +215,7 @@ public class ComboFieldEditor extends FieldEditor {
 
     
 
-	/*
+    /*
      * Load into the button field the value for this preference that is either
      * the value defined on this preferences level, if any, or the value inherited
      * from the next applicable level, if any.  Return the level at which the
@@ -245,50 +223,48 @@ public class ComboFieldEditor extends FieldEditor {
      */
     protected String doLoadWithInheritance()
     {
-    	String levelLoaded = null;
-    	
-    	String[] levels = IPreferencesService.levels;
-    	int fieldLevelIndex = 0;
+        String levelLoaded = null;
 
-    	// If we're loading with inheritance for some field that is
-    	// not attached to a preferences level then assume that we
-    	// should just search from the bottom up
-    	String tmpPreferencesLevel = (preferencesLevel == null)?
-    			levels[0] :
-    			preferencesLevel;
-    	
-    	// Find the index of the level to which this field belongs
-    	for (int i = 0; i < levels.length; i++) {
-    		if (tmpPreferencesLevel.equals(levels[i])) {
-    			fieldLevelIndex = i;
-    			break;
-    		}
-    	}
-    	
-    	String value = null;
-    	int levelAtWhichFound = -1;
-    	
-    	// Search up levels starting from the level of this field
-    	for (int level = fieldLevelIndex; level < levels.length; level++) {
-       		value = preferencesService.getStringPreference(levels[level], getPreferenceName());
-       		if (value == null) continue;
-       		levelAtWhichFound = level;
-       		levelLoaded = levels[levelAtWhichFound];
-       		break;	
-    	}
+        String[] levels = IPreferencesService.levels;
+        int fieldLevelIndex = 0;
 
-    	levelFromWhichLoaded = levelLoaded;
-    	setInherited(fieldLevelIndex != levelAtWhichFound);
-    	setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+        // If we're loading with inheritance for some field that is
+        // not attached to a preferences level then assume that we
+        // should just search from the bottom up
+        String tmpPreferencesLevel = (preferencesLevel == null) ? levels[0] : preferencesLevel;
 
-    	// Set the field to the value we found
+        // Find the index of the level to which this field belongs
+        for (int i = 0; i < levels.length; i++) {
+            if (tmpPreferencesLevel.equals(levels[i])) {
+                fieldLevelIndex = i;
+                break;
+            }
+        }
+
+        String value = null;
+        int levelAtWhichFound = -1;
+
+        // Search up levels starting from the level of this field
+        for (int level = fieldLevelIndex; level < levels.length; level++) {
+            value = preferencesService.getStringPreference(levels[level], getPreferenceName());
+            if (value == null) continue;
+            levelAtWhichFound = level;
+            levelLoaded = levels[levelAtWhichFound];
+            break;
+        }
+
+        levelFromWhichLoaded = levelLoaded;
+        setInherited(fieldLevelIndex != levelAtWhichFound);
+        setPresentsDefaultValue(IPreferencesService.DEFAULT_LEVEL.equals(levelFromWhichLoaded));
+
+        // Set the field to the value we found
         updateComboForValue(value);
 
-    	fieldModified = false; // Since we just loaded some new value, it won't be modified yet
-       	previousValue = value; // TODO: Check on use of previous value
-       	
-       	// Set the background color of the field according to where found
-       	setFieldColors();
+        fieldModified = false; // Since we just loaded some new value, it won't be modified yet
+        previousValue = value; // TODO: Check on use of previous value
+
+        // Set the background color of the field according to where found
+        setFieldColors();
 
         return levelLoaded;
     }
@@ -296,14 +272,9 @@ public class ComboFieldEditor extends FieldEditor {
 
     protected void setFieldColors() {
         Control comboBox = getComboBoxControl();
-        Color color = isInherited() ?
-        		PreferencesUtilities.colorBluish :
-        		PreferencesUtilities.colorWhite;
+        Color color = isInherited() ? PreferencesUtilities.colorBluish : PreferencesUtilities.colorWhite;
         comboBox.setBackground(color);
     }
-    
-    
-    
     
  
     /**
@@ -312,29 +283,29 @@ public class ComboFieldEditor extends FieldEditor {
      * Abstract method declared on FieldEditor.
      */
     protected void doStore() {
-    	String 	value = getStringValue();
+        String value = getStringValue();
 
-    	// We have a value (possibly empty, if that is allowed) that has changed
-    	// from the previous value, so store it
-    	preferencesService.setStringPreference(preferencesLevel, getPreferenceName(), value);
+        // We have a value (possibly empty, if that is allowed) that has changed
+        // from the previous value, so store it
+        preferencesService.setStringPreference(preferencesLevel, getPreferenceName(), value);
 
         // If we've just stored the field, we've addressed any modifications
-   		//System.out.println("STFE.doStore:  setting fieldModified to FALSE");
-    	fieldModified = false;
-   		// "Level from which loaded" (or set, as the case may be) is now this level
-   		levelFromWhichLoaded = preferencesLevel;
-   		// If we've stored the field then it's not inherited, so be sure it's
-   		// color indicates that.
-   		setFieldColors();
-   		//getComboBoxControl(parent).setBackground(PreferencesUtilities.colorWhite);
-    	
-    	IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
-    	try {
-    		if (node != null) node.flush();
-    	} catch (BackingStoreException e) {
-    		System.err.println("StringFieldEditor.	():  BackingStoreException flushing node;  node may not have been flushed:" + 
-    				"\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
-    	}
+        //System.out.println("STFE.doStore:  setting fieldModified to FALSE");
+        fieldModified = false;
+        // "Level from which loaded" (or set, as the case may be) is now this level
+        levelFromWhichLoaded = preferencesLevel;
+        // If we've stored the field then it's not inherited, so be sure it's
+        // color indicates that.
+        setFieldColors();
+        //getComboBoxControl(parent).setBackground(PreferencesUtilities.colorWhite);
+
+        IEclipsePreferences node = preferencesService.getNodeForLevel(preferencesLevel);
+        try {
+            if (node != null) node.flush();
+        } catch (BackingStoreException e) {
+            System.err.println("ComboFieldEditor.doStore():  BackingStoreException flushing node;  node may not have been flushed:" + 
+                    "\n\tnode path = " + node.absolutePath() + ", preferences level = "  + preferencesLevel);
+        }
     }
     
     
@@ -342,33 +313,37 @@ public class ComboFieldEditor extends FieldEditor {
      * @see FieldEditor#getNumberOfControls()
      */
     public int getNumberOfControls() {
-    	return fNumColumns;
+        return fNumColumns;
     }
 
     /*
      * Lazily create and return the Combo control.
      */
     public Combo getComboBoxControl() {
-		if (fCombo == null) {
-		    fCombo= new Combo(parent, SWT.READ_ONLY);
-		    for(String entryName: fEntryLabels) {
-		        fCombo.add(entryName);
-		    }
-		    fCombo.setFont(parent.getFont());
-		    fCombo.addSelectionListener(new SelectionAdapter() {
-		        public void widgetSelected(SelectionEvent evt) {
-		            String oldValue= fValue;
-    			    String name= fCombo.getText();
-    			    fValue= getValueForName(name);
-    			    setPresentsDefaultValue(false);
-    			    // SMS 23 Dec 2006
-    				fieldModified = true;
-    				setInherited(false);
-    			    boolean valueChanged = valueChanged();
-    			}
-		    });
-		}
-		return fCombo;
+        if (fCombo == null) {
+            fCombo= new Combo(parent, SWT.READ_ONLY);
+            for(String entryName: fEntryLabels) {
+                fCombo.add(entryName);
+            }
+            fCombo.setFont(parent.getFont());
+            fCombo.addSelectionListener(new SelectionAdapter() {
+                public void widgetSelected(SelectionEvent evt) {
+                    String name= fCombo.getText();
+                    fValue= getValueForName(name);
+                    setPresentsDefaultValue(false);
+                    // SMS 23 Dec 2006
+                    fieldModified = true;
+                    setInherited(false);
+                    valueChanged();
+                }
+            });
+        }
+        return fCombo;
+    }
+
+    @Override
+    public Composite getHolder() {
+        return getComboBoxControl().getParent();
     }
 
     /*
@@ -385,16 +360,16 @@ public class ComboFieldEditor extends FieldEditor {
     protected void updateComboForValue(String value) {
         if (value == null)
             value = "";
-    	previousValue = getStringValue();
-    	setPreviousStringValue(getStringValue());
+        previousValue = getStringValue();
+        setPreviousStringValue(getStringValue());
 
-    	int idx= fEntryValues.indexOf(value);
+        int idx= fEntryValues.indexOf(value);
 
-    	if (idx < 0) { idx = 0; }
-    	fValue = fEntryValues.get(idx);
+        if (idx < 0) { idx = 0; }
+        fValue = fEntryValues.get(idx);
         fCombo.setText(fEntryLabels.get(idx));
 
-		valueChanged();
+        valueChanged();
     }
     
     
@@ -417,34 +392,32 @@ public class ComboFieldEditor extends FieldEditor {
      * of the field editor, just to signal changes to listeners.
      */
     protected boolean valueChanged() {
-    	return valueChanged(false);
+        return valueChanged(false);
     }
     
-    
-    protected boolean valueChanged(boolean assertChanged)
-    {
+    protected boolean valueChanged(boolean assertChanged) {
         // Check for change in value
-    	boolean valueChanged = assertChanged || inheritanceChanged();
-    	String prevValue = getPreviousStringValue();
-    	if (!valueChanged) {
-	        if ((fValue != null && prevValue == null) ||
-	        	(fValue == null && prevValue != null))
-	        {
-	        	valueChanged = true;
-	        }
-	        
-	        if (fValue != null && prevValue != null) {
-	        	if (!fValue.equals(prevValue)) {
-	        		valueChanged = true;
-	        	}
-	        }
-    	}
-    	
+        boolean valueChanged = assertChanged || inheritanceChanged();
+        String prevValue = getPreviousStringValue();
+        if (!valueChanged) {
+            if ((fValue != null && prevValue == null) ||
+                (fValue == null && prevValue != null))
+            {
+                valueChanged = true;
+            }
+
+            if (fValue != null && prevValue != null) {
+                if (!fValue.equals(prevValue)) {
+                    valueChanged = true;
+                }
+            }
+        }
+
         if (valueChanged) {
             fireValueChanged(VALUE, prevValue, fValue);
             fieldModified = true;
             setPreviousStringValue(fValue);
-    	    setModifiedMarkOnLabel();
+            setModifiedMarkOnLabel();
         }
 
         return valueChanged;
@@ -455,12 +428,12 @@ public class ComboFieldEditor extends FieldEditor {
      * 
      */
     protected String getPreviousStringValue() {
-    	return (String) previousValue;
+        return (String) previousValue;
     }
     
     
     protected void setPreviousStringValue(String value) {
-    	previousValue = value;
+        previousValue = value;
     }
     
     
@@ -469,7 +442,7 @@ public class ComboFieldEditor extends FieldEditor {
      * Set the value of this field directly, from outside of
      * the field, without loading a value from the preferences
      * service.
-     *  	
+     *
      * Intended for use by external clients of the field.
      * 
      * In addition to setting the value of the field this method
@@ -479,11 +452,11 @@ public class ComboFieldEditor extends FieldEditor {
      * @param newValue
      */
     public void setFieldValueFromOutside(String newValue) {
-    	setPreviousStringValue(getStringValue());
-    	setInherited(false);
-    	setPresentsDefaultValue(false);
-    	levelFromWhichLoaded = null;
-    	updateComboForValue(newValue);
+        setPreviousStringValue(getStringValue());
+        setInherited(false);
+        setPresentsDefaultValue(false);
+        levelFromWhichLoaded = null;
+        updateComboForValue(newValue);
     }
 
 
@@ -491,32 +464,32 @@ public class ComboFieldEditor extends FieldEditor {
      * Gets the current String value of the field, corresponding
      * to the currently selected item.
      * 
-     * @return	The current String value of the field, corresponding
-     * 			to the currently selected item.
+     * @return The current String value of the field, corresponding
+     * to the currently selected item.
      */
     public String getStringValue() {
-    	return fValue;
+        return fValue;
     }
 
 
     public String getSpecialStringValue() {
-    	if (!hasSpecialValue) {
-			throw new IllegalStateException("ComboFieldEditor.getSpecialValue():  field does not have a special value");
-    	}
-    	return (String) specialValue;
+        if (!hasSpecialValue) {
+            throw new IllegalStateException("ComboFieldEditor.getSpecialValue():  field does not have a special value");
+        }
+        return (String) specialValue;
     }
 
 
-	/**
-	 * Set the special value associated with this field to be the given string.
-	 * Overrides the method in the supertype to check that the given value is
-	 * a String.
-	 * 
-	 * @param specialValue	The special value to associate with this field
-	 * @throws IllegalStateException	if the field has no special value
-	 * @throws IllegalArgumentException	if the given value is null or empty
-	 */
-	public void setSpecialValue(String specialValue) {
-	    throw new IllegalStateException("ComboField.setSpecialValue(String):  field has no special value");			
-	}
+    /**
+     * Set the special value associated with this field to be the given string.
+     * Overrides the method in the supertype to check that the given value is
+     * a String.
+     * 
+     * @param specialValue	The special value to associate with this field
+     * @throws IllegalStateException	if the field has no special value
+     * @throws IllegalArgumentException	if the given value is null or empty
+     */
+    public void setSpecialValue(String specialValue) {
+        throw new IllegalStateException("ComboField.setSpecialValue(String):  field has no special value");			
+    }
 }

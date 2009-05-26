@@ -104,6 +104,11 @@ public class ColorFieldEditor extends ChangeButtonFieldEditor {
         return colorSelector.getButton();
     }
 
+    @Override
+    public Composite getHolder() {
+        return getChangeControl().getParent();
+    }
+
     /**
      * Returns the change button for this field editor.
      * 

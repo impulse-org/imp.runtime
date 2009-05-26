@@ -836,8 +836,12 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
     public Composite getParent() {
     	return parent;
     }
-    
-    
+
+    /**
+     * @return the "holder" of this field, which can be enabled/disabled as a group
+     * (usually different from the parent)
+     */
+    public abstract Composite getHolder();
     
     /**
      * Should call the supertype method fireValueChanged() to inform this

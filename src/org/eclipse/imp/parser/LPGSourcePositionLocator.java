@@ -17,6 +17,7 @@ import lpg.runtime.IToken;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.imp.editor.ModelTreeNode;
+import org.eclipse.imp.model.ICompilationUnit;
 
 /**
  * Locator implementation that works for LPG-generated AST's using the base IAst
@@ -91,6 +92,10 @@ public class LPGSourcePositionLocator implements ISourcePositionLocator {
         if (entity instanceof IAst) {
             IAst node= (IAst) entity;
             return fParseController.getProject().getRawProject().getFile(node.getLeftIToken().getILexStream().getFileName()).getFullPath();
+        }
+        if (entity instanceof ICompilationUnit) {
+            ICompilationUnit cu= (ICompilationUnit) entity;
+            return cu.getPath();
         }
         return new Path("");
     }

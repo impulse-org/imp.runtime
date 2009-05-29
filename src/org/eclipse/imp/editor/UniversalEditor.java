@@ -355,7 +355,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 				}
 			}
 			Separator refGroup= new Separator("group.refactor");
-			IMenuManager refMenu= new MenuManager("Refac&tor");
+			IMenuManager refMenu= new MenuManager("Refac&tor", "org.eclipse.imp.refactor");
 
 			menu.add(refGroup);
 			menu.appendToGroup("group.refactor", refMenu);

@@ -12,7 +12,11 @@
 
 package org.eclipse.imp.language;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.imp.editor.OutlineContentProviderBase;
@@ -64,12 +68,21 @@ import org.eclipse.imp.utils.ExtensionFactory;
  * behavior is necessary to optimize the startup time of Eclipse.
  * 
  * @author jurgenv
- * 
  */
 public class ServiceFactory {
     private static ServiceFactory sInstance;
 
-	static final String AUTO_EDIT_STRATEGY_SERVICE = "autoEditStrategy";
+    /**
+     * The unqualified extension point ID for IMP language descriptors.
+     */
+    public static final String LANGUAGE_DESCRIPTION_POINT_ID = "languageDescription";
+
+    /**
+     * The qualified extension point ID for IMP language descriptors.
+     */
+    public static final String LANGUAGE_DESCRIPTION_QUALIFIED_POINT_ID = RuntimePlugin.IMP_RUNTIME + ".languageDescription";
+
+    static final String AUTO_EDIT_STRATEGY_SERVICE = "autoEditStrategy";
 
 	static final String ANNOTATION_HOVER_SERVICE = "annotationHover";
 
@@ -77,9 +90,13 @@ public class ServiceFactory {
 
 	static final String CONTENT_PROPOSER_SERVICE = "contentProposer";
 
+    static final String CONTEXT_HELPER_SERVICE= "contextHelper";
+
 	static final String DOCUMENTATION_PROVIDER_SERVICE = "documentationProvider";
 
 	static final String EDITOR_ACTION_CONTRIBUTIONS_SERVICE = "editorActionContributions";
+
+    static final String EDITOR_SERVICE= "editorService";
 
 	static final String FOLDING_UPDATER_SERVICE = "foldingUpdater";
 
@@ -117,18 +134,35 @@ public class ServiceFactory {
 
 	static final String SYNTAX_PROPS_SERVICE = "syntaxProps";
 
+    static final String TOGGLE_BREAKPOINTS_HANDLER_SERVICE= "toggleBreakpointHandler";
+
 	static final String TOKEN_COLORER_SERVICE = "tokenColorer";
 
 	static final String VIEWER_FILTER_SERVICE = "viewerFilter";
-    
-	static final String EDITOR_SERVICE= "editorService";
 
-	static final String CONTEXT_HELPER_SERVICE= "contextHelper";
+	/**
+	 * The list of fully-qualified extension point IDs for all IMP language services.
+	 * Does not include the language descriptor extension point ID.
+	 */
+	public static final List<String> ALL_SERVICES= new LinkedList<String>();
 
-	static final String TOGGLE_BREAKPOINTS_HANDLER_SERVICE= "toggleBreakpointHandler";
+	static {
+	    Class<ServiceFactory> clazz= ServiceFactory.class;
+	    Field[] fields= clazz.getDeclaredFields();
+	    for(int i= 0; i < fields.length; i++) {
+            Field field= fields[i];
+            if (field.getName().endsWith("_SERVICE") && Modifier.isStatic(field.getModifiers())) {
+                try {
+                    String val= (String) field.get(null);
+                    ALL_SERVICES.add(RuntimePlugin.IMP_RUNTIME + "." + val);
+                } catch (IllegalArgumentException e) {
+                } catch (IllegalAccessException e) {
+                }
+            }
+        }
+	}
 
- 
-    protected ServiceFactory() { }
+	protected ServiceFactory() { }
 
     /**
      * Returns the {@link ServiceFactory}. IMP services are configured with

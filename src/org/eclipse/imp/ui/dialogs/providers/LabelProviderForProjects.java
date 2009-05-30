@@ -38,9 +38,23 @@ public class LabelProviderForProjects
 	extends LabelProvider
 	implements ITableLabelProvider
 {
-	public String getColumnText(Object obj, int index) {
-		if (index == 0) 
-			return ((IProject) obj).getName();
+    @Override
+    public String getText(Object element) {
+        String projName= ((IProject) element).getName();
+        if (projName.startsWith("P/")) {
+            projName= projName.substring(2);
+        }
+        return projName;
+    }
+
+    public String getColumnText(Object obj, int index) {
+		if (index == 0) {
+			String projName= ((IProject) obj).getName();
+			if (projName.startsWith("P/")) {
+			    projName= projName.substring(2);
+			}
+            return projName;
+		}
 		return ""; //$NON-NLS-1$
 	}
 	

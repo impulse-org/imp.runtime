@@ -7,23 +7,20 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.ui.dialogs.validators;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.imp.utils.ValidationUtils;
-import org.eclipse.ui.dialogs.ISelectionValidator;
 
-public class SelectionValidatorForJavaProjects implements ISelectionValidator {
-
+public class SelectionValidatorForJavaProjects extends SelectionValidatorForAllProjects {
 	public String isValid(Object selection) {
-		if (!(selection instanceof IProject))
-			return "SelectionValidatorForJavaProjects:  selection is not a project";
-		if (!ValidationUtils.isJavaProject((IProject) selection))
-			return "SelectionValidatorForJavaProjects:  selection is not a Java project";
+	    String result= super.isValid(selection);
+	    if (result == null) {
+	        if (!ValidationUtils.isJavaProject((IProject) selection))
+	            return "Selection is not a Java project";
+	    }
 		return null;
 	}
-
 }

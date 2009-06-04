@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.language;
@@ -30,6 +29,7 @@ import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
+import org.eclipse.imp.services.IEntityNameLocator;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.IHelpService;
 import org.eclipse.imp.services.IHoverHelper;
@@ -97,6 +97,8 @@ public class ServiceFactory {
 	static final String EDITOR_ACTION_CONTRIBUTIONS_SERVICE = "editorActionContributions";
 
     static final String EDITOR_SERVICE= "editorService";
+
+    static final String ENTITY_NAME_LOCATOR_SERVICE = "entityNameLocator";
 
 	static final String FOLDING_UPDATER_SERVICE = "foldingUpdater";
 
@@ -185,8 +187,7 @@ public class ServiceFactory {
 
     public IContentProposer getContentProposer(Language lang) {
         try {
-            return (IContentProposer) loadService(lang,
-                    CONTENT_PROPOSER_SERVICE);
+            return (IContentProposer) loadService(lang, CONTENT_PROPOSER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of CONTENT_PROPOSER_SERVICE does not implement IContentProposer",
@@ -242,8 +243,7 @@ public class ServiceFactory {
 
     public TreeModelBuilderBase getTreeModelBuilder(Language lang) {
         try {
-            return (TreeModelBuilderBase) loadService(lang,
-                    MODEL_TREE_BUILDER_SERVICE);
+            return (TreeModelBuilderBase) loadService(lang, MODEL_TREE_BUILDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of MODEL_BUILDER_SERVICE does not implement TreeModelBuilderBase",
@@ -294,8 +294,7 @@ public class ServiceFactory {
 
     public IAnnotationHover getAnnotationHover(Language lang) {
         try {
-            return (IAnnotationHover) loadService(lang,
-                    ANNOTATION_HOVER_SERVICE);
+            return (IAnnotationHover) loadService(lang, ANNOTATION_HOVER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of ANNOTATION_HOVER_SERVICE does not implement IAnnotationHover",
@@ -317,8 +316,7 @@ public class ServiceFactory {
 
     public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang) {
         try {
-            return (ISourceHyperlinkDetector) loadService(lang,
-                    HYPER_LINK_SERVICE);
+            return (ISourceHyperlinkDetector) loadService(lang, HYPER_LINK_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of HYPERLINK_SERVICE does not implement ISourceHyperlinkDetector",
@@ -340,8 +338,7 @@ public class ServiceFactory {
 
     public OutlineContentProviderBase getOutlineContentProvider(Language lang) {
         try {
-            return (OutlineContentProviderBase) loadService(lang,
-                    OUTLINE_CONTENT_PROVIDER_SERVICE);
+            return (OutlineContentProviderBase) loadService(lang, OUTLINE_CONTENT_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of OUTLINE_CONTENT_PROVIDER_SERVICE does not implement OutlineContentProviderBase",
@@ -352,8 +349,7 @@ public class ServiceFactory {
 
     public Set<IRefactoringContributor> getRefactoringContributors(Language lang) {
         try {
-            Set<ILanguageService> services = loadServices(lang,
-                    REFACTORING_CONTRIBUTIONS_SERVICE);
+            Set<ILanguageService> services = loadServices(lang, REFACTORING_CONTRIBUTIONS_SERVICE);
             Set<IRefactoringContributor> refactoringContribs = new HashSet<IRefactoringContributor>();
 
             for (ILanguageService s : services) {
@@ -371,8 +367,7 @@ public class ServiceFactory {
 
     public IReferenceResolver getReferenceResolver(Language lang) {
         try {
-            return (IReferenceResolver) loadService(lang,
-                    REFERENCE_RESOLVER_SERVICE);
+            return (IReferenceResolver) loadService(lang, REFERENCE_RESOLVER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of REFERENCE_RESOLVER_SERVICE does not implement IReferenceResolver",
@@ -384,8 +379,7 @@ public class ServiceFactory {
     public Set<ILanguageActionsContributor> getLanguageActionsContributors(
             Language lang) {
         try {
-            Set<ILanguageService> services = loadServices(lang,
-                    EDITOR_ACTION_CONTRIBUTIONS_SERVICE);
+            Set<ILanguageService> services = loadServices(lang, EDITOR_ACTION_CONTRIBUTIONS_SERVICE);
 
             Set<ILanguageActionsContributor> actionContributors = new HashSet<ILanguageActionsContributor>();
 
@@ -404,8 +398,7 @@ public class ServiceFactory {
 
     public IDocumentationProvider getDocumentationProvider(Language lang) {
         try {
-            return (IDocumentationProvider) loadService(lang,
-                    DOCUMENTATION_PROVIDER_SERVICE);
+            return (IDocumentationProvider) loadService(lang, DOCUMENTATION_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of DOCUMENTATION_PROVIDER_SERVICE does not implement IDocumentationProvider",
@@ -438,8 +431,7 @@ public class ServiceFactory {
 
     public IElementImageProvider getElementImageProvider(Language lang) {
         try {
-            return (IElementImageProvider) loadService(lang,
-                    IMAGE_DECORATOR_SERVICE);
+            return (IElementImageProvider) loadService(lang, IMAGE_DECORATOR_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of IMAGE_DECORATOR_SERVICE does not implement IElementImageProvider",
@@ -478,6 +470,39 @@ public class ServiceFactory {
         return result;
     }
 
+    public IHelpService getContextHelper(Language lang) {
+        try {
+            return (IHelpService) loadService(lang, CONTEXT_HELPER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of CONTEXT_HELPER_SERVICE does not implement IHelpService",
+                    e);
+            return null;
+        }
+    }
+
+    public IToggleBreakpointsHandler getToggleBreakpointsHandler(Language lang) {
+        try {
+            return (IToggleBreakpointsHandler) loadService(lang, TOGGLE_BREAKPOINTS_HANDLER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of TOGGLE_BREAKPOINTS_HANDLER_SERVICE does not implement IToggleBreakpointsHandler",
+                    e);
+            return null;
+        }
+    }
+
+    public IEntityNameLocator getEntityNameLocator(Language lang) {
+        try {
+            return (IEntityNameLocator) loadService(lang, ENTITY_NAME_LOCATOR_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of ENTITY_NAME_LOCATOR_SERVICE does not implement IEntityNameLocator",
+                    e);
+            return null;
+        }
+    }
+
     private ILanguageService createExtension(Language lang, String id) {
         try {
             return ExtensionFactory.createServiceExtension(lang, id);
@@ -514,26 +539,4 @@ public class ServiceFactory {
         }
         return createExtension(lang, name);
     }
-
-    public IHelpService getContextHelper(Language lang) {
-        try {
-            return (IHelpService) loadService(lang, CONTEXT_HELPER_SERVICE);
-        } catch (ClassCastException e) {
-            RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of CONTEXT_HELPER_SERVICE does not implement IHelpService",
-                    e);
-            return null;
-        }
-    }
-
-	public IToggleBreakpointsHandler getToggleBreakpointsHandler(Language lang) {
-        try {
-            return (IToggleBreakpointsHandler) loadService(lang, TOGGLE_BREAKPOINTS_HANDLER_SERVICE);
-        } catch (ClassCastException e) {
-            RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of TOGGLE_BREAKPOINTS_HANDLER_SERVICE does not implement IToggleBreakpointsHandler",
-                    e);
-            return null;
-        }
-	}
 }

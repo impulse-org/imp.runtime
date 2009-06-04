@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.language;
@@ -24,6 +23,7 @@ import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
+import org.eclipse.imp.services.IEntityNameLocator;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.ILabelProvider;
@@ -39,7 +39,6 @@ import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 
 public class CachingServiceFactory extends ServiceFactory {
-
     private IContentProposer contentProposer;
     private IOutliner outliner;
     private IElementImageProvider elementImageProvider;
@@ -63,224 +62,201 @@ public class CachingServiceFactory extends ServiceFactory {
     private ITokenColorer tokenColorer;
     private IHoverHelper hoverHelper;
     private IASTAdapter astAdapter;
+    private IEntityNameLocator entityNameLocator;
 
-    public CachingServiceFactory() {
-    }
+    public CachingServiceFactory() { }
 
     @Override
-    public IContentProposer getContentProposer(Language lang)
-            {
-        if (contentProposer != null) {
+    public IContentProposer getContentProposer(Language lang) {
+        if (contentProposer == null) {
             contentProposer = super.getContentProposer(lang);
         }
-
         return contentProposer;
     }
 
     @Override
     public IHoverHelper getHoverHelper(Language lang) {
-        if (hoverHelper != null) {
+        if (hoverHelper == null) {
             hoverHelper = super.getHoverHelper(lang);
         }
-
         return hoverHelper;
     }
 
     @Override
     public ITokenColorer getTokenColorer(Language lang) {
-        if (tokenColorer != null) {
+        if (tokenColorer == null) {
             tokenColorer = super.getTokenColorer(lang);
         }
-
         return tokenColorer;
     }
 
     @Override
     public IndexContributorBase getIndexContributor(Language lang) {
-        if (indexContributor != null) {
+        if (indexContributor == null) {
             indexContributor = super.getIndexContributor(lang);
         }
-
         return indexContributor;
     }
 
     @Override
-    public IParseController getParseController(Language lang)
-            {
-        if (parseController != null) {
+    public IParseController getParseController(Language lang) {
+        if (parseController == null) {
             parseController = super.getParseController(lang);
         }
-
         return parseController;
     }
 
     @Override
-    public TreeModelBuilderBase getTreeModelBuilder(Language lang)
-            {
-        if (treeModelBuilder != null) {
+    public TreeModelBuilderBase getTreeModelBuilder(Language lang) {
+        if (treeModelBuilder == null) {
             treeModelBuilder = super.getTreeModelBuilder(lang);
         }
-
         return treeModelBuilder;
     }
 
     @Override
-    public IModelListener getModelListener(Language lang)
-            {
-        if (modelListener != null) {
+    public IModelListener getModelListener(Language lang) {
+        if (modelListener == null) {
             modelListener = super.getModelListener(lang);
         }
-
         return modelListener;
     }
 
     @Override
     public Set<IAutoEditStrategy> getAutoEditStrategies(Language lang) {
-        if (autoEditStrategies != null) {
+        if (autoEditStrategies == null) {
             autoEditStrategies = super.getAutoEditStrategies(lang);
         }
-
         return autoEditStrategies;
     }
 
     @Override
-    public IFoldingUpdater getFoldingUpdater(Language lang)
-            {
-        if (foldingUpdater != null) {
+    public IFoldingUpdater getFoldingUpdater(Language lang) {
+        if (foldingUpdater == null) {
             foldingUpdater = super.getFoldingUpdater(lang);
         }
-
         return foldingUpdater;
     }
 
     @Override
-    public IAnnotationHover getAnnotationHover(Language lang)
-            {
-        if (annotationHover != null) {
+    public IAnnotationHover getAnnotationHover(Language lang) {
+        if (annotationHover == null) {
             annotationHover = super.getAnnotationHover(lang);
         }
-
         return annotationHover;
     }
 
     @Override
     public ISourceFormatter getSourceFormatter(Language lang) {
-        if (sourceFormatter != null) {
+        if (sourceFormatter == null) {
             sourceFormatter = super.getSourceFormatter(lang);
         }
-
         return sourceFormatter;
     }
 
     @Override
     public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang) {
-        if (sourceHyperlinkDetector != null) {
+        if (sourceHyperlinkDetector == null) {
             sourceHyperlinkDetector = super.getSourceHyperlinkDetector(lang);
         }
-
         return sourceHyperlinkDetector;
     }
 
     @Override
     public ILabelProvider getLabelProvider(Language lang) {
-        if (labelProvider != null) {
+        if (labelProvider == null) {
             labelProvider = super.getLabelProvider(lang);
         }
-
         return labelProvider;
     }
 
     @Override
     public OutlineContentProviderBase getOutlineContentProvider(Language lang) {
-        if (outlineContentProvider != null) {
+        if (outlineContentProvider == null) {
             outlineContentProvider = super.getOutlineContentProvider(lang);
         }
-
         return outlineContentProvider;
     }
 
     @Override
     public Set<IRefactoringContributor> getRefactoringContributors(Language lang) {
-        if (refactoringContributors != null) {
+        if (refactoringContributors == null) {
             refactoringContributors = super.getRefactoringContributors(lang);
         }
-
         return refactoringContributors;
     }
 
     @Override
     public IReferenceResolver getReferenceResolver(Language lang) {
-        if (referenceResolver != null) {
+        if (referenceResolver == null) {
             referenceResolver = super.getReferenceResolver(lang);
         }
-
         return referenceResolver;
     }
 
     @Override
     @SuppressWarnings("unchecked")
-    public Set<ILanguageActionsContributor> getLanguageActionsContributors(
-            Language lang) {
-        if (languageActionsContributors != null) {
+    public Set<ILanguageActionsContributor> getLanguageActionsContributors(Language lang) {
+        if (languageActionsContributors == null) {
             languageActionsContributors = super
                     .getLanguageActionsContributors(lang);
         }
-
         return languageActionsContributors;
     }
 
     @Override
     public IDocumentationProvider getDocumentationProvider(Language lang) {
-        if (documentationProvider != null) {
+        if (documentationProvider == null) {
             documentationProvider = super.getDocumentationProvider(lang);
         }
-
         return documentationProvider;
     }
 
     @Override
     public IOccurrenceMarker getOccurrenceMarker(Language lang) {
-        if (occurrenceMarker != null) {
+        if (occurrenceMarker == null) {
             occurrenceMarker = super.getOccurrenceMarker(lang);
         }
-
         return occurrenceMarker;
     }
 
     @Override
     public ILanguageSyntaxProperties getSyntaxProperties(Language lang) {
-        if (syntaxProperties != null) {
+        if (syntaxProperties == null) {
             syntaxProperties = super.getSyntaxProperties(lang);
         }
-
         return syntaxProperties;
     }
 
     @Override
-    public IElementImageProvider getElementImageProvider(Language lang)
-            {
-        if (elementImageProvider != null) {
+    public IElementImageProvider getElementImageProvider(Language lang) {
+        if (elementImageProvider == null) {
             elementImageProvider = super.getElementImageProvider(lang);
         }
-
         return elementImageProvider;
     }
 
     @Override
     public IOutliner getOutliner(Language lang) {
-        if (outliner != null) {
+        if (outliner == null) {
             outliner = super.getOutliner(lang);
         }
-
         return outliner;
     }
 
     @Override
     public IASTAdapter getASTAdapter(Language lang) {
-        if (astAdapter != null) {
+        if (astAdapter == null) {
             astAdapter = super.getASTAdapter(lang);
         }
-
         return astAdapter;
+    }
+
+    @Override
+    public IEntityNameLocator getEntityNameLocator(Language lang) {
+        if (entityNameLocator == null) {
+            entityNameLocator = super.getEntityNameLocator(lang);
+        }
+        return entityNameLocator;
     }
 }

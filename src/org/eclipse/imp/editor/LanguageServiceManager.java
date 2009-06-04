@@ -28,6 +28,7 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
+import org.eclipse.imp.services.IEntityNameLocator;
 import org.eclipse.imp.services.IFoldingUpdater;
 import org.eclipse.imp.services.IHelpService;
 import org.eclipse.imp.services.IHoverHelper;
@@ -91,6 +92,8 @@ public class LanguageServiceManager {
 
     private IToggleBreakpointsHandler fToggleBreakpointsHandler;
 
+    private IEntityNameLocator fEntityNameLocator;
+
     public LanguageServiceManager(Language lang) {
         fLanguage= lang;
     }
@@ -119,6 +122,7 @@ public class LanguageServiceManager {
         fResolver= fServiceFactory.getReferenceResolver(fLanguage);
         fToggleBreakpointsHandler= fServiceFactory.getToggleBreakpointsHandler(fLanguage);
         fTokenColorer= fServiceFactory.getTokenColorer(fLanguage);
+        fEntityNameLocator= fServiceFactory.getEntityNameLocator(fLanguage);
 
         if (fHyperLinkDetector == null)
             fHyperLinkDetector= new HyperlinkDetector(fLanguage);
@@ -212,6 +216,10 @@ public class LanguageServiceManager {
         return fTokenColorer;
     }
 
+    public IEntityNameLocator getEntityNameLocator() {
+        return fEntityNameLocator;
+    }
+
     private static HashMap<IEditorPart, LanguageServiceManager> editorServiceMap = new HashMap<IEditorPart, LanguageServiceManager>();
     
     public static void saveMyServiceManager(IEditorPart part, LanguageServiceManager manager) {
@@ -238,5 +246,4 @@ public class LanguageServiceManager {
 			editorServiceMap.remove(wbPart);
 		}
     }
-    
 }

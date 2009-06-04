@@ -8,6 +8,7 @@
    <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
    <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
    <extension-point id="editorService" name="IMP Editor Service" schema="schema/editorService.exsd"/>
+   <extension-point id="entityNameLocator" name="Entity Name Locator" schema="schema/entityNameLocator.exsd"/>
    <extension-point id="foldingUpdater" name="IMP Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="formatter" name="IMP Source Code Formatter" schema="schema/formatter.exsd"/>
    <extension-point id="hoverHelper" name="IMP Hover Helper" schema="schema/hoverHelper.exsd"/>

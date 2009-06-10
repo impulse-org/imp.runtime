@@ -42,20 +42,20 @@ import org.eclipse.ui.editors.text.TextFileDocumentProvider;
  */
 public class ModelFactory {
     public class ModelException extends Exception {
-	private static final long serialVersionUID= -1051581958821533299L;
+        private static final long serialVersionUID= -1051581958821533299L;
 
-	public ModelException() {
-	    super();
-	}
-	public ModelException(String message) {
-	    super(message);
-	}
-	public ModelException(String message, Throwable cause) {
-	    super(message, cause);
-	}
-	public ModelException(Throwable cause) {
-	    super(cause);
-	}
+        public ModelException() {
+            super();
+        }
+        public ModelException(String message) {
+            super(message);
+        }
+        public ModelException(String message, Throwable cause) {
+            super(message, cause);
+        }
+        public ModelException(Throwable cause) {
+            super(cause);
+        }
     }
 
     public static final String NO_SUCH_ELEMENT= "No such element: ";
@@ -65,7 +65,7 @@ public class ModelFactory {
     private static ModelFactory sInstance= new ModelFactory();
 
     public static ModelFactory getInstance() {
-	return sInstance;
+        return sInstance;
     }
 
     /**
@@ -77,18 +77,18 @@ public class ModelFactory {
      */
     // TODO Implementations of this interface should probably be provided via an extension point
     public interface IFactoryExtender {
-	/**
-	 * This method gets called for the extender corresponding to each language nature
-	 * configured on the given project.
-	 */
-	void extend(ISourceProject project);
+        /**
+         * This method gets called for the extender corresponding to each language nature
+         * configured on the given project.
+         */
+        void extend(ISourceProject project);
 
-	/**
-	 * This method gets called only for the extender of the "host language" contained
-	 * within the given compilation unit (i.e. for the language to which the associated
-	 * content type maps).
-	 */
-	void extend(ICompilationUnit unit);
+        /**
+         * This method gets called only for the extender of the "host language" contained
+         * within the given compilation unit (i.e. for the language to which the associated
+         * content type maps).
+         */
+        void extend(ICompilationUnit unit);
     }
 
     private ModelFactory() {}
@@ -100,7 +100,7 @@ public class ModelFactory {
     private Map<Language, IFactoryExtender> fExtenderMap= new HashMap<Language, IFactoryExtender>();
 
     public void installExtender(IFactoryExtender extender, Language language) {
-	fExtenderMap.put(language, extender);
+        fExtenderMap.put(language, extender);
     }
 
     public static IWorkspaceModel getModelRoot() {
@@ -119,49 +119,50 @@ public class ModelFactory {
 //    }
 
     public static ISourceProject open(IProject project) throws ModelException {
-	return getInstance().doOpen(project);
+        return getInstance().doOpen(project);
     }
 
     private ISourceProject doOpen(IProject project) throws ModelException {
-	if (!project.exists())
-	    throw new ModelException(NO_SUCH_ELEMENT);
+        if (!project.exists())
+            throw new ModelException(NO_SUCH_ELEMENT);
 
-	ISourceProject sp= fProjectMap.get(project);
+        ISourceProject sp= fProjectMap.get(project);
 
-	if (sp == null) {
-	    fProjectMap.put(project, sp= new SourceProject(project));
+        if (sp == null) {
+            fProjectMap.put(project, sp= new SourceProject(project));
 
-	    // Find each language nature configured on the underlying project, find the
-	    // corresponding factory extender, and invoke it before returning the project.
-	    try {
-		String[] natures= project.getDescription().getNatureIds();
+            // Find each language nature configured on the underlying project, find the
+            // corresponding factory extender, and invoke it before returning the project.
+            try {
+                String[] natures= project.getDescription().getNatureIds();
 
-		for(int i= 0; i < natures.length; i++) {
-		    String natureID= natures[i];
-		    Language lang= LanguageRegistry.findLanguageByNature(natureID);
+                for(int i= 0; i < natures.length; i++) {
+                    String natureID= natures[i];
+                    Language lang= LanguageRegistry.findLanguageByNature(natureID);
 
-		    if (lang != null) {
-			IFactoryExtender ext= fExtenderMap.get(lang);
+                    if (lang != null) {
+                        IFactoryExtender ext= fExtenderMap.get(lang);
 
-			if (ext != null)
-			    ext.extend(sp);
-		    }
-		}
-	    } catch (CoreException e) {
-		ErrorHandler.reportError(e.getMessage());
-	    }
-	}
-	return sp;
+                        if (ext != null) {
+                            ext.extend(sp);
+                        }
+                    }
+                }
+            } catch (CoreException e) {
+                ErrorHandler.reportError(e.getMessage());
+            }
+        }
+        return sp;
     }
 
     // TODO needs a progress monitor
     public static ISourceProject create(IProject project) throws ModelException {
-	return getInstance().doCreate(project);
+        return getInstance().doCreate(project);
     }
 
     // TODO needs a progress monitor
     private ISourceProject doCreate(IProject project) throws ModelException {
-	throw new ModelException(ELEMENT_ALREADY_EXISTS);
+        throw new ModelException(ELEMENT_ALREADY_EXISTS);
     }
 
     public static ISourceEntity open(IContainer container) throws ModelException {
@@ -251,28 +252,28 @@ public class ModelFactory {
     }
 
     private ICompilationUnit doOpen(IPath path, ISourceProject srcProject) {
-    	ICompilationUnit unit;
-    	IPath resolvedPath;
+        ICompilationUnit unit;
+        IPath resolvedPath;
 
-    	if (path.isAbsolute())
-    	    unit= new CompilationUnitRef(resolvedPath= path, null);
-    	else {
-    	    resolvedPath= srcProject.resolvePath(path);
+        if (path.isAbsolute())
+            unit= new CompilationUnitRef(resolvedPath= path, null);
+        else {
+            resolvedPath= srcProject.resolvePath(path);
 
-    	    if (resolvedPath == null)
-    	        return null;
-    	    unit= new CompilationUnitRef(resolvedPath, srcProject);
-    	}
+            if (resolvedPath == null)
+                return null;
+            unit= new CompilationUnitRef(resolvedPath, srcProject);
+        }
 
-    	// Determine the language of this compilation unit, find the corresponding
-    	// factory extender, and invoke it before returning the compilation unit.
-    	Language lang= LanguageRegistry.findLanguage(resolvedPath, null);
-    	IFactoryExtender ext= fExtenderMap.get(lang);
+        // Determine the language of this compilation unit, find the corresponding
+        // factory extender, and invoke it before returning the compilation unit.
+        Language lang= LanguageRegistry.findLanguage(resolvedPath, null);
+        IFactoryExtender ext= fExtenderMap.get(lang);
 
-    	if (ext != null)
-    	    ext.extend(unit);
+        if (ext != null)
+            ext.extend(unit);
 
-    	return unit;
+        return unit;
     }
 
     public static ICompilationUnit open(IFile file, ISourceProject srcProject) {
@@ -280,22 +281,22 @@ public class ModelFactory {
     }
 
     private ICompilationUnit doOpen(IFile file, ISourceProject srcProject) {
-    	if (!file.exists())
-    	    return null;
+        if (!file.exists())
+            return null;
 
-    	ICompilationUnit unit= new CompilationUnitRef(file.getFullPath(), srcProject);
+        ICompilationUnit unit= new CompilationUnitRef(file.getFullPath(), srcProject);
 
-    	// Determine the language of this compilation unit, find the corresponding
-    	// factory extender, and invoke it before returning the compilation unit.
-    	TextFileDocumentProvider tfdp= new TextFileDocumentProvider(); // TODO perhaps this should be in a field? or another type of doc provider?
-    	IDocument doc= tfdp.getDocument(file);
-    	Language lang= LanguageRegistry.findLanguage(file.getLocation(), doc);
-    	IFactoryExtender ext= fExtenderMap.get(lang);
+        // Determine the language of this compilation unit, find the corresponding
+        // factory extender, and invoke it before returning the compilation unit.
+        TextFileDocumentProvider tfdp= new TextFileDocumentProvider(); // TODO perhaps this should be in a field? or another type of doc provider?
+        IDocument doc= tfdp.getDocument(file);
+        Language lang= LanguageRegistry.findLanguage(file.getLocation(), doc);
+        IFactoryExtender ext= fExtenderMap.get(lang);
 
-    	if (ext != null)
-    	    ext.extend(unit);
+        if (ext != null)
+            ext.extend(unit);
 
-    	return unit;
+        return unit;
     }
 
     /**

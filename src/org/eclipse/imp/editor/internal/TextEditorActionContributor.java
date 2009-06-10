@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
@@ -15,8 +14,8 @@ package org.eclipse.imp.editor.internal;
 import java.util.ResourceBundle;
 
 import org.eclipse.imp.editor.GotoAnnotationAction;
+import org.eclipse.imp.editor.IEditorActionDefinitionIds;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.jdt.ui.actions.JdtActionConstants;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
@@ -105,6 +104,6 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
         IActionBars bars= getActionBars();
 
-        bars.setGlobalActionHandler(JdtActionConstants.FORMAT, getAction(textEditor, "Format")); //$NON-NLS-1$
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.FORMAT, getAction(textEditor, "Format")); //$NON-NLS-1$
     }
 }

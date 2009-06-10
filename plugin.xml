@@ -8,6 +8,7 @@
    <extension-point id="documentationProvider" name="Documentation Provider" schema="schema/documentationProvider.exsd"/>
    <extension-point id="editorActionContributions" name="Editor Action Contributions" schema="schema/editorActionContributions.exsd"/>
    <extension-point id="editorService" name="IMP Editor Service" schema="schema/editorService.exsd"/>
+   <extension-point id="entityImageDecorator" name="Entity Image Decorator" schema="schema/entityImageDecorator.exsd"/>
    <extension-point id="entityNameLocator" name="Entity Name Locator" schema="schema/entityNameLocator.exsd"/>
    <extension-point id="foldingUpdater" name="IMP Source Folding Updater" schema="schema/foldingUpdater.exsd"/>
    <extension-point id="formatter" name="IMP Source Code Formatter" schema="schema/formatter.exsd"/>
@@ -108,29 +109,29 @@
    <extension
          point="org.eclipse.ui.bindings">
       <key
-            commandId="org.eclipse.imp.runtime.showOutlineCommand"
+            commandId="org.eclipse.imp.runtime.editor.showOutline"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+O"/>
       <key
-            commandId="org.eclipse.imp.runtime.toggleComment"
+            commandId="org.eclipse.imp.runtime.editor.toggleComment"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
       <key
-            commandId="org.eclipse.imp.runtime.indentSelection"
+            commandId="org.eclipse.imp.runtime.editor.indentSelection"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+I"/>
       <key
-            commandId="org.eclipse.imp.runtime.formatSource"
+            commandId="org.eclipse.imp.runtime.editor.formatSource"
             contextId="org.eclipse.ui.textEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+F"/>
       <key
             sequence="M1+M3+P"
             contextId="org.eclipse.ui.textEditorScope"
-            commandId="org.eclipse.imp.runtime.gotoMatchingFence"
+            commandId="org.eclipse.imp.runtime.editor.gotoMatchingFence"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    <extension
@@ -138,28 +139,40 @@
       <command
             categoryId="org.eclipse.ui.category.navigate"
             description="Show the quick outline for the editor input"
-            id="org.eclipse.imp.runtime.showOutlineCommand"
+            id="org.eclipse.imp.runtime.editor.showOutline"
             name="Show Outline"/>
+      <command
+            name="Collapse Members"
+            description="Collapses all members in the current source file"
+            categoryId="org.eclipse.ui.category.textEditor"
+            id="org.eclipse.imp.runtime.editor.folding.collapseMembers">
+      </command>
+      <command
+            name="Collapse Comments"
+            description="Collapses all multi-line comments in the current source file"
+            categoryId="org.eclipse.ui.category.textEditor"
+            id="org.eclipse.jdt.ui.edit.text.java.folding.collapseComments">
+      </command>
       <command
             categoryId="org.eclipse.imp.runtime.source"
             description="Comments/uncomments the current selection or the current source line"
-            id="org.eclipse.imp.runtime.toggleComment"
+            id="org.eclipse.imp.runtime.editor.toggleComment"
             name="Toggle Comment"/>
       <command
             categoryId="org.eclipse.imp.runtime.source"
             description="Format the source code"
-            id="org.eclipse.imp.runtime.formatSource"
+            id="org.eclipse.imp.runtime.editor.formatSource"
             name="Format"/>
       <command
             name="Go to Matching Fence"
             description="Moves the cursor to the matching fence character, if any"
             categoryId="org.eclipse.ui.category.navigate"
-            id="org.eclipse.imp.runtime.gotoMatchingFence">
+            id="org.eclipse.imp.runtime.editor.gotoMatchingFence">
       </command>
       <command
             categoryId="org.eclipse.imp.runtime.source"
             description="Re-indent the selected text"
-            id="org.eclipse.imp.runtime.indentSelection"
+            id="org.eclipse.imp.runtime.editor.indentSelection"
             name="Indent Selection">
       </command>
       <category

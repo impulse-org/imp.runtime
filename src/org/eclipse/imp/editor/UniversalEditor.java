@@ -24,7 +24,6 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -33,10 +32,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.debug.ui.actions.ToggleBreakpointAction;
 import org.eclipse.help.IContextProvider;
+import org.eclipse.imp.actions.OpenAction;
 import org.eclipse.imp.actions.RulerEnableDisableBreakpointAction;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.internal.AnnotationCreator;
@@ -77,9 +76,7 @@ import org.eclipse.imp.services.ITokenColorer;
 import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
-import org.eclipse.imp.ui.explorer.OpenAction;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
-import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -180,19 +177,19 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
-    public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".formatSource";
+    public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.formatSource";
 
-    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".toggleComment";
+    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.toggleComment";
 
-    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".showOutlineCommand";
+    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.showOutline";
 
-    public static final String INDENT_SELECTION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".indentSelection";
+    public static final String INDENT_SELECTION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.indentSelection";
 
     /**
      * Action definition ID of the edit -> go to matching fence action
      * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
      */
-    public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".gotoMatchingFence"; //$NON-NLS-1$
+    public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoMatchingFence"; //$NON-NLS-1$
 
     public static final String MESSAGE_BUNDLE= "org.eclipse.imp.editor.messages";
 
@@ -1627,7 +1624,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
             InformationPresenter presenter;
 
-            presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IJavaEditorActionDefinitionIds.SHOW_OUTLINE));
+            presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IEditorActionDefinitionIds.SHOW_OUTLINE));
             presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
             presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 

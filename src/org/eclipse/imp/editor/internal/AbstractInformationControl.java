@@ -26,7 +26,6 @@ import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.runtime.PluginImages;
-import org.eclipse.jdt.ui.actions.CustomFiltersActionGroup;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.GroupMarker;
 import org.eclipse.jface.action.IAction;
@@ -299,7 +298,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
     private MenuManager fViewMenuManager;
     private Listener fDeactivateListener;
     private boolean fIsDecativateListenerActive= false;
-    private CustomFiltersActionGroup fCustomFiltersActionGroup;
+//  private CustomFiltersActionGroup fCustomFiltersActionGroup;
     private IKeyBindingService fKeyBindingService;
     private String[] fKeyBindingScopes;
     private IAction fShowViewMenuAction;
@@ -349,7 +348,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	createViewMenu(fViewMenuButtonComposite);
 	createHorizontalSeparator(fComposite);
 	fTreeViewer= createTreeViewer(fComposite, treeStyle);
-	fCustomFiltersActionGroup= new CustomFiltersActionGroup(getId(), fTreeViewer);
+//	fCustomFiltersActionGroup= new CustomFiltersActionGroup(getId(), fTreeViewer);
 	if (showStatusField)
 	    createStatusField(fComposite);
 	final Tree tree= fTreeViewer.getTree();
@@ -829,8 +828,8 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	viewMenu.add(new ResizeAction());
 	viewMenu.add(new RememberBoundsAction());
 	viewMenu.add(new Separator("SystemMenuEnd")); //$NON-NLS-1$
-	if (fCustomFiltersActionGroup != null)
-	    fCustomFiltersActionGroup.fillViewMenu(viewMenu);
+//	if (fCustomFiltersActionGroup != null)
+//	    fCustomFiltersActionGroup.fillViewMenu(viewMenu);
     }
 
     protected void inputChanged(Object newInput, Object newSelection) {

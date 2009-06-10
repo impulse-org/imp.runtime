@@ -7,15 +7,13 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.ui;
 
-import org.eclipse.imp.wizards.fields.PixelConverter;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceResources;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
@@ -35,7 +33,7 @@ import org.eclipse.swt.widgets.Widget;
  */
 public class SWTUtil {
     /**
-     * Returns the standard display to be used. The method first checks, if the thread calling this method has an associated disaply. If so, this display is
+     * Returns the standard display to be used. The method first checks, if the thread calling this method has an associated display. If so, this display is
      * returned. Otherwise the method returns the default display.
      */
     public static Display getStandardDisplay() {

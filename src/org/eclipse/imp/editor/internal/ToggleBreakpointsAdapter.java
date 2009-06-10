@@ -11,17 +11,13 @@
 
 package org.eclipse.imp.editor.internal;
 
-import java.util.Map;
-
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.DebugPlugin;
@@ -29,12 +25,7 @@ import org.eclipse.debug.core.IBreakpointListener;
 import org.eclipse.debug.core.model.IBreakpoint;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IToggleBreakpointsHandler;
-import org.eclipse.imp.smapi.LineMapBuilder;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
@@ -105,16 +96,6 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
         }
     }
     
-    public static boolean validateLineNumber(IFile origSrcFile, Integer origSrcLineNumber) {
-    	LineMapBuilder lmb= new LineMapBuilder(origSrcFile.getRawLocation().removeFileExtension().toString());
-        Map lineMap= lmb.getLineMap();
-
-        if (lineMap.containsKey(origSrcLineNumber))
-        	return true;
-        
-        return false;
-	}
-
 	private IMarker findBreakpointMarker(IFile srcFile, int lineNumber) throws CoreException {
     	IMarker[] markers = srcFile.findMarkers(IBreakpoint.LINE_BREAKPOINT_MARKER, true, IResource.DEPTH_INFINITE);
 
@@ -124,14 +105,6 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
     		}
     	}
     	return null;
-    }
-
-    public static  IFile javaFileForRootSourceFile(IFile rootSrcFile) {
-    	IProject project = rootSrcFile.getProject();
-    	String rootSrcName= rootSrcFile.getName();
-
-        return project.getFile(rootSrcFile.getProjectRelativePath().removeLastSegments(1).append(
-                rootSrcName.substring(0, rootSrcName.lastIndexOf('.')) + ".java"));
     }
 
     public boolean canToggleLineBreakpoints(IWorkbenchPart part, ISelection selection) {
@@ -157,32 +130,4 @@ public class ToggleBreakpointsAdapter implements IToggleBreakpointsTarget, IBrea
 	public void breakpointRemoved(IBreakpoint breakpoint, IMarkerDelta delta) { }
 
 	public void breakpointChanged(IBreakpoint breakpoint, IMarkerDelta delta) { }
-
-	// MV -- This method is called from smapifier to reset the breakpoint in the
-	// Java file when a new build has been done.
-	// RMF 5/9/2009 - doesn't seem to be true (at least for LEG) - this method is
-	// never called, and yet the breakpoint markers' line #'s get updated properly.
-	public static String getTypeName(IFile origSrcFile) {
-		IProject project = origSrcFile.getProject();
-		IJavaProject javaProj= JavaCore.create(project);
-        
-        String pathPrefix = project.getWorkspace().getRoot().getRawLocation() + project.getFullPath().toString();
-        IPath projPath= project.getFullPath();
-        //MV Note: javaProj.getOutputLocation returns a workspace relative path
-		boolean projectIsSrcBin;
-
-		try {
-			projectIsSrcBin = (javaProj.getOutputLocation().matchingFirstSegments(projPath) == projPath.segmentCount()) && 
-									 (javaProj.getOutputLocation().segmentCount() == projPath.segmentCount());
-			if (!projectIsSrcBin) {
-				String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).substring(1);
-				pathPrefix = pathPrefix + "/" + temp.substring(0,temp.indexOf("/"));
-			}
-		} catch (JavaModelException e) {
-		    RuntimePlugin.getInstance().logException("Error determining path of file " + origSrcFile.getFullPath(), e);
-		}
-		
-        String temp = origSrcFile.getRawLocation().toString().substring(pathPrefix.length()).replaceAll("/", ".");
-        return temp.substring(1,temp.lastIndexOf("."));
-	}
 }

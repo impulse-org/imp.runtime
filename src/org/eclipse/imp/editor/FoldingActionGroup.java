@@ -3,7 +3,6 @@ package org.eclipse.imp.editor;
 import java.util.ResourceBundle;
 
 import org.eclipse.imp.actions.FoldingMessages;
-import org.eclipse.jdt.ui.actions.IJavaEditorActionDefinitionIds;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.text.ITextViewer;
@@ -139,22 +138,24 @@ public class FoldingActionGroup extends ActionGroup {
             public void run() {
                 if (editor instanceof UniversalEditor) {
                     UniversalEditor univEditor= (UniversalEditor) editor;
+                    // TODO Need more API on UniversalEditor in order to enable the following
 //                  univEditor.collapseMembers();
                 }
             }
         };
-        fCollapseMembers.setActionDefinitionId(IJavaEditorActionDefinitionIds.FOLDING_COLLAPSE_MEMBERS);
+        fCollapseMembers.setActionDefinitionId(IEditorActionDefinitionIds.FOLDING_COLLAPSE_MEMBERS);
         editor.setAction("FoldingCollapseMembers", fCollapseMembers); //$NON-NLS-1$
         
         fCollapseComments= new FoldingAction(FoldingMessages.getResourceBundle(), "Projection.CollapseComments.") { //$NON-NLS-1$
             public void run() {
                 if (editor instanceof UniversalEditor) {
                     UniversalEditor univEditor= (UniversalEditor) editor;
+                    // TODO Need more API on UniversalEditor in order to enable the following
 //                  javaEditor.collapseComments();
                 }
             }
         };
-        fCollapseComments.setActionDefinitionId(IJavaEditorActionDefinitionIds.FOLDING_COLLAPSE_COMMENTS);
+        fCollapseComments.setActionDefinitionId(IEditorActionDefinitionIds.FOLDING_COLLAPSE_COMMENTS);
         editor.setAction("FoldingCollapseComments", fCollapseComments); //$NON-NLS-1$
     }
     

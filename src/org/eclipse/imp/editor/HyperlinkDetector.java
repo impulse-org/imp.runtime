@@ -19,6 +19,7 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
+import org.eclipse.imp.services.IEntityNameLocator;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.jface.text.IRegion;
@@ -33,10 +34,12 @@ import org.eclipse.ui.texteditor.ITextEditor;
  */
 public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageService {
     private IReferenceResolver fResolver;
+    private IEntityNameLocator fEntityNameLocator;
     private final Language fLanguage;
 
     public HyperlinkDetector(Language lang) {
         fLanguage= lang;
+        fEntityNameLocator= ServiceFactory.getInstance().getEntityNameLocator(fLanguage);
     }
 
     public IHyperlink[] detectHyperlinks(final IRegion region, ITextEditor editor, final ITextViewer textViewer, IParseController parseController) {
@@ -63,10 +66,17 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         if (source == null) return null;
 
         // Got a suitable link source node; get link target node
-       	final Object target = fResolver.getLinkTarget(source, parseController);
+       	Object target = fResolver.getLinkTarget(source, parseController);
        	if (target == null) return null;
 
-        // Link target node exists; get info for new hyperlink
+       	if (fEntityNameLocator != null) {
+       	    Object name= fEntityNameLocator.getName(target);
+       	    if (name != null) {
+       	        target= name;
+       	    }
+       	}
+
+       	// Link target node exists; get info for new hyperlink
        	// Note:  source presumably has a legitimate starting offset
        	// and length (since they have been selected from the source file)
         final int srcStart= nodeLocator.getStartOffset(source);
@@ -77,7 +87,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         // to the beginning of the file and give it a nominal length.
 
         final int targetStart= (nodeLocator.getStartOffset(target) < 0) ? 0 : nodeLocator.getStartOffset(target);
-        final int targetLength= nodeLocator.getEndOffset(target) - targetStart + 1;
+        final int targetLength= 0; // nodeLocator.getEndOffset(target) - targetStart + 1;
 
         // Use the file path info to determine whether the target editor is the same as
         // the source editor, and initialize the TargetLink accordingly.

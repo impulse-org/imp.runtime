@@ -7,12 +7,8 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/*
- * Created on Mar 13, 2007
- */
 package org.eclipse.imp.model;
 
 import java.util.List;
@@ -27,6 +23,12 @@ public interface ISourceProject extends ISourceContainer {
     List<IPathEntry> getBuildPath();
 
     /**
+     * @param buildPath the new build path for this project; entries are copied into the project's
+     * build path list
+     */
+    void setBuildPath(List<IPathEntry> buildPath);
+
+    /**
      * @return the underlying IProject
      */
     IProject getRawProject();
@@ -36,7 +38,15 @@ public interface ISourceProject extends ISourceContainer {
      */
     IPath resolvePath(IPath path);
 
+    /**
+     * @return an array of <code>ISourceFolder</code> corresponding to the configured source folders
+     * for this project
+     */
     ISourceFolder[] getSourceRoots();
 
+    /**
+     * @return an array of the direct children of this <code>ISourceEntity</code>; returns an empty
+     * list (not null) if this entity has no children
+     */
     ISourceEntity[] getChildren();
 }

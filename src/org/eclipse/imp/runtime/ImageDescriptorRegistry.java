@@ -7,16 +7,14 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.runtime;
 
 import java.util.HashMap;
-import java.util.Iterator;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.imp.ui.SWTUtil;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.util.Assert;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
@@ -24,7 +22,7 @@ import org.eclipse.swt.widgets.Display;
  * A registry that maps <code>ImageDescriptors</code> to <code>Image</code>.
  */
 public class ImageDescriptorRegistry {
-    private HashMap fRegistry= new HashMap(10);
+    private HashMap<ImageDescriptor,Image> fRegistry= new HashMap<ImageDescriptor,Image>(10);
 
     private Display fDisplay;
 
@@ -71,8 +69,7 @@ public class ImageDescriptorRegistry {
      * Disposes all images managed by this registry.
      */
     public void dispose() {
-        for(Iterator iter= fRegistry.values().iterator(); iter.hasNext();) {
-            Image image= (Image) iter.next();
+        for(Image image: fRegistry.values()) {
             image.dispose();
         }
         fRegistry.clear();

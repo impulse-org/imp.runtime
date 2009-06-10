@@ -4,8 +4,9 @@ Bundle-Name: IMP Runtime (Incubation)
 Bundle-SymbolicName: org.eclipse.imp.runtime; singleton:=true
 Bundle-Version: 0.1.99.1
 Bundle-Activator: org.eclipse.imp.runtime.RuntimePlugin
+Bundle-ActivationPolicy: lazy
 Bundle-Vendor: rfuhrer@watson.ibm.com
-Require-Bundle:  com.ibm.icu,
+Require-Bundle: com.ibm.icu,
  lpg.runtime,
  org.eclipse.compare,
  org.eclipse.core.filesystem,
@@ -14,15 +15,9 @@ Require-Bundle:  com.ibm.icu,
  org.eclipse.debug.ui,
  org.eclipse.debug.core,
  org.eclipse.help,
- org.eclipse.jdt.core,
- org.eclipse.jdt.debug,
- org.eclipse.jdt.debug.ui,
- org.eclipse.jdt.launching,
- org.eclipse.jdt.ui,
  org.eclipse.jface.text,
  org.eclipse.ltk.core.refactoring,
  org.eclipse.ltk.ui.refactoring,
- org.eclipse.imp.smapi,
  org.eclipse.pde.ui,
  org.eclipse.ui,
  org.eclipse.ui.console,
@@ -31,8 +26,8 @@ Require-Bundle:  com.ibm.icu,
  org.eclipse.ui.navigator,
  org.eclipse.ui.views,
  org.eclipse.ui.workbench.texteditor
-Eclipse-LazyStart: true
-Export-Package: org.eclipse.imp.builder,
+Export-Package: org.eclipse.imp.actions,
+ org.eclipse.imp.builder,
  org.eclipse.imp.core,
  org.eclipse.imp.editor,
  org.eclipse.imp.indexing,
@@ -46,11 +41,10 @@ Export-Package: org.eclipse.imp.builder,
  org.eclipse.imp.runtime,
  org.eclipse.imp.services,
  org.eclipse.imp.services.base,
+ org.eclipse.imp.ui,
  org.eclipse.imp.ui.dialogs,
  org.eclipse.imp.ui.dialogs.filters,
  org.eclipse.imp.ui.dialogs.providers,
  org.eclipse.imp.ui.dialogs.validators,
- org.eclipse.imp.utils,
- org.eclipse.imp.wizards,
- org.eclipse.imp.wizards.fields
+ org.eclipse.imp.utils
 Bundle-RequiredExecutionEnvironment: J2SE-1.5

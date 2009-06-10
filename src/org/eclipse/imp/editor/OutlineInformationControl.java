@@ -248,7 +248,7 @@ public class OutlineInformationControl extends AbstractInformationControl {
 
         fInnerLabelProvider= new OutlineLabelProvider(fLangLabelProvider, fElemImageProvider, fOutlineContentProvider.fShowInheritedMembers, fShowStorage,
                 fForegroundColor);
-        fInnerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator());
+        fInnerLabelProvider.addLabelDecorator(new ProblemsLabelDecorator(fLanguage));
         //	IDecoratorManager decoratorMgr= PlatformUI.getWorkbench().getDecoratorManager();
         //	if (decoratorMgr.getEnabled("org.eclipse.jdt.ui.override.decorator")) //$NON-NLS-1$
         //	    fInnerLabelProvider.addLabelDecorator(new OverrideIndicatorLabelDecorator(null));

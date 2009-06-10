@@ -286,12 +286,12 @@ public class LanguageRegistry {
 		}
 	}
 
-    private static class BundleImageDescriptor extends ImageDescriptor {
+    public static class BundleImageDescriptor extends ImageDescriptor {
         private final Bundle bundle;
         private final String iconPath;
         private final String langName;
 
-        private BundleImageDescriptor(String iconPath, Bundle bundle, String langName) {
+        public BundleImageDescriptor(String iconPath, Bundle bundle, String langName) {
             this.langName= langName;
             this.bundle= bundle;
             this.iconPath= iconPath;

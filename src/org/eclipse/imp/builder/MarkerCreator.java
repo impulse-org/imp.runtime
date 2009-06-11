@@ -33,21 +33,15 @@ import org.eclipse.imp.parser.IParseController;
  */
 public class MarkerCreator implements IMessageHandler {
 	
-    protected IParseController parseController = null;
-    protected IFile file = null;
-    protected String problemType = IMarker.PROBLEM;
+    protected IParseController parseController;
+    protected IFile file;
+    protected String problemType;
 
-    public MarkerCreator(IFile file, IParseController parseController)
-    {
-        this.parseController = parseController;
-        this.file = file;
+    public MarkerCreator(IFile file, IParseController parseController) {
+        this(file, parseController, IMarker.PROBLEM);
     }
 
-    public MarkerCreator(
-            IFile file,
-            IParseController parseController,
-            String problemType)
-    {
+    public MarkerCreator(IFile file, IParseController parseController, String problemType) {
         this.file = file;
         this.parseController = parseController;
         this.problemType = problemType;

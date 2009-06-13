@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.ui.dialogs.filters;
@@ -21,7 +20,6 @@ import org.eclipse.pde.core.plugin.IPluginExtension;
 import org.eclipse.pde.core.plugin.IPluginModel;
 
 public class ViewerFilterForIDEProjects extends ViewerFilter {
-	
     /**
      * Returns whether the given element makes it through this filter.
      *
@@ -31,27 +29,28 @@ public class ViewerFilterForIDEProjects extends ViewerFilter {
      * @return <code>true</code> if element is included in the
      *   filtered set, and <code>false</code> if excluded
      */
-    public boolean select(Viewer viewer, Object parentElement,
-            Object element)
-    {
-    	if (element instanceof IProject) {
-			IProject project = (IProject) element;
+    public boolean select(Viewer viewer, Object parentElement, Object element) {
+        if (element instanceof IProject) {
+            IProject project = (IProject) element;
             IPluginModel pluginModel= ExtensionUtils.getPluginModel(project);
             if (pluginModel == null)
-            	return false;
+                return false;
             IExtensions iExtensions = pluginModel.getExtensions();
             if (iExtensions == null)
-            	return false;
+                return false;
             IPluginExtension[] extensions = iExtensions.getExtensions();
             if (extensions == null)
-            	return false;
-            
-            for (int j = 0; j < extensions.length; j++) {
-            	if (extensions[j].getPoint().equals("org.eclipse.imp.runtime.languageDescription"))
-            		return true;
-            }
-    	}
-    	return false;
-    }
+                return false;
 
+            // TODO Probably should do what ContentProviderForIDEProjects does, which is more flexible -
+            // check for the existence of *any* language service extension
+
+//          for (int j = 0; j < extensions.length; j++) {
+//              if (extensions[j].getPoint().equals("org.eclipse.imp.runtime.languageDescription"))
+//                  return true;
+//          }
+            return true;
+        }
+        return false;
+    }
 }

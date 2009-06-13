@@ -7,23 +7,22 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-	package org.eclipse.imp.ui.dialogs.providers;
+package org.eclipse.imp.ui.dialogs.providers;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.utils.ExtensionUtils;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.pde.core.plugin.IExtensions;
 import org.eclipse.pde.core.plugin.IPluginExtension;
 import org.eclipse.pde.core.plugin.IPluginModel;
-import org.eclipse.pde.internal.ui.elements.DefaultContentProvider;
-
 
 /**
  * A content provider that provides all projects, all the time.
@@ -31,11 +30,8 @@ import org.eclipse.pde.internal.ui.elements.DefaultContentProvider;
  * 
  * @author sutton
  * @since 20071116
- *
  */
-public class ContentProviderForIDEProjects
-	extends DefaultContentProvider implements IStructuredContentProvider
-{
+public class ContentProviderForIDEProjects implements IStructuredContentProvider {
 	public Object[] getElements(Object parent) {	
 		return getIDEProjects();
 	}
@@ -47,8 +43,8 @@ public class ContentProviderForIDEProjects
 	
 	private static IProject[] getIDEProjects() {
 		IProject[] projects = ResourcesPlugin.getWorkspace().getRoot().getProjects();
-		List ideProjects = new ArrayList();
-		
+		List<IProject> ideProjects = new ArrayList<IProject>();
+
 		for (int i = 0; i < projects.length; i++) {
 			IProject project = projects[i];
             IPluginModel pluginModel= ExtensionUtils.getPluginModel(project);
@@ -60,20 +56,21 @@ public class ContentProviderForIDEProjects
             IPluginExtension[] extensions = iExtensions.getExtensions();
             if (extensions == null)
             	continue;
-            
+
             for (int j = 0; j < extensions.length; j++) {
-            	if (extensions[j].getPoint().equals("org.eclipse.imp.runtime.languageDescription")) {
+            	String pointID= extensions[j].getPoint();
+                if (pointID.equals(ServiceFactory.LANGUAGE_DESCRIPTION_QUALIFIED_POINT_ID) ||
+            	    ServiceFactory.ALL_SERVICES.contains(pointID)) {
             		ideProjects.add(project);
             		break;
             	}
             }
 		}
 
-		IProject[] result = new IProject[ideProjects.size()];
-		for (int i = 0; i < ideProjects.size(); i++) {
-			result[i] = (IProject) ideProjects.get(i);
-		}
- 		return result;
+ 		return ideProjects.toArray(new IProject[ideProjects.size()]);
 	}
-	
+
+    public void dispose() { }
+
+    public void inputChanged(Viewer viewer, Object oldInput, Object newInput) { }
 }

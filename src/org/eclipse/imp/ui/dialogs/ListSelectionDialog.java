@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.ui.dialogs;
@@ -16,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.imp.ui.dialogs.validators.SelectionValidatorForIDEProjects;
 import org.eclipse.jface.dialogs.Dialog;
 import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.resource.JFaceColors;
@@ -23,7 +23,10 @@ import org.eclipse.jface.viewers.CheckStateChangedEvent;
 import org.eclipse.jface.viewers.CheckboxTableViewer;
 import org.eclipse.jface.viewers.ICheckStateListener;
 import org.eclipse.jface.viewers.ILabelProvider;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
+import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -40,7 +43,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ISelectionValidator;
 import org.eclipse.ui.dialogs.SelectionDialog;
 import org.eclipse.ui.internal.IWorkbenchHelpContextIds;
-import org.eclipse.ui.internal.WorkbenchMessages;
 
 /**
  * Copied and adapted from org.eclipse.ui.dialogs.ListSelectionDialog.
@@ -96,15 +98,16 @@ public class ListSelectionDialog extends SelectionDialog
     private IStructuredContentProvider contentProvider;
 
     // the visual selection widget group
-    CheckboxTableViewer listViewer;
+//    CheckboxTableViewer listViewer;
+    ListViewer listViewer;
 
     // sizing constants
     private final static int SIZING_SELECTION_WIDGET_HEIGHT = 250;
     private final static int SIZING_SELECTION_WIDGET_WIDTH = 300;
     
     // SMS:  Copied from SelectionDialog
-	static String SELECT_ALL_TITLE = WorkbenchMessages.SelectionDialog_selectLabel;
-	static String DESELECT_ALL_TITLE = WorkbenchMessages.SelectionDialog_deselectLabel;
+	static String SELECT_ALL_TITLE = "&Select All";
+	static String DESELECT_ALL_TITLE = "&Deselect All";
 
     // SMS:  relating to validation and filtration
 	List<ISelectionValidator> validators = new ArrayList<ISelectionValidator>();
@@ -128,63 +131,63 @@ public class ListSelectionDialog extends SelectionDialog
             IStructuredContentProvider contentProvider,
             ILabelProvider labelProvider, String message) {
         super(parentShell);
-        setTitle(WorkbenchMessages.ListSelection_title);
+        setTitle("Selection Needed");
         inputElement = input;
         this.contentProvider = contentProvider;
         this.labelProvider = labelProvider;
         if (message != null) {
 			setMessage(message);
 		} else {
-			setMessage(WorkbenchMessages.ListSelection_message);
+			setMessage("Select the items:");
 		} 
     }
 
-    /**
-     * Add the selection and deselection buttons to the dialog.
-     * @param composite org.eclipse.swt.widgets.Composite
-     */
-    private void addSelectionButtons(Composite composite) {
-        Composite buttonComposite = new Composite(composite, SWT.NONE);
-        GridLayout layout = new GridLayout();
-        layout.numColumns = 0;
-		layout.marginWidth = 0;
-		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
-        buttonComposite.setLayout(layout);
-        buttonComposite.setLayoutData(new GridData(SWT.END, SWT.TOP, true, false));
-
-        Button selectButton = createButton(buttonComposite,
-                IDialogConstants.SELECT_ALL_ID, SELECT_ALL_TITLE, false);
-
-        SelectionListener listener = new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                listViewer.setAllChecked(true);
-            }
-        };
-        selectButton.addSelectionListener(listener);
-
-        Button deselectButton = createButton(buttonComposite,
-                IDialogConstants.DESELECT_ALL_ID, DESELECT_ALL_TITLE, false);
-
-        listener = new SelectionAdapter() {
-            public void widgetSelected(SelectionEvent e) {
-                listViewer.setAllChecked(false);
-            }
-        };
-        deselectButton.addSelectionListener(listener);
-    }
-
-    
-    /**
-     * Visually checks the previously-specified elements in this dialog's list 
-     * viewer.
-     */
-    private void checkInitialSelections() {
-        Iterator<?> itemsToCheck = getInitialElementSelections().iterator();
-
-        while (itemsToCheck.hasNext()) {
-			listViewer.setChecked(itemsToCheck.next(), true);
-		}
-    }
+//    /**
+//     * Add the selection and deselection buttons to the dialog.
+//     * @param composite org.eclipse.swt.widgets.Composite
+//     */
+//    private void addSelectionButtons(Composite composite) {
+//        Composite buttonComposite = new Composite(composite, SWT.NONE);
+//        GridLayout layout = new GridLayout();
+//        layout.numColumns = 0;
+//		layout.marginWidth = 0;
+//		layout.horizontalSpacing = convertHorizontalDLUsToPixels(IDialogConstants.HORIZONTAL_SPACING);
+//        buttonComposite.setLayout(layout);
+//        buttonComposite.setLayoutData(new GridData(SWT.END, SWT.TOP, true, false));
+//
+//        Button selectButton = createButton(buttonComposite,
+//                IDialogConstants.SELECT_ALL_ID, SELECT_ALL_TITLE, false);
+//
+//        SelectionListener listener = new SelectionAdapter() {
+//            public void widgetSelected(SelectionEvent e) {
+//                listViewer.setAllChecked(true);
+//            }
+//        };
+//        selectButton.addSelectionListener(listener);
+//
+//        Button deselectButton = createButton(buttonComposite,
+//                IDialogConstants.DESELECT_ALL_ID, DESELECT_ALL_TITLE, false);
+//
+//        listener = new SelectionAdapter() {
+//            public void widgetSelected(SelectionEvent e) {
+//                listViewer.setAllChecked(false);
+//            }
+//        };
+//        deselectButton.addSelectionListener(listener);
+//    }
+//
+//    
+//    /**
+//     * Visually checks the previously-specified elements in this dialog's list 
+//     * viewer.
+//     */
+//    private void checkInitialSelections() {
+//        Iterator<?> itemsToCheck = getInitialElementSelections().iterator();
+//
+//        while (itemsToCheck.hasNext()) {
+//			listViewer.setChecked(itemsToCheck.next(), true);
+//		}
+//    }
 
     /*
      *  (non-Javadoc)
@@ -207,11 +210,11 @@ public class ListSelectionDialog extends SelectionDialog
         
         createMessageArea(composite);
 
-        listViewer = CheckboxTableViewer.newCheckList(composite, SWT.BORDER);
+        listViewer = new ListViewer(composite, SWT.BORDER);
         GridData data = new GridData(GridData.FILL_BOTH);
         data.heightHint = SIZING_SELECTION_WIDGET_HEIGHT;
         data.widthHint = SIZING_SELECTION_WIDGET_WIDTH;
-        listViewer.getTable().setLayoutData(data);
+//        listViewer.getTable().setLayoutData(data);
 
         listViewer.setLabelProvider(labelProvider);
         listViewer.setContentProvider(contentProvider);
@@ -221,14 +224,14 @@ public class ListSelectionDialog extends SelectionDialog
         	listViewer.addFilter(filters.get(i));
         }
 
-        addSelectionButtons(composite);
+//        addSelectionButtons(composite);
 
         initializeViewer();
 
         // initialize page
-        if (!getInitialElementSelections().isEmpty()) {
-			checkInitialSelections();
-		}
+//        if (!getInitialElementSelections().isEmpty()) {
+//			checkInitialSelections();
+//		}
 
         Dialog.applyDialogFont(composite);
         
@@ -236,13 +239,12 @@ public class ListSelectionDialog extends SelectionDialog
         statusMessage.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
         statusMessage.setFont(parent.getFont());
         
-        listViewer.addCheckStateListener( new ICheckStateListener() {
-            public void checkStateChanged(CheckStateChangedEvent event) {
-            	validate();
-            }
-        	
-        });
-        
+//        listViewer.addCheckStateListener( new ICheckStateListener() {
+//            public void checkStateChanged(CheckStateChangedEvent event) {
+//            	validate();
+//            }
+//        });
+
         return composite;
     }
 
@@ -251,7 +253,7 @@ public class ListSelectionDialog extends SelectionDialog
      * 
      * @return the viewer, or <code>null</code> if not yet created
      */
-    protected CheckboxTableViewer getViewer() {
+    protected ListViewer getViewer() {
         return listViewer;
     }
 
@@ -268,30 +270,29 @@ public class ListSelectionDialog extends SelectionDialog
      * retrieval by the client and closes this dialog.
      */
     protected void okPressed() {
-
         // Get the input children.
         Object[] children = contentProvider.getElements(inputElement);
 
         // Build a list of selected children.
         if (children != null) {
             List<Object> list = new ArrayList<Object>();
-            for (int i = 0; i < children.length; ++i) {
-                Object element = children[i];
-                if (listViewer.getChecked(element)) {	
-					list.add(element);
-				}
-            }
+            IStructuredSelection sel= (IStructuredSelection) listViewer.getSelection();
+            list.add(sel.getFirstElement());
+//            for (int i = 0; i < children.length; ++i) {
+//                Object element = children[i];
+//                if (listViewer.getChecked(element)) {	
+//					list.add(element);
+//				}
+//            }
             setResult(list);
         }
 
-        // SMS
         validate();
-        
+
         super.okPressed();
-        
     }
-    
-    
+
+
     /**
 	 * Replaces the current list of validators with a new one.
 	 * If the given validator is not null then it is added to
@@ -314,7 +315,7 @@ public class ListSelectionDialog extends SelectionDialog
      * 
      * @param validator		The validator to be added
      */
-    public void addValdator(ISelectionValidator validator) {
+    public void addValidator(ISelectionValidator validator) {
     	if (validators == null) {
     		validators = new ArrayList<ISelectionValidator>();
     	}
@@ -333,7 +334,9 @@ public class ListSelectionDialog extends SelectionDialog
     	// but those maintained by the CheckboxTableViewer used in
     	// the ListSelectionDialog (this is important).
     	// Note:  getCheckedElements() does not return null.
-    	selections = listViewer.getCheckedElements();
+//    	selections = listViewer.getCheckedElements();
+        IStructuredSelection sel= (IStructuredSelection) listViewer.getSelection();
+        selections = sel.toArray();
 
     	selections:  for (int j = 0; j < selections.length; j++) {
         	for (int i = 0; i < validators.size(); i++) {       		
@@ -346,8 +349,7 @@ public class ListSelectionDialog extends SelectionDialog
     	}
     	
 	    if (gotError) {
-            statusMessage.setForeground(JFaceColors
-                    .getErrorText(statusMessage.getDisplay()));
+            statusMessage.setForeground(JFaceColors.getErrorText(statusMessage.getDisplay()));
             statusMessage.setText(errorMsg);
             getOkButton().setEnabled(false);
 	    } else {

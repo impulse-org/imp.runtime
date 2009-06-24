@@ -228,13 +228,6 @@
             verticalRulerPreferenceValue="true"/>
    </extension>
    <extension
-         point="org.eclipse.ui.views">
-      <view
-            class="org.eclipse.imp.ui.explorer.ProjectExplorerPart"
-            id="org.eclipse.imp.runtime.projectExplorerView"
-            name="IMP Project Explorer"/>
-   </extension>
-   <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
          <showInPart id="org.eclipse.imp.runtime.projectExplorerView"/>

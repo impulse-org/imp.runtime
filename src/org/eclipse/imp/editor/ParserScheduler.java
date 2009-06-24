@@ -89,6 +89,9 @@ public class ParserScheduler extends Job {
             // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
             // may have failed at some phase, but there may be enough info to drive IDE services.
             notifyModelListeners(monitor);
+        } catch (LinkageError e) {
+            // Catch things like NoClassDefFoundError that might result from, e.g., errors in plugin metadata, classpath, etc.
+            ErrorHandler.reportError("Error loading IParseController implementation class for language " + fParseController.getLanguage().getName(), e);
         }
         return Status.OK_STATUS;
     }

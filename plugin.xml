@@ -65,6 +65,10 @@
             markerSeverity="1"
             name="org.eclipse.imp.editor.parseAnnotation"
             super="org.eclipse.ui.workbench.texteditor.error"/>
+      <type
+            markerSeverity="1"
+            name="org.eclipse.imp.runtime.occurrenceAnnotation"
+            super="org.eclipse.ui.workbench.texteditor.error"/>
    </extension>
    <extension
          point="org.eclipse.ui.editors.markerAnnotationSpecification">

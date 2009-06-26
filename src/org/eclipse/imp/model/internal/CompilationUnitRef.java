@@ -198,7 +198,7 @@ public class CompilationUnitRef implements ICompilationUnit {
     @Override
     public int hashCode() {
         int result= 4831;
-        result= result * 4933 + fProject.hashCode();
+        result= result * 4933 + (fProject != null ? fProject.hashCode() : 13);
         result= result * 1627 + fPath.hashCode();
         return result;
     }

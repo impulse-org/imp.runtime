@@ -5,6 +5,7 @@ Bundle-SymbolicName: org.eclipse.imp.runtime; singleton:=true
 Bundle-Version: 0.1.100
 Bundle-Activator: org.eclipse.imp.runtime.RuntimePlugin
 Bundle-ActivationPolicy: lazy
+Eclipse-LazyStart: true
 Bundle-Vendor: rfuhrer@watson.ibm.com
 Require-Bundle: com.ibm.icu,
  lpg.runtime,

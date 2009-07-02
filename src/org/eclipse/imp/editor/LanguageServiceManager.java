@@ -233,17 +233,17 @@ public class LanguageServiceManager {
     }
     
     private static void clearDeadEntries() {
-    	List<IWorkbenchPart> deadEditors = new ArrayList<IWorkbenchPart>();
-    	for (IEditorPart ed: editorServiceMap.keySet()) {
-    		IEditorSite edSite = ed.getEditorSite();
-    		IWorkbenchPart wbPart = edSite.getPart();
-    		if (wbPart == null) {
-    			deadEditors.add(wbPart);
-    		} else {
-    		}
-    	}
-		for (IWorkbenchPart wbPart:  deadEditors) {
-			editorServiceMap.remove(wbPart);
-		}
+        List<IEditorPart> deadEditors = new ArrayList<IEditorPart>();
+        for (IEditorPart edPart: editorServiceMap.keySet()) {
+            IEditorSite edSite = edPart.getEditorSite();
+            IWorkbenchPart wbPart = edSite.getPart();
+            if (wbPart == null) {
+                deadEditors.add(edPart);
+            } else {
+            }
+        }
+        for (IEditorPart edPart: deadEditors) {
+            editorServiceMap.remove(edPart);
+        }
     }
 }

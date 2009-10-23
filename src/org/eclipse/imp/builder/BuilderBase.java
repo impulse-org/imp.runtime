@@ -116,7 +116,7 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     private final IResourceDeltaVisitor fDeltaVisitor= new SourceDeltaVisitor();
 
-    protected IPreferencesService fPrefService= new PreferencesService(null, getPlugin().getLanguageID());
+    private IPreferencesService fPrefService;
 
     protected DependencyInfo fDependencyInfo;
 
@@ -293,6 +293,13 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
             fDependencyInfo.clearDependenciesOf(srcFile.getFullPath().toString());
         }
+    }
+
+    protected IPreferencesService getPreferencesService() {
+        if (fPrefService == null) {
+            fPrefService= new PreferencesService(null, getPlugin().getLanguageID());        
+        }
+        return fPrefService;
     }
 
     protected boolean getDiagPreference() {

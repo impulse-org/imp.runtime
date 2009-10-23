@@ -9,9 +9,6 @@
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
 *******************************************************************************/
 
-/*
- * Created on Oct 27, 2006
- */
 package org.eclipse.imp.editor;
 
 import java.util.ArrayList;
@@ -35,8 +32,7 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 
 public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
 
-    public AnnotationHoverBase() {
-    }
+    public AnnotationHoverBase() { }
 
     protected static boolean isRulerLine(Position position, IDocument document, int line) {
         if (position.getOffset() > -1 && position.getLength() > -1) {
@@ -135,7 +131,7 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
                 String message= annotation.getText();
 
                 if (message != null && message.trim().length() > 0)
-                    return formatSingleMessage(message);
+                    return HTMLPrinter.formatSingleMessage(message);
             } else {
                 List<String> messages= new ArrayList<String>(javaAnnotations.size());
 
@@ -146,57 +142,13 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
                 }
 
                 if (messages.size() == 1)
-                    return formatSingleMessage((String) messages.get(0));
+                    return HTMLPrinter.formatSingleMessage((String) messages.get(0));
 
                 if (messages.size() > 1)
-                    return formatMultipleMessages(messages);
+                    return HTMLPrinter.formatMultipleMessages(messages);
             }
         }
         return null;
-    }
-
-    /**
-     * Formats a message as HTML text.
-     */
-    public static String formatSingleMessage(String message) {
-        if (true) // until we hook in the HTML-enabled hover viewer
-            return message;
-        StringBuffer buffer= new StringBuffer();
-        HTMLPrinter.addPageProlog(buffer);
-        HTMLPrinter.addParagraph(buffer, HTMLPrinter.convertToHTMLContent(message));
-        HTMLPrinter.addPageEpilog(buffer);
-        return buffer.toString();
-    }
-
-    /**
-     * Formats several messages as HTML text.
-     */
-    public static String formatMultipleMessages(List<String> messages) {
-        // TODO Hook in the HTML-enabled hover viewer
-        if (true) { // until we hook in the HTML-enabled hover viewer
-            StringBuilder sb= new StringBuilder();
-
-            sb.append("Multiple messages:\n");
-            int idx= 0;
-            for(String msg: messages) {
-                if (idx++ > 0) { sb.append('\n'); }
-                sb.append("  ");
-                sb.append(msg);
-            }
-            return sb.toString();
-        }
-        StringBuffer buffer= new StringBuffer();
-        HTMLPrinter.addPageProlog(buffer);
-        HTMLPrinter.addParagraph(buffer, HTMLPrinter.convertToHTMLContent("Multiple messages at this line"));
-    
-        HTMLPrinter.startBulletList(buffer);
-        for(String msg: messages) {
-            HTMLPrinter.addBullet(buffer, HTMLPrinter.convertToHTMLContent(msg));
-        }
-        HTMLPrinter.endBulletList(buffer);
-    
-        HTMLPrinter.addPageEpilog(buffer);
-        return buffer.toString();
     }
 
     /**

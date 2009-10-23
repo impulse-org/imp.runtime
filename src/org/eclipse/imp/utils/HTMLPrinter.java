@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.utils;
@@ -15,7 +14,6 @@ package org.eclipse.imp.utils;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -211,26 +209,26 @@ public class HTMLPrinter {
     /**
      * Formats several messages as HTML text.
      */
-    public static String formatMultipleMessages(List/*<String>*/ messages) {
-        if (true) { // until we hook in the HTML-enabled hover viewer
-            StringBuffer buff= new StringBuffer();
-            buff.append("Multiple messages:\n");
-            for(Iterator iter= messages.iterator(); iter.hasNext();) {
-        	String msg= (String) iter.next();
-        	buff.append("  ");
-        	buff.append(msg);
-        	if (iter.hasNext())
-        	    buff.append('\n');
-            }
-            return buff.toString();
-        }
+    public static String formatMultipleMessages(List<String> messages) {
+//        if (true) { // until we hook in the HTML-enabled hover viewer
+//            StringBuilder sb= new StringBuilder();
+//
+//            sb.append("Multiple messages:\n");
+//            int idx= 0;
+//            for(String msg: messages) {
+//                if (idx++ > 0) { sb.append('\n'); }
+//                sb.append("  ");
+//                sb.append(msg);
+//            }
+//            return sb.toString();
+//        }
         StringBuffer buffer= new StringBuffer();
         addPageProlog(buffer);
-        addParagraph(buffer, convertToHTMLContent("There are multiple markers on this line."));
+        addParagraph(buffer, convertToHTMLContent("Multiple messages at this line."));
         startBulletList(buffer);
-        Iterator e= messages.iterator();
-        while (e.hasNext())
-            addBullet(buffer, convertToHTMLContent((String) e.next()));
+        for(String msg: messages) {
+            addBullet(buffer, convertToHTMLContent(msg));
+        }
         endBulletList(buffer);
         addPageEpilog(buffer);
         return buffer.toString();
@@ -240,8 +238,8 @@ public class HTMLPrinter {
      * Formats a message as HTML text.
      */
     public static String formatSingleMessage(String message) {
-        if (true) // until we hook in the HTML-enabled hover viewer
-            return message;
+//        if (true) // until we hook in the HTML-enabled hover viewer
+//            return message;
         StringBuffer buffer= new StringBuffer();
         addPageProlog(buffer);
         addParagraph(buffer, convertToHTMLContent(message));

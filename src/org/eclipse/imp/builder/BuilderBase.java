@@ -184,8 +184,8 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
 
     @SuppressWarnings("unchecked")
     protected IProject[] build(int kind, Map args, IProgressMonitor monitor) {
-        if (fPrefService.getProject() == null) {
-            fPrefService.setProject(getProject());
+        if (getPreferencesService().getProject() == null) {
+            getPreferencesService().setProject(getProject());
         }
 
         fChangedSources.clear();

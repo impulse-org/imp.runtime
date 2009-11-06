@@ -390,22 +390,44 @@ public class LanguageRegistry {
 	            mapping= new IMPFileEditorMapping(langName, ext, langIcon, bundleID);
 	        }
             IEditorDescriptor defaultEditor= mapping.getDefaultEditor();
+            FileEditorMapping fem= (FileEditorMapping) mapping;
 
             if (defaultEditor == null || defaultEditor.getId().equals("")) {
-                ((FileEditorMapping) mapping).setDefaultEditor((EditorDescriptor) sUniversalEditor);
+                fem.setDefaultEditor((EditorDescriptor) sUniversalEditor);
 	        } else {
 	        	// SMS 19 Nov 2008
 	        	// Revised else branch according to patch provided by Edward Willink
 	        	// Bug #242967, attachment id=109002
 	        	boolean gotIt = false;
-	        	for (IEditorDescriptor editor : mapping.getEditors()) {
+	        	for (IEditorDescriptor editor : fem.getEditors()) {
 	        	    if (editor == sUniversalEditor) {
 	        	    	gotIt = true;
 	        	    	break;
 	        	    }
 	        	}
-	        	if (!gotIt)
-	        		((FileEditorMapping) mapping).addEditor((EditorDescriptor) sUniversalEditor);
+	        	if (!gotIt) {
+	        	    // See whether there's an entry pointing to a UniversalEditor-derived class
+	        	    for(IEditorDescriptor editor: fem.getEditors()) {
+	        	        EditorDescriptor edDesc= (EditorDescriptor) editor;
+	        	        String edClassName= edDesc.getClassName();
+	        	        IConfigurationElement edElem= edDesc.getConfigurationElement();
+	        	        Bundle edBundle= Platform.getBundle(edElem.getNamespaceIdentifier());
+
+	        	        try {
+                            Class<?> edClass= edBundle.loadClass(edClassName);
+                            if (UniversalEditor.class.isAssignableFrom(edClass)) {
+                                gotIt= true;
+                                break;
+                            }
+                        } catch (ClassNotFoundException e) {
+
+                            e.printStackTrace();
+                        }
+	        	    }
+	        	}
+	        	if (!gotIt) {
+	        		fem.addEditor((EditorDescriptor) sUniversalEditor);
+	        	}
 	        }
 	        newMap.add(mapping);
 	    }

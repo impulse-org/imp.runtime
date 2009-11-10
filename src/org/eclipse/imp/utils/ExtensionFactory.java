@@ -94,7 +94,7 @@ public class ExtensionFactory {
     }
 
     /**
-     * Locate the first extension that matches this language, plugin, and extensionpoint id,
+     * Locate the first extension that matches this language, plugin, and extension point id,
      * then load a class from the element named 'elementName', and return a handle to an
      * object of this class.
      * 
@@ -130,7 +130,7 @@ public class ExtensionFactory {
     }
 
     /**
-     * Detmermine wether a language was declared to be derived from another language,
+     * Determine whether a language was declared to be derived from another language,
      * and whether this other language actually is registered.
      * @param language
      * @return
@@ -159,7 +159,7 @@ public class ExtensionFactory {
 
     /**
      * Find all extensions that match this pluginId, language and extension point id,
-     * then loads the classes that implement these extenstions and returns them as 
+     * then loads the classes that implement these extensions and returns them as 
      * a set of ILanguageServices.
      * 
      * @param language
@@ -269,7 +269,7 @@ public class ExtensionFactory {
     }
 
     /**
-     * Locates the first element that matches the ,anguage and the elementName, 
+     * Locates the first element that matches the language and the elementName, 
      * and tries to load a language service from it.
      * 
      * @param extensionPoint
@@ -298,7 +298,7 @@ public class ExtensionFactory {
     }
 
     /**
-     * Convenience method for actuallys creating an object from an element in an
+     * Convenience method for actually creating an object from an element in an
      * extension point. Catches common exceptions that may be thrown and tries to
      * translate them into ServiceExceptions.
      * 
@@ -309,52 +309,51 @@ public class ExtensionFactory {
      * @return
      * @throws ExtensionException
      */
-    @SuppressWarnings("deprecation")
     private static ILanguageService loadLanguageService(IExtensionPoint extensionPoint, String language, String elementName, IConfigurationElement element) throws ExtensionException {
-        Bundle bundle = Platform.getBundle(element
-                .getDeclaringExtension().getNamespace());
+        Bundle bundle = Platform.getBundle(element.getDeclaringExtension().getNamespaceIdentifier());
         String lowerLang = language.toLowerCase();
 
         if (bundle != null) {
-            final String attrValue = element
-                    .getAttribute(Language.LANGUAGE_ID_ATTR);
+            final String attrValue = element.getAttribute(Language.LANGUAGE_ID_ATTR);
 
-            if (attrValue != null
-                    && lowerLang.equals(attrValue.toLowerCase())) {
+            if (attrValue != null && lowerLang.equals(attrValue.toLowerCase())) {
                 try {
-                    return (ILanguageService) element
-                            .createExecutableExtension(elementName);
+                    return (ILanguageService) element.createExecutableExtension(elementName);
                 } catch (ClassCastException e) {
-                    throw new ExtensionException(
+                    logException(new ExtensionException(
                             "Extension does not point to a class that implements an ILanguageService:"
-                                    + element, e);
+                                    + element, e));
                 } catch (IncompatibleClassChangeError e) {
-                    throw new ExtensionException("Unable to instantiate implementation of "
+                    logException(new ExtensionException("Unable to instantiate implementation of "
                             + extensionPoint.getLabel()
                             + " plugin for language '"
                             + language
-                            + "' because some class in the plugin is incompatible (out-of-date)", e);
+                            + "' because some class in the plugin is incompatible (out-of-date)", e));
                 } catch (CoreException e) {
-                    throw new ExtensionException(
+                    logException(new ExtensionException(
                             "Unable to instantiate implementation of "
                                     + extensionPoint.getLabel()
                                     + " plugin for language '"
                                     + language
                                     + "' because of the following low level exception: "
-                                    + e.getStatus().getException(), e);
+                                    + e.getStatus().getException(), e));
                 } catch (NoClassDefFoundError e) {
-                    throw new ExtensionException(
+                    logException(new ExtensionException(
                             "Unable to instantiate implementation of "
                                     + extensionPoint.getLabel()
                                     + " plugin for language '"
                                     + language
                                     + "' because it may not have a public zero argument constructor, or some class referenced by the plugin could not be found in the class path.",
-                            e);
+                            e));
                 }
             }
         }
         
         return null;
+    }
+
+    private static void logException(ExtensionException extensionException) {
+        RuntimePlugin.getInstance().logException(extensionException.getMessage(), extensionException);
     }
 
     /**

@@ -137,9 +137,26 @@
             contextId="org.eclipse.ui.textEditorScope"
             commandId="org.eclipse.imp.runtime.editor.gotoMatchingFence"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M1+M3+T"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.refactor.quickMenu"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
+      <category
+            id="org.eclipse.imp.runtime.source"
+            name="Source"/>
+      <category
+            id="org.eclipse.imp.runtime.refactor"
+            name="Refactor"/>
+      <command
+            name="Refactor"
+            description="Show Refactor Quick Menu"
+            categoryId="org.eclipse.imp.runtime.refactor"
+            id="org.eclipse.imp.runtime.editor.refactor.quickMenu">
+      </command>
       <command
             categoryId="org.eclipse.ui.category.navigate"
             description="Show the quick outline for the editor input"
@@ -179,9 +196,6 @@
             id="org.eclipse.imp.runtime.editor.indentSelection"
             name="Indent Selection">
       </command>
-      <category
-            id="org.eclipse.imp.runtime.source"
-            name="Source"/>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">

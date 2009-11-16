@@ -36,6 +36,7 @@ import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.debug.ui.actions.ToggleBreakpointAction;
 import org.eclipse.help.IContextProvider;
 import org.eclipse.imp.actions.OpenAction;
+import org.eclipse.imp.actions.QuickMenuAction;
 import org.eclipse.imp.actions.RulerEnableDisableBreakpointAction;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.internal.AnnotationCreator;
@@ -84,6 +85,7 @@ import org.eclipse.jface.action.IStatusLineManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
@@ -159,6 +161,8 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
+import org.eclipse.ui.handlers.IHandlerActivation;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
@@ -323,8 +327,33 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction(GOTO_MATCHING_FENCE_COMMAND, action);
 
         FoldingActionGroup foldingGroup= new FoldingActionGroup(this, this.getSourceViewer());
+
+        installQuickAccessAction();
     }
 
+    private QuickMenuAction fQuickAccessAction;
+    private IHandlerActivation fQuickAccessHandlerActivation;
+    private IHandlerService fHandlerService;
+
+    private static final String QUICK_MENU_ID= "org.eclipse.imp.runtime.editor.refactor.quickMenu"; //$NON-NLS-1$
+
+    private class RefactorQuickAccessAction extends QuickMenuAction {
+        public RefactorQuickAccessAction() {
+            super(QUICK_MENU_ID);
+        }
+        protected void fillMenu(IMenuManager menu) {
+            contributeRefactoringActions(menu);
+        }
+    }
+
+    private void installQuickAccessAction() {
+        fHandlerService= (IHandlerService) getSite().getService(IHandlerService.class);
+        if (fHandlerService != null) {
+            fQuickAccessAction= new RefactorQuickAccessAction();
+            fQuickAccessHandlerActivation= fHandlerService.activateHandler(fQuickAccessAction.getActionDefinitionId(), new ActionHandler(fQuickAccessAction));
+        }
+    }
+    
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
         menu.add(new OpenAction(this));
         super.editorContextMenuAboutToShow(menu);

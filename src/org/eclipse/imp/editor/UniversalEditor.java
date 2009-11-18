@@ -706,9 +706,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     private void findLanguageSpecificPreferences() {
-        IProject project= fLanguageServiceManager.getParseController().getProject().getRawProject();
+        ISourceProject srcProject = fLanguageServiceManager.getParseController().getProject();
+        
+        if (srcProject != null) {
+        	IProject project= srcProject.getRawProject();
 
-        fLangSpecificPrefs= new PreferencesService(project, fLanguage.getName());
+        	fLangSpecificPrefs= new PreferencesService(project, fLanguage.getName());
+        }
     }
 
     private void setupSourcePrefListeners() {

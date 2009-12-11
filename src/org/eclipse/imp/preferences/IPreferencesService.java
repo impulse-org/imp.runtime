@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences;
@@ -17,11 +16,11 @@ import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.IPreferenceChangeListener;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences.PreferenceChangeEvent;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
-
 /**
- * 
  * Miscellaneous notes:
  * - Assumes that there is a "current language" that is an implicit
  *   qualifier for all preferences
@@ -36,11 +35,8 @@ import org.osgi.service.prefs.Preferences;
  *   are effective
  *   
  * @author sutton
- *
  */
-
 public interface IPreferencesService {
-
 	/*	
 	 * Levels at which preferences are supported
 	 */
@@ -394,9 +390,20 @@ public interface IPreferencesService {
         }
 
         public void dispose() {
-            fConfigLevel.removePreferenceChangeListener(this);
-            fWSLevel.removePreferenceChangeListener(this);
-            fProjLevel.removePreferenceChangeListener(this);
+        	// RMF Fix for bug #297603: check that the pref nodes exist before attempting to unregister
+        	try {
+	        	if (fConfigLevel.nodeExists("")) {
+	        		fConfigLevel.removePreferenceChangeListener(this);
+	        	}
+	        	if (fWSLevel.nodeExists("")) {
+	        		fWSLevel.removePreferenceChangeListener(this);
+	        	}
+	        	if (fProjLevel.nodeExists("")) {
+	        		fProjLevel.removePreferenceChangeListener(this);
+	        	}
+        	} catch (BackingStoreException e) {
+        		RuntimePlugin.getInstance().logException(e.getMessage(), e);
+        	}
         }
 
         protected abstract void handleChange(Object oldValue, Object newValue);

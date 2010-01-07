@@ -231,11 +231,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private PreferenceServiceListener fTabListener;
 
-    private IAction fToggleBreakpointAction;
+    private ToggleBreakpointAction fToggleBreakpointAction;
 
     private IAction fEnableDisableBreakpointAction;
 
     private ToggleBreakpointsAdapter fBreakpointHandler;
+
+    private IResourceChangeListener fResourceListener;
+
+    private IDocumentListener fDocumentListener;
+
+    private FoldingActionGroup fFoldingActionGroup;
 
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
@@ -326,7 +332,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);
         setAction(GOTO_MATCHING_FENCE_COMMAND, action);
 
-        FoldingActionGroup foldingGroup= new FoldingActionGroup(this, this.getSourceViewer());
+        fFoldingActionGroup= new FoldingActionGroup(this, this.getSourceViewer());
 
         installQuickAccessAction();
     }
@@ -748,7 +754,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         IDocument doc= getDocumentProvider().getDocument(getEditorInput());
 
-        doc.addDocumentListener(new IDocumentListener() {
+        doc.addDocumentListener(fDocumentListener= new IDocumentListener() {
             public void documentAboutToBeChanged(DocumentEvent event) {}
             public void documentChanged(DocumentEvent event) {
                 fParserScheduler.cancel();
@@ -862,7 +868,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             fLanguageServiceManager.getParseController().getProject() == null) {
             return;
         }
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(new IResourceChangeListener() {
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(fResourceListener= new IResourceChangeListener() {
             public void resourceChanged(IResourceChangeEvent event) {
                 if (event.getType() != IResourceChangeEvent.POST_CHANGE)
                     return;
@@ -1098,7 +1104,19 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
           fActionBars.dispose();
           fActionBars = null;
         }
-        
+
+        getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(fDocumentListener);
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
+
+        fLanguageServiceManager.dispose();
+        fToggleBreakpointAction.dispose(); // this holds onto the IDocument
+        fFoldingActionGroup.dispose();
+
+        fServiceControllerManager= null;
+        fParserScheduler.cancel(); // avoid unnecessary work after the editor is asked to close down
+        fParserScheduler= null;
+        ((StructuredSourceViewer) getSourceViewer()).setParseController(null);
+
         super.dispose();
     }
 
@@ -1580,23 +1598,24 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 
                 IInformationProvider provider= new IInformationProvider() { // this should be language-specific
-                    private IDocumentationProvider fDocProvider= fLanguageServiceManager.getDocProvider();
-                    private IParseController fParseController= fLanguageServiceManager.getParseController();
-                    private ISourcePositionLocator fNodeLocator= (fParseController != null) ? fParseController.getSourcePositionLocator() : null;
-
                     public IRegion getSubject(ITextViewer textViewer, int offset) {
-                        if (fNodeLocator == null) {
+                        IParseController pc= fLanguageServiceManager.getParseController();
+                        ISourcePositionLocator locator= pc.getSourcePositionLocator();
+                        if (locator == null) {
                             return new Region(offset, 0);
                         }
-                        Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), offset);
-                        return new Region(fNodeLocator.getStartOffset(selNode), fNodeLocator.getLength(selNode));
+                        Object selNode= locator.findNode(pc, offset);
+                        return new Region(locator.getStartOffset(selNode), locator.getLength(selNode));
                     }
                     public String getInformation(ITextViewer textViewer, IRegion subject) {
-                        if (fNodeLocator == null) {
+                        IParseController pc= fLanguageServiceManager.getParseController();
+                        ISourcePositionLocator locator= pc.getSourcePositionLocator();
+                        if (locator == null) {
                             return "";
                         }
-                        Object selNode= fNodeLocator.findNode(fParseController.getCurrentAst(), subject.getOffset());
-                        return (fDocProvider != null) ? fDocProvider.getDocumentation(selNode, fParseController) : "No documentation available on the selected entity.";
+                        IDocumentationProvider docProvider= fLanguageServiceManager.getDocProvider();
+                        Object selNode= locator.findNode(pc.getCurrentAst(), subject.getOffset());
+                        return (docProvider != null) ? docProvider.getDocumentation(selNode, pc) : "No documentation available on the selected entity.";
                     }
                 };
                 fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);

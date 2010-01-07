@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
@@ -30,17 +29,17 @@ public class CompletionProcessor implements IContentAssistProcessor, IModelListe
 
     private ICompletionProposal[] NO_COMPLETIONS= new ICompletionProposal[0];
 
-    private IParseController parseController;
-
     private final Language fLanguage;
 
-    private IContentProposer contentProposer;
+    private IParseController fParseController;
+
+    private IContentProposer fContentProposer;
 
     // private HippieProposalProcessor hippieProcessor= new HippieProposalProcessor();
 
     public CompletionProcessor(Language language) {
-        contentProposer= ServiceFactory.getInstance().getContentProposer(language);
         fLanguage= language;
+        fContentProposer= ServiceFactory.getInstance().getContentProposer(fLanguage);
     }
 
     public AnalysisRequired getAnalysisRequired() {
@@ -49,8 +48,8 @@ public class CompletionProcessor implements IContentAssistProcessor, IModelListe
 
     public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
         try {
-            if (parseController != null && contentProposer != null) {
-                return contentProposer.getContentProposals(parseController, offset, viewer);
+            if (fParseController != null && fContentProposer != null) {
+                return fContentProposer.getContentProposals(fParseController, offset, viewer);
             }
             // TODO Once we move to 3.2, delegate to the HippieProposalProcessor
             // return hippieProcessor.computeCompletionProposals(viewer, offset);
@@ -81,10 +80,18 @@ public class CompletionProcessor implements IContentAssistProcessor, IModelListe
     }
 
     public void update(IParseController parseController, IProgressMonitor monitor) {
-        this.parseController= parseController;
+        fParseController= parseController;
+    }
+
+    // RMF 7 Jan 2010 - It seems that JFace caches our CompletionProcessor, and doesn't
+    // get rid of the reference when the IMP editor closes. So, to avoid memory leaks,
+    // we define a dispose() method here, to be called when the IMP editor is closed.
+    public void dispose() {
+        fParseController= null;
+        fContentProposer= null;
     }
 
     public String toString() {
-        return "Completion processor for " + fLanguage.getName() + " on " + parseController.getPath().toPortableString();
+        return "Completion processor for " + fLanguage.getName() + " on " + fParseController.getPath().toPortableString();
     }
 }

@@ -45,54 +45,56 @@ import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
+import org.eclipse.ui.IPartListener;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.PlatformUI;
 
 public class LanguageServiceManager {
     private Language fLanguage;
 
     private ServiceFactory fServiceFactory = ServiceFactory.getInstance();
 
-    private IParseController fParseController;
-
-    private ITokenColorer fTokenColorer;
-
-    private IReferenceResolver fResolver;
+    private Set<ILanguageActionsContributor> fActionContributors;
 
     private IAnnotationHover fAnnotationHover;
-
-    private IHoverHelper fHoverHelper;
-
-    private ILabelProvider fLabelProvider;
-
-    private IElementImageProvider fImageProvider;
-
-    private TreeModelBuilderBase fModelBuilder;
-
-    private IOccurrenceMarker fOccurrenceMarker;
-
-    private ISourceHyperlinkDetector fHyperLinkDetector;
-
-    private IFoldingUpdater fFoldingUpdater;
-
-    private ISourceFormatter fFormattingStrategy;
 
     private Set<IAutoEditStrategy> fAutoEditStrategies;
 
     private IContentProposer fContentProposer;
 
-    private Set<IRefactoringContributor> fRefactoringContributors;
-
-    private Set<ILanguageActionsContributor> fActionContributors;
+    private IHelpService fContextHelper;
 
     private IDocumentationProvider fDocProvider;
 
     private Set<IModelListener> fEditorServices;
 
-    private IHelpService fContextHelper;
+    private IEntityNameLocator fEntityNameLocator;
+
+    private IFoldingUpdater fFoldingUpdater;
+
+    private ISourceFormatter fFormattingStrategy;
+
+    private IHoverHelper fHoverHelper;
+
+    private ISourceHyperlinkDetector fHyperLinkDetector;
+
+    private IElementImageProvider fImageProvider;
+
+    private ILabelProvider fLabelProvider;
+
+    private TreeModelBuilderBase fModelBuilder;
+
+    private IOccurrenceMarker fOccurrenceMarker;
+
+    private IParseController fParseController;
+
+    private Set<IRefactoringContributor> fRefactoringContributors;
+
+    private IReferenceResolver fResolver;
 
     private IToggleBreakpointsHandler fToggleBreakpointsHandler;
 
-    private IEntityNameLocator fEntityNameLocator;
+    private ITokenColorer fTokenColorer;
 
     public LanguageServiceManager(Language lang) {
         fLanguage= lang;
@@ -110,19 +112,19 @@ public class LanguageServiceManager {
         fContextHelper= fServiceFactory.getContextHelper(fLanguage);
         fDocProvider= fServiceFactory.getDocumentationProvider(fLanguage);
         fEditorServices= fServiceFactory.getEditorServices(fLanguage);
+        fEntityNameLocator= fServiceFactory.getEntityNameLocator(fLanguage);
         fFoldingUpdater= fServiceFactory.getFoldingUpdater(fLanguage);
         fFormattingStrategy= fServiceFactory.getSourceFormatter(fLanguage);
         fHyperLinkDetector= fServiceFactory.getSourceHyperlinkDetector(fLanguage);
         fImageProvider= fServiceFactory.getElementImageProvider(fLanguage);
-        fModelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
         fLabelProvider= fServiceFactory.getLabelProvider(fLanguage);
+        fModelBuilder= fServiceFactory.getTreeModelBuilder(fLanguage);
         fOccurrenceMarker = fServiceFactory.getOccurrenceMarker(fLanguage);
         fParseController= fServiceFactory.getParseController(fLanguage);
         fRefactoringContributors= fServiceFactory.getRefactoringContributors(fLanguage);
         fResolver= fServiceFactory.getReferenceResolver(fLanguage);
         fToggleBreakpointsHandler= fServiceFactory.getToggleBreakpointsHandler(fLanguage);
         fTokenColorer= fServiceFactory.getTokenColorer(fLanguage);
-        fEntityNameLocator= fServiceFactory.getEntityNameLocator(fLanguage);
 
         if (fHyperLinkDetector == null)
             fHyperLinkDetector= new HyperlinkDetector(fLanguage);
@@ -131,6 +133,29 @@ public class LanguageServiceManager {
             ErrorHandler.reportError("Unable to instantiate parser for language '" + fLanguage.getName()
                     + "'; parser-related services will be disabled.", true, true);
         }
+    }
+
+    public void dispose() {
+        fActionContributors= null;
+        fAnnotationHover= null;
+        fAutoEditStrategies= null;
+        fContentProposer= null;
+        fContextHelper= null;
+        fDocProvider= null;
+        fEditorServices= null;
+        fEntityNameLocator= null;
+        fFoldingUpdater= null;
+        fFormattingStrategy= null;
+        fHyperLinkDetector= null;
+        fImageProvider= null;
+        fLabelProvider= null;
+        fModelBuilder= null;
+        fOccurrenceMarker = null;
+        fParseController= null;
+        fRefactoringContributors= null;
+        fResolver= null;
+        fToggleBreakpointsHandler= null;
+        fTokenColorer= null;
     }
 
     public Language getLanguage() {
@@ -221,17 +246,33 @@ public class LanguageServiceManager {
     }
 
     private static HashMap<IEditorPart, LanguageServiceManager> editorServiceMap = new HashMap<IEditorPart, LanguageServiceManager>();
-    
+
+    static {
+        // Clean up editor references in the editorServiceMap when that editor gets closed.
+        PlatformUI.getWorkbench().getActiveWorkbenchWindow().getPartService().addPartListener(new IPartListener() {
+            public void partOpened(IWorkbenchPart part) { }
+            public void partDeactivated(IWorkbenchPart part) { }
+            public void partBroughtToTop(IWorkbenchPart part) { }
+            public void partActivated(IWorkbenchPart part) { }
+            
+            public void partClosed(IWorkbenchPart part) {
+                if (part instanceof UniversalEditor) {
+                    editorServiceMap.remove(part);
+                }
+            }
+        });
+    }
+
     public static void saveMyServiceManager(IEditorPart part, LanguageServiceManager manager) {
     	clearDeadEntries();
     	editorServiceMap.put(part, manager);
     }
-    
+
     public static LanguageServiceManager getMyServiceManager(IEditorPart part) {
     	clearDeadEntries();
     	return editorServiceMap.get(part);
     }
-    
+
     private static void clearDeadEntries() {
         List<IEditorPart> deadEditors = new ArrayList<IEditorPart>();
         for (IEditorPart edPart: editorServiceMap.keySet()) {

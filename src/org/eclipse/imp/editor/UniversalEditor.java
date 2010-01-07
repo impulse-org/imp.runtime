@@ -1111,6 +1111,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fLanguageServiceManager.dispose();
         fToggleBreakpointAction.dispose(); // this holds onto the IDocument
         fFoldingActionGroup.dispose();
+        fServiceControllerManager.getCompletionProcessor().dispose();
 
         fServiceControllerManager= null;
         fParserScheduler.cancel(); // avoid unnecessary work after the editor is asked to close down
@@ -1829,7 +1830,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // annotations after every update to the document annotation model
             // since there will be many of these, including possibly many that
             // don't relate to problem markers.
-            final IAnnotationTypeInfo annotationTypeInfo= fLanguageServiceManager.getParseController().getAnnotationTypeInfo();
+            final IAnnotationTypeInfo annotationTypeInfo= parseController.getAnnotationTypeInfo();
             if (annotationTypeInfo != null) {
                 List problemMarkerTypes = annotationTypeInfo.getProblemMarkerTypes();
                 for (int i = 0; i < problemMarkerTypes.size(); i++) {

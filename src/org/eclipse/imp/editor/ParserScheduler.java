@@ -73,6 +73,9 @@ public class ParserScheduler extends Job {
         try {
             IDocument document= fDocumentProvider.getDocument(editorInput);
 
+            if (document == null)
+                return Status.OK_STATUS;
+
             if (PreferenceCache.emitMessages /* fPrefService.getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES) */) {
                 RuntimePlugin.getInstance().writeInfoMsg(
                         "Parsing language " + fParseController.getLanguage().getName() + " for input " + editorInput.getName());

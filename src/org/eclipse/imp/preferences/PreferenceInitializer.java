@@ -27,27 +27,31 @@ import org.eclipse.ui.PlatformUI;
  */
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
     public void initializeDefaultPreferences() {
-        ColorRegistry registry= null;
-        if (PlatformUI.isWorkbenchRunning())
-                registry= PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
-        IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
+        PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+            public void run() {
+                ColorRegistry registry= null;
+                if (PlatformUI.isWorkbenchRunning())
+                        registry= PlatformUI.getWorkbench().getThemeManager().getCurrentTheme().getColorRegistry();
+                IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
 
-        store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
-        store.setDefault(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS, false);
+                store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
+                store.setDefault(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS, false);
 
-        // RMF 7/16/2008 - Somehow JFaceResources.getFont(symbolicName) and JFaceResources.getFontDescriptor()
-        // return different answers. Seems that getFontDescriptor() gives us a better answer, though.
-        FontData[] fontData= JFaceResources.getFontDescriptor("org.eclipse.jdt.ui.editors.textfont").getFontData();
+                // RMF 7/16/2008 - Somehow JFaceResources.getFont(symbolicName) and JFaceResources.getFontDescriptor()
+                // return different answers. Seems that getFontDescriptor() gives us a better answer, though.
+                FontData[] fontData= JFaceResources.getFontDescriptor("org.eclipse.jdt.ui.editors.textfont").getFontData();
 
-        if (fontData != null && fontData.length > 0)
-            PreferenceConverter.setDefault(store, PreferenceConstants.P_SOURCE_FONT, fontData);
+                if (fontData != null && fontData.length > 0)
+                    PreferenceConverter.setDefault(store, PreferenceConstants.P_SOURCE_FONT, fontData);
 
-        store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
-        store.setDefault(PreferenceConstants.P_DUMP_TOKENS, false);
-        store.setDefault(PreferenceConstants.EDITOR_MATCHING_BRACKETS, true);
+                store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
+                store.setDefault(PreferenceConstants.P_DUMP_TOKENS, false);
+                store.setDefault(PreferenceConstants.EDITOR_MATCHING_BRACKETS, true);
 
-        PreferenceConverter.setDefault(store, PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR,
-                findRGB(registry, RuntimePlugin.IMP_RUNTIME + "." + PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR, new RGB(192, 192,192)));
+                PreferenceConverter.setDefault(store, PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR,
+                        findRGB(registry, RuntimePlugin.IMP_RUNTIME + "." + PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR, new RGB(192, 192,192)));
+            }
+        });
     }
 
     /**

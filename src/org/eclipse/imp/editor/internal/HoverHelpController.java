@@ -7,7 +7,6 @@
  *
  * Contributors:
  *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
  *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
@@ -62,7 +61,7 @@ public class HoverHelpController implements ITextHover, IModelListener {
 
             return help;
         } catch (Throwable e) {
-            ErrorHandler.reportError("Universal Editor Error", e);
+            ErrorHandler.reportError("Hover help service implementation threw an exception", e);
         }
         return null;
     }

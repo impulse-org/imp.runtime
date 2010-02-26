@@ -19,6 +19,7 @@ import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IEntityNameLocator;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IToolBarManager;
@@ -45,15 +46,18 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
     private final IElementImageProvider fImageProvider;
     private final IParseController fParseController;
     private final IRegionSelectionService regionSelector;
+    private final IEntityNameLocator fNameLocator;
 
     public IMPOutlinePage(IParseController parseController,
             TreeModelBuilderBase modelBuilder,
             ILabelProvider labelProvider, IElementImageProvider imageProvider,
+            IEntityNameLocator nameLocator,
             IRegionSelectionService regionSelector) {
         fParseController= parseController;
         fModelBuilder= modelBuilder;
         fLabelProvider= labelProvider;
         fImageProvider= imageProvider;
+        fNameLocator= nameLocator;
         
         // SMS 21 Aug 2008
         if (regionSelector != null)
@@ -115,9 +119,15 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
         if (sel.isEmpty())
             return;
 
-        ModelTreeNode first= (ModelTreeNode) sel.getFirstElement();
+        ModelTreeNode selNode= (ModelTreeNode) sel.getFirstElement();
         ISourcePositionLocator locator= fParseController.getSourcePositionLocator();
-        Object node= first.getASTNode();
+        Object node= selNode.getASTNode();
+        if (fNameLocator != null) {
+            Object name= fNameLocator.getName(node);
+            if (name != null) {
+                node= name;
+            }
+        }
         int startOffset= locator.getStartOffset(node);
         int endOffset= locator.getEndOffset(node);
         int length= endOffset - startOffset + 1;

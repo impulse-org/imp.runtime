@@ -58,7 +58,7 @@ public class ServiceControllerManager {
 
         if (fLanguageServiceManager.getModelBuilder() != null) {
             fOutlineController= new IMPOutlinePage(fLanguageServiceManager.getParseController(), fLanguageServiceManager.getModelBuilder(), fLanguageServiceManager.getLabelProvider(),
-                    fLanguageServiceManager.getImageProvider(), regionSelector);
+                    fLanguageServiceManager.getImageProvider(), fLanguageServiceManager.getEntityNameLocator(), regionSelector);
         } else {
             fOutlineController= new OutlineController(fTextEditor, fLanguageServiceManager.getLanguage());
         }

@@ -20,6 +20,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.core.ErrorHandler;
+import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
@@ -88,7 +89,10 @@ public class ParserScheduler extends Job {
             if (!monitor.isCanceled())
                 notifyModelListeners(monitor);
         } catch (Exception e) {
-            ErrorHandler.reportError("Error running parser for language " + fParseController.getLanguage().getName() + " and input " + editorInput.getName() + ":", e);
+        	Language lang = fParseController.getLanguage();
+        	String input = editorInput != null ? editorInput.getName() : "<unknown editor input";
+        	String name = lang != null ? lang.getName() : "<unknown language>";
+            ErrorHandler.reportError("Error running parser for language " + name + " and input " + input + ":", e);
             // RMF 8/2/2006 - Notify the AST listeners even on an exception - the compiler front end
             // may have failed at some phase, but there may be enough info to drive IDE services.
             notifyModelListeners(monitor);

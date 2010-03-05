@@ -67,6 +67,10 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
         }
     }
 
+    /**
+     * Note: the derived class constructor should instantiate the lexer and parser
+     * and store them in fLexer/fParser.
+     */
     public SimpleLPGParseController(String languageID) {
         super(languageID);
     }
@@ -84,6 +88,27 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
             fSourcePositionLocator= new LPGSourcePositionLocator(this);
         }
         return fSourcePositionLocator;
+    }
+
+    public Object parse(String contents, IProgressMonitor monitor) {
+        PMMonitor my_monitor = new PMMonitor(monitor);
+        char[] contentsArray = contents.toCharArray();
+
+        fLexer.reset(contentsArray, (fFilePath != null ? fFilePath.toPortableString() : null));
+        fParser.reset(fLexer.getILexStream());
+        fParser.getIPrsStream().setMessageHandler(new MessageHandlerAdapter(handler));
+
+        // RMF 1 Mar 2010: Don't do any resource-related operations, like clearing markers: what we're parsing may not come from a resource.
+        
+        fLexer.lexer(my_monitor, fParser.getIPrsStream()); // Lex the stream to produce the token stream
+        if (my_monitor.isCancelled())
+            return fCurrentAst; // TODO currentAst might (probably will) be inconsistent wrt the lex stream now
+
+        fCurrentAst = fParser.parser(my_monitor, 0);
+
+        cacheKeywordsOnce(); // better place/time to do this?
+
+        return fCurrentAst;
     }
 
     public Iterator<IToken> getTokenIterator(final IRegion region) {

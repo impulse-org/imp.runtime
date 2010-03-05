@@ -21,6 +21,8 @@ public class MessageHandlerAdapter implements lpg.runtime.IMessageHandler {
     }
 
     public void handleMessage(int errorCode, int[] msgLocation, int[] errorLocation, String filename, String[] errorInfo) {
+        if (fIMPHandler == null) // there might be no IMP msg handler if we're parsing on behalf of the structure compare view
+            return;
         int startOffset= msgLocation[lpg.runtime.IMessageHandler.OFFSET_INDEX];
         int length= msgLocation[lpg.runtime.IMessageHandler.LENGTH_INDEX];
         int startLine= msgLocation[lpg.runtime.IMessageHandler.START_LINE_INDEX];

@@ -27,6 +27,7 @@ import org.eclipse.ui.PlatformUI;
  */
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
     public void initializeDefaultPreferences() {
+        // Run the following code on the UI thread - JFaceResources.getFontDescriptor() requires it
         PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
             public void run() {
                 ColorRegistry registry= null;

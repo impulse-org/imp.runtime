@@ -27,6 +27,7 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTAdapter;
 import org.eclipse.imp.services.IAnnotationHover;
 import org.eclipse.imp.services.IAutoEditStrategy;
+import org.eclipse.imp.services.ICompareNodeIdentifier;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IEntityImageDecorator;
@@ -88,6 +89,8 @@ public class ServiceFactory {
 	static final String ANNOTATION_HOVER_SERVICE = "annotationHover";
 
 	static final String AST_ADAPTER_SERVICE = "astAdapter";
+
+    static final String COMPARE_NODE_IDENTIFIER_SERVICE = "compareNodeIdentifier";
 
 	static final String CONTENT_PROPOSER_SERVICE = "contentProposer";
 
@@ -193,7 +196,7 @@ public class ServiceFactory {
             return (IAnnotationHover) loadService(lang, ANNOTATION_HOVER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of ANNOTATION_HOVER_SERVICE does not implement IAnnotationHover",
+                    "Alleged implementation of " + ANNOTATION_HOVER_SERVICE + " does not implement IAnnotationHover",
                     e);
             return null;
         }
@@ -204,7 +207,7 @@ public class ServiceFactory {
             return (IASTAdapter) loadService(lang, AST_ADAPTER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of AST_ADAPTER_SERVICE does not implement IASTAdapter",
+                    "Alleged implementation of " + AST_ADAPTER_SERVICE + " does not implement IASTAdapter",
                     e);
             return null;
         }
@@ -222,7 +225,18 @@ public class ServiceFactory {
             return autoEditStrategies;
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of AUTO_EDIT_SERVICE does not implement IAutoEditStrategy",
+                    "Alleged implementation of " + AUTO_EDIT_STRATEGY_SERVICE + " does not implement IAutoEditStrategy",
+                    e);
+            return null;
+        }
+    }
+
+    public ICompareNodeIdentifier getCompareNodeIdentifier(Language lang) {
+        try {
+            return (ICompareNodeIdentifier) loadService(lang, COMPARE_NODE_IDENTIFIER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of " + COMPARE_NODE_IDENTIFIER_SERVICE + " does not implement ICompareNodeIdentifier",
                     e);
             return null;
         }
@@ -233,7 +247,7 @@ public class ServiceFactory {
             return (IContentProposer) loadService(lang, CONTENT_PROPOSER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of CONTENT_PROPOSER_SERVICE does not implement IContentProposer",
+                    "Alleged implementation of " + CONTENT_PROPOSER_SERVICE + " does not implement IContentProposer",
                     e);
             return null;
         }
@@ -244,7 +258,7 @@ public class ServiceFactory {
             return (IHelpService) loadService(lang, CONTEXT_HELPER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of CONTEXT_HELPER_SERVICE does not implement IHelpService",
+                    "Alleged implementation of " + CONTEXT_HELPER_SERVICE + " does not implement IHelpService",
                     e);
             return null;
         }
@@ -255,7 +269,7 @@ public class ServiceFactory {
             return (IDocumentationProvider) loadService(lang, DOCUMENTATION_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of DOCUMENTATION_PROVIDER_SERVICE does not implement IDocumentationProvider",
+                    "Alleged implementation of " + DOCUMENTATION_PROVIDER_SERVICE + " does not implement IDocumentationProvider",
                     e);
             return null;
         }
@@ -274,7 +288,7 @@ public class ServiceFactory {
             return (IElementImageProvider) loadService(lang, IMAGE_DECORATOR_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of IMAGE_DECORATOR_SERVICE does not implement IElementImageProvider",
+                    "Alleged implementation of " + IMAGE_DECORATOR_SERVICE + " does not implement IElementImageProvider",
                     e);
             return null;
         }
@@ -285,7 +299,7 @@ public class ServiceFactory {
             return (IEntityImageDecorator) loadService(lang, ENTITY_IMAGE_DECORATOR_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of ENTITY_IMAGE_DECORATOR_SERVICE does not implement IEntityImageDecorator",
+                    "Alleged implementation of " + ENTITY_IMAGE_DECORATOR_SERVICE + " does not implement IEntityImageDecorator",
                     e);
             return null;
         }
@@ -296,7 +310,7 @@ public class ServiceFactory {
             return (IEntityNameLocator) loadService(lang, ENTITY_NAME_LOCATOR_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of ENTITY_NAME_LOCATOR_SERVICE does not implement IEntityNameLocator",
+                    "Alleged implementation of " + ENTITY_NAME_LOCATOR_SERVICE + " does not implement IEntityNameLocator",
                     e);
             return null;
         }
@@ -307,7 +321,7 @@ public class ServiceFactory {
             return (IFoldingUpdater) loadService(lang, FOLDING_UPDATER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of FOLDING_SERVICE does not implement IFoldingUpdater",
+                    "Alleged implementation of " + FOLDING_UPDATER_SERVICE + " does not implement IFoldingUpdater",
                     e);
             return null;
         }
@@ -318,7 +332,7 @@ public class ServiceFactory {
             return (IHoverHelper) loadService(lang, HOVER_HELPER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of HOVER_HELPER_SERVICE does not implement IHoverHelper",
+                    "Alleged implementation of " + HOVER_HELPER_SERVICE + " does not implement IHoverHelper",
                     e);
             return null;
         }
@@ -330,7 +344,7 @@ public class ServiceFactory {
                     INDEX_CONTRIBUTOR_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of INDEX_CONTRIBUTOR_SERVICE does not implement IndexContributorBase",
+                    "Alleged implementation of " + INDEX_CONTRIBUTOR_SERVICE + " does not implement IndexContributorBase",
                     e);
             return null;
         }
@@ -341,7 +355,7 @@ public class ServiceFactory {
             return (ILabelProvider) loadService(lang, LABEL_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of LABEL_PROVIDER_SERVICE does not implement ILabelProvider",
+                    "Alleged implementation of " + LABEL_PROVIDER_SERVICE + " does not implement ILabelProvider",
                     e);
             return null;
         }
@@ -361,7 +375,7 @@ public class ServiceFactory {
             return actionContributors;
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of EDITOR_ACTION_SERVICE does not implement ILanguageActionConstributor",
+                    "Alleged implementation of " + EDITOR_ACTION_CONTRIBUTIONS_SERVICE + " does not implement ILanguageActionConstributor",
                     e);
             return null;
         }
@@ -372,7 +386,7 @@ public class ServiceFactory {
             return (IModelListener) loadService(lang, MODEL_LISTENER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of LISTENER_SERVICE does not implement IModelListener",
+                    "Alleged implementation of " + MODEL_LISTENER_SERVICE + " does not implement IModelListener",
                     e);
             return null;
         }
@@ -383,7 +397,7 @@ public class ServiceFactory {
             return (IOccurrenceMarker) loadService(lang, MARK_OCCURRENCES_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of OCCURRENCE_MARKER does not implement IOccurrenceMarker",
+                    "Alleged implementation of " + MARK_OCCURRENCES_SERVICE + " does not implement IOccurrenceMarker",
                     e);
             return null;
         }
@@ -394,7 +408,7 @@ public class ServiceFactory {
             return (OutlineContentProviderBase) loadService(lang, OUTLINE_CONTENT_PROVIDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of OUTLINE_CONTENT_PROVIDER_SERVICE does not implement OutlineContentProviderBase",
+                    "Alleged implementation of " + OUTLINE_CONTENT_PROVIDER_SERVICE + " does not implement OutlineContentProviderBase",
                     e);
             return null;
         }
@@ -405,7 +419,7 @@ public class ServiceFactory {
             return (IOutliner) loadService(lang, OUTLINER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of OLD_OUTLINER_SERVICE does not implement IOutliner",
+                    "Alleged implementation of " + OUTLINER_SERVICE + " does not implement IOutliner",
                     e);
             return null;
         }
@@ -416,7 +430,7 @@ public class ServiceFactory {
             return (IParseController) loadService(lang, PARSER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of PARSER_SERVICE does not implement IParseController",
+                    "Alleged implementation of " + PARSER_SERVICE + " does not implement IParseController",
                     e);
             return null;
         }
@@ -434,7 +448,7 @@ public class ServiceFactory {
             return refactoringContribs;
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of SERVICE does not implement Set<ILanguageSerivice>",
+                    "Alleged implementation of " + REFACTORING_CONTRIBUTIONS_SERVICE + " does not implement IRefactoringContributor",
                     e);
             return null;
         }
@@ -445,7 +459,7 @@ public class ServiceFactory {
             return (IReferenceResolver) loadService(lang, REFERENCE_RESOLVER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of REFERENCE_RESOLVER_SERVICE does not implement IReferenceResolver",
+                    "Alleged implementation of " + REFERENCE_RESOLVER_SERVICE + " does not implement IReferenceResolver",
                     e);
             return null;
         }
@@ -456,7 +470,7 @@ public class ServiceFactory {
             return (ISourceFormatter) loadService(lang, FORMATTER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of FORMATTER_SERVICE does not implement ISourceFormatter",
+                    "Alleged implementation of " + FORMATTER_SERVICE + " does not implement ISourceFormatter",
                     e);
             return null;
         }
@@ -467,7 +481,7 @@ public class ServiceFactory {
             return (ISourceHyperlinkDetector) loadService(lang, HYPER_LINK_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of HYPERLINK_SERVICE does not implement ISourceHyperlinkDetector",
+                    "Alleged implementation of " + HYPER_LINK_SERVICE + " does not implement ISourceHyperlinkDetector",
                     e);
             return null;
         }
@@ -478,7 +492,7 @@ public class ServiceFactory {
             return (ILanguageSyntaxProperties) loadService(lang, SYNTAX_PROPS_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of SYNTAX_PROPS does not implement ILanguageSyntaxProperties",
+                    "Alleged implementation of " + SYNTAX_PROPS_SERVICE + " does not implement ILanguageSyntaxProperties",
                     e);
             return null;
         }
@@ -489,7 +503,7 @@ public class ServiceFactory {
             return (IToggleBreakpointsHandler) loadService(lang, TOGGLE_BREAKPOINTS_HANDLER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of TOGGLE_BREAKPOINTS_HANDLER_SERVICE does not implement IToggleBreakpointsHandler",
+                    "Alleged implementation of " + TOGGLE_BREAKPOINTS_HANDLER_SERVICE + " does not implement IToggleBreakpointsHandler",
                     e);
             return null;
         }
@@ -500,7 +514,7 @@ public class ServiceFactory {
             return (ITokenColorer) loadService(lang, TOKEN_COLORER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of TOKEN_COLORER_SERVICE does not implement ITokenColorer",
+                    "Alleged implementation of " + TOKEN_COLORER_SERVICE + " does not implement ITokenColorer",
                     e);
             return null;
         }
@@ -511,7 +525,7 @@ public class ServiceFactory {
             return (TreeModelBuilderBase) loadService(lang, MODEL_TREE_BUILDER_SERVICE);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
-                    "Alleged implementation of MODEL_BUILDER_SERVICE does not implement TreeModelBuilderBase",
+                    "Alleged implementation of " + MODEL_TREE_BUILDER_SERVICE + " does not implement TreeModelBuilderBase",
                     e);
             return null;
         }

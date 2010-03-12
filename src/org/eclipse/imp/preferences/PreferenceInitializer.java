@@ -19,6 +19,7 @@ import org.eclipse.jface.resource.ColorRegistry;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 /**
@@ -26,9 +27,17 @@ import org.eclipse.ui.PlatformUI;
  * @author rfuhrer@watson.ibm.com
  */
 public class PreferenceInitializer extends AbstractPreferenceInitializer {
+    private Display getDisplay() {
+        Display display= Display.getCurrent();
+        if (display == null) {
+            display = Display.getDefault();
+        }
+        return display;
+    }
+
     public void initializeDefaultPreferences() {
         // Run the following code on the UI thread - JFaceResources.getFontDescriptor() requires it
-        PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+        getDisplay().syncExec(new Runnable() {
             public void run() {
                 ColorRegistry registry= null;
                 if (PlatformUI.isWorkbenchRunning())

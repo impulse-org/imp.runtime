@@ -122,7 +122,7 @@ public class ParserScheduler extends Job {
 //              RuntimePlugin.getInstance().getPreferencesService().getBooleanPreference(PreferenceConstants.P_EMIT_MESSAGES)
                 ) {
                 RuntimePlugin.getInstance().writeInfoMsg(
-                        "Notifying AST listeners of change in " + fParseController.getPath().toPortableString());
+                        "Notifying AST listeners of change in " + (fParseController.getPath() != null ? fParseController.getPath().toPortableString() : "<unknown file>"));
             }
             for(int n= fAstListeners.size() - 1; n >= 0 && !monitor.isCanceled(); n--) {
                 IModelListener listener= fAstListeners.get(n);

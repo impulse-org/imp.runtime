@@ -140,11 +140,10 @@ public class LanguageRegistry {
 	}
 
 	/**
-	 * Determine the source language contained by the resource at the given
-	 * path.
+	 * Determine the source language contained by the resource at the given path.
 	 * 
 	 * @param path
-	 * @param file if non-null, may be used to validate the contents of the file
+	 * @param doc if non-null, may be used to validate the contents of the document
 	 *            (e.g. to distinguish dialects)
 	 * @return
 	 */

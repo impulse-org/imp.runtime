@@ -8,7 +8,7 @@ Bundle-ActivationPolicy: lazy
 Eclipse-LazyStart: true
 Bundle-Vendor: rfuhrer@watson.ibm.com
 Require-Bundle: com.ibm.icu,
- lpg.runtime,
+ lpg.runtime.java;bundle-version="2.0.17",
  org.eclipse.compare,
  org.eclipse.core.filesystem,
  org.eclipse.core.resources,
@@ -28,6 +28,7 @@ Require-Bundle: com.ibm.icu,
  org.eclipse.ui.workbench.texteditor
 Export-Package: org.eclipse.imp.actions,
  org.eclipse.imp.builder,
+ org.eclipse.imp.compare,
  org.eclipse.imp.core,
  org.eclipse.imp.editor,
  org.eclipse.imp.indexing,

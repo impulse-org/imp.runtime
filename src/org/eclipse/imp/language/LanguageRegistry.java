@@ -383,7 +383,7 @@ public class LanguageRegistry {
         for (String ext : extensions) {
 	        IFileEditorMapping mapping= findMappingFor(ext, mappings);
 
-	        if (mapping == null || (mapping != null && mapping.getDefaultEditor().getId().equals(sUniversalEditor.getId()))) {
+	        if (mapping == null || (mapping != null && mapping.getDefaultEditor() != null && mapping.getDefaultEditor().getId().equals(sUniversalEditor.getId()))) {
 	            // Replace the file editor mapping even if it already pointed to the universal editor,
 	            // since the persisted association turns into a FileEditorMapping when re-read, thus
 	            // losing the icon (which FileEditorMapping gets from the IEditorDescriptor).

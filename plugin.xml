@@ -209,6 +209,11 @@
                label="Refactor">
             <separator name="org.eclipse.imp.refactoring"/>
          </menu>
+      </actionSet>
+      <actionSet
+            id="org.eclipse.imp.runtime.analysisActions"
+            label="IMP Analysis Actions"
+            visible="true">
          <action
                class="org.eclipse.imp.editor.MarkOccurrencesAction"
                icon="icons/mark_occurrences.gif"

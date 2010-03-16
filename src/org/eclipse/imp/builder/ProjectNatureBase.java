@@ -134,8 +134,10 @@ public abstract class ProjectNatureBase implements IProjectNature {
                 if (cmds[beforeWhere].getBuilderName().equals(downstreamBuilderID))
                     break; // found it
             }
-            if (beforeWhere < 0)
+            if (beforeWhere < 0) {
                 getLog().writeErrorMsg("Unable to find downstream builder '" + downstreamBuilderID + "' for builder '" + builderID + "'.");
+                beforeWhere= 0; // be safe
+            }
         }
 
         int afterWhere= -1;
@@ -149,8 +151,10 @@ public abstract class ProjectNatureBase implements IProjectNature {
                 if (cmds[afterWhere].getBuilderName().equals(upstreamBuilderID))
                     break; // found it
             }
-            if (afterWhere == cmds.length)
+            if (afterWhere == cmds.length) {
                 getLog().writeErrorMsg("Unable to find upstream builder '" + upstreamBuilderID + "' for builder '" + builderID + "'.");
+                afterWhere= cmds.length - 1;
+            }
         }
 
         if (beforeWhere <= afterWhere)

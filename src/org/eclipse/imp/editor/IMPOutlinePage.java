@@ -48,6 +48,17 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
     private final IRegionSelectionService regionSelector;
     private final IEntityNameLocator fNameLocator;
 
+    /**
+     * Constructor flavor introduced for backward-compatibility with clients that extend this
+     * class but do not furnish an IEntityNameLocator.
+     */
+    public IMPOutlinePage(IParseController parseController,
+            TreeModelBuilderBase modelBuilder,
+            ILabelProvider labelProvider, IElementImageProvider imageProvider,
+            IRegionSelectionService regionSelector) {
+        this(parseController, modelBuilder, labelProvider, imageProvider, null, regionSelector);
+    }
+
     public IMPOutlinePage(IParseController parseController,
             TreeModelBuilderBase modelBuilder,
             ILabelProvider labelProvider, IElementImageProvider imageProvider,

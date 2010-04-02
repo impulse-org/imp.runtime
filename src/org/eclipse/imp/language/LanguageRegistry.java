@@ -57,8 +57,6 @@ import org.osgi.framework.Bundle;
  */
 @SuppressWarnings("restriction")
 public class LanguageRegistry {
-    private static final String EXTENSION = "languageDescription";
-
 	private static Object sStatusCheckMutex = new Object();
 	private static boolean sIsFullyInitialized = false;
 	
@@ -92,11 +90,12 @@ public class LanguageRegistry {
 			initializeUniversalEditorDescriptor(sEditorRegistry);
 	
 			IExtensionPoint extensionPoint =
-			    Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.IMP_RUNTIME, EXTENSION);
+			    Platform.getExtensionRegistry().getExtensionPoint(RuntimePlugin.IMP_RUNTIME, ServiceFactory.LANGUAGE_DESCRIPTION_POINT_ID);
 	
 			if (extensionPoint == null) {
-				ErrorHandler.reportError("Nonexistent extension point called \"" +
-						 RuntimePlugin.IMP_RUNTIME + "." + EXTENSION);
+				ErrorHandler.reportError("IMP language descriptor extension point '" +
+				        (RuntimePlugin.IMP_RUNTIME + "." + ServiceFactory.LANGUAGE_DESCRIPTION_POINT_ID) +
+				        "' non-existent?");
 			} else {
 				IConfigurationElement[] elements = extensionPoint.getConfigurationElements();
 	
@@ -112,8 +111,7 @@ public class LanguageRegistry {
 			}
 		} catch (InvalidRegistryObjectException e) {
 			if (PreferenceCache.emitMessages) {
-				RuntimePlugin.getInstance().writeErrorMsg(
-						"IMP LanguageRegistry error in preInitEditorRegistry():  InvalidRegistryObjectException:  " + e);
+				RuntimePlugin.getInstance().logException("IMP LanguageRegistry error in preInitEditorRegistry()", e);
 			} else {
 				ErrorHandler.reportError("IMP LanguageRegistry error", e);
 			}
@@ -502,7 +500,7 @@ public class LanguageRegistry {
 		if (sUniversalEditor == null) {
 			if (PreferenceCache.emitMessages) {
 				RuntimePlugin.getInstance().writeErrorMsg(
-					"IMP LanguageRegistry error in initializeUniversalEditorDescroptor():  unable to initialize Universal Editor");
+					"IMP LanguageRegistry error in initializeUniversalEditorDescroptor(): unable to initialize UniversalEditor");
 			} else {
 				ErrorHandler.reportError(
 					"Unable to locate Universal Editor descriptor", null);

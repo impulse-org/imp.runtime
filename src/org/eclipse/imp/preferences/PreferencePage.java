@@ -28,6 +28,10 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
     }
 
     public void createFieldEditors() {
+        final BooleanFieldEditor spacesForTabsField= new BooleanFieldEditor(PreferenceConstants.P_SPACES_FOR_TABS, "Use spaces instead of tabs",
+                getFieldEditorParent());
+        addField(spacesForTabsField);
+
         final BooleanFieldEditor emitMessagesField= new BooleanFieldEditor(PreferenceConstants.P_EMIT_MESSAGES, "E&mit diagnostic messages from IMP UI",
                 getFieldEditorParent());
         addField(emitMessagesField);

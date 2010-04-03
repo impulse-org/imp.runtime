@@ -15,10 +15,38 @@ package org.eclipse.imp.preferences;
 public class PreferenceConstants {
     public static final String P_EMIT_MESSAGES= "emitMessages";
 
+    /**
+     * A named preference that controls the width of a tab in spaces in the source editor.
+     * <p>
+     * Value is of type <code>Integer</code>.
+     * </p>
+     */
     public static final String P_TAB_WIDTH= "tabWidth";
 
+    /**
+     * A named preference that controls whether the editor should substitute spaces for tabs.
+     * Can be overridden by a language-specific preference of the same key.
+     * <p>
+     * Value is of type <code>Boolean</code>.
+     * </p>
+     */
+    public static final String P_SPACES_FOR_TABS= "spacesForTabs";
+
+    /**
+     * A named preference that controls the font to use in the source editor.
+     * <p>
+     * Value is of type <code>FontData</code>.
+     * </p>
+     */
     public static final String P_SOURCE_FONT= "sourceFont";
 
+    /**
+     * A named preference that controls whether to dump tokens to a console when parsing fails. For
+     * diagnostic purposes.
+     * <p>
+     * Value is of type <code>Boolean</code>.
+     * </p>
+     */
     public static final String P_DUMP_TOKENS= "dumpTokens";
 
     /**

@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.progress.UIJob;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
 /**
  * Initializes IMP framework-wide preferences to reasonable default values.
@@ -61,8 +62,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(PreferenceConstants.P_EMIT_MESSAGES, false);
         store.setDefault(PreferenceConstants.P_EMIT_BUILDER_DIAGNOSTICS, false);
         store.setDefault(PreferenceConstants.P_TAB_WIDTH, 8);
+        store.setDefault(PreferenceConstants.P_SPACES_FOR_TABS, false);
         store.setDefault(PreferenceConstants.P_DUMP_TOKENS, false);
         store.setDefault(PreferenceConstants.EDITOR_MATCHING_BRACKETS, true);
+
+        store.setDefault(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
+        store.setDefault(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS, false);
 
         String colorKey= RuntimePlugin.IMP_RUNTIME + "." + PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR;
         ColorRegistry registry= null;

@@ -60,6 +60,7 @@ import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.preferences.PreferencesService;
+import org.eclipse.imp.preferences.IPreferencesService.BooleanPreferenceListener;
 import org.eclipse.imp.preferences.IPreferencesService.IntegerPreferenceListener;
 import org.eclipse.imp.preferences.IPreferencesService.PreferenceServiceListener;
 import org.eclipse.imp.preferences.IPreferencesService.StringPreferenceListener;
@@ -137,6 +138,8 @@ import org.eclipse.jface.text.source.IVerticalRuler;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 import org.eclipse.jface.text.source.projection.ProjectionSupport;
 import org.eclipse.jface.text.source.projection.ProjectionViewer;
+import org.eclipse.jface.util.IPropertyChangeListener;
+import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -145,6 +148,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
 import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
@@ -163,6 +167,7 @@ import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.handlers.IHandlerActivation;
 import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
@@ -231,6 +236,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private PreferenceServiceListener fTabListener;
 
+    private PreferenceServiceListener fSpacesForTabsListener;
+
+    private IPropertyChangeListener fPropertyListener;
+
     private ToggleBreakpointAction fToggleBreakpointAction;
 
     private IAction fEnableDisableBreakpointAction;
@@ -264,6 +273,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fProblemMarkerManager= new ProblemMarkerManager();
     }
 
+    @SuppressWarnings("unchecked")
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {
             return fServiceControllerManager == null ? null : fServiceControllerManager.getOutlineController();
@@ -549,11 +559,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());
 
-        for(Iterator e= model.getAnnotationIterator(); e.hasNext();) {
+        for(Iterator<Annotation> e= model.getAnnotationIterator(); e.hasNext(); ) {
             Annotation a= (Annotation) e.next();
             // if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay() || !isNavigationTarget(a))
             // continue;
-            // TODO RMF 4/19/2006 - Need more accurate logic here for filtering annotations
+            // TODO RMF 4/19/2006 - Need more accurate logic here for filtering annotations, particularly when we add support for other annotation types
             if (!(a instanceof MarkerAnnotation) && !a.getType().equals(PARSE_ANNOTATION_TYPE))
                 continue;
 
@@ -718,33 +728,92 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         	IProject project= srcProject.getRawProject();
 
         	fLangSpecificPrefs= new PreferencesService(project, fLanguage.getName());
+        } else {
+            fLangSpecificPrefs= new PreferencesService(null, fLanguage.getName());
         }
+        // Now propagate the setting of "spaces for tabs" from either the language-specific preference store,
+        // or the IMP runtime's preference store to the UniversalEditor's preference store, where
+        // AbstractDecoratedTextEditor.isTabsToSpacesConversionEnabled() will look.
+        boolean spacesForTabs= RuntimePlugin.getInstance().getPreferenceStore().getBoolean(PreferenceConstants.P_SPACES_FOR_TABS);
+
+        getPreferenceStore().setValue(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS, spacesForTabs);
     }
 
     private void setupSourcePrefListeners() {
-        if (fLangSpecificPrefs == null) return;
+        // If there are no language-specific preferences, use the settings on the IMP preferences page
+        if (fLangSpecificPrefs == null ||
+                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SOURCE_FONT) &&
+                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH) &&
+                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SPACES_FOR_TABS)) {
+            fPropertyListener= new IPropertyChangeListener() {
+                public void propertyChange(PropertyChangeEvent event) {
+                    if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
+                        if (getSourceViewer() != null) {
+                            FontData[] newValue= (FontData[]) event.getNewValue();
+                            String fontDescriptor= newValue[0].toString();
+                            handleFontChange(newValue, fontDescriptor);
+                        }
+                    } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
+                        if (getSourceViewer() != null) {
+                            int newTab= ((Integer) event.getNewValue()).intValue();
+                            getSourceViewer().getTextWidget().setTabs(newTab);
+                        }
+                    } else if (event.getProperty().equals(PreferenceConstants.P_SPACES_FOR_TABS)) {
+                        if (getSourceViewer() != null) {
+                            handleSpacesForTabsChange(((Boolean) event.getNewValue()).booleanValue());
+                        }
+                    }
+                }
+            };
+            RuntimePlugin.getInstance().getPreferenceStore().addPropertyChangeListener(fPropertyListener);
+            return;
+        }
+        // TODO Perhaps add a flavor of IMP PreferenceListener that notifies for a change to any preference key?
+        // Then the following listeners could become just one, at the expense of casting the pref values.
         fFontListener= new StringPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SOURCE_FONT) {
             @Override
             public void changed(String oldValue, String newValue) {
-                FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
-   
-                if (!fontRegistry.hasValueFor(newValue)) {
-                    fontRegistry.put(newValue, PreferenceConverter.readFontData(newValue));
-                }
-                Font sourceFont= fontRegistry.get(newValue);
-   
-                if (sourceFont != null) {
-                    getSourceViewer().getTextWidget().setFont(sourceFont);
-                }
+                FontData[] fontData= PreferenceConverter.readFontData(newValue);
+                handleFontChange(fontData, newValue);
             }
         };
         fTabListener= new IntegerPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_TAB_WIDTH) {
             @Override
             public void changed(int oldValue, int newValue) {
-                if (getSourceViewer() != null)
+                if (getSourceViewer() != null) {
                     getSourceViewer().getTextWidget().setTabs(newValue);
+                }
             }
         };
+        fSpacesForTabsListener= new BooleanPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SPACES_FOR_TABS) {
+            @Override
+            public void changed(boolean oldValue, boolean newValue) {
+                if (getSourceViewer() != null) {
+                    handleSpacesForTabsChange(newValue);
+                }
+            }
+        };
+    }
+
+    private void handleSpacesForTabsChange(boolean newValue) {
+        if (newValue) {
+            installTabsToSpacesConverter();
+        } else {
+            uninstallTabsToSpacesConverter();
+        }
+    }
+
+    private void handleFontChange(FontData[] fontData, String fontDescriptor) {
+        FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
+
+        if (!fontRegistry.hasValueFor(fontDescriptor)) {
+            fontRegistry.put(fontDescriptor, fontData);
+        }
+        Font sourceFont= fontRegistry.get(fontDescriptor);
+
+        if (sourceFont != null) {
+            getSourceViewer().getTextWidget().setFont(sourceFont);
+        }
     }
 
     private void watchDocument(final long reparse_schedule_delay) {
@@ -904,7 +973,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private void setSourceFontFromPreference() {
         String fontName= null;
         if (fLangSpecificPrefs != null) {
-            fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
+            fontName= fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
         }
         if (fontName == null) {
             IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
@@ -1093,6 +1162,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
         if (fTabListener != null) {
             fTabListener.dispose();
+        }
+        if (fSpacesForTabsListener != null) {
+            fSpacesForTabsListener.dispose();
+        }
+        if (fPropertyListener != null) {
+            RuntimePlugin.getInstance().getPreferenceStore().removePropertyChangeListener(fPropertyListener);
         }
 
         unregisterEditorContributionsActivator();
@@ -1576,13 +1651,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             return new IInformationControlCreator() {
                 public IInformationControl createInformationControl(Shell parent) {
 //                  int shellStyle= SWT.RESIZE | SWT.TOOL;
-                    int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
+//                  int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
 
-//                    if (BrowserInformationControl.isAvailable(parent))
-//                        return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE, EditorsUI.getTooltipAffordanceString());
-//                    else
-                    // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
-                    return new DefaultInformationControl(parent, style, new HTMLTextPresenter(true), "Press 'F2' for focus");
+//                  if (BrowserInformationControl.isAvailable(parent))
+//                      return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE, EditorsUI.getTooltipAffordanceString());
+//                  else
+//                      return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
+                    return new DefaultInformationControl(parent, "Press 'F2' for focus", new HTMLTextPresenter(true));
                 }
             };
         }
@@ -1735,8 +1810,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
             return new IInformationControlCreator() {
                 public IInformationControl createInformationControl(Shell parent) {
-                    int shellStyle= SWT.RESIZE;
-                    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
+//                  int shellStyle= SWT.RESIZE;
+//                  int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
 
                     return new DefaultInformationControl(parent); // HierarchyInformationControl(parent, shellStyle, treeStyle);
                 }

@@ -1508,17 +1508,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 					continue;
 				int annotationStart = pos.offset;
 				int annotationLength = pos.length;
-				//System.out.println("\tfindPareseAnnotationForMarker:  Checking annotation offset and length = " + annotationStart + ", " + annotationLength);
+				//System.out.println("\tfindParseAnnotationForMarker: Checking annotation offset and length = " + annotationStart + ", " + annotationLength);
 				
 				if (markerStart == annotationStart && markerLength == annotationLength) {
-					//System.out.println("\tfindPareseAnnotationForMarker:  Returning annotation at offset = " + markerStart);
+					//System.out.println("\tfindParseAnnotationForMarker: Returning annotation at offset = " + markerStart);
 					return parseAnnotation;
 				} else {
-  					//System.out.println("\tfindPareseAnnotationForMarker:  Not returning annotation at offset = " + markerStart);
+  					//System.out.println("\tfindParseAnnotationForMarker: Not returning annotation at offset = " + markerStart);
 				}
 			}
 			
-			//System.out.println("  findPareseAnnotationForMarker:  No corresponding annotation found; returning null");
+			//System.out.println("  findParseAnnotationForMarker: No corresponding annotation found; returning null");
 			return null;
     	}   	
     }

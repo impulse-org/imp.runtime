@@ -96,7 +96,7 @@
             textStylePreferenceKey="parseAnnotationTextStyleKey"
             textStylePreferenceValue="SQUIGGLES"
             verticalRulerPreferenceKey="parseAnnotationVerticalKey"
-            verticalRulerPreferenceValue="false"/>
+            verticalRulerPreferenceValue="true"/>
    </extension>
    <!--
    <extension
@@ -246,7 +246,7 @@
             showInNextPrevDropdownToolbarAction="true"
             textPreferenceKey="occurrenceTextPreference"
             textPreferenceValue="true"
-            textStylePreferenceKey="parseAnnotationTextStyleKey"
+            textStylePreferenceKey="occurrenceAnnotationTextStyleKey"
             textStylePreferenceValue="UNDERLINE"
             verticalRulerPreferenceKey="occurrenceVerticalRulerPreference"
             verticalRulerPreferenceValue="true"/>

@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.parser;
@@ -18,12 +17,10 @@ import java.util.List;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 
 public class SimpleAnnotationTypeInfo implements IAnnotationTypeInfo {
-
     /*
      * For the management of associated problem-marker types
      */
-
-    private static List<String> problemMarkerTypes= new ArrayList<String>();
+    private List<String> problemMarkerTypes= new ArrayList<String>();
 
     public List<String> getProblemMarkerTypes() {
         return problemMarkerTypes;
@@ -36,5 +33,4 @@ public class SimpleAnnotationTypeInfo implements IAnnotationTypeInfo {
     public void removeProblemMarkerType(String problemMarkerType) {
         problemMarkerTypes.remove(problemMarkerType);
     }
-
 }

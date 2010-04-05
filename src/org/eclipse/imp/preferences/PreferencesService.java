@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences;
@@ -42,24 +41,26 @@ import org.eclipse.imp.preferences.PreferenceValueParser.simpleStringPrefixed;
 import org.eclipse.imp.preferences.PreferenceValueParser.substPrefixed;
 import org.eclipse.imp.preferences.PreferenceValueParser.substitution;
 import org.eclipse.imp.preferences.PreferenceValueParser.substitutionList;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.BackingStoreException;
 
 /**
- * A Preferences Service for IMP.  Intended as an adaptation of the
- * Eclipse PreferencesService and built on top of it, with simplifications
- * appropriate to use in IMP.
- * 
- * 
- * @see	org.eclipse.core.internal.PreferencesService.
+ * An implementation of the IMP interface IPreferencesService, which gives IMP clients access
+ * to language-specific and global preference settings. An adaptation of the Eclipse
+ * PreferencesService class, and built on top of it, with simplifications appropriate to IMP use.
+ * <p>To instantiate, you may supply a project, but you must supply a language ID. These parameters
+ * serve to qualify the preference keys used in queries to (a) properly separate the use of common
+ * keys by multiple language IDEs, and (b) to permit distinct preference settings for any given
+ * project in the user's workspace.
+ *
+ * <p>This class is intended to be instantiated by IMP clients. It is not intended to be sub-classed.
+ * @see IPreferencesService
  * 
  * @author sutton
- *
+ * @author rfuhrer
  */
-
-public class PreferencesService implements IPreferencesService
-{
-
+public class PreferencesService implements IPreferencesService {
 	private IProject project = null;
 	private String projectName = null;
 	private String languageName = null;
@@ -82,16 +83,28 @@ public class PreferencesService implements IPreferencesService
 		getPreferencesServiceAndRoot();
 	}
 
+	/**
+	 * @param projectName the name of a workspace project to use to qualify preference
+	 * queries; may be null/empty
+	 */
 	public PreferencesService(String projectName) {
 		this();
 		setProjectName(projectName);
 	}
 	
+	/**
+     * @param project the project to use to qualify preference queries; may be null
+	 */
 	public PreferencesService(IProject project) {
 		this();
 		setProject(project);
 	}
 
+	/**
+     * @param project the project to use to qualify preference queries; may be null
+	 * @param languageName the language ID to use to qualify preference queries; must not be null
+	 * @see org.eclipse.imp.language.Language
+	 */
 	public PreferencesService(IProject project, String languageName) {
 		this(project);
 		setLanguageName(languageName);
@@ -146,8 +159,7 @@ public class PreferencesService implements IPreferencesService
 	}
 	
 
-	private void toggleProject(ProjectScope oldProjectScope, ProjectScope newProjectScope, String projectName)
-	{
+	private void toggleProject(ProjectScope oldProjectScope, ProjectScope newProjectScope, String projectName) {
 		ProjectSelectionEvent event = null;	
 		if (projectName == null)
 			event = new ProjectSelectionEvent(null, null);
@@ -170,8 +182,7 @@ public class PreferencesService implements IPreferencesService
 	public String getProjectName() { return projectName; }
 	
 	
-	public void setProject(IProject project)
-	{
+	public void setProject(IProject project) {
 		ProjectScope oldProjectScope = projectScope;
 		this.project = project;
 		if (project != null) {
@@ -196,13 +207,12 @@ public class PreferencesService implements IPreferencesService
 	 * Get and set preferences by batch by level
 	 */
 	
-	public IEclipsePreferences getPreferences(String level)
-	{
+	public IEclipsePreferences getPreferences(String level) {
 		if (level == null) {
-			throw new IllegalArgumentException("PreferencesService.getPreferences:  given level is null");
+			throw new IllegalArgumentException("PreferencesService.getPreferences: given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException("PreferencesService.getPreferences:  given level is not valid (level = " + level);
+			throw new IllegalArgumentException("PreferencesService.getPreferences: given level is not valid (level = " + level);
 		}
 		
 		IEclipsePreferences preferences = null;
@@ -236,15 +246,14 @@ public class PreferencesService implements IPreferencesService
 	 * 							if the given level is null or not one of the values
 	 * 							defined in IPreferencesService
 	 */
-	public void setPreferences(String level, IEclipsePreferences newPreferences)
-	{
+	public void setPreferences(String level, IEclipsePreferences newPreferences) {
 		if (level == null) {
 			throw new IllegalArgumentException(
-				"PreferencesService.getPreferences:  given level is null");
+				"PreferencesService.getPreferences: given level is null");
 		}
 		if (!isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException(
-				"PreferencesService.getPreferences:  given level is not valid (level = " + level);
+				"PreferencesService.getPreferences: given level is not valid (level = " + level);
 		}
 
 		IEclipsePreferences node = clearPreferencesAtLevel(level);
@@ -255,8 +264,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			keys = newPreferences.keys();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setPreferences():  " +
-				"BackingStoreException getting keys; returning (note:  preferences for this node may have been cleared)");
+		    RuntimePlugin.getInstance().logException("BackingStoreException getting keys; returning (note: preferences for this node may have been cleared)", e);
 			return;
 		}
 		for (int i = 0; i < keys.length; i++) {
@@ -268,16 +276,14 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setPreferences():  " +
-				"BackingStoreException flushing new preferences; returning (note:  preferences for this node may have been cleared and not set)");
+		    RuntimePlugin.getInstance().logException("BackingStoreException flushing new preferences; returning (notepreferences for this node may have been cleared and not set)", e);
 			return;
 		}
-
 	}
 	
 	
 	/*
-	 * Documentatry interlude:
+	 * Documentary interlude:
 	 * 
 	 * The methods to get an applicable preference by type make use of the corresponding
 	 * type-specific "get" methods in the Eclipse PreferencesService.  Those methods take
@@ -329,7 +335,7 @@ public class PreferencesService implements IPreferencesService
 	 * levels, would have to be done consistently for each project where a language
 	 * is used rather than just once for all projects where a language is used.
 	 * 
-	 * Alternatively, it's possible to use different qualifiers at the projec level
+	 * Alternatively, it's possible to use different qualifiers at the project level
 	 * and project-independent levels, but that complicates the use of the preferences
 	 * service, requiring clients to query for preferences using different qualifiers
 	 * in different cases.
@@ -337,7 +343,7 @@ public class PreferencesService implements IPreferencesService
 	 * To keep things simple for clients, I've taken advantage of the ability to
 	 * provide the Eclipse PreferencesService with scopes to be searched ahead of
 	 * the standard scopes.  That is, each of the type-specific "get" methods defined
-	 * here calls the corresponding Eclipse-service get methdod, providing it with
+	 * here calls the corresponding Eclipse-service get method, providing it with
 	 * the project-specific scope in which the simple language-name qualifier will
 	 * be recognized.  Users can thus use the language name as a qualifier that will
 	 * be meaningful across all scope levels.  They will not have to worry about whether
@@ -385,8 +391,7 @@ public class PreferencesService implements IPreferencesService
 	 *
 	 * @see org.eclipse.imp.preferences.service.IPreferencesService#getByteArrayPreference(java.lang.String)
 	 */
-	public byte[] getByteArrayPreference(String key)
-	{
+	public byte[] getByteArrayPreference(String key) {
 		byte[] result = null;
 		String[] lookupOrder = preferencesService.getLookupOrder(languageName, key);
 		String[] levels = IPreferencesService.levels;
@@ -454,8 +459,7 @@ public class PreferencesService implements IPreferencesService
 	 * and the empty array for byte[].
 	 */
 	
-	public boolean getBooleanPreference(IProject project, String key) 
-	{
+	public boolean getBooleanPreference(IProject project, String key) {
 		return preferencesService.getBoolean(languageName, key, false, new IScopeContext[] { new ProjectScope(project) } );
 	}
 	
@@ -468,8 +472,7 @@ public class PreferencesService implements IPreferencesService
 	 * 
 	 * @see org.eclipse.imp.preferences.IPreferencesService#getByteArrayPreference(org.eclipse.core.resources.IProject, java.lang.String)
 	 */
-	public byte[]  getByteArrayPreference(IProject project, String key)
-	{
+	public byte[]  getByteArrayPreference(IProject project, String key) {
 		byte[] result = null;
 		String[] lookupOrder = preferencesService.getLookupOrder(languageName, key);
 		String[] levels = IPreferencesService.levels;
@@ -950,9 +953,7 @@ public class PreferencesService implements IPreferencesService
 		String result = node.get(key, null);
 		return result;
 	}
-	
-	
-	
+
 	/*
 	 * Get preferences for a given project by type
 	 * 
@@ -975,66 +976,56 @@ public class PreferencesService implements IPreferencesService
 		boolean result = node.getBoolean(key, false);
 		return result;
 	}
-	
-	
+
 	public byte[]  getByteArrayPreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		byte[] result = node.getByteArray(key, new byte[0]);
 		return result;
 	}
-	
-	
+
 	public double  getDoublePreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		double result = node.getDouble(key, 0);
 		return result;
 	}
-	
-	
+
 	public float getFloatPreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		float result = node.getFloat(key, 0);
 		return result;
 	}
-	
-	
+
 	public int getIntPreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		int result = node.getInt(key, 0);
 		return result;
 	}
-	
-	
+
 	public long getLongPreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		long result = node.getLong(key, 0);
 		return result;
 	}	
-		
-	
+
 	public String  getStringPreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		String result = node.get(key, null);
 		return performSubstitutions(result, project);
 	}	
-	
-	
-	
+
 	public String  getRawStringPreferenceForProject(IProject project, String key) {
 		IScopeContext scope = getScopeForProject(project);
 		IEclipsePreferences node = scope.getNode(languageName);
 		String result = node.get(key, null);
 		return result;
 	}	
-	
-	
-	
+
 	/*
 	 * Set preferences at a given level by type
 	 */
@@ -1046,8 +1037,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setByteArrayPreference(String, String, boolean):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+		    RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
@@ -1058,8 +1048,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setByteArrayPreference(String, String, byte[]):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
@@ -1070,8 +1059,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setDoublePreference(String, String, double):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
@@ -1082,8 +1070,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setFloatPreference(String, String, float):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
@@ -1094,8 +1081,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setIntPreference(String, String, int):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
@@ -1106,8 +1092,7 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.set	LongPreference(String, String, long):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
@@ -1118,166 +1103,128 @@ public class PreferencesService implements IPreferencesService
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setStringPreference(String, String, String):  BackingStoreException");
-			System.out.println("\tlevel = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
-		
-	
-	
+
 	/*
 	 * Get preferences for a given level, language, and project by type
 	 */
-
-	public boolean getBooleanPreference(String languageName, String projectName, String level, String key, boolean def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getBooleanPreference", languageName, level, projectName, key);	
+	public boolean getBooleanPreference(String languageName, String projectName, String level, String key, boolean def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.getBoolean(key, def);
 	}
 	
-
-	public byte[]  getByteArrayPreference(String languageName, String projectName, String level, String key, byte[] def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getByteArrayPreference", languageName, level, projectName, key);	
+	public byte[]  getByteArrayPreference(String languageName, String projectName, String level, String key, byte[] def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.getByteArray(key, def);
 	}
-	
-	
-	public double getDoublePreference(String languageName, String projectName, String level, String key, double def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getDoublePreference", languageName, level, projectName, key);	
+
+	public double getDoublePreference(String languageName, String projectName, String level, String key, double def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.getDouble(key, def);
 	}
-	
-	
-	public float   getFloatPreference(String languageName, String projectName, String level, String key, float def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getFloatPreference", languageName, level, projectName, key);	
+
+	public float   getFloatPreference(String languageName, String projectName, String level, String key, float def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.getFloat(key, def);
 	}
-	
-	
-	public int getIntPreference(String languageName, String projectName, String level, String key, int def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getIntPreference", languageName, level, projectName, key);	
+
+	public int getIntPreference(String languageName, String projectName, String level, String key, int def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.getInt(key, def);
 	}
 	
-	public long getLongPreference(String languageName, String projectName, String level, String key, long def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getLongPreference", languageName, level, projectName, key);	
+	public long getLongPreference(String languageName, String projectName, String level, String key, long def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.getLong(key, def);
 	}
 
-	public String  getStringPreference(String languageName, String projectName, String level, String key, String def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getStringPreference", languageName, level, projectName, key);	
+	public String  getStringPreference(String languageName, String projectName, String level, String key, String def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return performSubstitutions(node.get(key, def), getProjectFromName(projectName));
 	}
 
-	
-	public String  getRawStringPreference(String languageName, String projectName, String level, String key, String def)
-	{
-		IEclipsePreferences node = getNodeForParameters("getRawStringPreference", languageName, level, projectName, key);	
+	public String  getRawStringPreference(String languageName, String projectName, String level, String key, String def) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		return node.get(key, def);
 	}
-	
-	
-	
-	
-	
+
 	/*
 	 * Set preferences for a given level, language, and project by type
 	 */
 	
-	public void setBooleanPreference(String languageName, String projectName, String level, String key, boolean value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setBooleanPreference", languageName, level, projectName, key);
+	public void setBooleanPreference(String languageName, String projectName, String level, String key, boolean value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);
 		node.putBoolean(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setBooleanPreference(String, String, String, String, boolean):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}		
 	
-	public void setByteArrayPreference(String languageName, String projectName, String level, String key, byte[] value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setByteArrayPreference", languageName, level, projectName, key);
+	public void setByteArrayPreference(String languageName, String projectName, String level, String key, byte[] value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);
 		node.putByteArray(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setByteArrayPreference(String, String, String, String, byte[]):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}	
 	
-	public void setDoublePreference(String languageName, String projectName, String level, String key, double value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setDoublePreference", languageName, level, projectName, key);
+	public void setDoublePreference(String languageName, String projectName, String level, String key, double value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);
 		node.putDouble(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setDoublePreference(String, String, String, String, double):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}	
 	
-	public void setFloatPreference(String languageName, String projectName, String level, String key, float value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setFloatPreference", languageName, level, projectName, key);
+	public void setFloatPreference(String languageName, String projectName, String level, String key, float value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);
 		node.putFloat(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setFloatPreference(String, String, String, String, float):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
-	public void setIntPreference(String languageName, String projectName, String level, String key, int value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setIntPreference", languageName, level, projectName, key);
+	public void setIntPreference(String languageName, String projectName, String level, String key, int value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);
 		node.putInt(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setIntPreference(String, String, String, String, int):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 		
-	public void setLongPreference(String languageName, String projectName, String level, String key, long value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setLongPreference", languageName, level, projectName, key);
+	public void setLongPreference(String languageName, String projectName, String level, String key, long value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);
 		node.putLong(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setLongPreference(String, String, String, String, long):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
 	
-	public void setStringPreference(String languageName, String projectName, String level, String key, String value)
-	{
-		IEclipsePreferences node = getNodeForParameters("setStringPreference", languageName, level, projectName, key);	
+	public void setStringPreference(String languageName, String projectName, String level, String key, String value) {
+		IEclipsePreferences node = getNodeForParameters(languageName, level, projectName, key);	
 		node.put(key, value);
 		try {
 			node.flush();
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setStringPreference(String, String, String, String, String):  BackingStoreException");
-			System.out.println("\tlanguage = " + languageName + "; project = " + projectName + "; level = " + level + "; key = " + key + "; value = " + value);
+            RuntimePlugin.getInstance().logException("Exception setting preference in project '" + projectName + "' at level = " + level + "; key = " + key + "; value = " + value, e);
 		}
 	}
-	
-	
-	
-	public IScopeContext getPreferencesScope(String level, IProject proj)
-	{
+
+	public IScopeContext getPreferencesScope(String level, IProject proj) {
 		if (level.equals(PreferencesService.CONFIGURATION_LEVEL)) {
 			return configurationScope;
 		} else if (level.equals(PreferencesService.INSTANCE_LEVEL)) {
@@ -1289,52 +1236,40 @@ public class PreferencesService implements IPreferencesService
 		}
 		return null;
 	}
-	
-	
-	public void validateParameters(String methodName, String languageName, String level, String projectName, String key)
-	{
+
+	public void validateParameters(String languageName, String level, String projectName, String key) {
 		if (!isaPreferencesLevel(level)) {
-			throw new IllegalArgumentException(
-				"PreferencesService." + methodName + ":  given level is not a valid preferences level:  " + level);
+			throw new IllegalArgumentException("Given level is not a valid preferences level:  " + level);
 		}
 		if (languageName == null || languageName.equals("")) {
-			throw new IllegalArgumentException(
-				"PreferencesService." + methodName + ":  given language name is null or empty");
+			throw new IllegalArgumentException("Given language name is null or empty");
 		}
 		if (level.equals(PreferencesService.PROJECT_LEVEL)) {
 				if ((projectName == null) || projectName.equals("")) {
-					throw new IllegalArgumentException(
-						"PreferencesService." + methodName + ":  level is 'project' but project name is null or empty");
+					throw new IllegalArgumentException("Level is 'project' but project name is null or empty");
 				}
 				IProject proj = getProjectFromName(projectName);
 				if (proj == null) {
-					throw new IllegalArgumentException(
-						"PreferencesService." + methodName +
-						":  level is 'project' but project name '" + projectName + "' does not denote an existing project");
+					throw new IllegalArgumentException("Level is 'project' but project name '" + projectName + "' does not denote an existing project");
 				}
 		} 
 		if (key == null || key.equals("")) {
-			throw new IllegalArgumentException(
-				"PreferencesService.setStringPreference:  key is null or empty");
+			throw new IllegalArgumentException("Key is null or empty");
 		}
 	}
-	
-	
-	public IEclipsePreferences getNodeForParameters(String methodName, String languageName, String level, String projectName, String key)
-	{
-		validateParameters(methodName, languageName, level, projectName, key);
+
+	public IEclipsePreferences getNodeForParameters(String languageName, String level, String projectName, String key) {
+		validateParameters(languageName, level, projectName, key);
 		
 		IProject proj = getProjectFromName(projectName);
 		IScopeContext scope = getPreferencesScope(level, proj);
 		if (scope == null) {
-			throw new IllegalStateException(
-					"PreferencesService." + methodName + ":  unable to obtain valid preferences scope");
+			throw new IllegalStateException("Unable to obtain valid preferences scope");
 		}
 
 		IEclipsePreferences node = scope.getNode(languageName);
 		if (node == null) {
-			throw new IllegalStateException(
-					"PreferencesService." + methodName + ":  unable to obtain valid preferences node");
+			throw new IllegalStateException("Unable to obtain valid preferences node");
 		}
 
 		return node;
@@ -1361,8 +1296,7 @@ public class PreferencesService implements IPreferencesService
 	 * 
 	 * @return	the (cleared) preferences node for the given level
 	 */
-	public IEclipsePreferences clearPreferencesAtLevel(IProject project, String level)
-	{
+	public IEclipsePreferences clearPreferencesAtLevel(IProject project, String level) {
 		if (level == null) {
 			throw new IllegalArgumentException(
 				"PreferencesService.clearPreferencesAtLevel (with project):  given level is null");
@@ -1397,8 +1331,7 @@ public class PreferencesService implements IPreferencesService
 				node.flush();	// SMS 28 Nov 2006
 			}
 		} catch (BackingStoreException e) {
-			System.out.println("PreferencesService.setPreferences():  " +
-				"BackingStoreException clearing existing preferences; attempting to add new preferences anyway");
+		    RuntimePlugin.getInstance().logException("BackingStoreException clearing existing preferences; attempting to add new preferences anyway", e);
 		}
 		
 		return node;
@@ -1411,8 +1344,7 @@ public class PreferencesService implements IPreferencesService
 	 * 
 	 * @return	the cleared value (may be null)
 	 */
-	public String clearPreferenceAtLevel(String level, String key)
-	{
+	public String clearPreferenceAtLevel(String level, String key) {
 		return clearPreferenceAtLevel(project, level, key);
 	}
 	
@@ -1424,8 +1356,7 @@ public class PreferencesService implements IPreferencesService
 	 * 
 	 * @return	the cleared value (may be null)
 	 */
-	public String clearPreferenceAtLevel(IProject project, String level, String key)
-	{
+	public String clearPreferenceAtLevel(IProject project, String level, String key) {
 		if (level == null) {
 			throw new IllegalArgumentException(
 				"PreferencesService.clearPreferenceAtLevel (with project):  given level is null");
@@ -1451,15 +1382,13 @@ public class PreferencesService implements IPreferencesService
 		node.remove(key);
 		try {
 			node.flush();
-		} catch (BackingStoreException e){
-			System.err.println("PreferencesService.clearPreferenceAtLevel(..):  BackingStoreException trying to flush node with cleared preference;\n" +
-				"\tproject = " + project + "; level = " + level + "; key = " + key + "\n" +	
-				"\tclearing may not have a persistent effect");
+		} catch (BackingStoreException e) {
+		    RuntimePlugin.getInstance().logException("BackingStoreException trying to flush node with cleared preference;\n" +
+	                "\tproject = " + project + "; level = " + level + "; key = " + key + "\n" + 
+	                "\tclearing may not have a persistent effect", e);
 		}
 		return preference;
 	}
-	
-	
 	
 	/*
 	 * Other useful things
@@ -1472,9 +1401,7 @@ public class PreferencesService implements IPreferencesService
 	 *  
 	 */
 	public final static String[] levels = { PROJECT_LEVEL, INSTANCE_LEVEL, CONFIGURATION_LEVEL, DEFAULT_LEVEL };
-	
 
-	
 	public int indexForLevel(String levelName) {
 		for (int i = 0; i < levels.length; i++) {
 			if (levels[i].equals(levelName))
@@ -1482,17 +1409,13 @@ public class PreferencesService implements IPreferencesService
 		}
 		return -1;
 	}
-	
-	
-	
-	
+
 	/**
 	 * Returns the first preference level in the standard search order
 	 * at which the given key is defined for the current language.
 	 * Returns null if the given key is not defined.
 	 */
-	public String getApplicableLevel(String key, String level)
-	{
+	public String getApplicableLevel(String key, String level) {
 		return getApplicableLevel(project, key, level);
 	}
 	
@@ -1501,8 +1424,7 @@ public class PreferencesService implements IPreferencesService
 	 * at which the given key is defined for the current language.
 	 * Returns null if the given key is not defined.
 	 */
-	public String getApplicableLevel(IProject project, String key, String level)
-	{
+	public String getApplicableLevel(IProject project, String key, String level) {
 		// Level == null okay, as we can start at the bottom in that case
 		
 		if (level != null && !isaPreferencesLevel(level)) {
@@ -1545,17 +1467,14 @@ public class PreferencesService implements IPreferencesService
 		return null;
 	}
 
-	
 	public boolean isDefault(String key, String level) {
 		return isDefault(project, key, level);
 	}
-	
-	
+
 	public boolean isDefault(IProject project, String key, String level) {
 		return DEFAULT_LEVEL.equals(getApplicableLevel(project, key, level));
 	}
-	
-	
+
 	public boolean isDefined(String key) {
 		return isDefined(project, key);
 	}
@@ -1563,23 +1482,19 @@ public class PreferencesService implements IPreferencesService
 	public boolean isDefined(IProject project, String key) {
 		return getApplicableLevel(project, key, null) != null;
 	}
-	
-	
-	
+
 	public boolean isaPreferencesLevel(String possibleLevel) {
 		for (int i = 0; i < levels.length; i++) {
 			if (levels[i].equals(possibleLevel)) return true;
 		}
 		return false;
 	}
-	
-	
+
 	public IEclipsePreferences getRootNode() {
 		return preferencesService.getRootNode();
 	}
 	
-	public IEclipsePreferences getNodeForLevel(String level)
-	{
+	public IEclipsePreferences getNodeForLevel(String level) {
 		if (level == null) {
 			throw new IllegalArgumentException("PreferencesService.getNodeForLevel:  given level is null");
 		}
@@ -1603,10 +1518,8 @@ public class PreferencesService implements IPreferencesService
 		}
 		return node;
 	}
-		
-	
-	public IEclipsePreferences[] getNodesForLevels()
-	{
+
+	public IEclipsePreferences[] getNodesForLevels() {
 		if (languageName == null || languageName.equals("")) {
 			throw new IllegalStateException("PreferencesService.getNodesForLevels:  language name is invalid (null or empty); no associated preferences nodes");
 		}
@@ -1623,12 +1536,8 @@ public class PreferencesService implements IPreferencesService
 		
 		return nodes;
 	}
-		
 
-	
-	
-	public IScopeContext getScopeForLevel(String level)
-	{
+	public IScopeContext getScopeForLevel(String level) {
 		if (!isaPreferencesLevel(level)) {
 			throw new IllegalArgumentException("PreferencesService.getScopeForLevel:  level = '" + level + "' is not a valid level");
 		}
@@ -1687,8 +1596,7 @@ public class PreferencesService implements IPreferencesService
 	}
 	
 	
-	public int getIndexForLevel(String level)
-	{
+	public int getIndexForLevel(String level) {
 		// Special case, e.g., for "applicable" preferences
 		if (level == null) return 0;
 		
@@ -1714,7 +1622,6 @@ public class PreferencesService implements IPreferencesService
 	 * For listeners
 	 */
 	
-	
 	private List<IProjectSelectionListener> projectSelectionListeners = new ArrayList<IProjectSelectionListener>();
 	
 	public void addProjectSelectionListener(IProjectSelectionListener listener) {
@@ -1725,8 +1632,7 @@ public class PreferencesService implements IPreferencesService
 		projectSelectionListeners.remove(listener);
 	}
 	
-	protected void fireProjectSelectionEvent(final ProjectSelectionEvent event)
-	{
+	protected void fireProjectSelectionEvent(final ProjectSelectionEvent event) {
 		if (projectSelectionListeners == null || projectSelectionListeners.size() == 0)
 			return;
 		//Object[] listeners = projectSelectionListeners.toArray();
@@ -1743,6 +1649,4 @@ public class PreferencesService implements IPreferencesService
 			Platform.run(job);
 		}
 	}
-
-	
 }

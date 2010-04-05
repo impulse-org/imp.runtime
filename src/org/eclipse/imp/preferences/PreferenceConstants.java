@@ -7,16 +7,29 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences;
 
+/**
+ * Class that defines the set of preference keys used by the IMP editor. These keys can be
+ * used to define/query preference values at any of the levels IMP supports: "instance"
+ * (aka workspace), "configuration" (i.e. an Eclipse installation), or "project" (for a
+ * project-specific setting). For several of these, it is possible to define a language-
+ * specific setting that overrides the global setting. The JavaDoc for each such field
+ * indicates that fact.
+ * <p>To access these and other preferences, use the IPreferencesService interface and
+ * its implementation class, PreferencesService.
+ * @see IPreferencesService
+ * @see PreferencesService
+ * @author rfuhrer@watson.ibm.com
+ */
 public class PreferenceConstants {
     public static final String P_EMIT_MESSAGES= "emitMessages";
 
     /**
      * A named preference that controls the width of a tab in spaces in the source editor.
+     * Language-specific settings are supported for this preference.
      * <p>
      * Value is of type <code>Integer</code>.
      * </p>

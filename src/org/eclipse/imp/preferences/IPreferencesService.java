@@ -21,19 +21,27 @@ import org.osgi.service.prefs.BackingStoreException;
 import org.osgi.service.prefs.Preferences;
 
 /**
- * Miscellaneous notes:
- * - Assumes that there is a "current language" that is an implicit
- *   qualifier for all preferences
- * - Assumes that there is a "current project" with respect to which
- *   project-level preferences are evaluated
- * - Does not include various features of the Eclipse PreferencesService:
- *   - Call site default values
- *   - Call site specifications of priority contexts
- *   - Missing "untyped" get/set operations (which work on strings)
- *   If any of these come to seem useful they can be added
- * - Implementations may restrict the levels at which some operations
- *   are effective
- *   
+ * This interface is for use by IMP IDE clients that wish to access preference settings.
+ * This can be used both for global settings that affect all IMP-based IDEs (using the
+ * pseudo-language ID "IMP"), as well as language-specific settings that apply only to
+ * one particular IDE.
+ * <p>Miscellaneous notes:
+ * <ul>
+ *   <li>Assumes that there is a "current language" that is an implicit
+ *       qualifier for all preferences.
+ *   <li>Assumes that there is a "current project" with respect to which
+ *       project-level preferences are evaluated.
+ *   <li>Does not include various features of the Eclipse PreferencesService:
+ *   <ul>
+ *     <li>Call site default values (deemed not useful)
+ *     <li>Call site specifications of priority contexts (deemed not useful)
+ *     <li>Missing "untyped" get/set operations (which work on strings)
+ *   </ul>
+ *   <li>Implementations may restrict the levels at which some operations
+ *       are effective.
+ * </ul>
+ *<p>This interface is not intended to be implemented by clients.
+ * @see PreferencesService
  * @author sutton
  */
 public interface IPreferencesService {

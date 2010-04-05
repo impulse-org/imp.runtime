@@ -20,12 +20,11 @@ import org.eclipse.core.runtime.IConfigurationElement;
 import org.eclipse.imp.core.ErrorHandler;
 
 /**
- * @author Claffra
- * @author jurgen@vinju.org
- * 
  * API representation for org.eclipse.imp.runtime.languageDescription
  * contributor. Used by org.eclipse.imp.language.LanguageRegistry to discover and
  * manage a language registry.
+ * @author Claffra
+ * @author jurgen@vinju.org
  */
 public class Language {
 	/**

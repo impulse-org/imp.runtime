@@ -221,7 +221,7 @@
                label="&amp;Toggle Mark Occurrences"
                state="false"
                style="toggle"
-               toolbarPath="sampleGroup"
+               toolbarPath="analysisGroup"
                tooltip="Toggles marking occurrences of the given entity"/>
       </actionSet>
    </extension>

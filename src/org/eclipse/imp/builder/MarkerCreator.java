@@ -41,6 +41,7 @@ public class MarkerCreator implements IMessageHandler {
         this(file, parseController, IMarker.PROBLEM);
     }
 
+    // TODO Replace single String arg with a triple of String problem types - one each for info, warning, error
     public MarkerCreator(IFile file, IParseController parseController, String problemType) {
         this.file = file;
         this.parseController = parseController;

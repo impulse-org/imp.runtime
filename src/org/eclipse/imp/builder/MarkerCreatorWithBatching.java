@@ -34,7 +34,7 @@ import org.eclipse.imp.parser.IParseController;
 
 /**
  * An implementation of IMessageHandler for collecting messages over time
- * and then creating a group of corresponding markers in one batch using
+ * and then creating a group of corresponding resource markers in one batch using
  * a single workspace operation.
  * 
  * Copied liberally from a MarkerProblemHandler implementation provided by
@@ -44,10 +44,22 @@ import org.eclipse.imp.parser.IParseController;
  * @author Stan Sutton (suttons@us.ibm.com)
  */
 public class MarkerCreatorWithBatching extends MarkerCreator {
-    protected String page = null;
+    protected String page = null; // TODO Is this used anywhere?
     protected Map<Integer, List<Map<String, Object>>> entries = null; // Map of line number to list of marker attributes for line
     protected ProblemLimit problemLimit = null;
     protected BuilderBase builder = null;
+
+    // TODO Make these private and final
+    public String BUILDER_ID;
+    public String PROBLEM_MARKER_ID;
+
+    public Map<Integer, Integer> severityMap = new HashMap<Integer, Integer>();
+
+    {
+        severityMap.put(IMarker.SEVERITY_ERROR, IMarker.SEVERITY_ERROR);
+        severityMap.put(IMarker.SEVERITY_INFO, IMarker.SEVERITY_INFO);
+        severityMap.put(IMarker.SEVERITY_WARNING, IMarker.SEVERITY_WARNING);
+    }
 
     /*
      * NOTE:  The parse controller that is provided in constructing an instance of this
@@ -72,15 +84,11 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
      *                         be related
      * @param problemType      The type of problem marker (i.e., the problem marker id)
      */
-    public MarkerCreatorWithBatching(
-            IFile file,
-            IParseController parseController,
-            String problemType)
-    {
+    public MarkerCreatorWithBatching(IFile file, IParseController parseController, String problemType) {
         super(file, parseController, problemType);
+        BUILDER_ID = null;
         PROBLEM_MARKER_ID = problemType;
     }
-
 
     /**
      * Constructor to use when you want to create markers that are related to a
@@ -94,45 +102,22 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
      *                          markers and that defines the type of marker and builder id
      *                          that will be used here
      */
-    public MarkerCreatorWithBatching(
-            IFile file,
-            IParseController parseController,
-            BuilderBase builder)
-    {
+    public MarkerCreatorWithBatching(IFile file, IParseController parseController, BuilderBase builder) {
         super(file, parseController, builder.getErrorMarkerID());
 
         this.builder = builder;
-        initializeBuidlerID(builder);
-        initializeProblemMarkerID(builder);
-    }
 
-
-    public String BUILDER_ID;
-
-    protected void initializeBuidlerID(BuilderBase builder) {
         if (builder != null) {
             BUILDER_ID = builder.getBuilderID();
         } else {
             BUILDER_ID = parseController.getLanguage().getName() + ".builder";
         }
-    }
 
-    public String PROBLEM_MARKER_ID;
-
-    protected void initializeProblemMarkerID(BuilderBase builder) {
         if (builder != null) {
             PROBLEM_MARKER_ID = builder.getErrorMarkerID();
         } else {
             PROBLEM_MARKER_ID = parseController.getLanguage().getName() + ".builder";
         }
-    }
-
-
-    public Map<Integer, Integer> severityMap = new HashMap<Integer, Integer>();
-    {
-        severityMap.put(Integer.valueOf(IMarker.SEVERITY_ERROR), Integer.valueOf(IMarker.SEVERITY_ERROR));
-        severityMap.put(IMarker.SEVERITY_INFO, Integer.valueOf(IMarker.SEVERITY_INFO));
-        severityMap.put(IMarker.SEVERITY_WARNING, Integer.valueOf(IMarker.SEVERITY_WARNING));
     }
 
     public void setSeverityMap(Map<Integer, Integer>  mapOfSeverities) {
@@ -156,21 +141,23 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
         }
         Map<String, Object> attributes = new HashMap<String, Object>();
         attributes.put(IMarker.MESSAGE, adjustedMessage);
-        attributes.put(IMarker.SEVERITY, Integer.valueOf(severity));
+        attributes.put(IMarker.SEVERITY, severity);
         if (lineNumber == -1) {
             lineNumber = 1;
         }
         Integer lineKey = Integer.valueOf(lineNumber);
         attributes.put(IMarker.LINE_NUMBER, lineKey);
         if (charStart <= charEnd) {
-            attributes.put(IMarker.CHAR_START, Integer.valueOf(charStart));
-            attributes.put(IMarker.CHAR_END, Integer.valueOf(charEnd));
+            attributes.put(IMarker.CHAR_START, charStart);
+            attributes.put(IMarker.CHAR_END, charEnd);
         }
 //      attributes.put(BUILDER_ID, creationFactory.getBuilderId());
-        if (builder != null)
+        if (builder != null) {
             attributes.put(BUILDER_ID, builder.getBuilderID());
-        if (entries == null)
+        }
+        if (entries == null) {
             entries = new HashMap<Integer, List<Map<String, Object>>>();
+        }
         List<Map<String, Object>> lineEntries = entries.get(lineKey);
         if (lineEntries == null) {
             lineEntries = new ArrayList<Map<String, Object>>();
@@ -181,14 +168,13 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
             throw new ProblemLimit.LimitExceededException(adjustedMessage);
     }
 
-
     public void clearMessages() {
         // TODO Auto-generated method stub
     }
 
+    public void startMessageGroup(String groupName) { }
 
     public void endMessageGroup() { }
-
 
     public void flush(IProgressMonitor monitor) {
         // Re-use existing markers wherever possible
@@ -281,6 +267,4 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
     public void setPage(String page) {
         this.page = page;
     }
-
-    public void startMessageGroup(String groupName) { }
 }

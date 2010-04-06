@@ -413,8 +413,12 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
             return;
         fActiveEditor = textEditor;
         LanguageServiceManager fLanguageServiceManager = LanguageServiceManager.getMyServiceManager(fActiveEditor);
-        if (fLanguageServiceManager == null)
+        if (fLanguageServiceManager == null) {
+            // Should disable/hide this action - but how?
             return;
+        } else {
+            // Enable/make visible - but how?
+        }
         fDocument= getDocumentFromEditor();
         fParseController = fLanguageServiceManager.getParseController();
 

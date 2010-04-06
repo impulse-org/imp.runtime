@@ -11,19 +11,41 @@
 
 package org.eclipse.imp.editor.internal;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.parser.IMessageHandler;
+import org.eclipse.imp.parser.IMessageHandlerExtension;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
+import org.eclipse.jface.text.source.IAnnotationModelExtension;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 
-public class AnnotationCreator implements IMessageHandler {
+/**
+ * An implementation of the IMessageHandler interface that creates editor annotations
+ * directly from messages. Used for live parsing within a source editor (cf. building,
+ * which uses the class MarkerCreator to create markers).
+ * @author rmfuhrer
+ */
+public class AnnotationCreator implements IMessageHandlerExtension {
+    private static class PositionedMessage {
+        public final String message;
+        public final Position pos;
+        public PositionedMessage(String msg, Position pos) {
+            this.message= msg;
+            this.pos= pos;
+        }
+    }
     private final ITextEditor fEditor;
     private final String fAnnotationType;
+    private final List<PositionedMessage> fMessages= new LinkedList<PositionedMessage>();
+    private final List<Annotation> fAnnotations= new LinkedList<Annotation>();
 
     public AnnotationCreator(ITextEditor textEditor, String annotationType) {
         fEditor= textEditor;
@@ -33,22 +55,43 @@ public class AnnotationCreator implements IMessageHandler {
         	fAnnotationType= annotationType;
     }
 
+    public void clearMessages() {
+        removeAnnotations();
+        fMessages.clear();
+    }
+
     public void startMessageGroup(String groupName) { }
     public void endMessageGroup() { }
 
     public void handleSimpleMessage(String message, int startOffset, int endOffset,
             int startCol, int endCol,
             int startLine, int endLine) {
-        
-        IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
-        Annotation annotation= new Annotation(fAnnotationType, false, message);
-        
         Position pos= new Position(startOffset, endOffset - startOffset + 1);
-
-        model.addAnnotation(annotation, pos);
+        fMessages.add(new PositionedMessage(message, pos));
     }
 
-    public void removeAnnotations() {
+    public void endMessages() {
+        IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+        if (model instanceof IAnnotationModelExtension) {
+            IAnnotationModelExtension modelExt= (IAnnotationModelExtension) model;
+            Map<Annotation, Position> newAnnotations= new HashMap<Annotation, Position>(fMessages.size());
+            for(PositionedMessage pm: fMessages) {
+                Annotation anno= new Annotation(fAnnotationType, false, pm.message);
+                newAnnotations.put(anno, pm.pos);
+            }
+            modelExt.replaceAnnotations(null, newAnnotations);
+        } else {
+            for(PositionedMessage pm: fMessages) {
+                Annotation annotation= new Annotation(fAnnotationType, false, pm.message);
+
+                model.addAnnotation(annotation, pm.pos);
+                fAnnotations.add(annotation);
+            }
+        }
+        fMessages.clear();
+    }
+
+    private void removeAnnotations() {
         final IDocumentProvider docProvider= fEditor.getDocumentProvider();
 
         if (docProvider == null) {
@@ -60,15 +103,20 @@ public class AnnotationCreator implements IMessageHandler {
         if (model == null)
             return;
 
-        for(Iterator i= model.getAnnotationIterator(); i.hasNext();) {
-            Annotation a= (Annotation) i.next();
+        if (model instanceof IAnnotationModelExtension) {
+            IAnnotationModelExtension modelExt= (IAnnotationModelExtension) model;
+            Annotation[] allAnnotations= fAnnotations.toArray(new Annotation[fAnnotations.size()]);
 
-            if (a.getType().equals(fAnnotationType))
-                model.removeAnnotation(a);
+            modelExt.replaceAnnotations(allAnnotations, Collections.EMPTY_MAP);
+        } else {
+            for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
+                Annotation a= (Annotation) i.next();
+
+                if (a.getType().equals(fAnnotationType)) {
+                    model.removeAnnotation(a);
+                }
+            }
         }
-    }
-
-    public void clearMessages() {
-        removeAnnotations();
+        fAnnotations.clear();
     }
 }

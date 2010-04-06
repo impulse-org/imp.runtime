@@ -23,6 +23,7 @@ import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.parser.IMessageHandler;
+import org.eclipse.imp.parser.IMessageHandlerExtension;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.preferences.PreferenceCache;
@@ -86,8 +87,12 @@ public class ParserScheduler extends Job {
             // Just make sure the document contents gets parsed once (and only once).
             fMsgHandler.clearMessages();
             fParseController.parse(document.get(), monitor);
-            if (!monitor.isCanceled())
+            if (fMsgHandler instanceof IMessageHandlerExtension) {
+                ((IMessageHandlerExtension) fMsgHandler).endMessages();
+            }
+            if (!monitor.isCanceled()) {
                 notifyModelListeners(monitor);
+            }
         } catch (Exception e) {
         	Language lang = fParseController.getLanguage();
         	String input = editorInput != null ? editorInput.getName() : "<unknown editor input";

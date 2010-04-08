@@ -78,6 +78,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
             for(PositionedMessage pm: fMessages) {
                 Annotation anno= new Annotation(fAnnotationType, false, pm.message);
                 newAnnotations.put(anno, pm.pos);
+                fAnnotations.add(anno);
             }
             modelExt.replaceAnnotations(null, newAnnotations);
         } else {

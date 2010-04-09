@@ -49,6 +49,7 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 					return Status.OK_STATUS;
 				}
 			};
+			job.schedule(0);
 			return;
         }
         IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();

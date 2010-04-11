@@ -14,7 +14,10 @@ package org.eclipse.imp.editor.internal;
 import java.util.ResourceBundle;
 
 import org.eclipse.imp.editor.GotoAnnotationAction;
+import org.eclipse.imp.editor.GotoNextTargetAction;
+import org.eclipse.imp.editor.GotoPreviousTargetAction;
 import org.eclipse.imp.editor.IEditorActionDefinitionIds;
+import org.eclipse.imp.editor.SelectEnclosingAction;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IActionBars;
@@ -36,8 +39,13 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
     private RetargetTextEditorAction fToggleComment;
 
-    // mmk 4/8/08
     private RetargetTextEditorAction fIndentSelection;
+
+    private GotoNextTargetAction fNextTarget;
+
+    private GotoPreviousTargetAction fPreviousTarget;
+
+    private SelectEnclosingAction fSelectEnclosing;
 
     public TextEditorActionContributor() {
         super();
@@ -47,10 +55,11 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         fShowOutline.setActionDefinitionId(UniversalEditor.SHOW_OUTLINE_COMMAND);
         fToggleComment= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "ToggleComment."); //$NON-NLS-1$
         fToggleComment.setActionDefinitionId(UniversalEditor.TOGGLE_COMMENT_COMMAND);
-
-        // mmk 4/8/08
         fIndentSelection= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "IndentSelection."); //$NON-NLS-1$
         fIndentSelection.setActionDefinitionId(UniversalEditor.INDENT_SELECTION_COMMAND);
+        fNextTarget= new GotoNextTargetAction();
+        fPreviousTarget= new GotoPreviousTargetAction();
+        fSelectEnclosing= new SelectEnclosingAction();
     }
 
     public void init(IActionBars bars, IWorkbenchPage page) {
@@ -61,9 +70,10 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         bars.setGlobalActionHandler(ActionFactory.PREVIOUS.getId(), fPreviousAnnotation);
         bars.setGlobalActionHandler(UniversalEditor.SHOW_OUTLINE_COMMAND, fShowOutline);
         bars.setGlobalActionHandler(UniversalEditor.TOGGLE_COMMENT_COMMAND, fToggleComment);
-
-        // mmk 4/8/08
         bars.setGlobalActionHandler(UniversalEditor.INDENT_SELECTION_COMMAND, fIndentSelection);
+        bars.setGlobalActionHandler(UniversalEditor.GOTO_NEXT_TARGET_COMMAND, fNextTarget);
+        bars.setGlobalActionHandler(UniversalEditor.GOTO_PREVIOUS_TARGET_COMMAND, fPreviousTarget);
+        bars.setGlobalActionHandler(UniversalEditor.SELECT_ENCLOSING_COMMAND, fSelectEnclosing);
     }
 
     /*
@@ -76,6 +86,8 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
         if (navigateMenu != null) {
             navigateMenu.appendToGroup(IWorkbenchActionConstants.SHOW_EXT, fShowOutline);
+            navigateMenu.add(fNextTarget);
+            navigateMenu.add(fPreviousTarget);
         }
 
         IMenuManager editMenu= menu.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
@@ -83,6 +95,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         if (editMenu != null) {
             editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fToggleComment);
             editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fIndentSelection);
+            editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fSelectEnclosing);
         }
     }
 
@@ -96,10 +109,11 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
         fPreviousAnnotation.setEditor(textEditor);
         fNextAnnotation.setEditor(textEditor);
+        fNextTarget.setEditor(textEditor);
+        fPreviousTarget.setEditor(textEditor);
+        fSelectEnclosing.setEditor(textEditor);
         fShowOutline.setAction(getAction(textEditor, UniversalEditor.SHOW_OUTLINE_COMMAND));
         fToggleComment.setAction(getAction(textEditor, UniversalEditor.TOGGLE_COMMENT_COMMAND));
-
-        // mmk 4/8/08
         fIndentSelection.setAction(getAction(textEditor, UniversalEditor.INDENT_SELECTION_COMMAND));
 
         IActionBars bars= getActionBars();

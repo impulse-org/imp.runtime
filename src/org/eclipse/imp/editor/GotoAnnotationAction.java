@@ -12,6 +12,7 @@
 
 package org.eclipse.imp.editor;
 
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.TextEditorAction;
@@ -23,9 +24,7 @@ import org.eclipse.ui.texteditor.TextEditorAction;
  * @author rfuhrer
  */
 public class GotoAnnotationAction extends TextEditorAction {
-    public static final String JAVA_UI_ID_PLUGIN= "org.eclipse.jdt.ui";
-
-    public static final String PREFIX= JAVA_UI_ID_PLUGIN + '.';
+    public static final String PREFIX= RuntimePlugin.IMP_RUNTIME + '.';
 
     private static final String nextAnnotationContextID= PREFIX + "goto_next_error_action";
 

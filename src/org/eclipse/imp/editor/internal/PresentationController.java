@@ -133,7 +133,7 @@ public class PresentationController implements IModelListener {
         if (parseController == null) {
             return;
         }
-        if (PreferenceCache.dumpTokens) { // RuntimePlugin.getPreferencesService().getBooleanPreference(PreferenceConstants.P_DUMP_TOKENS)
+        if (PreferenceCache.dumpTokens /*RuntimePlugin.getInstance().getPreferencesService().getBooleanPreference(PreferenceConstants.P_DUMP_TOKENS)*/) {
             PrintStream ps= ConsoleUtil.findConsoleStream(PresentationController.CONSOLE_NAME);
 
             dumpTokens(parseController.getTokenIterator(damage), ps);
@@ -152,7 +152,11 @@ public class PresentationController implements IModelListener {
             ISourcePositionLocator locator) {
         int prevOffset= -1;
         int prevEnd= -1;
-        for(Iterator<Object> iter= parseController.getTokenIterator(damage); iter.hasNext() && !monitor.isCanceled(); ) {
+        Iterator tokenIterator= parseController.getTokenIterator(damage);
+        if (tokenIterator == null) {
+            return;
+        }
+        for(Iterator<Object> iter= tokenIterator; iter.hasNext() && !monitor.isCanceled(); ) {
             Object token= iter.next();
             int offset= locator.getStartOffset(token);
             int end= locator.getEndOffset(token);

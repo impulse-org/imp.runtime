@@ -186,19 +186,53 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
+    /**
+     * Action definition ID of the Edit -> Format Source action
+     * (value <code>"org.eclipse.imp.runtime.editor.formatSource"</code>).
+     */
     public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.formatSource";
 
+    /**
+     * Action definition ID of the Edit -> Toggle Comment action
+     * (value <code>"org.eclipse.imp.runtime.editor.toggleComment"</code>).
+     */
     public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.toggleComment";
 
+    /**
+     * Action definition ID of the Edit -> Show Outline action
+     * (value <code>"org.eclipse.imp.runtime.editor.showOutline"</code>).
+     */
     public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.showOutline";
 
+    /**
+     * Action definition ID of the Edit -> Indent Selection action
+     * (value <code>"org.eclipse.imp.runtime.editor.indentSelection"</code>).
+     */
     public static final String INDENT_SELECTION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.indentSelection";
 
     /**
-     * Action definition ID of the edit -> go to matching fence action
+     * Action definition ID of the Edit -> Select Enclosing action
+     * (value <code>"org.eclipse.imp.runtime.editor.selectEnclosing"</code>).
+     */
+    public static final String SELECT_ENCLOSING_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.selectEnclosing";
+
+    /**
+     * Action definition ID of the edit -> Go to Matching Fence action
      * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
      */
     public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoMatchingFence"; //$NON-NLS-1$
+
+    /**
+     * Action definition ID of the edit -> Go to Previous Navigation Target action
+     * (value <code>"org.eclipse.imp.runtime.editor.gotoPreviousTarget"</code>).
+     */
+    public static final String GOTO_PREVIOUS_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoPreviousTarget"; //$NON-NLS-1$
+
+    /**
+     * Action definition ID of the edit -> Go to Next Navigation Target action
+     * (value <code>"org.eclipse.imp.runtime.editor.gotoNextTarget"</code>).
+     */
+    public static final String GOTO_NEXT_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoNextTarget"; //$NON-NLS-1$
 
     public static final String MESSAGE_BUNDLE= "org.eclipse.imp.editor.messages";
 
@@ -256,7 +290,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".imp_editor_context";
 
-    static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
+    public static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
 
     public UniversalEditor() {
 //      RuntimePlugin.EDITOR_START_TIME= System.currentTimeMillis();
@@ -341,6 +375,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         action= new GotoMatchingFenceAction(this);
         action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);
         setAction(GOTO_MATCHING_FENCE_COMMAND, action);
+
+        action= new GotoPreviousTargetAction(this);
+        action.setActionDefinitionId(GOTO_PREVIOUS_TARGET_COMMAND);
+        setAction(GOTO_PREVIOUS_TARGET_COMMAND, action);
+
+        action= new GotoNextTargetAction(this);
+        action.setActionDefinitionId(GOTO_NEXT_TARGET_COMMAND);
+        setAction(GOTO_NEXT_TARGET_COMMAND, action);
+
+        action= new SelectEnclosingAction(this);
+        action.setActionDefinitionId(SELECT_ENCLOSING_COMMAND);
+        setAction(SELECT_ENCLOSING_COMMAND, action);
 
         fFoldingActionGroup= new FoldingActionGroup(this, this.getSourceViewer());
 
@@ -491,17 +537,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setTitleImage(image);
     }
 
-    // SMS 24 Jan 2007:  Restoring gotoAnnotation (which had been briefly
-    // commented out) because it is called by the recently added class
-    // GotoAnnotationAction.  Also made return void (since nothing is
-    // returned and no return seems expected).
-    // This change may be specific to Eclipse 3.1 and the method may
-    // be removed again in versions of the Editor intended for Eclipse 3.2.
-    // 
-    // SMS 28 Jun 2007:  Yes, indeed, the void return type doesn't work
-    // in Eclipse 3.2.  Converted return type back to Annotation and adapted
-    // procedure to return an annotation in any case.
-    
     /**
      * Jumps to the next enabled annotation according to the given direction.
      * An annotation type is enabled if it is configured to be in the
@@ -509,20 +544,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      *
      * @param forward <code>true</code> if search direction is forward, <code>false</code> if backward
      */
-    public Annotation /*void*/gotoAnnotation(boolean forward) {
+    public Annotation gotoAnnotation(boolean forward) {
         ITextSelection selection= (ITextSelection) getSelectionProvider().getSelection();
         Position position= new Position(0, 0);
-
-        // SMS 28 Jun 2007: declared here for something to return from both
-        // branches
-        Annotation annotation= null;
+        Annotation annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
 
         if (false /* delayed - see bug 18316 */) {
-            annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
             selectAndReveal(position.getOffset(), position.getLength());
         } else /* no delay - see bug 18316 */{
-            /* Annotation */annotation= getNextAnnotation(selection.getOffset(), selection.getLength(), forward, position);
-
             setStatusLineErrorMessage(null);
             setStatusLineMessage(null);
             if (annotation != null) {
@@ -579,28 +608,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                     currentAnnotation= p.length == length;
                 }
             } else {
-                int currentDistance= 0;
+                int currentDistance= forward ? p.getOffset() - offset : offset + length - (p.getOffset() + p.length);
 
-                if (forward) {
-                    currentDistance= p.getOffset() - offset;
-                    if (currentDistance < 0)
-                        currentDistance= endOfDocument + currentDistance;
+                if (currentDistance < 0)
+                    currentDistance= endOfDocument + currentDistance;
 
-                    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
-                        distance= currentDistance;
-                        nextAnnotation= a;
-                        nextAnnotationPosition= p;
-                    }
-                } else {
-                    currentDistance= offset + length - (p.getOffset() + p.length);
-                    if (currentDistance < 0)
-                        currentDistance= endOfDocument + currentDistance;
-
-                    if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
-                        distance= currentDistance;
-                        nextAnnotation= a;
-                        nextAnnotationPosition= p;
-                    }
+                if (currentDistance < distance || currentDistance == distance && p.length < nextAnnotationPosition.length) {
+                    distance= currentDistance;
+                    nextAnnotation= a;
+                    nextAnnotationPosition= p;
                 }
             }
         }
@@ -626,21 +642,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         IMarker marker= null;
         if (annotation instanceof MarkerAnnotation)
             marker= ((MarkerAnnotation) annotation).getMarker();
-        else
-        // if (annotation instanceof IJavaAnnotation) {
-        // Iterator e= ((IJavaAnnotation) annotation).getOverlaidIterator();
-        // if (e != null) {
-        // while (e.hasNext()) {
-        // Object o= e.next();
-        // if (o instanceof MarkerAnnotation) {
-        // marker= ((MarkerAnnotation) o).getMarker();
-        // break;
-        // }
-        // }
-        // }
-        // }
-
-        if (marker != null /* && !marker.equals(fLastMarkerTarget) */) {
+        else if (marker != null /* && !marker.equals(fLastMarkerTarget) */) {
             try {
                 boolean isProblem= marker.isSubtypeOf(IMarker.PROBLEM);
                 IWorkbenchPage page= getSite().getPage();
@@ -1347,7 +1349,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * @param sourceViewer the source viewer
      * @return a region denoting the current signed selection, for a resulting RtoL selections length is < 0
      */
-    protected IRegion getSignedSelection(ISourceViewer sourceViewer) {
+    public IRegion getSignedSelection(ISourceViewer sourceViewer) {
             StyledText text= sourceViewer.getTextWidget();
             Point selection= text.getSelectionRange();
 
@@ -1359,6 +1361,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             selection.x= widgetOffset2ModelOffset(sourceViewer, selection.x);
 
             return new Region(selection.x, selection.y);
+    }
+
+    public IRegion getSelectedRegion() {
+        StyledText text= getSourceViewer().getTextWidget();
+        Point selection= text.getSelectionRange();
+        return new Region(selection.x, selection.y);
     }
 
     public final String PARSE_ANNOTATION = "Parse_Annotation";

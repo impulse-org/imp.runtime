@@ -192,7 +192,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
                 if (length == 0)
                     return;
 
-                recomputeAnnotationsForSelection(offset, length, getDocumentFromEditor());
+                recomputeAnnotationsForSelection(offset, length, fDocument);
             }
         }
     }
@@ -265,7 +265,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
         if (fDocumentListener != null) {
             IDocument document = getDocumentFromEditor();
             if (document != null)
-                getDocumentFromEditor().removeDocumentListener(fDocumentListener);
+                document.removeDocumentListener(fDocumentListener);
         }
         if (fPartListener != null) {
             fActiveEditor.getSite().getPage().removePartListener(fPartListener);

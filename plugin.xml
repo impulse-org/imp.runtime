@@ -21,6 +21,7 @@
    <extension-point id="markOccurrences" name="Mark Occurrences" schema="schema/markOccurrences.exsd"/>
    <extension-point id="modelListener" name="Listener for model changes" schema="schema/modelListener.exsd"/>
    <extension-point id="modelTreeBuilder" name="Model Tree Builder" schema="schema/modelTreeBuilder.exsd"/>
+   <extension-point id="navigationTargetFinder" name="Navigation target finder" schema="schema/navigationTargetFinder.exsd"/>
    <extension-point id="outlineContentProvider" name="Outline Content Provider" schema="schema/outlineContentProvider.exsd"/>
    <extension-point id="outliner" name="IMP Outliner" schema="schema/outliner.exsd"/>
    <extension-point id="parser" name="Language-specific parser" schema="schema/parser.exsd"/>
@@ -113,6 +114,8 @@
    -->
    <extension
          point="org.eclipse.ui.bindings">
+      <!--  win32:  M1=CTRL,    M2=SHIFT, M3=ALT, M4=-
+            carbon: M1=COMMAND, M2=SHIFT, M3=ALT, M4=CTRL -->
       <key
             commandId="org.eclipse.imp.runtime.editor.showOutline"
             contextId="org.eclipse.ui.textEditorScope"
@@ -142,6 +145,33 @@
             sequence="M1+M3+T"
             contextId="org.eclipse.ui.textEditorScope"
             commandId="org.eclipse.imp.runtime.editor.refactor.quickMenu"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+ARROW_UP"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.gotoPreviousTarget"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M3+M4+ARROW_UP"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.gotoPreviousTarget"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+ARROW_DOWN"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.gotoNextTarget"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M3+M4+ARROW_DOWN"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.gotoNextTarget"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="CTRL+SHIFT+ARROW_UP"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.selectEnclosing"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    <extension
@@ -192,11 +222,30 @@
             id="org.eclipse.imp.runtime.editor.gotoMatchingFence">
       </command>
       <command
+            name="Go to Previous Navigation Target"
+            description="Go to Previous Navigation Target"
+            categoryId="org.eclipse.imp.runtime.source"
+            id="org.eclipse.imp.runtime.editor.gotoPreviousTarget"/>
+      <command
+            name="Go to Next Navigation Target"
+            description="Go to Next Navigation Target"
+            categoryId="org.eclipse.imp.runtime.source"
+            id="org.eclipse.imp.runtime.editor.gotoNextTarget"/>
+      <command
             categoryId="org.eclipse.imp.runtime.source"
             description="Re-indent the selected text"
             id="org.eclipse.imp.runtime.editor.indentSelection"
             name="Indent Selection">
       </command>
+      <command
+            categoryId="org.eclipse.imp.runtime.source"
+            description="Select the innermost enclosing construct"
+            id="org.eclipse.imp.runtime.editor.selectEnclosing"
+            name="Select Enclosing">
+      </command>
+      <category
+            id="org.eclipse.imp.runtime.source"
+            name="Source"/>
    </extension>
    <extension
          point="org.eclipse.ui.actionSets">

@@ -38,6 +38,7 @@ import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.ILabelProvider;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.imp.services.INavigationTargetFinder;
 import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IOutliner;
 import org.eclipse.imp.services.IRefactoringContributor;
@@ -125,6 +126,8 @@ public class ServiceFactory {
 	static final String MODEL_TREE_BUILDER_SERVICE = "modelTreeBuilder";
 
     static final String MARK_OCCURRENCES_SERVICE = "markOccurrences";
+
+    static final String NAVIGATION_TARGET_FINDER_SERVICE = "navigationTargetFinder";
 
 	static final String OUTLINE_CONTENT_PROVIDER_SERVICE = "outlineContentProvider";
 
@@ -387,6 +390,17 @@ public class ServiceFactory {
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + MODEL_LISTENER_SERVICE + " does not implement IModelListener",
+                    e);
+            return null;
+        }
+    }
+
+    public INavigationTargetFinder getNavigationTargetFinder(Language lang) {
+        try {
+            return (INavigationTargetFinder) loadService(lang, NAVIGATION_TARGET_FINDER_SERVICE);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of NAVIGATION_TARGET_FINDER does not implement INavigationTargetFinder",
                     e);
             return null;
         }

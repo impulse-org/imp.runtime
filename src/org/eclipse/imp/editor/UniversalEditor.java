@@ -828,11 +828,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         doc.addDocumentListener(fDocumentListener= new IDocumentListener() {
             public void documentAboutToBeChanged(DocumentEvent event) {}
             public void documentChanged(DocumentEvent event) {
+//              System.out.println("Document change event @ offset " + event.fOffset + " & length " + event.fLength);
                 fParserScheduler.cancel();
                 fParserScheduler.schedule(reparse_schedule_delay);
             }
         });
-        // SMS 3 Oct 2008:  removed call to fParserScheduler.schedule(..)
     }
     
     private class BracketInserter implements VerifyKeyListener {
@@ -1182,7 +1182,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
           fActionBars = null;
         }
 
-        getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(fDocumentListener);
+        if (fDocumentListener != null) {
+            getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(fDocumentListener);
+        }
         ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
 
         fLanguageServiceManager.dispose();
@@ -1863,6 +1865,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         public void createPresentation(TextPresentation presentation, ITypedRegion damage) {
             boolean hyperlinkRestore= false;
 
+//          try {
+//              throw new Exception();
+//          } catch (Exception e) {
+//              System.out.println("Entered PresentationRepairer.createPresentation()");
+//              e.printStackTrace(System.out);
+//          }
             // If the given damage region is the same as the previous one, assume it's due to removing a hyperlink decoration
 		    if (previousDamage != null && damage.getOffset() == previousDamage.getOffset() && damage.getLength() == previousDamage.getLength()) {
 		        hyperlinkRestore= true;
@@ -1875,7 +1883,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 //                  System.out.println("Scheduling repair for damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
                     fServiceControllerManager.getPresentationController().damage(damage);
                     if (hyperlinkRestore) {
-//                      System.out.println("** Forcing repair for hyperlink damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + fDocument.getLength());
+//                        System.out.println("** Forcing repair for hyperlink damage to region " + damage.getOffset() + ":" + damage.getLength() + " in doc of length " + getDocumentProvider().getDocument(getEditorInput()).getLength());
                         fServiceControllerManager.getPresentationController().update(fLanguageServiceManager.getParseController(), fProgressMonitor);
                     }
                 }

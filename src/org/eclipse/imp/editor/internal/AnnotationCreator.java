@@ -56,7 +56,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
     }
 
     public void clearMessages() {
-        removeAnnotations(); // TODO Don't do this now - wait until we have all the messages and then replace them all in one call
+        removeAnnotations();
         fMessages.clear();
     }
 
@@ -74,14 +74,22 @@ public class AnnotationCreator implements IMessageHandlerExtension {
         IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
         if (model instanceof IAnnotationModelExtension) {
             IAnnotationModelExtension modelExt= (IAnnotationModelExtension) model;
+            Annotation[] oldAnnotations= fAnnotations.toArray(new Annotation[fAnnotations.size()]);
             Map<Annotation, Position> newAnnotations= new HashMap<Annotation, Position>(fMessages.size());
             for(PositionedMessage pm: fMessages) {
                 Annotation anno= new Annotation(fAnnotationType, false, pm.message);
                 newAnnotations.put(anno, pm.pos);
                 fAnnotations.add(anno);
             }
-            modelExt.replaceAnnotations(null, newAnnotations);
+            modelExt.replaceAnnotations(oldAnnotations, newAnnotations);
         } else {
+            for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
+                Annotation a= (Annotation) i.next();
+
+                if (a.getType().equals(fAnnotationType)) {
+                    model.removeAnnotation(a);
+                }
+            }
             for(PositionedMessage pm: fMessages) {
                 Annotation annotation= new Annotation(fAnnotationType, false, pm.message);
 
@@ -107,9 +115,9 @@ public class AnnotationCreator implements IMessageHandlerExtension {
 
         if (model instanceof IAnnotationModelExtension) {
             IAnnotationModelExtension modelExt= (IAnnotationModelExtension) model;
-            Annotation[] allAnnotations= fAnnotations.toArray(new Annotation[fAnnotations.size()]);
+            Annotation[] oldAnnotations= fAnnotations.toArray(new Annotation[fAnnotations.size()]);
 
-            modelExt.replaceAnnotations(allAnnotations, Collections.EMPTY_MAP);
+            modelExt.replaceAnnotations(oldAnnotations, Collections.EMPTY_MAP);
         } else {
             for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
                 Annotation a= (Annotation) i.next();

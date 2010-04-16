@@ -85,11 +85,13 @@ public class ParserScheduler extends Job {
 
             // Don't need to retrieve the AST; we don't need it.
             // Just make sure the document contents gets parsed once (and only once).
+//          System.out.println("Parsing started.");
             fMsgHandler.clearMessages();
             fParseController.parse(document.get(), monitor);
             if (fMsgHandler instanceof IMessageHandlerExtension) {
                 ((IMessageHandlerExtension) fMsgHandler).endMessages();
             }
+//          System.out.println("Parsing complete.");
             if (!monitor.isCanceled()) {
                 notifyModelListeners(monitor);
             }

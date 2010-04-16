@@ -114,20 +114,6 @@ public class DependencyInfo {
 
     public void dump() {
         System.out.print(toString());
-//        System.out.println("*** Dependencies ***:");
-//        for(Iterator<String> iter= fDependsUpon.keySet().iterator(); iter.hasNext(); ) {
-//            String unit= iter.next();
-//            Set<String /*path*/> dependents= (Set) fDependsUpon.get(unit);
-//    
-//            System.out.println("Unit " + unit + ": ");
-//            for(Iterator<String> iterator= dependents.iterator(); iterator.hasNext(); ) {
-//                String uponUnit= iterator.next();
-//                System.out.print("  ");
-//                System.out.print(uponUnit);
-//                if (iterator.hasNext()) System.out.print(", ");
-//            }
-//            System.out.println();
-//        }
     }
 
     @Override

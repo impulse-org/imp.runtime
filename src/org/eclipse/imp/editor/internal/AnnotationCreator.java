@@ -56,7 +56,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
     }
 
     public void clearMessages() {
-        removeAnnotations();
+        removeAnnotations(); // TODO Don't do this now - wait until we have all the messages and then replace them all in one call
         fMessages.clear();
     }
 
@@ -89,6 +89,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
                 fAnnotations.add(annotation);
             }
         }
+//      System.out.println("Annotation model updated.");
         fMessages.clear();
     }
 
@@ -118,6 +119,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
                 }
             }
         }
+//      System.out.println("Annotations removed.");
         fAnnotations.clear();
     }
 }

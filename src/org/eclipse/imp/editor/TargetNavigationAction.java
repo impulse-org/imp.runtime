@@ -36,15 +36,16 @@ public abstract class TargetNavigationAction extends Action {
     }
 
     public void setEditor(ITextEditor editor) {
+        fNavTargetFinder= null;
         if (editor instanceof UniversalEditor) {
             fEditor= (UniversalEditor) editor;
-            fNavTargetFinder= ServiceFactory.getInstance().getNavigationTargetFinder(fEditor.fLanguage);
-            setEnabled(true);
+            if (fEditor.fLanguage != null) {
+                fNavTargetFinder= ServiceFactory.getInstance().getNavigationTargetFinder(fEditor.fLanguage);
+            }
         } else {
             fEditor= null;
-            fNavTargetFinder= null;
-            setEnabled(false);
         }
+        setEnabled(fNavTargetFinder != null);
     }
 
     @Override

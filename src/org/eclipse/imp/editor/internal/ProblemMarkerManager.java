@@ -37,10 +37,9 @@ import org.eclipse.swt.widgets.Display;
  * Listens to resource deltas and filters for marker changes of type IMarker.PROBLEM Viewers showing error ticks should
  * register as listener to this type. Based on class of the same name from JDT/UI.
  * 
- * @author Dr. Robert M. Fuhrer
+ * @author Robert M. Fuhrer
  */
 public class ProblemMarkerManager implements IResourceChangeListener, IAnnotationModelListener, IAnnotationModelListenerExtension {
-
     /**
      * Visitors used to look if the element change delta contains a marker change.
      */

@@ -24,6 +24,7 @@ import java.util.Set;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
@@ -398,6 +399,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private IHandlerService fHandlerService;
 
     private static final String QUICK_MENU_ID= "org.eclipse.imp.runtime.editor.refactor.quickMenu"; //$NON-NLS-1$
+
+    private final class AnnotationUpdater implements IProblemChangedListener {
+        public void problemsChanged(IResource[] changedResources, boolean isMarkerChange) {
+            // TODO Work-around to remove annotations that were resolved by changes to other resources.
+            // It would be better to match the markers to the annotations, and decide which
+            // annotations to remove.
+            if (fParserScheduler != null) {
+                fParserScheduler.schedule(50);
+            }
+        }
+    }
 
     private class RefactorQuickAccessAction extends QuickMenuAction {
         public RefactorQuickAccessAction() {
@@ -1005,6 +1017,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
             fEditorErrorTickUpdater= new EditorErrorTickUpdater(this);
             fProblemMarkerManager.addListener(fEditorErrorTickUpdater);
+            fAnnotationUpdater= new AnnotationUpdater();
+            fProblemMarkerManager.addListener(fAnnotationUpdater);
 
             fParserScheduler= new ParserScheduler(fLanguageServiceManager.getParseController(), this, getDocumentProvider(),
                     fAnnotationCreator);
@@ -1175,6 +1189,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         unregisterEditorContributionsActivator();
         if (fEditorErrorTickUpdater != null) {
         	fProblemMarkerManager.removeListener(fEditorErrorTickUpdater);
+        }
+        if (fAnnotationUpdater != null) {
+            fProblemMarkerManager.removeListener(fAnnotationUpdater);
         }
         
         if (fActionBars != null) {
@@ -1908,6 +1925,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     };
 
     private EditorErrorTickUpdater fEditorErrorTickUpdater;
+
+    private IProblemChangedListener fAnnotationUpdater;
 
     private class AnnotationCreatorListener implements IModelListener {
         public AnalysisRequired getAnalysisRequired() {

@@ -7,17 +7,16 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.imp.editor.IProblemChangedListener;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.language.ServiceFactory;
-import org.eclipse.jface.text.Assert;
 import org.eclipse.jface.viewers.ILabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Shell;
@@ -25,7 +24,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorInput;
 
 /**
- * @author Dr. Robert M. Fuhrer
+ * @author Robert M. Fuhrer
  */
 public class EditorErrorTickUpdater implements IProblemChangedListener {
     private UniversalEditor fEditor;
@@ -52,8 +51,9 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
         IEditorInput input= fEditor.getEditorInput();
 
         if (input != null) { // might run async, tests needed
-            if (!(input instanceof IFileEditorInput)) // The editor might be looking at something outside the workspace (e.g. system include files).
-        	return;
+            if (!(input instanceof IFileEditorInput)) { // The editor might be looking at something outside the workspace (e.g. system include files).
+                return;
+            }
 
             IFileEditorInput fileInput= (IFileEditorInput) input;
             IFile file= fileInput.getFile();

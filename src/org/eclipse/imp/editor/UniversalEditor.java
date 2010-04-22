@@ -1631,8 +1631,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
             Set<org.eclipse.imp.services.IAutoEditStrategy> autoEdits= fLanguageServiceManager.getAutoEditStrategies();
 
-            if (autoEdits == null)
+            if (autoEdits == null || autoEdits.size() == 0) {
                 return super.getAutoEditStrategies(sourceViewer, contentType);
+            }
 
             return autoEdits.toArray(new IAutoEditStrategy[autoEdits.size()]);
         }

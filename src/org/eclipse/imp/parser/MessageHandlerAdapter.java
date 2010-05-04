@@ -14,7 +14,7 @@ package org.eclipse.imp.parser;
 import lpg.runtime.ParseErrorCodes;
 
 public class MessageHandlerAdapter implements lpg.runtime.IMessageHandler {
-    private final IMessageHandler fIMPHandler;
+    protected final IMessageHandler fIMPHandler;
 
     public MessageHandlerAdapter(IMessageHandler impHandler) {
         fIMPHandler= impHandler;

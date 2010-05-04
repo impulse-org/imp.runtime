@@ -727,7 +727,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         IFile file= EditorInputUtils.getFile(editorInput);
         IPath filePath= EditorInputUtils.getPath(editorInput);
         try {
-            ISourceProject srcProject= (file != null) ? ModelFactory.open(file.getProject()) : null;
+            ISourceProject srcProject= (file != null && file.exists()) ? ModelFactory.open(file.getProject()) : null;
 
             fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
         } catch (ModelException e) {
@@ -1202,7 +1202,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (fDocumentListener != null) {
             getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(fDocumentListener);
         }
-        ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
+        if (fResourceListener != null) {
+            ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
+        }
 
         fLanguageServiceManager.dispose();
         fToggleBreakpointAction.dispose(); // this holds onto the IDocument

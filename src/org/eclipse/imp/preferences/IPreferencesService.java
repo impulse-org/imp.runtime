@@ -388,7 +388,9 @@ public interface IPreferencesService {
 
             fConfigLevel.addPreferenceChangeListener(this);
             fWSLevel.addPreferenceChangeListener(this);
-            fProjLevel.addPreferenceChangeListener(this);
+            if (fProjLevel != null) {
+                fProjLevel.addPreferenceChangeListener(this);
+            }
         }
 
         public void preferenceChange(PreferenceChangeEvent event) {
@@ -406,7 +408,7 @@ public interface IPreferencesService {
 	        	if (fWSLevel.nodeExists("")) {
 	        		fWSLevel.removePreferenceChangeListener(this);
 	        	}
-	        	if (fProjLevel.nodeExists("")) {
+	        	if (fProjLevel != null && fProjLevel.nodeExists("")) {
 	        		fProjLevel.removePreferenceChangeListener(this);
 	        	}
         	} catch (BackingStoreException e) {

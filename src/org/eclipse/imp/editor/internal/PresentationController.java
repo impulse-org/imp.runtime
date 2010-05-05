@@ -241,6 +241,19 @@ public class PresentationController implements IModelListener {
         	    // Note: It doesn't work to just eat the exception here; if there is a problematic token
         	    // then an exception is likely to arise downstream in the computation anyway
         	    try {
+        	        // The document might have changed since the presentation was computed, so
+        	        // trim the presentation's "result window" to the current document's extent.
+        	        // This avoids upsetting SWT, but there's still a question as to whether
+        	        // this is really the right thing to do. I.e., this assumes that the
+        	        // presentation will get recomputed later on, when the new document change
+        	        // gets noticed. But will it?
+        	        int newDocLength= (fSourceViewer.getDocument() != null) ? fSourceViewer.getDocument().getLength() : 0;
+        	        IRegion presExtent= newPresentation.getExtent();
+
+        	        if (presExtent.getOffset() + presExtent.getLength() > newDocLength) {
+//                      System.out.println("Trimming result window...");
+        	            newPresentation.setResultWindow(new Region(presExtent.getOffset(), newDocLength - presExtent.getOffset()));
+        	        }
         	    	if (fSourceViewer != null) {
         	    		fSourceViewer.changeTextPresentation(newPresentation, true);
         	    	}
@@ -381,7 +394,7 @@ public class PresentationController implements IModelListener {
         	    int prevLength = prevRange.length;
         	    if (prevStart + prevLength - 1 >= currStart) {
         	        explanation.append("Style range with start = " + prevStart + " and length = " + prevLength +
-        	                "overlaps style range with start = " + currStart);
+        	                " overlaps style range with start = " + currStart);
         	        break;
             	}
         	    prevRange= currRange;
@@ -392,7 +405,7 @@ public class PresentationController implements IModelListener {
         	int finalEnd = finalStart + finalLength;
         	if (finalEnd >= charCount) {
         	    explanation.append("Final style range with start = " + finalStart + " and length = " + finalLength + 
-        	            "extends beyond last character (character count = " + charCount + ")");
+        	            " extends beyond last character (character count = " + charCount + ")");
         	}
         	if (explanation.length() == 0) {
         		explanation.append("Cause not identified");

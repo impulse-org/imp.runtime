@@ -1200,10 +1200,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         if (fDocumentListener != null) {
-            getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(fDocumentListener);
+        	getDocumentProvider().getDocument(getEditorInput()).removeDocumentListener(fDocumentListener);
         }
+        
         if (fResourceListener != null) {
-            ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
+        	ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
         }
 
         fLanguageServiceManager.dispose();
@@ -1212,7 +1213,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fServiceControllerManager.getCompletionProcessor().dispose();
 
         fServiceControllerManager= null;
-        fParserScheduler.cancel(); // avoid unnecessary work after the editor is asked to close down
+        
+        if (fParserScheduler != null) {
+        	fParserScheduler.cancel(); // avoid unnecessary work after the editor is asked to close down
+        }
         fParserScheduler= null;
         ((StructuredSourceViewer) getSourceViewer()).setParseController(null);
 

@@ -238,28 +238,26 @@ public class PresentationController implements IModelListener {
 
         Display.getDefault().asyncExec(new Runnable() {
             public void run() {
-        	    // Note: It doesn't work to just eat the exception here; if there is a problematic token
-        	    // then an exception is likely to arise downstream in the computation anyway
         	    try {
-        	        // The document might have changed since the presentation was computed, so
-        	        // trim the presentation's "result window" to the current document's extent.
-        	        // This avoids upsetting SWT, but there's still a question as to whether
-        	        // this is really the right thing to do. I.e., this assumes that the
-        	        // presentation will get recomputed later on, when the new document change
-        	        // gets noticed. But will it?
-        	        int newDocLength= (fSourceViewer.getDocument() != null) ? fSourceViewer.getDocument().getLength() : 0;
-        	        IRegion presExtent= newPresentation.getExtent();
+                    if (fSourceViewer != null) {
+            	        // The document might have changed since the presentation was computed, so
+            	        // trim the presentation's "result window" to the current document's extent.
+            	        // This avoids upsetting SWT, but there's still a question as to whether
+            	        // this is really the right thing to do. I.e., this assumes that the
+            	        // presentation will get recomputed later on, when the new document change
+            	        // gets noticed. But will it?
+            	        int newDocLength= (fSourceViewer.getDocument() != null) ? fSourceViewer.getDocument().getLength() : 0;
+            	        IRegion presExtent= newPresentation.getExtent();
 
-        	        if (presExtent.getOffset() + presExtent.getLength() > newDocLength) {
-//                      System.out.println("Trimming result window...");
-        	            newPresentation.setResultWindow(new Region(presExtent.getOffset(), newDocLength - presExtent.getOffset()));
-        	        }
-        	    	if (fSourceViewer != null) {
+            	        if (presExtent.getOffset() + presExtent.getLength() > newDocLength) {
+//            	            System.out.println("Trimming result window...");
+            	            newPresentation.setResultWindow(new Region(presExtent.getOffset(), newDocLength - presExtent.getOffset()));
+            	        }
         	    		fSourceViewer.changeTextPresentation(newPresentation, true);
         	    	}
         	    } catch (IllegalArgumentException e) {
-        	        diagnoseStyleRangeError(presentation, docLength, e);
-        	        throw e;
+                    int curDocLength= (fSourceViewer.getDocument() != null) ? fSourceViewer.getDocument().getLength() : 0;
+        	        diagnoseStyleRangeError(presentation, curDocLength, e);
         	    }
             }
         });

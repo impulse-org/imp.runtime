@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -15,6 +14,8 @@ package org.eclipse.imp.editor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -22,6 +23,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
+import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IMessageHandlerExtension;
 import org.eclipse.imp.parser.IModelListener;
@@ -83,13 +85,17 @@ public class ParserScheduler extends Job {
                         "Parsing language " + fParseController.getLanguage().getName() + " for input " + editorInput.getName());
             }
 
-            // Don't need to retrieve the AST; we don't need it.
-            // Just make sure the document contents gets parsed once (and only once).
 //          System.out.println("Parsing started.");
-            fMsgHandler.clearMessages();
-            fParseController.parse(document.get(), monitor);
-            if (fMsgHandler instanceof IMessageHandlerExtension) {
-                ((IMessageHandlerExtension) fMsgHandler).endMessages();
+            // If we're editing a workspace resource, check to make sure that it still exists
+            if (sourceStillExists()) {
+                fMsgHandler.clearMessages();
+                // Don't bother to retrieve the AST; we don't need it; just make sure the document gets parsed.
+                fParseController.parse(document.get(), monitor);
+                if (fMsgHandler instanceof IMessageHandlerExtension) {
+                    ((IMessageHandlerExtension) fMsgHandler).endMessages();
+                }
+//          } else {
+//              System.err.println("Scheduled parsing was bypassed due to project deletion.");
             }
 //          System.out.println("Parsing complete.");
             if (!monitor.isCanceled()) {
@@ -108,6 +114,19 @@ public class ParserScheduler extends Job {
             ErrorHandler.reportError("Error loading IParseController implementation class for language " + fParseController.getLanguage().getName(), e);
         }
         return Status.OK_STATUS;
+    }
+
+    private boolean sourceStillExists() {
+        ISourceProject project= fParseController.getProject();
+        if (project == null) {
+            return true; // this wasn't a workspace resource to begin with
+        }
+        IProject rawProject= project.getRawProject();
+        if (!rawProject.exists()) {
+            return false;
+        }
+        IFile file= rawProject.getFile(fParseController.getPath());
+        return file.exists();
     }
 
     public void addModelListener(IModelListener listener) {

@@ -302,7 +302,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         // already defined for the parent text editor and populated with relevant
         // preferences
         // setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
-        setSourceViewerConfiguration(new StructuredSourceViewerConfiguration());
+        setSourceViewerConfiguration(new StructuredSourceViewerConfiguration(getPreferenceStore()));
         configureInsertMode(SMART_INSERT, true);
         setInsertMode(SMART_INSERT);
         fProblemMarkerManager= new ProblemMarkerManager();
@@ -756,26 +756,23 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private void setupSourcePrefListeners() {
         // If there are no language-specific preferences, use the settings on the IMP preferences page
         if (fLangSpecificPrefs == null ||
-                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SOURCE_FONT) &&
-                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH) &&
+                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SOURCE_FONT) ||
+                !fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH) ||
                 !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SPACES_FOR_TABS)) {
             fPropertyListener= new IPropertyChangeListener() {
                 public void propertyChange(PropertyChangeEvent event) {
-                    if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT)) {
-                        if (getSourceViewer() != null) {
-                            FontData[] newValue= (FontData[]) event.getNewValue();
-                            String fontDescriptor= newValue[0].toString();
-                            handleFontChange(newValue, fontDescriptor);
-                        }
-                    } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH)) {
-                        if (getSourceViewer() != null) {
-                            int newTab= ((Integer) event.getNewValue()).intValue();
-                            getSourceViewer().getTextWidget().setTabs(newTab);
-                        }
-                    } else if (event.getProperty().equals(PreferenceConstants.P_SPACES_FOR_TABS)) {
-                        if (getSourceViewer() != null) {
-                            handleSpacesForTabsChange(((Boolean) event.getNewValue()).booleanValue());
-                        }
+                    if (event.getProperty().equals(PreferenceConstants.P_SOURCE_FONT) &&
+                        !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SOURCE_FONT)) {
+                        FontData[] newValue= (FontData[]) event.getNewValue();
+                        String fontDescriptor= newValue[0].toString();
+
+                        handleFontChange(newValue, fontDescriptor);
+                    } else if (event.getProperty().equals(PreferenceConstants.P_TAB_WIDTH) &&
+                               !fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH)) {
+                        handleTabsChange(((Integer) event.getNewValue()).intValue());
+                    } else if (event.getProperty().equals(PreferenceConstants.P_SPACES_FOR_TABS) &&
+                               !fLangSpecificPrefs.isDefined(PreferenceConstants.P_SPACES_FOR_TABS)) {
+                        handleSpacesForTabsChange(((Boolean) event.getNewValue()).booleanValue());
                     }
                 }
             };
@@ -794,27 +791,36 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fTabListener= new IntegerPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_TAB_WIDTH) {
             @Override
             public void changed(int oldValue, int newValue) {
-                if (getSourceViewer() != null) {
-                    getSourceViewer().getTextWidget().setTabs(newValue);
-                }
+                handleTabsChange(newValue);
             }
         };
         fSpacesForTabsListener= new BooleanPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SPACES_FOR_TABS) {
             @Override
             public void changed(boolean oldValue, boolean newValue) {
-                if (getSourceViewer() != null) {
-                    handleSpacesForTabsChange(newValue);
-                }
+                handleSpacesForTabsChange(newValue);
             }
         };
     }
 
+    private void handleTabsChange(int newTab) {
+        if (getSourceViewer() != null) {
+            getSourceViewer().getTextWidget().setTabs(newTab);
+        }
+    }
+
     private void handleSpacesForTabsChange(boolean newValue) {
+        if (getSourceViewer() == null) {
+            return;
+        }
         if (newValue) {
             installTabsToSpacesConverter();
         } else {
             uninstallTabsToSpacesConverter();
         }
+        // Apparently un/installing the tabs-to-spaces converter isn't enough - shift left/right needs
+        // the "indent prefixes" to be computed properly, which relies on the preference store having
+        // the right value for AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS.
+        getPreferenceStore().setValue(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS, newValue);
     }
 
     private void handleFontChange(FontData[] fontData, String fontDescriptor) {
@@ -825,7 +831,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
         Font sourceFont= fontRegistry.get(fontDescriptor);
 
-        if (sourceFont != null) {
+        if (sourceFont != null && getSourceViewer() != null) {
             getSourceViewer().getTextWidget().setFont(sourceFont);
         }
     }
@@ -1594,6 +1600,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
+        public StructuredSourceViewerConfiguration(IPreferenceStore prefStore) {
+            super(prefStore);
+        }
         public int getTabWidth(ISourceViewer sourceViewer) {
             boolean langSpecificSetting= fLangSpecificPrefs != null && fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH);
 

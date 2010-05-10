@@ -777,7 +777,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 }
             };
             RuntimePlugin.getInstance().getPreferenceStore().addPropertyChangeListener(fPropertyListener);
-            return;
         }
         // TODO Perhaps add a flavor of IMP PreferenceListener that notifies for a change to any preference key?
         // Then the following listeners could become just one, at the expense of casting the pref values.

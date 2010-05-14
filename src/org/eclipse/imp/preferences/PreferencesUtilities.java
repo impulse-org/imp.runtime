@@ -582,7 +582,7 @@ public class PreferencesUtilities {
             IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, boolean specialValue,
+            boolean isEnabled, boolean isEditable,
             boolean emptyValueAllowed, boolean emptyValue, boolean isRemovable)
     {
         //System.err.println("SPU.makeNewBooleanField() starting for key = " + key);
@@ -601,11 +601,7 @@ public class PreferencesUtilities {
         }
         field.getChangeControl().setEnabled(isEnabled);
         // boolean controls have no setEditable() method
-        // SMS 19 Jun 2007
-        if (!hasSpecialValue)
-            field.setNoSpecialValue();
-        else
-            field.setSpecialValue(specialValue);
+
         // also cannot be empty
         //field.setEmptyValueAllowed(false);
 
@@ -718,7 +714,7 @@ public class PreferencesUtilities {
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean isEnabled, boolean isEditable,
             boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
     {
         Composite fieldHolder = new Composite(parent, SWT.NONE);
@@ -735,7 +731,7 @@ public class PreferencesUtilities {
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean isEnabled, boolean isEditable,
             boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
     {
         Composite fieldHolder = new Composite(parent, SWT.NONE);
@@ -752,7 +748,7 @@ public class PreferencesUtilities {
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean isEnabled, boolean isEditable,
             boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
     {
         Composite fieldHolder = new Composite(parent, SWT.NONE);
@@ -769,7 +765,7 @@ public class PreferencesUtilities {
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean isEnabled, boolean isEditable,
             boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
     {
         Composite fieldHolder = new Composite(parent, SWT.NONE);
@@ -956,7 +952,7 @@ public class PreferencesUtilities {
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
             Composite parent,
-            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean isEnabled, boolean isEditable,
             boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
     {
         Composite fieldHolder = new Composite(parent, SWT.NONE);
@@ -991,10 +987,6 @@ public class PreferencesUtilities {
             field.setEnabled(isEnabled, field.getParent());
         }
 
-        if (hasSpecialValue)
-            field.setSpecialValue(specialValue);
-        else
-            field.setNoSpecialValue();
         field.setEmptyValueAllowed(emptyValueAllowed);
 
         if (level == null) field.setRemovable(false);	// can never remove from a field that doesn't have a stored value

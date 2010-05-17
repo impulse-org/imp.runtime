@@ -698,39 +698,6 @@ public class RadioGroupFieldEditor extends FieldEditor {
         return value;
     }
     
-
-    
-    
-    public String getSpecialStringValue() {
-        if (!hasSpecialValue) {
-            throw new IllegalStateException("RadioGroupFieldEditor.getSpecialValue():  field does not have a special value");
-        }
-        return (String) specialValue;
-    }
-    
-    
-    
-    /**
-     * Set the special value associated with this field to be the given string.
-     * Overrides the method in the supertype to check that the given value is
-     * a String.
-     * 
-     * @param specialValue The special value to associate with this field
-     * @   throws IllegalStateException if the field has no special value
-     * @throws IllegalArgumentException if the given value is null or empty
-     */
-    public void setSpecialValue(String specialValue) {
-        if (!hasSpecialValue()) {
-            throw new IllegalStateException("RadioGroupFieldEditor.setSpecialValue(String): field has no special value");
-        } else if (specialValue == null || specialValue == "") {
-            throw new IllegalArgumentException("RadioGroupFieldEditor.setSpecialValue(String):  special value cannot be null or empty");
-        }
-        this.specialValue = specialValue;
-    }
-
- 
-    
-    
     
     /* 
      * Method declared on FieldEditor.

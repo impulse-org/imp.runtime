@@ -7,19 +7,17 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.preferences;
 
 public class Markings {
-
 	private Markings() {};	
 	
 	static public final String MODIFIED_NOTE = "Modified fields are marked in red.";
 	
 	static public final String TAB_ERROR_MARK = "**";
-	static public final String TAB_ERROR_NOTE = "Tabs with erroneous fields are marked with \"" +
+	static public final String TAB_ERROR_NOTE = "Tabs with invalid field values are marked with \"" +
 		TAB_ERROR_MARK + "\"";
 
 }

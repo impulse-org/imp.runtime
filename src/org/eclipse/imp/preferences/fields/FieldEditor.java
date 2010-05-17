@@ -281,61 +281,8 @@ public abstract class FieldEditor extends org.eclipse.jface.preference.FieldEdit
     protected boolean inheritanceChanged() {
     	return wasInherited != isInherited;
     }
-    
-    
-    /*
-     * Methods relating to a special value for this field.
-     * 
-     * The value is an Object, which is not very specific
-     * (but is very general).
-     * 
-     * Fields that are intended to represent value types
-     * (which does not seem to be a common practice) can
-     * convert values to objects if necessary to use these.	
-     */
-    
-	
-    /**
-     * @return	Whether there is a special (distinguished) value
-     * 			associated with this field	
-     */
-	public boolean hasSpecialValue() { return hasSpecialValue; }
-	
-	
-	/**
-	 * Sets the flag hasSpecialValue to false and nullifies
-	 * the specialValue field.  
-	 *
-	 */
-	public void setNoSpecialValue() {
-		hasSpecialValue = false;
-		specialValue = null;
-	}
- 
-	/**
-	 * @return	The special value associated with this field,
-	 * 			if any
-	 * @throws	IllegalStateException if this field has no
-	 * 			associated special value
-	 */
-	public Object getSpecialValue() { 
-		if (hasSpecialValue) return specialValue;
-		throw new IllegalStateException("FieldEditor.getSpecialValue():  called when field does not have a special value");
-	}
-	
-   
-	/**
-	 * Assigns the given object to the special value for this
-	 * field and sets the hasSpecialValue flag to true.
-	 * 
-	 * @param specialValue	The special value associated with this field.
-	 */
-	public void setSpecialValue(Object specialValue) {
-		hasSpecialValue = true;
-		this.specialValue = specialValue;
-	}
 
-	
+
 // Empty is a sting-related concept, not for fields in general
 //
 //	public boolean isEmptyValueAllowed() {

@@ -699,10 +699,6 @@ public class PreferencesUtilities {
             textControl.setEditable(isEditable);
         }
 
-//      if (hasSpecialValue)
-//          field.setSpecialValue(specialValue);
-//      else
-        field.setNoSpecialValue();
         field.setEmptyValueAllowed(emptyValueAllowed);
 
         if (level == null) field.setRemovable(false);   // can never remove from "Applicable" level (if that's what this is)

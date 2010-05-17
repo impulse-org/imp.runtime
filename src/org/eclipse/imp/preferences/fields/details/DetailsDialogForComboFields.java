@@ -55,7 +55,6 @@ public class DetailsDialogForComboFields extends TrayDialog {
 
     	private final static int COPY_ID = IDialogConstants.CLIENT_ID + 1;
 	    private final static int REMOVE_ID = IDialogConstants.CLIENT_ID + 2;
-    	private final static int SPECIAL_ID = IDialogConstants.CLIENT_ID + 3;
     	// No empty values for 	combo boxes
 	    //private final static int EMPTY_ID = IDialogConstants.CLIENT_ID + 4;
 
@@ -90,9 +89,6 @@ public class DetailsDialogForComboFields extends TrayDialog {
 	        	}
 	        	prefUtils.setField(field, fieldHolder);
 	        	break;
-	        case SPECIAL_ID:
-	        	prefUtils.setField(field, fieldHolder, field.getSpecialStringValue());
-	            break;
 //	        case EMPTY_ID:
 //	        	prefUtils.setField(field, fieldHolder, field.getEmptyValue());
 //	        	break;
@@ -138,11 +134,6 @@ public class DetailsDialogForComboFields extends TrayDialog {
 	        	copyButton.setEnabled(field.getPreferencesLevel() != null &&
 	        			field.isInherited() && field.getComboBoxControl().isEnabled());
 	        }
-	        
-	        specialButton = createButton(parent, SPECIAL_ID, PreferenceDialogConstants.SPECIAL_LABEL, false);
-	        specialButton.setEnabled(field.getPreferencesLevel() != null &&
-	        	field.hasSpecialValue() && field.getSpecialValue() != null &&	
-	        	field.getComboBoxControl().isEnabled());
 	        
 //	        emptyButton = createButton(parent, EMPTY_ID, PreferenceDialogConstants.EMPTY_LABEL, false);
 //	        emptyButton.setEnabled(field.getPreferencesLevel() != null &&
@@ -291,14 +282,6 @@ public class DetailsDialogForComboFields extends TrayDialog {
 //	        } else {
 //		        label.setText(PreferenceDialogConstants.EMPTY_NOT_OK);
 //	        }
-	        label.setBackground(PreferencesUtilities.colorWhite);
-	        
-        	label = new Label(topContainer, SWT.LEAD);
-	        if (field.hasSpecialValue()) {
-	        	label.setText(PreferenceDialogConstants.HAS_SPECIAL + field.getSpecialValue());
-	        } else {
-	        	label.setText(PreferenceDialogConstants.NO_SPECIAL);
-	        }
 	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
 	        if ((field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded())) {

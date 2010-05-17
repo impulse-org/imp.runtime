@@ -56,12 +56,10 @@ public class DetailsDialogForFontFields extends TrayDialog {
 
     	private final static int COPY_ID = IDialogConstants.CLIENT_ID + 1;
 	    private final static int REMOVE_ID = IDialogConstants.CLIENT_ID + 2;
-    	private final static int SPECIAL_ID = IDialogConstants.CLIENT_ID + 3;
-    	// No empty values for 	combo boxes
+    	// No empty values for font fields
 	    //private final static int EMPTY_ID = IDialogConstants.CLIENT_ID + 4;
 
 
-	    
 	    /*
 	     * Method declared on Dialog.
 	     * 
@@ -139,11 +137,6 @@ public class DetailsDialogForFontFields extends TrayDialog {
 	        	copyButton.setEnabled(field.getPreferencesLevel() != null &&
 	        			field.isInherited() && field.getChangeControl().isEnabled());
 	        }
-	        
-	        specialButton = createButton(parent, SPECIAL_ID, PreferenceDialogConstants.SPECIAL_LABEL, false);
-	        specialButton.setEnabled(field.getPreferencesLevel() != null &&
-	        	field.hasSpecialValue() && field.getSpecialValue() != null &&	
-	        	field.getChangeControl().isEnabled());
 	        
 //	        emptyButton = createButton(parent, EMPTY_ID, PreferenceDialogConstants.EMPTY_LABEL, false);
 //	        emptyButton.setEnabled(field.getPreferencesLevel() != null &&
@@ -294,14 +287,6 @@ public class DetailsDialogForFontFields extends TrayDialog {
 //	        }
 	        label.setBackground(PreferencesUtilities.colorWhite);
 	        
-        	label = new Label(topContainer, SWT.LEAD);
-	        if (field.hasSpecialValue()) {
-	        	label.setText(PreferenceDialogConstants.HAS_SPECIAL + field.getSpecialValue());
-	        } else {
-	        	label.setText(PreferenceDialogConstants.NO_SPECIAL);
-	        }
-	        label.setBackground(PreferencesUtilities.colorWhite);
-	        
 	        if ((field.getPreferencesLevel() != null) && field.getPreferencesLevel().equals(field.getLevelFromWhichLoaded())) {
 	        	label = new Label(topContainer, SWT.LEAD);
 		        if (field.isRemovable()) {
@@ -320,5 +305,4 @@ public class DetailsDialogForFontFields extends TrayDialog {
 	        this.workArea = workArea;
 	        return workArea;
 	    }
-	    
 }

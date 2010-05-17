@@ -81,7 +81,7 @@ public abstract class ConfigurationPreferencesTab  extends PreferencesTab
         data.verticalAlignment = SWT.WRAP;
         bar.setLayoutData(data);
         bar.setText("Preferences shown with a white (or neutral) background are set on this level.\n\n" +
-        			"Preferences shown with a colored background are inherited from a\nhigher level.\n\n" +
+        			"Preferences shown with a colored background are inherited from a higher level.\n\n" +
         			Markings.MODIFIED_NOTE + "\n\n" +
         			Markings.TAB_ERROR_NOTE);
         

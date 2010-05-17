@@ -90,7 +90,7 @@ public class FontFieldEditor extends ChangeButtonFieldEditor {
          */
         public DefaultPreviewer(String s, Composite parent) {
             string = s;
-            text = new Text(parent, SWT.READ_ONLY | SWT.BORDER);
+            text = new Text(parent, SWT.READ_ONLY | SWT.BORDER | SWT.WRAP);
             text.addDisposeListener(new DisposeListener() {
                 public void widgetDisposed(DisposeEvent e) {
                     if (font != null) {
@@ -120,13 +120,29 @@ public class FontFieldEditor extends ChangeButtonFieldEditor {
             }
             font = new Font(text.getDisplay(), fontData);
             text.setFont(font);
+            text.getParent().layout();
         }
 
         /**
-         * @return the preferred size of the previewer.
+         * @return the preferred height of the previewer.
          */
-        public int getPreferredExtent() {
-            return 40;
+        public int getPreferredHeight() {
+            if (font != null) {
+                return font.getFontData()[0].getHeight() * 3;
+            } else {
+                return 40;
+            }
+        }
+
+        /**
+         * @return the preferred height of the previewer.
+         */
+        public int getPreferredWidth() {
+            if (font != null) {
+                return font.getFontData()[0].getHeight() * 15;
+            } else {
+                return 120;
+            }
         }
     }
 
@@ -200,8 +216,8 @@ public class FontFieldEditor extends ChangeButtonFieldEditor {
         if (previewText != null) {
             previewer = new DefaultPreviewer(previewText, parent);
             gd = new GridData(GridData.FILL_HORIZONTAL);
-            gd.heightHint = previewer.getPreferredExtent();
-            gd.widthHint = previewer.getPreferredExtent();
+            gd.heightHint = previewer.getPreferredHeight();
+            gd.widthHint = previewer.getPreferredWidth();
             previewer.getControl().setLayoutData(gd);
         }
 
@@ -328,7 +344,7 @@ public class FontFieldEditor extends ChangeButtonFieldEditor {
         if (previewer == null) {
             return -1;
         }
-        return previewer.getPreferredExtent();
+        return previewer.getPreferredHeight();
     }
 
     /**
@@ -450,7 +466,7 @@ public class FontFieldEditor extends ChangeButtonFieldEditor {
         init(name, labelText);
 //      Assert.isTrue(checkArray(entryNamesAndValues));
 
-        previewText = "splat splat" /*"Quick brown fox?\nOver the moon!"*/;
+        previewText = "The quick brown fox jumped over the lazy dog";
         changeButtonText = JFaceResources.getString("openChange"); //$NON-NLS-1$
 
         preferencesService = service;

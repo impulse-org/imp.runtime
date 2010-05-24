@@ -576,7 +576,24 @@ public class PreferencesUtilities {
         pe.setPreferenceStore(page.getPreferenceStore());
 
     }
-	
+
+    /**
+     * @deprecated "special values" are no longer supported.
+     * Call PreferencesUtilities#makeNewBooleanField(PreferencePage, PreferencesTab, IPreferencesService,
+     * String, String, String, String, Composite, boolean, boolean, boolean, boolean, boolean) instead.
+     */
+    public BooleanFieldEditor makeNewBooleanField(
+            PreferencePage page, PreferencesTab tab,
+            IPreferencesService service,
+            String level, String key, String text, String toolTip,
+            Composite parent,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, boolean specialValue,
+            boolean emptyValueAllowed, boolean emptyValue, boolean isRemovable)
+    {
+        return makeNewBooleanField(page, tab, service, level, key, text, toolTip, parent,
+                                   isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
+    }
+
     public BooleanFieldEditor makeNewBooleanField(
             PreferencePage page, PreferencesTab tab,
             IPreferencesService service,
@@ -706,6 +723,22 @@ public class PreferencesUtilities {
         else field.setRemovable(isRemovable);
     }
 
+    /**
+     * @deprecated "special values" are no longer supported.
+     * Call PreferencesUtilities#makeNewFileField(PreferencePage, PreferencesTab, IPreferencesService,
+     * String, String, String, String, Composite, boolean, boolean, boolean, String, boolean) instead.
+     */
+    public FileFieldEditor makeNewFileField(
+            PreferencePage page, PreferencesTab tab, IPreferencesService service,
+            String level, String key, String text, String toolTip,
+            Composite parent,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
+    {
+        return makeNewFileField(page, tab, service, level, key, text, toolTip, parent,
+                                isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
+    }
+
     public FileFieldEditor makeNewFileField(
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
@@ -721,6 +754,22 @@ public class PreferencesUtilities {
         setupStringButtonField(field, page, tab, service, level, key, text, toolTip, isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
 
         return field;
+    }
+
+    /**
+     * @deprecated "special values" are no longer supported.
+     * Call PreferencesUtilities#makeNewDirectoryField(PreferencePage, PreferencesTab, IPreferencesService,
+     * String, String, String, String, Composite, boolean, boolean, boolean, String, boolean) instead.
+     */
+    public DirectoryFieldEditor makeNewDirectoryField(
+            PreferencePage page, PreferencesTab tab, IPreferencesService service,
+            String level, String key, String text, String toolTip,
+            Composite parent,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
+    {
+        return makeNewDirectoryField(page, tab, service, level, key, text, toolTip, parent,
+                                     isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
     }
 
     public DirectoryFieldEditor makeNewDirectoryField(
@@ -740,6 +789,22 @@ public class PreferencesUtilities {
         return field;
     }
 
+    /**
+     * @deprecated "special values" are no longer supported.
+     * Call PreferencesUtilities#makeNewDirectoryListField(PreferencePage, PreferencesTab, IPreferencesService,
+     * String, String, String, String, Composite, boolean, boolean, boolean, String, boolean) instead.
+     */
+    public DirectoryListFieldEditor makeNewDirectoryListField(
+            PreferencePage page, PreferencesTab tab, IPreferencesService service,
+            String level, String key, String text, String toolTip,
+            Composite parent,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
+    {
+        return makeNewDirectoryListField(page, tab, service, level, key, text, toolTip, parent,
+                                         isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
+    }
+
     public DirectoryListFieldEditor makeNewDirectoryListField(
             PreferencePage page, PreferencesTab tab, IPreferencesService service,
             String level, String key, String text, String toolTip,
@@ -755,6 +820,22 @@ public class PreferencesUtilities {
         setupStringButtonField(field, page, tab, service, level, key, text, toolTip, isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
 
         return field;
+    }
+
+    /**
+     * @deprecated "special values" are no longer supported.
+     * Call PreferencesUtilities#makeNewIntegerField(PreferencePage, PreferencesTab, IPreferencesService,
+     * String, String, String, String, Composite, boolean, boolean, boolean, String, boolean) instead.
+     */
+    public IntegerFieldEditor makeNewIntegerField(
+            PreferencePage page, PreferencesTab tab, IPreferencesService service,
+            String level, String key, String text, String toolTip,
+            Composite parent,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
+    {
+        return makeNewIntegerField(page, tab, service, level, key, text, toolTip, parent,
+                                   isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
     }
 
     public IntegerFieldEditor makeNewIntegerField(
@@ -942,6 +1023,22 @@ public class PreferencesUtilities {
         else field.setRemovable(isRemovable);
 
         return field;
+    }
+
+    /**
+     * @deprecated "special values" are no longer supported
+     * @see PreferencesUtilities#makeNewStringField(PreferencePage, PreferencesTab, IPreferencesService,
+     * String, String, String, String, Composite, boolean, boolean, boolean, String, boolean)
+     */
+    public StringFieldEditor makeNewStringField(
+            PreferencePage page, PreferencesTab tab, IPreferencesService service,
+            String level, String key, String text, String toolTip,
+            Composite parent,
+            boolean isEnabled, boolean isEditable, boolean hasSpecialValue, String specialValue,
+            boolean emptyValueAllowed, String emptyValue, boolean isRemovable)
+    {
+        return makeNewStringField(page, tab, service, level, key, text, toolTip, parent,
+                                  isEnabled, isEditable, emptyValueAllowed, emptyValue, isRemovable);
     }
 
     public StringFieldEditor makeNewStringField(

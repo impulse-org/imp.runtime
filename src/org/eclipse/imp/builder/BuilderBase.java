@@ -25,12 +25,15 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.IResourceVisitor;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRunnable;
 import org.eclipse.core.resources.IncrementalProjectBuilder;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.ISchedulingRule;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferenceConstants;
 import org.eclipse.imp.preferences.PreferencesService;
@@ -347,12 +350,15 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
     // when file A includes B includes C, A should be marked as a dependent of C.
     private void collectChangeDependents() {
         if (fChangedSources.size() == 0) return;
+
         Collection<IFile> changeDependents= new HashSet<IFile>();
+        boolean emitDiags= getDiagPreference();
 
         changeDependents.addAll(fChangedSources);
-        // TODO RMF 1/28/2008 - Should enable the following messages based on a debugging flag visible in a prefs page
-        getConsoleStream().println("Changed files:");
-        dumpSourceList(changeDependents);
+        if (emitDiags) {
+            getConsoleStream().println("Changed files:");
+            dumpSourceList(changeDependents);
+        }
 
         boolean changed= false;
         do {
@@ -393,15 +399,16 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * Crude but effective.
      */
     protected void doRefresh(final IResource resource) {
-        new Thread() {
-            public void run() {
-        	try {
-        	    resource.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
-        	} catch (CoreException e) {
-        	    e.printStackTrace();
-        	}
+        IWorkspaceRunnable r= new IWorkspaceRunnable() {
+            public void run(IProgressMonitor monitor) throws CoreException {
+                resource.getProject().refreshLocal(IResource.DEPTH_INFINITE, null);
             }
-        }.start();
+        };
+        try {
+            getProject().getWorkspace().run(r, resource.getProject(), IWorkspace.AVOID_UPDATE, null);
+        } catch (CoreException e) {
+            getPlugin().logException("Error while refreshing after a build", e);
+        }
     }
 
     /**
@@ -410,12 +417,12 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      * returns <code>getInfoMarkerID()</code>.
      */
     protected String getMarkerIDFor(int severity) {
-	switch(severity) {
-	    case IMarker.SEVERITY_ERROR: return getErrorMarkerID();
-	    case IMarker.SEVERITY_WARNING: return getWarningMarkerID();
-	    case IMarker.SEVERITY_INFO: return getInfoMarkerID();
-	    default: return getInfoMarkerID();
-	}
+        switch(severity) {
+            case IMarker.SEVERITY_ERROR: return getErrorMarkerID();
+            case IMarker.SEVERITY_WARNING: return getWarningMarkerID();
+            case IMarker.SEVERITY_INFO: return getInfoMarkerID();
+            default: return getInfoMarkerID();
+        }
     }
 
     /**
@@ -447,8 +454,9 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
                 m.setAttributes(attributeNames, values);
             } else if (charStart >= 0) {
             	m.setAttribute(IMarker.CHAR_START, charStart);
-            } else if (charEnd >= 0)
+            } else if (charEnd >= 0) {
             	m.setAttribute(IMarker.CHAR_END, charEnd);
+            }
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Unable to create marker: " + e.getMessage());
         }

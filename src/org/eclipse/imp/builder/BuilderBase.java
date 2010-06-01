@@ -227,8 +227,9 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
                 collectDependencies(monitor);
             }
             compileNecessarySources(monitor);
-            // TODO Diagnostic output should be made conditional on the value of a language-specific preference
-            getConsoleStream().print(fDependencyInfo.toString());
+            if (getDiagPreference()) {
+                getConsoleStream().print(fDependencyInfo.toString());
+            }
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Build failed: " + e.getMessage());
         }

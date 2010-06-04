@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -45,8 +44,9 @@ public class ServiceControllerManager {
         fTextEditor= textEditor;
         fLanguageServiceManager= serviceMgr;
 
-        if (fLanguageServiceManager.getHyperLinkDetector() != null)
+        if (fLanguageServiceManager.getHyperLinkDetector() != null) {
             fHyperLinkController= new SourceHyperlinkController(fLanguageServiceManager.getHyperLinkDetector(), fTextEditor);
+        }
     }
 
     public void initialize() {
@@ -67,20 +67,27 @@ public class ServiceControllerManager {
 
     public void setSourceViewer(ISourceViewer sourceViewer) {
         fSourceViewer= sourceViewer;
-        fPresentationController= new PresentationController(fSourceViewer, fLanguageServiceManager);
+        if (fLanguageServiceManager.getTokenColorer() != null) {
+            fPresentationController= new PresentationController(fSourceViewer, fLanguageServiceManager);
+        }
     }
 
     public void setupModelListeners(ParserScheduler parserScheduler) {
-        if (fOutlineController != null)
+        if (fOutlineController != null) {
             parserScheduler.addModelListener(fOutlineController);
-        if (fPresentationController != null)
+        }
+        if (fPresentationController != null) {
             parserScheduler.addModelListener(fPresentationController);
-        if (fHoverHelpController != null)
+        }
+        if (fHoverHelpController != null) {
             parserScheduler.addModelListener(fHoverHelpController);
-        if (fHyperLinkController != null)
+        }
+        if (fHyperLinkController != null) {
             parserScheduler.addModelListener(fHyperLinkController);
-        if (fCompletionProcessor != null)
+        }
+        if (fCompletionProcessor != null) {
             parserScheduler.addModelListener(fCompletionProcessor);
+        }
     }
 
     public SourceHyperlinkController getHyperLinkController() {

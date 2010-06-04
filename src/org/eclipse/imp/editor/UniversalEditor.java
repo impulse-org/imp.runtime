@@ -780,25 +780,31 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
         // TODO Perhaps add a flavor of IMP PreferenceListener that notifies for a change to any preference key?
         // Then the following listeners could become just one, at the expense of casting the pref values.
-        fFontListener= new StringPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SOURCE_FONT) {
-            @Override
-            public void changed(String oldValue, String newValue) {
-                FontData[] fontData= PreferenceConverter.readFontData(newValue);
-                handleFontChange(fontData, newValue);
-            }
-        };
-        fTabListener= new IntegerPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_TAB_WIDTH) {
-            @Override
-            public void changed(int oldValue, int newValue) {
-                handleTabsChange(newValue);
-            }
-        };
-        fSpacesForTabsListener= new BooleanPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SPACES_FOR_TABS) {
-            @Override
-            public void changed(boolean oldValue, boolean newValue) {
-                handleSpacesForTabsChange(newValue);
-            }
-        };
+        if (fLangSpecificPrefs != null) {
+            fFontListener= new StringPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SOURCE_FONT) {
+                @Override
+                public void changed(String oldValue, String newValue) {
+                    FontData[] fontData= PreferenceConverter.readFontData(newValue);
+                    handleFontChange(fontData, newValue);
+                }
+            };
+        }
+        if (fLangSpecificPrefs != null) {
+            fTabListener= new IntegerPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_TAB_WIDTH) {
+                @Override
+                public void changed(int oldValue, int newValue) {
+                    handleTabsChange(newValue);
+                }
+            };
+        }
+        if (fLangSpecificPrefs != null) {
+            fSpacesForTabsListener= new BooleanPreferenceListener(fLangSpecificPrefs, PreferenceConstants.P_SPACES_FOR_TABS) {
+                @Override
+                public void changed(boolean oldValue, boolean newValue) {
+                    handleSpacesForTabsChange(newValue);
+                }
+            };
+        }
     }
 
     private void handleTabsChange(int newTab) {
@@ -1041,10 +1047,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
             sourceViewer.setFormatter(formatter);
 
-            try {
-                fServiceControllerManager.getPresentationController().damage(new Region(0, sourceViewer.getDocument().getLength()));
-            } catch (Exception e) {
-                ErrorHandler.reportError("Error during initial damage repair", e);
+            if (fLanguageServiceManager.getTokenColorer() != null) {
+                try {
+                    fServiceControllerManager.getPresentationController().damage(new Region(0, sourceViewer.getDocument().getLength()));
+                } catch (Exception e) {
+                    ErrorHandler.reportError("Error during initial damage repair", e);
+                }
             }
             // SMS 29 May 2007 (to give viewer access to single-line comment prefix)
             sourceViewer.setParseController(fLanguageServiceManager.getParseController());
@@ -1212,13 +1220,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         	ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
         }
 
-        fLanguageServiceManager.dispose();
+        if (fLanguageServiceManager != null) {
+            fLanguageServiceManager.dispose();
+        }
         fToggleBreakpointAction.dispose(); // this holds onto the IDocument
         fFoldingActionGroup.dispose();
-        fServiceControllerManager.getCompletionProcessor().dispose();
+        if (fServiceControllerManager != null) {
+            fServiceControllerManager.getCompletionProcessor().dispose();
+            fServiceControllerManager= null;
+        }
 
-        fServiceControllerManager= null;
-        
         if (fParserScheduler != null) {
         	fParserScheduler.cancel(); // avoid unnecessary work after the editor is asked to close down
         }
@@ -1609,11 +1620,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
 
         public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-            if (fServiceControllerManager == null) {
+            if (fServiceControllerManager == null || fLanguageServiceManager.getTokenColorer() == null) {
                 return super.getPresentationReconciler(sourceViewer);
             }
             // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
             PresentationReconciler reconciler= new PresentationReconciler();
+
             reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
             reconciler.setDamager(new PresentationDamager(), IDocument.DEFAULT_CONTENT_TYPE);
             return reconciler;

@@ -283,6 +283,7 @@
             contributesToHeader="false"
             highlightPreferenceKey="occurrenceHighlightKey"
             highlightPreferenceValue="true"
+            icon="icons/searchm_obj.gif"
             includeOnPreferencePage="true"
             isGoToNextNavigationTarget="true"
             isGoToNextNavigationTargetKey="occurrenceAnnotationIsGotoNextKey"

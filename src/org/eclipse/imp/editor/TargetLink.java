@@ -90,6 +90,10 @@ public final class TargetLink implements IHyperlink {
             // Either we're opening up a new editor, or there's an existing one open on the target file.
             // Either way, get a handle to an IEditorPart for the target file, and try to get an
             // IRegionSelectionService interface on it.
+            if (!(fTarget instanceof IPath)) {
+                RuntimePlugin.getInstance().writeErrorMsg("Unable to link to a target of type other than IPath: " + fTarget.getClass().getName());
+                return;
+            }
             final IPath targetPath= (IPath) fTarget;
             IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
             IWorkbenchWindow activeWindow= PlatformUI.getWorkbench().getActiveWorkbenchWindow();

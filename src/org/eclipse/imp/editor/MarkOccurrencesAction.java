@@ -109,7 +109,7 @@ public class MarkOccurrencesAction implements IWorkbenchWindowActionDelegate {
      */
     private final class EditorPartListener implements IPartListener {
         public void partActivated(IWorkbenchPart part) {
-            if (part instanceof ITextEditor) {
+            if (part instanceof ITextEditor && fMarkingEnabled) {
                 setUpActiveEditor((ITextEditor) part);
                 if (fDocumentProvider == null)
                     return;

@@ -177,6 +177,7 @@ import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.SourceViewerDecorationSupport;
 import org.eclipse.ui.texteditor.TextOperationAction;
+import org.eclipse.ui.texteditor.spelling.SpellingService;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
@@ -694,6 +695,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 findLanguageSpecificPreferences();
             }
         }
+        // RMF 07 June 2010 - Not sure why the "run the spell checker" pref would get set, but
+        // it does seem to, which gives lots of annoying squigglies all over the place...
+        getPreferenceStore().setValue(SpellingService.PREFERENCE_SPELLING_ENABLED, false);
 
         super.createPartControl(parent);
 

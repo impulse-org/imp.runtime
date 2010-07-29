@@ -20,7 +20,6 @@ import lpg.runtime.Monitor;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.core.ErrorHandler;
-import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.jface.text.IRegion;
 
@@ -32,7 +31,7 @@ import org.eclipse.jface.text.IRegion;
  * @author Stan Sutton (suttons@us.ibm.com): rewrote token iterator
  */
 public abstract class SimpleLPGParseController extends ParseControllerBase {
-    private char fKeywords[][];
+//  private char fKeywords[][];
 
     private boolean fIsKeyword[];
 
@@ -286,24 +285,20 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
     }
 
     public boolean isKeyword(int kind) {
-        return kind < getParser().numTokenKinds() && fIsKeyword[kind];
+        return kind >= 0 && kind < fIsKeyword.length && fIsKeyword[kind];
     }
 
     protected void cacheKeywordsOnce() {
-        if (fKeywords == null) {
-            try {
-                IParser parser= getParser();
-                String tokenKindNames[]= parser.orderedTerminalSymbols();
-                this.fIsKeyword= new boolean[tokenKindNames.length];
-                this.fKeywords= new char[tokenKindNames.length][];
-                int[] keywordKinds= getLexer().getKeywordKinds();
-                for(int i= 1; i < keywordKinds.length; i++) {
-                    int index= parser.getIPrsStream().mapKind(keywordKinds[i]);
-                    fIsKeyword[index]= true;
-                    fKeywords[index]= parser.orderedTerminalSymbols()[index].toCharArray();
-                }
-            } catch (NullPointerException e) {
-                RuntimePlugin.getInstance().writeErrorMsg("SimpleLPGParseController.cacheKeywordsOnce(): NullPointerException; trapped and discarded");
+        if (fIsKeyword == null) {
+            IParser parser= getParser();
+            String tokenKindNames[]= parser.orderedTerminalSymbols();
+            fIsKeyword= new boolean[tokenKindNames.length];
+//          fKeywords= new char[tokenKindNames.length][];
+            int[] keywordKinds= getLexer().getKeywordKinds();
+            for(int i= 1; i < keywordKinds.length; i++) {
+                int index= parser.getIPrsStream().mapKind(keywordKinds[i]);
+                fIsKeyword[index]= true;
+//              fKeywords[index]= parser.orderedTerminalSymbols()[index].toCharArray();
             }
         }
     }

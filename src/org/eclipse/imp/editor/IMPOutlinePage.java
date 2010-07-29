@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -253,5 +252,4 @@ public class IMPOutlinePage extends ContentOutlinePage implements IModelListener
 //        fCategoryFilterActionGroup= new CategoryFilterActionGroup(fOutlineViewer, "org.eclipse.jdt.ui.JavaOutlinePage", new IJavaElement[] {fInput}); //$NON-NLS-1$
 //        fCategoryFilterActionGroup.contributeToViewMenu(viewMenuManager);
     }
-
 }

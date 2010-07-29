@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.services.base;
@@ -27,7 +26,6 @@ import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
 
-
 /**
  * FolderBase is an abstract base type for a source-text folding service.
  * It is intended to support extensions for language-specific folders.
@@ -39,8 +37,6 @@ import org.eclipse.jface.text.source.projection.ProjectionAnnotationModel;
  * @author rfuhrer@watson.ibm.com
  */
 public abstract class FolderBase implements IFoldingUpdater {
-	// For recording annotations
-	
 	// Maps new annotations to positions
     protected HashMap<Annotation,Position> newAnnotations = new HashMap<Annotation, Position>();
 

@@ -731,9 +731,17 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         IFile file= EditorInputUtils.getFile(editorInput);
         IPath filePath= EditorInputUtils.getPath(editorInput);
         try {
-            ISourceProject srcProject= (file != null && file.exists()) ? ModelFactory.open(file.getProject()) : null;
+            IProject project= (file != null && file.exists()) ? file.getProject() : null;
+            ISourceProject srcProject= (project != null) ? ModelFactory.open(project) : null;
 
             fLanguageServiceManager.getParseController().initialize(filePath, srcProject, fAnnotationCreator);
+            // TODO Need to do the following to give the strategy access to project-specific preference settings
+//          if (fLanguageServiceManager.getAutoEditStrategies().size() > 0) {
+//              Set<org.eclipse.imp.services.IAutoEditStrategy> strategies= fLanguageServiceManager.getAutoEditStrategies();
+//              for(org.eclipse.imp.services.IAutoEditStrategy strategy: strategies) {
+//                  strategy.setProject(project);
+//              }
+//          }
         } catch (ModelException e) {
             ErrorHandler.reportError("Error initializing parser for input " + editorInput.getName() + ":", e);
         }

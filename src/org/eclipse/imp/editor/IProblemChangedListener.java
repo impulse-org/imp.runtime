@@ -21,7 +21,7 @@ import org.eclipse.core.resources.IResource;
  */
 public interface IProblemChangedListener {
     /**
-     * Called when problems changed. This call is posted in an aynch exec, therefore passed resources must not exist.
+     * Called when problems changed. This call is posted in an async exec, therefore passed resources must not exist.
      * 
      * @param changedResources
      *            A set with elements of type <code>IResource</code> that describe the resources that had an problem

@@ -136,6 +136,7 @@ public interface IPreferencesService {
 	 * false for boolean preferences, the empty string for String preferences,
 	 * and the empty array for byte[].
 	 */
+	// TODO Remove these - the prefs service should use the project that the client configured it to use
 	public boolean getBooleanPreference(IProject project, String key);
 	public byte[]  getByteArrayPreference(IProject project, String key);
 	public double  getDoublePreference(IProject project, String key);
@@ -193,6 +194,7 @@ public interface IPreferencesService {
 	 * preferences, the empty string for String preferences, and the empty
 	 * array for byte[].
 	 */
+	// TODO Remove these - the prefs svc should use the project the client configured it to use
 	public boolean getBooleanPreferenceForProject(IProject project, String key);
 	public byte[]  getByteArrayPreferenceForProject(IProject project, String key);
 	public double  getDoublePreferenceForProject(IProject project, String key);
@@ -218,6 +220,7 @@ public interface IPreferencesService {
 	/*
 	 * Get preferences for a given level, language, and project by type
 	 */
+    // TODO Remove these - the prefs svc should use the language the client configured it to use
 	public boolean getBooleanPreference(String languageName, String projectName, String level, String key, boolean def);
 	public byte[]  getByteArrayPreference(String languageName, String projectName, String level, String key, byte[] def);
 	public double  getDoublePreference(String languageName, String projectName, String level, String key, double def);
@@ -230,6 +233,7 @@ public interface IPreferencesService {
 	/*
 	 * Set preferences for a given level, language, and project by type
 	 */
+    // TODO Remove these - the prefs svc should use the language the client configured it to use
 	public void setBooleanPreference(String languageName, String projectName, String level, String key, boolean value);
 	public void setByteArrayPreference(String languageName, String projectName, String level, String key, byte[] value);
 	public void setDoublePreference(String languageName, String projectName, String level, String key, double value);
@@ -238,22 +242,22 @@ public interface IPreferencesService {
 	public void setLongPreference(String languageName, String projectName, String level, String key, long value);
 	public void setStringPreference(String languageName, String projectName, String level, String key, String value);
 
-        /**
-         * @return the result of performing all preference substitutions on the
-         * given value, which can include references of the form "${prefKey}" or
-         * "${pluginLoc:pluginID}". The values of any preference references are
-         * obtained in the context of the project associated with this
-         * {@link IPreferencesService}, if any.
-         */
-        public String performSubstitutions(String value);
+    /**
+     * @return the result of performing all preference substitutions on the
+     * given value, which can include references of the form "${prefKey}" or
+     * "${pluginLoc:pluginID}". The values of any preference references are
+     * obtained in the context of the project associated with this
+     * {@link IPreferencesService}, if any.
+     */
+    public String performSubstitutions(String value);
 
-        /**
-         * @return the result of performing all preference substitutions on the
-         * given value, which can include references of the form "${prefKey}" or
-         * "${pluginLoc:pluginID}". Use the given project as the context for
-         * obtaining the values of referenced preferences.
-         */
-        public String performSubstitutions(String value, IProject project);
+    /**
+     * @return the result of performing all preference substitutions on the
+     * given value, which can include references of the form "${prefKey}" or
+     * "${pluginLoc:pluginID}". Use the given project as the context for
+     * obtaining the values of referenced preferences.
+     */
+    public String performSubstitutions(String value, IProject project);
 	
 	/*
 	 * Clear preferences at a given level

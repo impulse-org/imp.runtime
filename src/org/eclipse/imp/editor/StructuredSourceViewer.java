@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -64,7 +63,6 @@ public class StructuredSourceViewer extends ProjectionViewer {
      */
     public static final int MARK_OCCURRENCES= 55;
 
-    // mmk 4/8/08
     /**
      * Text operation code for indenting the currently selected text.
      */
@@ -78,16 +76,8 @@ public class StructuredSourceViewer extends ProjectionViewer {
 
     private IAutoEditStrategy fAutoEditStrategy;
 
-    // SMS 29 May 2007
     private IParseController fParseController;
     
-    /**
-     * Is this source viewer configured?
-     *
-     * @since 3.0
-     */
-    private boolean fIsConfigured;
-
     public StructuredSourceViewer(Composite parent, IVerticalRuler verticalRuler, IOverviewRuler overviewRuler, boolean showAnnotationsOverview, int styles) {
         super(parent, verticalRuler, overviewRuler, showAnnotationsOverview, styles);
     }
@@ -140,8 +130,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
         }
         super.doOperation(operation);
     }
-    
-    // SMS 29 May 2007 (see doToggleComment())
+
     public void setParseController(IParseController parseController) {
     	fParseController = parseController;
     }
@@ -159,7 +148,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
         IDocument doc= this.getDocument();
         DocumentRewriteSession rewriteSession= null;
         Point p= this.getSelectedRange();
-        final String lineCommentStart= syntaxProps.getSingleLineCommentPrefix();
+        final String lineCommentPrefix= syntaxProps.getSingleLineCommentPrefix();
 
     	if (doc instanceof IDocumentExtension4) {
     	    IDocumentExtension4 extension= (IDocumentExtension4) doc;
@@ -173,22 +162,30 @@ public class StructuredSourceViewer extends ProjectionViewer {
             final int startLine= doc.getLineOfOffset(selStart);
             int endLine= doc.getLineOfOffset(selEnd);
 
-            if (selLen > 0 && doc.getChar(selEnd - 1) == '\n')
+            if (selLen > 0 && lookingAtLineEnd(doc, selEnd))
                 endLine--;
+
+            boolean linesAllHaveCommentPrefix= linesHaveCommentPrefix(doc, lineCommentPrefix, startLine, endLine);
+        	boolean useCommonLeadingSpace= true; // take from a preference?
+			int leadingSpaceToUse= useCommonLeadingSpace ? calculateLeadingSpace(doc, startLine, endLine) : 0;
+
             for(int line= startLine; line <= endLine; line++) {
-                int lineStartOffset= doc.getLineOffset(line);
-                int offset= lineStartOffset;
+                int lineStart= doc.getLineOffset(line);
+                int lineEnd= lineStart + doc.getLineLength(line) - 1;
 
-                while (Character.isWhitespace(doc.getChar(offset)) && offset < doc.getLength())
-                    offset++;
-                if (doc.get(offset, lineCommentStart.length()).equals(lineCommentStart)) {
-                    int len= lineCommentStart.length();
-
-                    while (Character.isWhitespace(doc.getChar(offset + len)))
-                        len++;
-                    doc.replace(offset, len, "");
-                } else
-                    doc.replace(offset, 0, lineCommentStart + " ");
+                if (linesAllHaveCommentPrefix) {
+                	// remove the comment prefix from each line, wherever it occurs in the line
+                	int offset= lineStart;
+                    while (Character.isWhitespace(doc.getChar(offset)) && offset < lineEnd) {
+                        offset++;
+                    }
+                    // The first non-whitespace characters *must* be the single-line comment prefix
+                    doc.replace(offset, lineCommentPrefix.length(), "");
+                } else {
+                	// add the comment prefix to each line, after however many spaces leadingSpaceToAdd indicates
+                	int offset= lineStart + leadingSpaceToUse;
+                	doc.replace(offset, 0, lineCommentPrefix + " ");
+                }
             }
         } catch (BadLocationException e) {
             e.printStackTrace();
@@ -201,7 +198,54 @@ public class StructuredSourceViewer extends ProjectionViewer {
         }
     }
 
-    private void doIndentLines() {
+    private int calculateLeadingSpace(IDocument doc, int startLine, int endLine) {
+    	try {
+        	int result= Integer.MAX_VALUE;
+        	for(int line= startLine; line <= endLine; line++) {
+        		int lineStart= doc.getLineOffset(line);
+        		int lineEnd= lineStart = doc.getLineLength(line) - 1;
+        		int offset= lineStart;
+        		while (Character.isWhitespace(doc.getChar(offset)) && offset < lineEnd) {
+        			offset++;
+        		}
+        		int leadingSpaces= offset - lineStart;
+				result= Math.min(result, leadingSpaces);
+        	}
+    		return result;
+    	} catch (BadLocationException e) {
+    		return 0;
+    	}
+	}
+
+	/**
+     * @return true, if the given inclusive range of lines all start with the single-line comment prefix,
+     * even if they have different amounts of leading whitespace
+     */
+    private boolean linesHaveCommentPrefix(IDocument doc, String lineCommentPrefix, int startLine, int endLine) {
+    	try {
+    		int docLen= doc.getLength();
+
+    		for(int line= startLine; line <= endLine; line++) {
+                int lineStart= doc.getLineOffset(line);
+                int lineEnd= lineStart + doc.getLineLength(line) - 1;
+                int offset= lineStart;
+
+                while (Character.isWhitespace(doc.getChar(offset)) && offset < lineEnd) {
+                    offset++;
+                }
+                if (docLen - offset > lineCommentPrefix.length() && doc.get(offset, lineCommentPrefix.length()).equals(lineCommentPrefix)) {
+                	// this line starts with the single-line comment prefix
+                } else {
+                	return false;
+                }
+            }
+    	} catch (BadLocationException e) {
+    		return false;
+    	}
+		return true;
+	}
+
+	private void doIndentLines() {
         IDocument doc= this.getDocument();
         DocumentRewriteSession rewriteSession= null;
         Point p= this.getSelectedRange();
@@ -314,7 +358,6 @@ public class StructuredSourceViewer extends ProjectionViewer {
         //	    fPreferenceStore.addPropertyChangeListener(this);
         //	    initializeViewerColors();
         //	}
-        fIsConfigured= true;
     }
 
     /*
@@ -345,6 +388,5 @@ public class StructuredSourceViewer extends ProjectionViewer {
         //	if (fPreferenceStore != null)
         //	    fPreferenceStore.removePropertyChangeListener(this);
         super.unconfigure();
-        fIsConfigured= false;
     }
 }

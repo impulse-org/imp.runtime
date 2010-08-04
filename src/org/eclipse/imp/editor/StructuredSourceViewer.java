@@ -203,7 +203,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
         	int result= Integer.MAX_VALUE;
         	for(int line= startLine; line <= endLine; line++) {
         		int lineStart= doc.getLineOffset(line);
-        		int lineEnd= lineStart = doc.getLineLength(line) - 1;
+        		int lineEnd= lineStart + doc.getLineLength(line) - 1;
         		int offset= lineStart;
         		while (Character.isWhitespace(doc.getChar(offset)) && offset < lineEnd) {
         			offset++;

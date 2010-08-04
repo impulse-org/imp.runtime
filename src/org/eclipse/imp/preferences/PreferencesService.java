@@ -497,354 +497,353 @@ public class PreferencesService implements IPreferencesService {
 		return result;
 	}
 
-	
 	public double getDoublePreference(IProject project, String key) {
-		return preferencesService.getDouble(languageName, key, 0, new IScopeContext[] { new ProjectScope(project) } );
+		return preferencesService.getDouble(languageName, key, 0, specificProjectScope());
 	}
 	
 	public float getFloatPreference(IProject project, String key) {
-		return preferencesService.getFloat(languageName, key, 0,  new IScopeContext[] { new ProjectScope(project) });
+		return preferencesService.getFloat(languageName, key, 0,  specificProjectScope());
 	}
 		
 	public int getIntPreference(IProject project, String key) {
-		return preferencesService.getInt(languageName, key, 0, new IScopeContext[] { new ProjectScope(project) });
+		return preferencesService.getInt(languageName, key, 0, specificProjectScope());
 	}
 	
 	public long getLongPreference(IProject project, String key) {
-		return preferencesService.getLong(languageName, key, 0, new IScopeContext[] { new ProjectScope(project) } );
+		return preferencesService.getLong(languageName, key, 0, specificProjectScope());
 	}
 	
 	public String getRawStringPreference(IProject project, String key) {
-		return preferencesService.getString(languageName, key, null, new IScopeContext[] { new ProjectScope(project) } );
+		return preferencesService.getString(languageName, key, null, specificProjectScope());
 	}
 
-        public String getStringPreference(IProject project, String key) {
-            String value= getRawStringPreference(project, key);
-            String result= performSubstitutions(value, project);
+    public String getStringPreference(IProject project, String key) {
+        String value= getRawStringPreference(project, key);
+        String result= performSubstitutions(value, project);
 
-            return result;
-        }
+        return result;
+    }
         
-        /**
-         * An evaluator for non-parameterized (constant) references.
-         */
-        private interface ConstantEvaluator {
-            String getValue();
-        }
+    /**
+     * An evaluator for non-parameterized (constant) references.
+     */
+    private interface ConstantEvaluator {
+        String getValue();
+    }
 
-        private static final Map<String,ConstantEvaluator> sConstantMap= new HashMap<String, ConstantEvaluator>();
+    private static final Map<String,ConstantEvaluator> sConstantMap= new HashMap<String, ConstantEvaluator>();
 
-        static {
-            sConstantMap.put("workspaceLoc", new ConstantEvaluator() {
-                public String getValue() {
-                    return ResourcesPlugin.getWorkspace().getRoot().getLocation().toPortableString();
-                }
-            });
-            sConstantMap.put("os", new ConstantEvaluator() {
-                public String getValue() {
-                    return Platform.getOS();
-                }
-            });
-            sConstantMap.put("arch", new ConstantEvaluator() {
-                public String getValue() {
-                    return Platform.getOSArch();
-                }
-            });
-            sConstantMap.put("nl", new ConstantEvaluator() {
-                public String getValue() {
-                    return Platform.getNL();
-                }
-            });
-            sConstantMap.put("ws", new ConstantEvaluator() {
-                public String getValue() {
-                    return Platform.getWS();
-                }
-            });
-        }
+    static {
+        sConstantMap.put("workspaceLoc", new ConstantEvaluator() {
+            public String getValue() {
+                return ResourcesPlugin.getWorkspace().getRoot().getLocation().toPortableString();
+            }
+        });
+        sConstantMap.put("os", new ConstantEvaluator() {
+            public String getValue() {
+                return Platform.getOS();
+            }
+        });
+        sConstantMap.put("arch", new ConstantEvaluator() {
+            public String getValue() {
+                return Platform.getOSArch();
+            }
+        });
+        sConstantMap.put("nl", new ConstantEvaluator() {
+            public String getValue() {
+                return Platform.getNL();
+            }
+        });
+        sConstantMap.put("ws", new ConstantEvaluator() {
+            public String getValue() {
+                return Platform.getWS();
+            }
+        });
+    }
 
-        /**
-         * An evaluator for parameterized value references.
-         */
-        private interface ParamEvaluator {
-            String getValue(String param);
-        }
+    /**
+     * An evaluator for parameterized value references.
+     */
+    private interface ParamEvaluator {
+        String getValue(String param);
+    }
 
-        private static final Map<String,ParamEvaluator> sParamMap= new HashMap<String, ParamEvaluator>();
+    private static final Map<String,ParamEvaluator> sParamMap= new HashMap<String, ParamEvaluator>();
 
-        static {
-            sParamMap.put("pluginLoc", new ParamEvaluator() {
-                public String getValue(String pluginID) {
-                    Bundle bundle= Platform.getBundle(pluginID);
-                    if (bundle == null) {
-                        return "<no such plugin: " + pluginID + ">";
-                    }
-                    try {
-                        String bundleLoc= FileLocator.toFileURL(bundle.getEntry("")).getFile();
-                        return bundleLoc;
-                    } catch (IOException e) {
-                        return "<error determining location of plugin: " + pluginID + ">";
-                    }
+    static {
+        sParamMap.put("pluginLoc", new ParamEvaluator() {
+            public String getValue(String pluginID) {
+                Bundle bundle= Platform.getBundle(pluginID);
+                if (bundle == null) {
+                    return "<no such plugin: " + pluginID + ">";
+                }
+                try {
+                    String bundleLoc= FileLocator.toFileURL(bundle.getEntry("")).getFile();
+                    return bundleLoc;
+                } catch (IOException e) {
+                    return "<error determining location of plugin: " + pluginID + ">";
+                }
 //                  Bundle[] fragments= Platform.getFragments(bundle);
+            }
+        });
+        sParamMap.put("pluginResource", new ParamEvaluator() {
+            public String getValue(String pluginResourceLoc) {
+                int idx= pluginResourceLoc.indexOf('/');
+                if (idx <= 0) {
+                    return "<error in pluginResource specification: no plugin ID found: " + pluginResourceLoc + ">";
                 }
-            });
-            sParamMap.put("pluginResource", new ParamEvaluator() {
-                public String getValue(String pluginResourceLoc) {
-                    int idx= pluginResourceLoc.indexOf('/');
-                    if (idx <= 0) {
-                        return "<error in pluginResource specification: no plugin ID found: " + pluginResourceLoc + ">";
-                    }
-                    String pluginID= pluginResourceLoc.substring(0, idx);
-                    String resourcePath= pluginResourceLoc.substring(idx+1);
-                    Bundle bundle= Platform.getBundle(pluginID);
-                    if (bundle == null) {
-                        return "<no such plugin: " + pluginID + ">";
-                    }
-                    try {
-                        URL resourceEntry= bundle.getEntry(resourcePath);
-                        if (resourceEntry == null) {
-                            Bundle[] fragments= Platform.getFragments(bundle);
-                            if (fragments != null) {
-                                for(int i= 0; i < fragments.length; i++) {
-                                    Bundle bundleFrag= fragments[i];
-                                    resourceEntry= bundleFrag.getEntry(resourcePath);
-                                    if (resourceEntry != null) {
-                                        break;
-                                    }
+                String pluginID= pluginResourceLoc.substring(0, idx);
+                String resourcePath= pluginResourceLoc.substring(idx+1);
+                Bundle bundle= Platform.getBundle(pluginID);
+                if (bundle == null) {
+                    return "<no such plugin: " + pluginID + ">";
+                }
+                try {
+                    URL resourceEntry= bundle.getEntry(resourcePath);
+                    if (resourceEntry == null) {
+                        Bundle[] fragments= Platform.getFragments(bundle);
+                        if (fragments != null) {
+                            for(int i= 0; i < fragments.length; i++) {
+                                Bundle bundleFrag= fragments[i];
+                                resourceEntry= bundleFrag.getEntry(resourcePath);
+                                if (resourceEntry != null) {
+                                    break;
                                 }
                             }
                         }
-                        if (resourceEntry == null) {
-                            return "<error: no resource '" + resourcePath + "' in plugin " + pluginID + " or its fragments>";
-                        }
-                        String resourceLoc= FileLocator.toFileURL(resourceEntry).getFile();
-                        // RMF 3/17/2009 Make sure the path is really a valid one: toFileURL().getFile()
-                        // for some reason sometimes produces invalid paths like "/C:/..." on Win32.
-                        // Passing this through Path.toPortableString() seems to address the problem.
-                        resourceLoc= new Path(resourceLoc).toPortableString();
-                        return resourceLoc;
-                    } catch (IOException e) {
-                        return "<error determining location of plugin: " + pluginID + ">";
                     }
-                }
-            });
-            sParamMap.put("pluginVersion", new ParamEvaluator() {
-                public String getValue(String pluginID) {
-                    Bundle bundle= Platform.getBundle(pluginID);
-                    if (bundle == null) {
-                        return "<no such plugin: " + pluginID + ">";
+                    if (resourceEntry == null) {
+                        return "<error: no resource '" + resourcePath + "' in plugin " + pluginID + " or its fragments>";
                     }
-                    return (String) bundle.getHeaders().get("Bundle-Version");
+                    String resourceLoc= FileLocator.toFileURL(resourceEntry).getFile();
+                    // RMF 3/17/2009 Make sure the path is really a valid one: toFileURL().getFile()
+                    // for some reason sometimes produces invalid paths like "/C:/..." on Win32.
+                    // Passing this through Path.toPortableString() seems to address the problem.
+                    resourceLoc= new Path(resourceLoc).toPortableString();
+                    return resourceLoc;
+                } catch (IOException e) {
+                    return "<error determining location of plugin: " + pluginID + ">";
                 }
-            });
-            sParamMap.put("projectLoc", new ParamEvaluator() {
-                public String getValue(String projectName) {
-                    IProject project= getProjectFromName(projectName);
-                    if (project == null) {
-                        return "<no such project: " + projectName + ">";
-                    }
-                    return project.getLocation().toPortableString();
-                }
-            });
-        }
-
-        private static void initializeForTesting() {
-            sConstantMap.clear();
-            sConstantMap.put("workspaceLoc", new ConstantEvaluator() {
-                public String getValue() {
-                    return "~/eclipse/workspace";
-                }
-            });
-            sConstantMap.put("os", new ConstantEvaluator() {
-                public String getValue() {
-                    return "macosx";
-                }
-            });
-            sConstantMap.put("arch", new ConstantEvaluator() {
-                public String getValue() {
-                    return "x86";
-                }
-            });
-            sConstantMap.put("nl", new ConstantEvaluator() {
-                public String getValue() {
-                    return "enUS";
-                }
-            });
-            sConstantMap.put("ws", new ConstantEvaluator() {
-                public String getValue() {
-                    return "mac";
-                }
-            });
-            sParamMap.clear();
-            sParamMap.put("pluginLoc", new ParamEvaluator() {
-                public String getValue(String pluginID) {
-                    return "/System/Library/eclipse-3.3.2/plugins/" + pluginID;
-                }
-            });
-            sParamMap.put("pluginResource", new ParamEvaluator() {
-                public String getValue(String pluginResourceLoc) {
-                    int idx= pluginResourceLoc.indexOf('/');
-                    if (idx <= 0) {
-                        return "<error in pluginResource specification: no plugin ID found: " + pluginResourceLoc + ">";
-                    }
-                    String pluginID= pluginResourceLoc.substring(0, idx);
-                    String resourcePath= pluginResourceLoc.substring(idx+1);
-                    return "/System/Library/eclipse-3.3.2/plugins/" + pluginID + "/" + resourcePath;
-                }
-            });
-            sParamMap.put("pluginVersion", new ParamEvaluator() {
-                public String getValue(String pluginID) {
-                    return "1.0.0";
-                }
-            });
-            sParamMap.put("projectLoc", new ParamEvaluator() {
-                public String getValue(String projectName) {
-                    return "~/eclipse/workspace/" + projectName;
-                }
-            });
-        }
-
-        public static void main(String args[]) {
-            initializeForTesting();
-            PreferencesService svc= new PreferencesService();
-            String[][] testPairs= new String[][] {
-                    { "foo",               "foo", },
-                    { "${os}",             "macosx" },
-                    { "foo-${os}",         "foo-macosx" },
-                    { "${os}-bar",         "macosx-bar" },
-                    { "foo-${os}-bar",     "foo-macosx-bar" },
-                    { "${os}-${arch}",     "macosx-x86" },
-                    { "${os}${arch}",      "macosxx86" },
-
-                    { "${projectLoc:foo}", "~/eclipse/workspace/foo" },
-                    { "${pluginResource:lpg.runtime/templates}",                    "/System/Library/eclipse-3.3.2/plugins/lpg.runtime/templates" },
-                    { "${pluginResource:lpg.runtime/lpgexe/lpg-${os}_${arch}.exe}", "/System/Library/eclipse-3.3.2/plugins/lpg.runtime/lpgexe/lpg-macosx_x86.exe" },
-
-                    { "\\$",               "$" },
-                    { "\\$abc",            "$abc" },
-                    { "\\$\\$",            "$$" },
-                    { "\\${blah\\}",       "${blah}" },
-                    { "\\a",               "a" },
-                    { "\\a\\b",            "ab" },
-                    { "\\a-\\b",           "a-b" },
-
-                    { "${blah",  "Invalid preference: '${blah': unexpected end of string" },
-                    { "$blah}",  "Invalid preference: '$blah}': unexpected character 'b' at offset 1" },
-                    { "${}",     "Invalid preference: '${}': unexpected character '}' at offset 2" },
-                    { "$",       "Invalid preference: '$': unexpected end of string" },
-            };
-            int failedCount= 0;
-
-            for(int i= 0; i < testPairs.length; i++) {
-                String input= testPairs[i][0];
-                String expectedOutput= testPairs[i][1];
-                String result= svc.performSubstitutions(input);
-
-                System.out.println("Input  = '" + input + "'");
-                System.out.println("Result = '" + result + "'");
-                if (!expectedOutput.equals(result)) {
-                    System.err.println("Test failed: expected output '" + expectedOutput + "'!");
-                    failedCount++;
-                } else {
-                    System.out.println("Test passed.");
-                }
-                System.out.println();
             }
-            if (failedCount > 0) {
-                System.err.println("" + failedCount + " tests failed.");
+        });
+        sParamMap.put("pluginVersion", new ParamEvaluator() {
+            public String getValue(String pluginID) {
+                Bundle bundle= Platform.getBundle(pluginID);
+                if (bundle == null) {
+                    return "<no such plugin: " + pluginID + ">";
+                }
+                return (String) bundle.getHeaders().get("Bundle-Version");
             }
-        }
-
-        public String performSubstitutions(String value) {
-            return performSubstitutions(value, null);
-        }
-
-        public String performSubstitutions(final String value, final IProject project) {
-            if (value == null || value.length() == 0) {
-                return value;
+        });
+        sParamMap.put("projectLoc", new ParamEvaluator() {
+            public String getValue(String projectName) {
+                IProject project= getProjectFromName(projectName);
+                if (project == null) {
+                    return "<no such project: " + projectName + ">";
+                }
+                return project.getLocation().toPortableString();
             }
-            PreferenceValueParser parser= new PreferenceValueParser();
+        });
+    }
 
-            ASTNode ast= parser.parser(value);
+    private static void initializeForTesting() {
+        sConstantMap.clear();
+        sConstantMap.put("workspaceLoc", new ConstantEvaluator() {
+            public String getValue() {
+                return "~/eclipse/workspace";
+            }
+        });
+        sConstantMap.put("os", new ConstantEvaluator() {
+            public String getValue() {
+                return "macosx";
+            }
+        });
+        sConstantMap.put("arch", new ConstantEvaluator() {
+            public String getValue() {
+                return "x86";
+            }
+        });
+        sConstantMap.put("nl", new ConstantEvaluator() {
+            public String getValue() {
+                return "enUS";
+            }
+        });
+        sConstantMap.put("ws", new ConstantEvaluator() {
+            public String getValue() {
+                return "mac";
+            }
+        });
+        sParamMap.clear();
+        sParamMap.put("pluginLoc", new ParamEvaluator() {
+            public String getValue(String pluginID) {
+                return "/System/Library/eclipse-3.3.2/plugins/" + pluginID;
+            }
+        });
+        sParamMap.put("pluginResource", new ParamEvaluator() {
+            public String getValue(String pluginResourceLoc) {
+                int idx= pluginResourceLoc.indexOf('/');
+                if (idx <= 0) {
+                    return "<error in pluginResource specification: no plugin ID found: " + pluginResourceLoc + ">";
+                }
+                String pluginID= pluginResourceLoc.substring(0, idx);
+                String resourcePath= pluginResourceLoc.substring(idx+1);
+                return "/System/Library/eclipse-3.3.2/plugins/" + pluginID + "/" + resourcePath;
+            }
+        });
+        sParamMap.put("pluginVersion", new ParamEvaluator() {
+            public String getValue(String pluginID) {
+                return "1.0.0";
+            }
+        });
+        sParamMap.put("projectLoc", new ParamEvaluator() {
+            public String getValue(String projectName) {
+                return "~/eclipse/workspace/" + projectName;
+            }
+        });
+    }
 
-            if (ast == null) { return "Invalid preference: '" + value + "': " + parser.getErrorMessage(); }
+    public static void main(String args[]) {
+        initializeForTesting();
+        PreferencesService svc= new PreferencesService();
+        String[][] testPairs= new String[][] {
+                { "foo",               "foo", },
+                { "${os}",             "macosx" },
+                { "foo-${os}",         "foo-macosx" },
+                { "${os}-bar",         "macosx-bar" },
+                { "foo-${os}-bar",     "foo-macosx-bar" },
+                { "${os}-${arch}",     "macosx-x86" },
+                { "${os}${arch}",      "macosxx86" },
 
-            final Map<IAst,String> valueMap= new HashMap<IAst, String>();
+                { "${projectLoc:foo}", "~/eclipse/workspace/foo" },
+                { "${pluginResource:lpg.runtime/templates}",                    "/System/Library/eclipse-3.3.2/plugins/lpg.runtime/templates" },
+                { "${pluginResource:lpg.runtime/lpgexe/lpg-${os}_${arch}.exe}", "/System/Library/eclipse-3.3.2/plugins/lpg.runtime/lpgexe/lpg-macosx_x86.exe" },
 
-            ast.accept(new AbstractVisitor() {
-                public void postVisit(IAst node) {
+                { "\\$",               "$" },
+                { "\\$abc",            "$abc" },
+                { "\\$\\$",            "$$" },
+                { "\\${blah\\}",       "${blah}" },
+                { "\\a",               "a" },
+                { "\\a\\b",            "ab" },
+                { "\\a-\\b",           "a-b" },
+
+                { "${blah",  "Invalid preference: '${blah': unexpected end of string" },
+                { "$blah}",  "Invalid preference: '$blah}': unexpected character 'b' at offset 1" },
+                { "${}",     "Invalid preference: '${}': unexpected character '}' at offset 2" },
+                { "$",       "Invalid preference: '$': unexpected end of string" },
+        };
+        int failedCount= 0;
+
+        for(int i= 0; i < testPairs.length; i++) {
+            String input= testPairs[i][0];
+            String expectedOutput= testPairs[i][1];
+            String result= svc.performSubstitutions(input);
+
+            System.out.println("Input  = '" + input + "'");
+            System.out.println("Result = '" + result + "'");
+            if (!expectedOutput.equals(result)) {
+                System.err.println("Test failed: expected output '" + expectedOutput + "'!");
+                failedCount++;
+            } else {
+                System.out.println("Test passed.");
+            }
+            System.out.println();
+        }
+        if (failedCount > 0) {
+            System.err.println("" + failedCount + " tests failed.");
+        }
+    }
+
+    public String performSubstitutions(String value) {
+        return performSubstitutions(value, null);
+    }
+
+    public String performSubstitutions(final String value, final IProject project) {
+        if (value == null || value.length() == 0) {
+            return value;
+        }
+        PreferenceValueParser parser= new PreferenceValueParser();
+
+        ASTNode ast= parser.parser(value);
+
+        if (ast == null) { return "Invalid preference: '" + value + "': " + parser.getErrorMessage(); }
+
+        final Map<IAst,String> valueMap= new HashMap<IAst, String>();
+
+        ast.accept(new AbstractVisitor() {
+            public void postVisit(IAst node) {
 //                  System.out.println("post-visiting node '" + node + "'");
-                    if (node instanceof escapedChar) {
-                        escapedChar ch= (escapedChar) node;
-                        String nodeStr= nodeString(ch);
+                if (node instanceof escapedChar) {
+                    escapedChar ch= (escapedChar) node;
+                    String nodeStr= nodeString(ch);
 
-                        if (nodeStr.charAt(1) == '$') {
-                            valueMap.put(node, nodeStr.substring(1));
+                    if (nodeStr.charAt(1) == '$') {
+                        valueMap.put(node, nodeStr.substring(1));
+                    } else {
+                        valueMap.put(node, nodeStr);
+                    }
+                } else if (node instanceof simpleStringPrefixed) {
+                    simpleStringPrefixed strPref= (simpleStringPrefixed) node;
+                    String valString= nodeString((ASTNode) strPref.getvalStringNoSubst());
+
+                    valString= valString.replaceAll("\\\\\\$", "$").replace("\\\\}", "}");
+                    if (strPref.getsubstPrefixed() != null) {
+                        String result= valString + valueMap.get(strPref.getsubstPrefixed());
+                        valueMap.put(node, result);
+                    } else {
+                        valueMap.put(node, valString);
+                    }
+                } else if (node instanceof substPrefixed) {
+                    substPrefixed subPref= (substPrefixed) node;
+
+                    if (subPref.getsimpleStringPrefixed() != null) {
+                        String result= valueMap.get(subPref.getsubstitutionList()) + valueMap.get(subPref.getsimpleStringPrefixed());
+                        valueMap.put(node, result);
+                    } else {
+                        valueMap.put(node, valueMap.get(subPref.getsubstitutionList()));
+                    }
+                } else if (node instanceof substitutionList) {
+                    substitutionList subList= (substitutionList) node;
+                    StringBuilder sb= new StringBuilder();
+
+                    for(int i=0; i < subList.size(); i++) {
+                        sb.append(valueMap.get(subList.getsubstitutionAt(i)));
+                    }
+                    valueMap.put(node, sb.toString());
+                } else if (node instanceof substitution) {
+                    substitution sub= (substitution) node;
+                    String id= nodeString(sub.getident());
+                    optParameter parm= sub.getoptParameter();
+
+                    if (parm != null) {
+                        ParamEvaluator e= sParamMap.get(id);
+                        String parmStr= valueMap.get(parm.getvalue());
+                        String parmVal= (e != null) ? e.getValue(parmStr) : ("<no such preference: " + id + ">");
+
+                        valueMap.put(node, parmVal);
+                    } else {
+                        if (sConstantMap.containsKey(id)) {
+                            String constVal= sConstantMap.get(id).getValue();
+                            valueMap.put(node, constVal);
                         } else {
-                            valueMap.put(node, nodeStr);
-                        }
-                    } else if (node instanceof simpleStringPrefixed) {
-                        simpleStringPrefixed strPref= (simpleStringPrefixed) node;
-                        String valString= nodeString((ASTNode) strPref.getvalStringNoSubst());
-
-                        valString= valString.replaceAll("\\\\\\$", "$").replace("\\\\}", "}");
-                        if (strPref.getsubstPrefixed() != null) {
-                            String result= valString + valueMap.get(strPref.getsubstPrefixed());
-                            valueMap.put(node, result);
-                        } else {
-                            valueMap.put(node, valString);
-                        }
-                    } else if (node instanceof substPrefixed) {
-                        substPrefixed subPref= (substPrefixed) node;
-
-                        if (subPref.getsimpleStringPrefixed() != null) {
-                            String result= valueMap.get(subPref.getsubstitutionList()) + valueMap.get(subPref.getsimpleStringPrefixed());
-                            valueMap.put(node, result);
-                        } else {
-                            valueMap.put(node, valueMap.get(subPref.getsubstitutionList()));
-                        }
-                    } else if (node instanceof substitutionList) {
-                        substitutionList subList= (substitutionList) node;
-                        StringBuilder sb= new StringBuilder();
-
-                        for(int i=0; i < subList.size(); i++) {
-                            sb.append(valueMap.get(subList.getsubstitutionAt(i)));
-                        }
-                        valueMap.put(node, sb.toString());
-                    } else if (node instanceof substitution) {
-                        substitution sub= (substitution) node;
-                        String id= nodeString(sub.getident());
-                        optParameter parm= sub.getoptParameter();
-
-                        if (parm != null) {
-                            ParamEvaluator e= sParamMap.get(id);
-                            String parmStr= valueMap.get(parm.getvalue());
-                            String parmVal= (e != null) ? e.getValue(parmStr) : ("<no such preference: " + id + ">");
-
-                            valueMap.put(node, parmVal);
-                        } else {
-                            if (sConstantMap.containsKey(id)) {
-                                String constVal= sConstantMap.get(id).getValue();
-                                valueMap.put(node, constVal);
-                            } else {
-                                String refVal= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
-                                valueMap.put(node, refVal);
-                            }
+                            String refVal= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
+                            valueMap.put(node, refVal);
                         }
                     }
                 }
-                public boolean preVisit(IAst element) {
-                    return true;
-                }
-                private String nodeString(ASTNode node) {
-                    return value.substring(node.leftIToken.getStartOffset(), node.rightIToken.getEndOffset()+1);
-                }
-                @Override
-                public void unimplementedVisitor(String s) { }
-            });
-            String result= valueMap.get(ast);
-            return result;
-        }
-	
+            }
+            public boolean preVisit(IAst element) {
+                return true;
+            }
+            private String nodeString(ASTNode node) {
+                return value.substring(node.leftIToken.getStartOffset(), node.rightIToken.getEndOffset()+1);
+            }
+            @Override
+            public void unimplementedVisitor(String s) { }
+        });
+        String result= valueMap.get(ast);
+        return result;
+    }
+
 	/*	
 	 * Get preferences at a given level by type
 	 */

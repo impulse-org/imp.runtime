@@ -18,6 +18,7 @@ import org.eclipse.imp.editor.internal.OutlineController;
 import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.SourceHyperlinkController;
 import org.eclipse.imp.parser.IModelListener;
+import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.ui.texteditor.ITextEditor;
 
@@ -53,8 +54,13 @@ public class ServiceControllerManager {
         IRegionSelectionService regionSelector= (IRegionSelectionService) fTextEditor.getAdapter(IRegionSelectionService.class);
 
         fHoverHelpController= new HoverHelpController(fLanguageServiceManager.getLanguage());
-        fFormattingController= new FormattingController(fLanguageServiceManager.getFormattingStrategy());
-        fFormattingController.setParseController(fLanguageServiceManager.getParseController());
+
+        ISourceFormatter formattingStrategy = fLanguageServiceManager.getFormattingStrategy();
+
+        if (formattingStrategy != null) {
+        	fFormattingController= new FormattingController(formattingStrategy);
+        	fFormattingController.setParseController(fLanguageServiceManager.getParseController());
+        }
 
         if (fLanguageServiceManager.getModelBuilder() != null) {
             fOutlineController= new IMPOutlinePage(fLanguageServiceManager.getParseController(), fLanguageServiceManager.getModelBuilder(), fLanguageServiceManager.getLabelProvider(),

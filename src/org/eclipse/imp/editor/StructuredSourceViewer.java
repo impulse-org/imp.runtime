@@ -16,6 +16,7 @@ import java.util.List;
 
 import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
 import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.base.DefaultAutoIndentStrategy;
@@ -200,7 +201,6 @@ public class StructuredSourceViewer extends ProjectionViewer {
         }
     }
 
-    // mmk 4/8/08
     private void doIndentLines() {
         IDocument doc= this.getDocument();
         DocumentRewriteSession rewriteSession= null;
@@ -218,18 +218,16 @@ public class StructuredSourceViewer extends ProjectionViewer {
             final int startLine= doc.getLineOfOffset(selStart);
             int endLine= doc.getLineOfOffset(selEnd);
 
-            if (selLen > 0 && doc.getChar(selEnd - 1) == '\n')
+            if (selLen > 0 && lookingAtLineEnd(doc, selEnd))
                 endLine--;
             for(int line= startLine; line <= endLine; line++) {
                 int lineStartOffset= doc.getLineOffset(line);
-                int offset= lineStartOffset;
 
-                // Replace the indent with desired indent
-                // make use of the language-specific AutoEditStrategy
-                // This strategy assumes keystroke input, so infrastructure requires a key event/DocumentCommand to work.
+                // Replace the existing indentation with the desired indentation.
+                // Use the language-specific AutoEditStrategy, which requires a DocumentCommand.
                 DocumentCommand cmd= new DocumentCommand() { };
                 cmd.offset= lineStartOffset;
-                cmd.length= 1;
+                cmd.length= 0;
                 cmd.text= Character.toString('\t');
                 cmd.doit= true;
                 cmd.shiftsCaret= false;
@@ -237,7 +235,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
                 doc.replace(cmd.offset, cmd.length, cmd.text);
             }
         } catch (BadLocationException e) {
-            e.printStackTrace();
+            RuntimePlugin.getInstance().logException("Indent Selection command failed", e);
         } finally {
             if (doc instanceof IDocumentExtension4) {
                 IDocumentExtension4 extension= (IDocumentExtension4) doc;
@@ -245,6 +243,21 @@ public class StructuredSourceViewer extends ProjectionViewer {
             }
             restoreSelection();
         }
+    }
+
+    private boolean lookingAtLineEnd(IDocument doc, int pos) {
+        String[] legalLineTerms= doc.getLegalLineDelimiters();
+        try {
+            for(String lineTerm: legalLineTerms) {
+                int len= lineTerm.length();
+                if (pos > len && doc.get(pos - len, len).equals(lineTerm)) {
+                    return true;
+                }
+            }
+        } catch (BadLocationException e) {
+            RuntimePlugin.getInstance().logException("Error examining document for line termination", e);
+        }
+        return false;
     }
 
     /*

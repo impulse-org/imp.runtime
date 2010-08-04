@@ -82,7 +82,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
                 fAnnotations.add(anno);
             }
             modelExt.replaceAnnotations(oldAnnotations, newAnnotations);
-        } else {
+        } else if (model != null) { // model could be null if, e.g., we're directly browsing a file version in a src repo
             for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
                 Annotation a= (Annotation) i.next();
 

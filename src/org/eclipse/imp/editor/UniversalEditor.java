@@ -11,8 +11,12 @@
 
 package org.eclipse.imp.editor;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -20,6 +24,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipException;
+import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -80,6 +87,7 @@ import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
+import org.eclipse.imp.utils.StreamUtils;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -95,6 +103,7 @@ import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
+import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -159,11 +168,13 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.SubActionBars;
+import org.eclipse.ui.editors.text.StorageDocumentProvider;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.handlers.IHandlerActivation;
@@ -171,6 +182,7 @@ import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.IEditorStatusLine;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
@@ -671,6 +683,57 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             }
             // ignore exceptions, don't update any of the lists, just set status line
         }
+    }
+
+    private IDocumentProvider fZipDocProvider;
+
+    @Override
+    public IDocumentProvider getDocumentProvider() {
+    	if (getEditorInput() instanceof IURIEditorInput) {
+			IURIEditorInput uriEditorInput = (IURIEditorInput) getEditorInput();
+			URI uri= uriEditorInput.getURI();
+			String path= uri.getPath();
+			if (path.contains(".jar:") || path.contains(".zip:")) {
+				if (fZipDocProvider == null) {
+					fZipDocProvider= new StorageDocumentProvider() {
+		    			@Override
+		    			protected ElementInfo createElementInfo(Object element) throws CoreException {
+		    				ElementInfo ei= super.createElementInfo(element);
+		    				ei.fDocument= new Document(getZipEntryContents((IURIEditorInput) element));
+		    				return ei;
+		    			}
+		    			@Override
+		    			protected boolean setDocumentContent(IDocument document,
+		    					IEditorInput editorInput) throws CoreException {
+		    				IURIEditorInput uriEditorInput = (IURIEditorInput) getEditorInput();
+		    				String contents = getZipEntryContents(uriEditorInput);
+
+		    				document.set(contents);
+		    				return true;
+		    			}
+						private String getZipEntryContents(IURIEditorInput uriEditorInput) {
+							String contents= "";
+							try {
+								URI uri= uriEditorInput.getURI();
+								String path= uri.getPath();
+								String jarPath= path.substring(0, path.indexOf(':'));
+								String entryPath= path.substring(path.indexOf(':') + 1);
+
+								ZipFile zipFile= new ZipFile(new File(jarPath));
+								ZipEntry entry= zipFile.getEntry(entryPath);
+								InputStream is= zipFile.getInputStream(entry);
+								contents= StreamUtils.readStreamContents(is);
+							} catch (Exception e) {
+								RuntimePlugin.getInstance().logException("Exception caught while obtaining contents of zip file entry", e);
+							}
+							return contents;
+						}
+		    		};
+				}
+	    		return fZipDocProvider;
+			}
+    	}
+    	return super.getDocumentProvider();
     }
 
     public void createPartControl(Composite parent) {

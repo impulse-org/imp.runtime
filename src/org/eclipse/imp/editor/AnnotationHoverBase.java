@@ -102,6 +102,8 @@ public class AnnotationHoverBase implements IAnnotationHover, ILanguageService {
     static {
         sAnnotationTypesToFilter.add("org.eclipse.ui.workbench.texteditor.quickdiffUnchanged");
         sAnnotationTypesToFilter.add("org.eclipse.ui.workbench.texteditor.quickdiffChange");
+        sAnnotationTypesToFilter.add("org.eclipse.ui.workbench.texteditor.quickdiffAddition");
+        sAnnotationTypesToFilter.add("org.eclipse.ui.workbench.texteditor.quickdiffDeletion");
         sAnnotationTypesToFilter.add("org.eclipse.debug.core.breakpoint");
         sAnnotationTypesToFilter.add(MarkOccurrencesAction.OCCURRENCE_ANNOTATION);
         sAnnotationTypesToFilter.add(ProjectionAnnotation.TYPE);

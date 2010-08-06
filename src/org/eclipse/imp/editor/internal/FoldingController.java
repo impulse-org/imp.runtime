@@ -1,14 +1,13 @@
 /*******************************************************************************
-* Copyright (c) 2007 IBM Corporation.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
-*
-* Contributors:
-*    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
-*******************************************************************************/
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+ *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
 
@@ -24,9 +23,9 @@ public class FoldingController implements IModelListener {
     private final IFoldingUpdater fFoldingUpdater;
 
     public FoldingController(ProjectionAnnotationModel annotationModel, IFoldingUpdater foldingUpdater) {
-	super();
-	this.fAnnotationModel= annotationModel;
-	this.fFoldingUpdater= foldingUpdater;
+        super();
+        this.fAnnotationModel= annotationModel;
+        this.fFoldingUpdater= foldingUpdater;
     }
 
     public AnalysisRequired getAnalysisRequired() {
@@ -34,12 +33,12 @@ public class FoldingController implements IModelListener {
     }
 
     public void update(IParseController parseController, IProgressMonitor monitor) {
-	if (fAnnotationModel != null) { // can be null if file is outside workspace
-	    try {
-	        fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
-	    } catch (Exception e) {
-	        RuntimePlugin.getInstance().logException("Error while updating folding annotations for " + parseController.getPath(), e);
-	    }
-	}
+        if (fAnnotationModel != null) { // can be null if file is outside workspace
+            try {
+                fFoldingUpdater.updateFoldingStructure(parseController, fAnnotationModel);
+            } catch (Exception e) {
+                RuntimePlugin.getInstance().logException("Error while updating folding annotations for " + parseController.getPath(), e);
+            }
+        }
     }
 }

@@ -138,6 +138,7 @@ import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.Annotation;
+import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -372,7 +373,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.FORMAT_ACTION);
 
-        action= new TextOperationAction(bundle, "ShowOutline.", this, StructuredSourceViewer.SHOW_OUTLINE); //$NON-NLS-1$
+        action= new TextOperationAction(bundle, "ShowOutline.", this, StructuredSourceViewer.SHOW_OUTLINE, true /* runsOnReadOnly */); //$NON-NLS-1$
         action.setActionDefinitionId(SHOW_OUTLINE_COMMAND);
         setAction(SHOW_OUTLINE_COMMAND, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
@@ -696,6 +697,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 			if (path.contains(".jar:") || path.contains(".zip:")) {
 				if (fZipDocProvider == null) {
 					fZipDocProvider= new StorageDocumentProvider() {
+					    @Override
+					    protected IAnnotationModel createAnnotationModel(Object element) throws CoreException {
+					        // If we don't do this, the resulting editor won't permit source folding
+					        return new AnnotationModel();
+					    }
 		    			@Override
 		    			protected ElementInfo createElementInfo(Object element) throws CoreException {
 		    				ElementInfo ei= super.createElementInfo(element);
@@ -1133,28 +1139,30 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             sourceViewer.setParseController(fLanguageServiceManager.getParseController());
 
             if (fLanguageServiceManager.getFoldingUpdater() != null) {
-                ProjectionViewer projViewer= (ProjectionViewer) sourceViewer;
+                ProjectionViewer projViewer= sourceViewer;
                 ProjectionSupport projectionSupport= new ProjectionSupport(projViewer, getAnnotationAccess(),
-                        getSharedColors());
-
+                                                                           getSharedColors());
                 projectionSupport.install();
                 projViewer.doOperation(ProjectionViewer.TOGGLE);
                 fAnnotationModel= projViewer.getProjectionAnnotationModel();
-                fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fLanguageServiceManager.getFoldingUpdater()));
+                if (fAnnotationModel != null) {
+                    fParserScheduler.addModelListener(new FoldingController(fAnnotationModel, fLanguageServiceManager.getFoldingUpdater()));
+                }
             }
 
-            fParserScheduler.addModelListener(new AnnotationCreatorListener());
+            if (isEditable()) {
+                fParserScheduler.addModelListener(new AnnotationCreatorListener());
+            }
             fServiceControllerManager.setupModelListeners(fParserScheduler);
 
             // TODO RMF 8/6/2007 - Disable "Mark Occurrences" if no occurrence marker exists for this language
             // The following doesn't work b/c getAction() doesn't find the Mark Occurrences action (why?)
             // if (this.fOccurrenceMarker == null)
-            // getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
+            //   getAction("org.eclipse.imp.runtime.actions.markOccurrencesAction").setEnabled(false);
 
             installExternalEditorServices();
             watchDocument(REPARSE_SCHEDULE_DELAY);
             fParserScheduler.run(new NullProgressMonitor());
-            
         } catch (Exception e) {
             ErrorHandler.reportError("Error while creating service controllers", e);
         }
@@ -1874,8 +1882,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             if (fLanguageServiceManager == null) {
                 return null;
             }
-            TreeModelBuilderBase modelBuilder= fLanguageServiceManager.getModelBuilder();
-            if (modelBuilder == null) {
+            if (fLanguageServiceManager.getModelBuilder() == null) {
                 return null;
             }
 

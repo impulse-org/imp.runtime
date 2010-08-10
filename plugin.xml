@@ -233,9 +233,9 @@
             id="org.eclipse.imp.runtime.editor.gotoNextTarget"/>
       <command
             categoryId="org.eclipse.imp.runtime.source"
-            description="Re-indent the selected text"
+            description="Re-indent the selected text according to current formatting settings"
             id="org.eclipse.imp.runtime.editor.indentSelection"
-            name="Indent Selection">
+            name="Correct Indentation">
       </command>
       <command
             categoryId="org.eclipse.imp.runtime.source"

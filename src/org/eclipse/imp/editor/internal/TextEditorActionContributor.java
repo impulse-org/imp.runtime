@@ -74,6 +74,14 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         bars.setGlobalActionHandler(UniversalEditor.GOTO_NEXT_TARGET_COMMAND, fNextTarget);
         bars.setGlobalActionHandler(UniversalEditor.GOTO_PREVIOUS_TARGET_COMMAND, fPreviousTarget);
         bars.setGlobalActionHandler(UniversalEditor.SELECT_ENCLOSING_COMMAND, fSelectEnclosing);
+
+        // RMF 13 Aug 2010 - why don't we also need to do the following in setActiveEditor()?
+        // And why don't we need to call setGlobalActionHandler() for Format, ShiftLeft and ShiftRight?
+        // They're all retargetable actions...
+        // TODO The following refer to action IDs, not action *definition* IDs, so why does this work?
+        // TODO Probably none of these actions need to be retargetable in the first place... right?
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.TOGGLE_COMMENT, fToggleComment);
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.INDENT, fIndentSelection);
     }
 
     /*
@@ -117,7 +125,8 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         fIndentSelection.setAction(getAction(textEditor, UniversalEditor.INDENT_SELECTION_COMMAND));
 
         IActionBars bars= getActionBars();
-
         bars.setGlobalActionHandler(IEditorActionDefinitionIds.FORMAT, getAction(textEditor, "Format")); //$NON-NLS-1$
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.SHIFT_LEFT, getAction(textEditor, "ShiftLeft")); //$NON-NLS-1$
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.SHIFT_RIGHT, getAction(textEditor, "ShiftRight")); //$NON-NLS-1$
     }
 }

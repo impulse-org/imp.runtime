@@ -33,4 +33,13 @@ public interface IEditorActionDefinitionIds {
      * (value <code>"org.eclipse.imp.runtime.editor.formatSource"</code>).
      */
     public static final String FORMAT= "org.eclipse.imp.runtime.editor.formatSource"; //$NON-NLS-1$
+
+    // RMF 13 Aug 2010 - the following are action IDs, not action definition IDs...
+    public static final String SHIFT_RIGHT= "org.eclipse.imp.runtime.actions.ShiftRight";
+
+    public static final String SHIFT_LEFT= "org.eclipse.imp.runtime.actions.ShiftLeft";
+
+    public static final String INDENT= "org.eclipse.imp.runtime.actions.Indent";
+
+    public static final String TOGGLE_COMMENT= "org.eclipse.imp.runtime.actions.ToggleComment";
 }

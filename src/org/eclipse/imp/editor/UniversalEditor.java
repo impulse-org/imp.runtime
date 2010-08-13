@@ -12,7 +12,6 @@
 package org.eclipse.imp.editor;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -25,7 +24,6 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IFile;
@@ -175,6 +173,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.SubActionBars;
+import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.editors.text.StorageDocumentProvider;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
@@ -300,12 +299,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private IDocumentListener fDocumentListener;
 
     private FoldingActionGroup fFoldingActionGroup;
-
+    
+	private GenerateActionGroup fGenerateActionGroup;
+    
     private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".imp_editor_context";
 
     public static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
+    
+    public static final String IMP_CODING_ACTION_SET = RuntimePlugin.IMP_RUNTIME + ".codingActionSet";
 
     public UniversalEditor() {
 //      RuntimePlugin.EDITOR_START_TIME= System.currentTimeMillis();
@@ -320,7 +323,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         configureInsertMode(SMART_INSERT, true);
         setInsertMode(SMART_INSERT);
         fProblemMarkerManager= new ProblemMarkerManager();
-    }
+	}
 
     @SuppressWarnings("unchecked")
     public Object getAdapter(Class required) {
@@ -404,6 +407,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction(SELECT_ENCLOSING_COMMAND, action);
 
         fFoldingActionGroup= new FoldingActionGroup(this, this.getSourceViewer());
+        
+        fGenerateActionGroup= new GenerateActionGroup(this, ITextEditorActionConstants.GROUP_EDIT);
+           
 
         installQuickAccessAction();
     }
@@ -448,6 +454,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         contributeRefactoringActions(menu);
         contributeLanguageActions(menu);
+        
+		ActionContext context= new ActionContext(getSelectionProvider().getSelection());
+		
+		fGenerateActionGroup.setContext(context);
+		fGenerateActionGroup.fillContextMenu(menu);
+		fGenerateActionGroup.setContext(null);
     }
 
 	private void contributeRefactoringActions(IMenuManager menu) {
@@ -1215,13 +1227,21 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		fRefreshContributions = new DefaultPartListener() {
 			private UniversalEditor editor = UniversalEditor.this;
 
+			@Override
 			public void partActivated(IWorkbenchPart part) {
 				if (part == editor) {
 					editor.fActionBars.activate();
 					editor.fActionBars.updateActionBars();
 				}
+
+				if (part instanceof UniversalEditor) {
+					part.getSite().getPage().showActionSet(IMP_CODING_ACTION_SET);
+				} else {
+					part.getSite().getPage().hideActionSet(IMP_CODING_ACTION_SET);
+				}
 			}
 
+			@Override
 			public void partDeactivated(IWorkbenchPart part) {
 				if (part == editor) {
 					editor.fActionBars.deactivate();

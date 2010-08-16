@@ -476,6 +476,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 					for (int i= 0; i < conActions.length; i++)
 						editorActions.add(conActions[i]);
+				} catch (LinkageError e) {
+					RuntimePlugin.getInstance().logException("Unable to create refactoring actions for contributor " + con, e);
 				} catch (Exception e) {
 					RuntimePlugin.getInstance().logException("Unable to create refactoring actions for contributor " + con, e);
 				}
@@ -502,6 +504,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         for(ILanguageActionsContributor con : actionContributors) {
 		  try {
 			con.contributeToEditorMenu(this, menu);
+          } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException("Unable to create editor actions for contributor " + con, e);
 		  } catch(Exception e) {
 		    RuntimePlugin.getInstance().logException("Unable to create editor actions for contributor " + con, e);
 		  }

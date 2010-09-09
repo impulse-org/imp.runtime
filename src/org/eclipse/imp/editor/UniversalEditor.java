@@ -11,11 +11,8 @@
 
 package org.eclipse.imp.editor;
 
-import java.io.File;
-import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -23,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
@@ -85,7 +80,6 @@ import org.eclipse.imp.services.base.DefaultAnnotationHover;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
 import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
-import org.eclipse.imp.utils.StreamUtils;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -101,7 +95,6 @@ import org.eclipse.jface.resource.FontRegistry;
 import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DefaultInformationControl;
-import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
@@ -136,7 +129,6 @@ import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.source.Annotation;
-import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -167,14 +159,12 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
-import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.actions.ActionContext;
-import org.eclipse.ui.editors.text.StorageDocumentProvider;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.handlers.IHandlerActivation;
@@ -267,6 +257,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     protected LanguageServiceManager fLanguageServiceManager;
 
     protected ServiceControllerManager fServiceControllerManager;
+
+    private IDocumentProvider fZipDocProvider;
 
     private ProjectionAnnotationModel fAnnotationModel;
 
@@ -702,59 +694,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
     }
 
-    private IDocumentProvider fZipDocProvider;
-
     @Override
     public IDocumentProvider getDocumentProvider() {
-    	if (getEditorInput() instanceof IURIEditorInput) {
-			IURIEditorInput uriEditorInput = (IURIEditorInput) getEditorInput();
-			URI uri= uriEditorInput.getURI();
-			String path= uri.getPath();
-			if (path.contains(".jar:") || path.contains(".zip:")) {
-				if (fZipDocProvider == null) {
-					fZipDocProvider= new StorageDocumentProvider() {
-					    @Override
-					    protected IAnnotationModel createAnnotationModel(Object element) throws CoreException {
-					        // If we don't do this, the resulting editor won't permit source folding
-					        return new AnnotationModel();
-					    }
-		    			@Override
-		    			protected ElementInfo createElementInfo(Object element) throws CoreException {
-		    				ElementInfo ei= super.createElementInfo(element);
-		    				ei.fDocument= new Document(getZipEntryContents((IURIEditorInput) element));
-		    				return ei;
-		    			}
-		    			@Override
-		    			protected boolean setDocumentContent(IDocument document,
-		    					IEditorInput editorInput) throws CoreException {
-		    				IURIEditorInput uriEditorInput = (IURIEditorInput) getEditorInput();
-		    				String contents = getZipEntryContents(uriEditorInput);
+        IEditorInput editorInput= getEditorInput();
 
-		    				document.set(contents);
-		    				return true;
-		    			}
-						private String getZipEntryContents(IURIEditorInput uriEditorInput) {
-							String contents= "";
-							try {
-								URI uri= uriEditorInput.getURI();
-								String path= uri.getPath();
-								String jarPath= path.substring(0, path.indexOf(':'));
-								String entryPath= path.substring(path.indexOf(':') + 1);
-
-								ZipFile zipFile= new ZipFile(new File(jarPath));
-								ZipEntry entry= zipFile.getEntry(entryPath);
-								InputStream is= zipFile.getInputStream(entry);
-								contents= StreamUtils.readStreamContents(is);
-							} catch (Exception e) {
-								RuntimePlugin.getInstance().logException("Exception caught while obtaining contents of zip file entry", e);
-							}
-							return contents;
-						}
-		    		};
-				}
-	    		return fZipDocProvider;
-			}
-    	}
+        if (ZipDocumentProvider.canHandle(editorInput)) {
+            if (fZipDocProvider == null) {
+                fZipDocProvider= new ZipDocumentProvider();
+            }
+            return fZipDocProvider;
+        }
     	return super.getDocumentProvider();
     }
 
@@ -813,8 +762,22 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private void initializeParseController() {
         // Initialize the parse controller now, since the initialization of other things (like the context help support) might depend on it being so.
         IEditorInput editorInput= getEditorInput();
-        IFile file= EditorInputUtils.getFile(editorInput);
-        IPath filePath= EditorInputUtils.getPath(editorInput);
+        IFile file = null;
+        IPath filePath = null;
+        
+		if (fLanguageServiceManager != null
+				&& fLanguageServiceManager.getEditorInputResolver() != null) {
+			file = fLanguageServiceManager.getEditorInputResolver().getFile(
+					editorInput);
+			filePath = fLanguageServiceManager.getEditorInputResolver().getPath(
+					editorInput);
+		}
+
+		else {
+			file = EditorInputUtils.getFile(editorInput);
+			filePath = EditorInputUtils.getPath(editorInput);
+		}
+        
         try {
             IProject project= (file != null && file.exists()) ? file.getProject() : null;
             ISourceProject srcProject= (project != null) ? ModelFactory.open(project) : null;

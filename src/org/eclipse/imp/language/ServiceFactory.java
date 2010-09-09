@@ -30,6 +30,7 @@ import org.eclipse.imp.services.IAutoEditStrategy;
 import org.eclipse.imp.services.ICompareNodeIdentifier;
 import org.eclipse.imp.services.IContentProposer;
 import org.eclipse.imp.services.IDocumentationProvider;
+import org.eclipse.imp.services.IEditorInputResolver;
 import org.eclipse.imp.services.IEntityImageDecorator;
 import org.eclipse.imp.services.IEntityNameLocator;
 import org.eclipse.imp.services.IFoldingUpdater;
@@ -150,6 +151,8 @@ public class ServiceFactory {
 	static final String TOKEN_COLORER_SERVICE = "tokenColorer";
 
 	static final String VIEWER_FILTER_SERVICE = "viewerFilter";
+
+	static final String EDITOR_INPUT_RESOLVER_SERVICE = "editorInputResolver";
 
 	/**
 	 * The list of fully-qualified extension point IDs for all IMP language services.
@@ -544,6 +547,16 @@ public class ServiceFactory {
             return null;
         }
     }
+    
+	public IEditorInputResolver getEditorInputResolver(Language lang) {
+		try {
+			return (IEditorInputResolver) loadService(lang, EDITOR_INPUT_RESOLVER_SERVICE);
+		} catch (ClassCastException e) {
+			RuntimePlugin.getInstance().logException(
+					"Alleged implementation of " + EDITOR_INPUT_RESOLVER_SERVICE + " does not implement IEditorInputResolver", e);
+			return null;
+		}
+	}
 
     private ILanguageService createExtension(Language lang, String id) {
         try {

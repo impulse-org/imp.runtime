@@ -31,7 +31,8 @@
    <extension-point id="tokenColorer" name="IMP Token Colorer" schema="schema/tokenColorer.exsd"/>
    <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
    <extension-point id="compareNodeIdentifier" name="Compare Node Identifier" schema="schema/compareNodeIdentifier.exsd"/>
-
+   <extension-point id="editorInputResolver" name="editorInputResolver" schema="schema/editorInputResolver.exsd"/>
+   
    <extension
          point="org.eclipse.ui.editors">
       <editor

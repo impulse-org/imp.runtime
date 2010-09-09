@@ -71,33 +71,39 @@ public class AnnotationCreator implements IMessageHandlerExtension {
     }
 
     public void endMessages() {
-        IAnnotationModel model= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
-        if (model instanceof IAnnotationModelExtension) {
-            IAnnotationModelExtension modelExt= (IAnnotationModelExtension) model;
-            Annotation[] oldAnnotations= fAnnotations.toArray(new Annotation[fAnnotations.size()]);
-            Map<Annotation, Position> newAnnotations= new HashMap<Annotation, Position>(fMessages.size());
-            for(PositionedMessage pm: fMessages) {
-                Annotation anno= new Annotation(fAnnotationType, false, pm.message);
-                newAnnotations.put(anno, pm.pos);
-                fAnnotations.add(anno);
-            }
-            modelExt.replaceAnnotations(oldAnnotations, newAnnotations);
-        } else if (model != null) { // model could be null if, e.g., we're directly browsing a file version in a src repo
-            for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
-                Annotation a= (Annotation) i.next();
+        IDocumentProvider docProvider= fEditor.getDocumentProvider();
 
-                if (a.getType().equals(fAnnotationType)) {
-                    model.removeAnnotation(a);
+        if (docProvider != null) {
+            IAnnotationModel model= docProvider.getAnnotationModel(fEditor.getEditorInput());
+    
+            if (model instanceof IAnnotationModelExtension) {
+                IAnnotationModelExtension modelExt= (IAnnotationModelExtension) model;
+                Annotation[] oldAnnotations= fAnnotations.toArray(new Annotation[fAnnotations.size()]);
+                Map<Annotation, Position> newAnnotations= new HashMap<Annotation, Position>(fMessages.size());
+
+                for(PositionedMessage pm: fMessages) {
+                    Annotation anno= new Annotation(fAnnotationType, false, pm.message);
+                    newAnnotations.put(anno, pm.pos);
+                    fAnnotations.add(anno);
+                }
+                modelExt.replaceAnnotations(oldAnnotations, newAnnotations);
+            } else if (model != null) { // model could be null if, e.g., we're directly browsing a file version in a src repo
+                for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
+                    Annotation a= (Annotation) i.next();
+    
+                    if (a.getType().equals(fAnnotationType)) {
+                        model.removeAnnotation(a);
+                    }
+                }
+                for(PositionedMessage pm: fMessages) {
+                    Annotation annotation= new Annotation(fAnnotationType, false, pm.message);
+    
+                    model.addAnnotation(annotation, pm.pos);
+                    fAnnotations.add(annotation);
                 }
             }
-            for(PositionedMessage pm: fMessages) {
-                Annotation annotation= new Annotation(fAnnotationType, false, pm.message);
-
-                model.addAnnotation(annotation, pm.pos);
-                fAnnotations.add(annotation);
-            }
+            // System.out.println("Annotation model updated.");
         }
-//      System.out.println("Annotation model updated.");
         fMessages.clear();
     }
 

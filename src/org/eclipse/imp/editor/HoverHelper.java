@@ -7,12 +7,8 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
-/*
- * Created on Feb 9, 2006
- */
 package org.eclipse.imp.editor;
 
 import java.util.List;
@@ -24,6 +20,7 @@ import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.IReferenceResolver;
+import org.eclipse.imp.utils.AnnotationUtils;
 import org.eclipse.imp.utils.HTMLPrinter;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.source.Annotation;
@@ -37,25 +34,29 @@ import org.eclipse.jface.text.source.ISourceViewer;
  * HoverHelpController and initialized with a Language so that it can instantiate the
  * correct documentation provider.
  * @author rfuhrer
- * TODO Fold this functionality into HoverHelpController?
+ * @author awtaylor, per attachment to bug #322427
  */
 public class HoverHelper implements IHoverHelper {
     private final Language fLanguage;
 
     public HoverHelper(Language lang) {
-	fLanguage= lang;
+        fLanguage= lang;
     }
 
     public String getHoverHelpAt(IParseController parseController, ISourceViewer srcViewer, int offset) {
-        try {
-            List<Annotation> annotations= AnnotationHoverBase.getSourceAnnotationsForLine(srcViewer, srcViewer.getDocument().getLineOfOffset(offset));
+		try {
+			List<Annotation> annotations = AnnotationUtils.getAnnotationsForLine(srcViewer,
+			                                                                     srcViewer.getDocument().getLineOfOffset(offset));
 
-            if (annotations != null && annotations.size() > 0) {
-                return AnnotationHoverBase.formatAnnotationList(annotations);
-            }
-        } catch (BadLocationException e) {
-            return "???";
-        }
+			if (annotations != null && annotations.size() > 0) {
+				String annString = AnnotationUtils.formatAnnotationList(annotations);
+				if (annString != null && annString.length() > 0) {
+					return annString;
+				}
+			}
+		} catch (BadLocationException e) {
+			return "???";
+		}
 
     	IReferenceResolver refResolver = ServiceFactory.getInstance().getReferenceResolver(fLanguage);
         Object root= parseController.getCurrentAst();

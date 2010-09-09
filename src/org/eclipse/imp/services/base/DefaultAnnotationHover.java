@@ -7,24 +7,25 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.services.base;
 
 import java.util.List;
 
+import org.eclipse.imp.language.ILanguageService;
 import org.eclipse.imp.utils.AnnotationUtils;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.ISourceViewer;
 
-public class DefaultAnnotationHover implements IAnnotationHover {
-    /**
-     * @see IVerticalRulerHover#getHoverInfo(ISourceViewer, int)
-     */
-    public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
-	List annotations= AnnotationUtils.getAnnotationsForLine(sourceViewer, lineNumber);
+public class DefaultAnnotationHover implements IAnnotationHover, ILanguageService {
+	/**
+	 * @see IVerticalRulerHover#getHoverInfo(ISourceViewer, int)
+	 */
+	public String getHoverInfo(ISourceViewer sourceViewer, int lineNumber) {
+		List<Annotation> annotations = AnnotationUtils.getAnnotationsForLine(sourceViewer, lineNumber);
 
-	return AnnotationUtils.formatAnnotationList(annotations);
-    }
+		return AnnotationUtils.formatAnnotationList(annotations);
+	}
 }

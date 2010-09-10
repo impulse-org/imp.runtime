@@ -33,6 +33,7 @@ import org.osgi.framework.BundleContext;
 /**
  * The bundle activator class for the IMP runtime.
  */
+@SuppressWarnings("restriction")
 public class RuntimePlugin extends PluginBase implements IStartup {
     /**
      * An IAdapterFactory implementation that adapts IResources to ISourceEntity's.

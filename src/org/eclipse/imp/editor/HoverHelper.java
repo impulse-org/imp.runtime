@@ -45,11 +45,12 @@ public class HoverHelper implements IHoverHelper {
 
     public String getHoverHelpAt(IParseController parseController, ISourceViewer srcViewer, int offset) {
 		try {
-			List<Annotation> annotations = AnnotationUtils.getAnnotationsForLine(srcViewer,
-			                                                                     srcViewer.getDocument().getLineOfOffset(offset));
+			int lineOfOffset= srcViewer.getDocument().getLineOfOffset(offset);
+            List<Annotation> annotations= AnnotationUtils.getAnnotationsForLine(srcViewer, lineOfOffset);
 
 			if (annotations != null && annotations.size() > 0) {
 				String annString = AnnotationUtils.formatAnnotationList(annotations);
+
 				if (annString != null && annString.length() > 0) {
 					return annString;
 				}

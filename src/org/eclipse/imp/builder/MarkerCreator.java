@@ -7,16 +7,17 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.builder;
+
+import java.util.Map;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.imp.parser.IMessageHandler;
-import org.eclipse.imp.parser.IParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
 
 /**
  * This class provides a message handler that creates markers in
@@ -32,19 +33,15 @@ import org.eclipse.imp.parser.IParseController;
  * the given file at the computed line.
  */
 public class MarkerCreator implements IMessageHandler {
-	
-    protected IParseController parseController;
     protected IFile file;
     protected String problemType;
 
-    public MarkerCreator(IFile file, IParseController parseController) {
-        this(file, parseController, IMarker.PROBLEM);
+    public MarkerCreator(IFile file) {
+        this(file, IMarker.PROBLEM);
     }
 
-    // TODO Replace single String arg with a triple of String problem types - one each for info, warning, error
-    public MarkerCreator(IFile file, IParseController parseController, String problemType) {
+    public MarkerCreator(IFile file, String problemType) {
         this.file = file;
-        this.parseController = parseController;
         this.problemType = problemType;
     }
 
@@ -52,26 +49,50 @@ public class MarkerCreator implements IMessageHandler {
         // TODO Clear markers on this file?
     }
 
+    void createMarker(String msg, int startOffset, int endOffset,
+                      int startCol, int endCol,
+                      int startLine, int endLine, Map<String, Object> attributes)
+    {
+        String[] attributeNames= new String[] {
+                IMarker.LINE_NUMBER, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.MESSAGE, IMarker.PRIORITY, IMarker.SEVERITY
+        };
+        Object[] values= new Object[] {
+                startLine, startOffset, endOffset, msg, IMarker.PRIORITY_HIGH, IMarker.SEVERITY_ERROR
+        };
+        try {
+            IMarker m= file.createMarker(problemType);
+        
+            m.setAttributes(attributeNames, values);
+        
+            if (attributes != null) {
+                for(String key: attributes.keySet()) {
+                    m.setAttribute(key, attributes.get(key));
+                }
+            }
+        } catch (CoreException e) {
+            RuntimePlugin.getInstance().logException("MarkerCreator.handleMessage(): CoreException caught while trying to create marker", e);
+        } catch (Exception e) {
+            RuntimePlugin.getInstance().logException("MarkerCreator.handleMessage(): Exception caught while trying to create marker", e);
+        }
+    }
+
     public void handleSimpleMessage(String msg, int startOffset, int endOffset,
+			int startCol, int endCol, int startLine, int endLine,
+			Map<String, Object> attributes) {
+		
+    	createMarker(msg, startOffset, endOffset, startCol, endCol, startLine, endLine, attributes);
+	}
+
+	public void handleSimpleMessage(String msg, int startOffset, int endOffset,
             int startCol, int endCol,
             int startLine, int endLine)
     {	
-        try {
-            // Based closely on the Eclipse "FAQ How do I create problem markers for my compiler?"
-            IMarker m = file.createMarker(problemType);
-
-            String[] attributeNames = new String[] {IMarker.LINE_NUMBER, IMarker.CHAR_START, IMarker.CHAR_END, IMarker.MESSAGE, IMarker.PRIORITY, IMarker.SEVERITY};
-            Object[] values = new Object[] {startLine, startOffset, endOffset, msg, IMarker.PRIORITY_HIGH, IMarker.SEVERITY_ERROR};
-            m.setAttributes(attributeNames, values);
- 
-        } catch (CoreException e) {
-            System.err.println("MarkerCreator.handleMessage:  CoreException trying to create marker");
-        } catch (Exception e) {
-            System.err.println("MarkerCreator.handleMessage:  Exception trying to create marker");
-        }
+		createMarker(msg, startOffset, endOffset, startCol, endCol, startLine, endLine, null);
     }
 
     public void endMessageGroup() { }
 
     public void startMessageGroup(String groupName) { }
+
+    public void endMessages() { }
 }

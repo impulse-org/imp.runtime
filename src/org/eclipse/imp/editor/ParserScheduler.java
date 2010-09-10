@@ -25,7 +25,6 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.parser.IMessageHandler;
-import org.eclipse.imp.parser.IMessageHandlerExtension;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.preferences.PreferenceCache;
@@ -91,9 +90,7 @@ public class ParserScheduler extends Job {
                 fMsgHandler.clearMessages();
                 // Don't bother to retrieve the AST; we don't need it; just make sure the document gets parsed.
                 fParseController.parse(document.get(), monitor);
-                if (fMsgHandler instanceof IMessageHandlerExtension) {
-                    ((IMessageHandlerExtension) fMsgHandler).endMessages();
-                }
+                fMsgHandler.endMessages();
 //          } else {
 //              System.err.println("Scheduled parsing was bypassed due to project deletion.");
             }

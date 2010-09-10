@@ -32,7 +32,8 @@
    <extension-point id="viewerFilter" name="Program Entity Viewer Filter" schema="schema/viewerFilter.exsd"/>
    <extension-point id="compareNodeIdentifier" name="Compare Node Identifier" schema="schema/compareNodeIdentifier.exsd"/>
    <extension-point id="editorInputResolver" name="editorInputResolver" schema="schema/editorInputResolver.exsd"/>
-   
+   <extension-point id="quickFixAssistant" name="Quick Fix Assistant" schema="schema/quickFixAssistant.exsd"/>
+
    <extension
          point="org.eclipse.ui.editors">
       <editor
@@ -77,6 +78,9 @@
          point="org.eclipse.ui.editors.markerAnnotationSpecification">
       <specification
             annotationType="org.eclipse.imp.editor.parseAnnotation"
+            annotationImageProvider="org.eclipse.imp.editor.internal.AnnotationImageProvider"/>
+      <specification
+            annotationType="org.eclipse.imp.runtime.occurrenceAnnotation"
             colorPreferenceKey="parseAnnotationColor"
             colorPreferenceValue="255,128,147"
             contributesToHeader="false"
@@ -501,34 +505,6 @@
          </action>         
       </actionSet>
    </extension>
-
-   <extension
-         point="org.eclipse.ui.editors.markerAnnotationSpecification">
-      <specification
-            annotationType="org.eclipse.imp.runtime.occurrenceAnnotation"
-            colorPreferenceKey="occurrenceColorPreference"
-            colorPreferenceValue="0,255,128"
-            contributesToHeader="false"
-            highlightPreferenceKey="occurrenceHighlightKey"
-            highlightPreferenceValue="true"
-            icon="icons/searchm_obj.gif"
-            includeOnPreferencePage="true"
-            isGoToNextNavigationTarget="true"
-            isGoToNextNavigationTargetKey="occurrenceAnnotationIsGotoNextKey"
-            isGoToPreviousNavigationTarget="true"
-            isGoToPreviousNavigationTargetKey="occurrenceAnnotationIsGotoPrevKey"
-            label="Occurrences"
-            overviewRulerPreferenceKey="occurrenceOverviewRulerPreference"
-            overviewRulerPreferenceValue="true"
-            presentationLayer="4"
-            showInNextPrevDropdownToolbarAction="true"
-            textPreferenceKey="occurrenceTextPreference"
-            textPreferenceValue="true"
-            textStylePreferenceKey="occurrenceAnnotationTextStyleKey"
-            textStylePreferenceValue="UNDERLINE"
-            verticalRulerPreferenceKey="occurrenceVerticalRulerPreference"
-            verticalRulerPreferenceValue="true"/>
-   </extension>
    <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
@@ -548,5 +524,19 @@
             class="org.eclipse.imp.preferences.PreferencePage"
             id="org.eclipse.imp.runtime.preferencePage">
       </page>
+   </extension>
+   <extension
+         point="org.eclipse.ui.popupMenus">
+      <viewerContribution
+            targetID="#TextRulerContext"
+            id="org.eclipse.imp.runtime.QuickFixRulerMenuAction">
+         <action
+               label="QuickFix"
+               class="org.eclipse.imp.editor.internal.SelectRulerAction"
+               menubarPath="additions"
+               definitionId="org.eclipse.jdt.ui.edit.text.java.correction.assist.proposals"
+               id="org.eclipse.imp.editor.internal.SelectRulerMenuAction">
+         </action>
+      </viewerContribution>
    </extension>
 </plugin>

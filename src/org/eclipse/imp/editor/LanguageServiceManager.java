@@ -35,6 +35,7 @@ import org.eclipse.imp.services.IHelpService;
 import org.eclipse.imp.services.IHoverHelper;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.IOccurrenceMarker;
+import org.eclipse.imp.services.IQuickFixAssistant;
 import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceFormatter;
@@ -99,6 +100,8 @@ public class LanguageServiceManager {
 
     private IEditorInputResolver fEditorInputResolver;
 
+    private IQuickFixAssistant fQuickFixAssistant;
+
     public LanguageServiceManager(Language lang) {
         fLanguage= lang;
     }
@@ -129,6 +132,7 @@ public class LanguageServiceManager {
         fToggleBreakpointsHandler= fServiceFactory.getToggleBreakpointsHandler(fLanguage);
         fTokenColorer= fServiceFactory.getTokenColorer(fLanguage);
         fEditorInputResolver = fServiceFactory.getEditorInputResolver(fLanguage);
+        fQuickFixAssistant= fServiceFactory.getQuickFixAssistant(fLanguage);
 
         if (fHyperLinkDetector == null)
             fHyperLinkDetector= new HyperlinkDetector(fLanguage);
@@ -251,6 +255,10 @@ public class LanguageServiceManager {
     
     public IEditorInputResolver getEditorInputResolver() {
         return fEditorInputResolver;
+    }
+
+    public IQuickFixAssistant getQuickFixAssistant() {
+        return fQuickFixAssistant;
     }
 
     private static HashMap<IEditorPart, LanguageServiceManager> editorServiceMap = new HashMap<IEditorPart, LanguageServiceManager>();

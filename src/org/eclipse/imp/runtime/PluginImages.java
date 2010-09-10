@@ -14,6 +14,7 @@ package org.eclipse.imp.runtime;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
+
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
@@ -34,6 +35,12 @@ public class PluginImages {
 
     private static final String NAME_PREFIX= ""; //$NON-NLS-1$
     private static final int NAME_PREFIX_LENGTH= NAME_PREFIX.length();
+    
+    private static final String ENABLED_PREFIX= "enabled"; //$NON-NLS-1$
+    private static final String DISABLED_PREFIX= "disabled"; //$NON-NLS-1$
+    
+    private static final String CORRECTION_PREFIX= "correction"; //$NON-NLS-1$
+    
 
     public static final String VIEW_MENU_IMAGE= NAME_PREFIX + "view_menu.gif"; //$NON-NLS-1$
 
@@ -51,10 +58,50 @@ public class PluginImages {
 
     public static final ImageDescriptor projectImageDesc= createManaged(NAME_PREFIX, PROJECT_IMAGE);
 
-    public static final ImageDescriptor DESC_OVR_WARNING= createUnManagedCached(NAME_PREFIX, "warning_co.gif"); //$NON-NLS-1$
+    public static final String IMG_OBJS_QUICK_ASSIST= NAME_PREFIX + "quickassist_obj.gif"; //$NON-NLS-1$
+	public static final String IMG_OBJS_QUICK_FIX= NAME_PREFIX + "quickfix_obj.gif"; //$NON-NLS-1$
+	public static final String IMG_OBJS_FIXABLE_PROBLEM= NAME_PREFIX + "quickfix_warning_obj.gif"; //$NON-NLS-1$
+	public static final String IMG_OBJS_FIXABLE_ERROR= NAME_PREFIX + "quickfix_error_obj.gif"; //$NON-NLS-1$
+    
+	public static final ImageDescriptor DESC_OBJS_QUICK_ASSIST= createManaged(NAME_PREFIX, IMG_OBJS_QUICK_ASSIST);
+	public static final ImageDescriptor DESC_OBJS_QUICK_FIX= createManaged(NAME_PREFIX, IMG_OBJS_QUICK_FIX);
+	public static final ImageDescriptor DESC_OBJS_FIXABLE_PROBLEM= createManaged(NAME_PREFIX, IMG_OBJS_FIXABLE_PROBLEM);
+	public static final ImageDescriptor DESC_OBJS_FIXABLE_ERROR= createManaged(NAME_PREFIX, IMG_OBJS_FIXABLE_ERROR);
+    
+	public static final ImageDescriptor DESC_DLCL_CONFIGURE_ANNOTATIONS= createUnManaged(DISABLED_PREFIX, "configure_annotations.gif"); //$NON-NLS-1$
+	public static final ImageDescriptor DESC_ELCL_CONFIGURE_ANNOTATIONS= createUnManaged(ENABLED_PREFIX, "configure_annotations.gif"); //$NON-NLS-1$
+	
+	public static final ImageDescriptor DESC_DLCL_CONFIGURE_PROBLEM_SEVERITIES= createUnManaged(DISABLED_PREFIX, "configure_problem_severity.gif"); //$NON-NLS-1$
+	public static final ImageDescriptor DESC_ELCL_CONFIGURE_PROBLEM_SEVERITIES= createUnManaged(ENABLED_PREFIX, "configure_problem_severity.gif"); //$NON-NLS-1$
 
-    public static final ImageDescriptor DESC_OVR_ERROR= createUnManagedCached(NAME_PREFIX, "error_co.gif"); //$NON-NLS-1$
+	// Keys for correction proposal. We have to put the image into the registry since "code assist" doesn't
+	// have a life cycle. So no change to dispose icons.
 
+	public static final String IMG_CORRECTION_CHANGE= NAME_PREFIX + "correction_change.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_MOVE= NAME_PREFIX + "correction_move.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_RENAME= NAME_PREFIX + "correction_rename.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_LINKED_RENAME= NAME_PREFIX + "correction_linked_rename.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_DELETE_IMPORT= NAME_PREFIX + "correction_delete_import.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_LOCAL= NAME_PREFIX + "localvariable_obj.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_REMOVE= NAME_PREFIX + "remove_correction.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_ADD= NAME_PREFIX + "add_correction.gif"; //$NON-NLS-1$
+	public static final String IMG_CORRECTION_CAST= NAME_PREFIX + "correction_cast.gif"; //$NON-NLS-1$
+
+	static {
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_CHANGE);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_MOVE);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_RENAME);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_LINKED_RENAME);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_DELETE_IMPORT);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_LOCAL);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_REMOVE);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_ADD);
+		createManaged(CORRECTION_PREFIX, IMG_CORRECTION_CAST);
+	}
+	
+	public static final ImageDescriptor DESC_OVR_WARNING= createUnManagedCached(NAME_PREFIX, "warning_co.gif"); 					//$NON-NLS-1$
+	public static final ImageDescriptor DESC_OVR_ERROR= createUnManagedCached(NAME_PREFIX, "error_co.gif"); 						//$NON-NLS-1$
+	
     private static final class CachedImageDescriptor extends ImageDescriptor {
         private ImageDescriptor fDescriptor;
         private ImageData fData;
@@ -168,6 +215,15 @@ public class PluginImages {
         }
         return result;
     }
+    
+    /*
+	 * Creates an image descriptor for the given prefix and name in the JDT UI bundle. The path can
+	 * contain variables like $NL$.
+	 * If no image could be found, the 'missing image descriptor' is returned.
+	 */
+	private static ImageDescriptor createUnManaged(String prefix, String name) {
+		return create(prefix, name, true);
+	}
 
     /*
      * Creates an image descriptor for the given prefix and name in the JDT UI bundle and let tye descriptor cache the image data.

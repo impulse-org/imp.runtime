@@ -42,12 +42,14 @@ import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.INavigationTargetFinder;
 import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IOutliner;
+import org.eclipse.imp.services.IQuickFixAssistant;
 import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IReferenceResolver;
 import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
+import org.eclipse.imp.services.base.DefaultQuickFixAssistant;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.utils.ExtensionException;
 import org.eclipse.imp.utils.ExtensionFactory;
@@ -153,6 +155,8 @@ public class ServiceFactory {
 	static final String VIEWER_FILTER_SERVICE = "viewerFilter";
 
 	static final String EDITOR_INPUT_RESOLVER_SERVICE = "editorInputResolver";
+
+	static final String QUICK_FIX_ASSISTANT_SERVICE = "quickFixAssistant";
 
 	/**
 	 * The list of fully-qualified extension point IDs for all IMP language services.
@@ -557,6 +561,19 @@ public class ServiceFactory {
 			return null;
 		}
 	}
+
+    public IQuickFixAssistant getQuickFixAssistant(Language lang) {
+        try {
+            IQuickFixAssistant qfa= (IQuickFixAssistant) loadService(lang, QUICK_FIX_ASSISTANT_SERVICE);
+            if (qfa == null) { return new DefaultQuickFixAssistant(); }
+            return qfa;
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                           "Alleged implementation of " + QUICK_FIX_ASSISTANT_SERVICE
+                                   + " does not implement IQuickFixAssistant", e);
+            return null;
+        }
+    }
 
     private ILanguageService createExtension(Language lang, String id) {
         try {

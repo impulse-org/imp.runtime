@@ -427,7 +427,7 @@ public class GenerateActionGroup extends ActionGroup {
 //		added+= addAction(source, fAddJavaDocStub);
 		source.add(new Separator(GROUP_EDIT));
 		added+= addEditorAction(source, UniversalEditor.INDENT_SELECTION_COMMAND); //$NON-NLS-1$
-//		added+= addEditorAction(source, "Format"); //$NON-NLS-1$
+		added+= addEditorAction(source, "Format"); //$NON-NLS-1$
 		source.add(new Separator(GROUP_IMPORT));
 //		added+= addAction(source, fAddImport);
 //		added+= addAction(source, fOrganizeImports);

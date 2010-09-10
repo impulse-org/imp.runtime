@@ -106,6 +106,33 @@ public class PreferenceConstants {
      * </p>
      */
     public static final String P_EMIT_BUILDER_DIAGNOSTICS= "emitBuilderDiagnostics"; //$NON-NLS-1$
+    
+    /**
+	 * A named preference that controls if correction indicators are shown in the UI.
+	 * <p>
+	 * Value is of type <code>Boolean</code>.
+	 * </p>
+	 */
+	public final static String EDITOR_CORRECTION_INDICATION= "showTemporaryProblem"; //$NON-NLS-1$
+
+	/**
+	 * A named preference that controls whether annotation roll over is used or not.
+	 * <p>
+	 * Value is of type <code>Boolean</code>. If <code>true</code> the annotation ruler column
+	 * uses a roll over to display multiple annotations
+	 * </p>
+	 */
+	public static final String EDITOR_ANNOTATION_ROLL_OVER= "editor_annotation_roll_over"; //$NON-NLS-1$
+
+	/**
+	 * A named preference that controls if quick assist light bulbs are shown.
+	 * <p>
+	 * Value is of type <code>Boolean</code>: if <code>true</code> light bulbs are shown
+	 * for quick assists.
+	 * </p>
+	 */
+	public static final String EDITOR_QUICKASSIST_LIGHTBULB="org.eclipse.jdt.quickassist.lightbulb"; //$NON-NLS-1$
+
 
     private PreferenceConstants() { }
 }

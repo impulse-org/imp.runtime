@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.parser.IMessageHandlerExtension;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
@@ -33,15 +33,30 @@ import org.eclipse.ui.texteditor.ITextEditor;
  * which uses the class MarkerCreator to create markers).
  * @author rmfuhrer
  */
-public class AnnotationCreator implements IMessageHandlerExtension {
+@SuppressWarnings("unchecked")
+public class AnnotationCreator implements IMessageHandler {
     private static class PositionedMessage {
         public final String message;
+        /**
+         * Textual position expressed as an offset and length
+         */
         public final Position pos;
-        public PositionedMessage(String msg, Position pos) {
+        /**
+         * Additional attributes, if any, like severity and error code
+         */
+        public final Map<String, Object> attributes;
+
+        public PositionedMessage(String msg, Position pos, Map<String, Object> attributes) {
             this.message= msg;
             this.pos= pos;
+            this.attributes= attributes;
+        }
+
+        public PositionedMessage(String msg, Position pos) {
+            this(msg, pos, null);
         }
     }
+
     private final ITextEditor fEditor;
     private final String fAnnotationType;
     private final List<PositionedMessage> fMessages= new LinkedList<PositionedMessage>();
@@ -49,10 +64,11 @@ public class AnnotationCreator implements IMessageHandlerExtension {
 
     public AnnotationCreator(ITextEditor textEditor, String annotationType) {
         fEditor= textEditor;
-        if (annotationType == null)
+        if (annotationType == null) {
         	fAnnotationType = UniversalEditor.PARSE_ANNOTATION_TYPE;
-        else 
+        } else {
         	fAnnotationType= annotationType;
+        }
     }
 
     public void clearMessages() {
@@ -63,11 +79,20 @@ public class AnnotationCreator implements IMessageHandlerExtension {
     public void startMessageGroup(String groupName) { }
     public void endMessageGroup() { }
 
-    public void handleSimpleMessage(String message, int startOffset, int endOffset,
-            int startCol, int endCol,
-            int startLine, int endLine) {
+
+    public void handleSimpleMessage(String msg, int startOffset, int endOffset,
+            int startCol, int endCol, int startLine, int endLine) {
         Position pos= new Position(startOffset, endOffset - startOffset + 1);
-        fMessages.add(new PositionedMessage(message, pos));
+
+        fMessages.add(new PositionedMessage(msg, pos));
+    }
+
+    public void handleSimpleMessage(String message, int startOffset, int endOffset,
+            int startCol, int endCol, int startLine, int endLine,
+            Map<String, Object> attributes) {
+        Position pos= new Position(startOffset, endOffset - startOffset + 1);
+
+        fMessages.add(new PositionedMessage(message, pos, attributes));
     }
 
     public void endMessages() {
@@ -82,7 +107,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
                 Map<Annotation, Position> newAnnotations= new HashMap<Annotation, Position>(fMessages.size());
 
                 for(PositionedMessage pm: fMessages) {
-                    Annotation anno= new Annotation(fAnnotationType, false, pm.message);
+                    Annotation anno= createAnnotation(pm);
                     newAnnotations.put(anno, pm.pos);
                     fAnnotations.add(anno);
                 }
@@ -96,7 +121,7 @@ public class AnnotationCreator implements IMessageHandlerExtension {
                     }
                 }
                 for(PositionedMessage pm: fMessages) {
-                    Annotation annotation= new Annotation(fAnnotationType, false, pm.message);
+                    Annotation annotation= createAnnotation(pm);
     
                     model.addAnnotation(annotation, pm.pos);
                     fAnnotations.add(annotation);
@@ -105,6 +130,15 @@ public class AnnotationCreator implements IMessageHandlerExtension {
             // System.out.println("Annotation model updated.");
         }
         fMessages.clear();
+    }
+
+    private Annotation createAnnotation(PositionedMessage pm) {
+        if (pm.attributes == null || !(fEditor instanceof UniversalEditor)) {
+            return new Annotation(fAnnotationType, false, pm.message);
+        } else {
+            return new DefaultAnnotation(fAnnotationType, false, pm.message,
+                    (UniversalEditor) fEditor, pm.attributes);
+        }
     }
 
     private void removeAnnotations() {

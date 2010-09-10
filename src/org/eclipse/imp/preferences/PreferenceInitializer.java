@@ -25,6 +25,7 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.editors.text.EditorsUI;
 import org.eclipse.ui.progress.UIJob;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 
@@ -53,6 +54,8 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
 			return;
         }
         IPreferenceStore store= RuntimePlugin.getInstance().getPreferenceStore();
+        EditorsUI.useAnnotationsPreferencePage(store);
+		EditorsUI.useQuickDiffPreferencePage(store);
         FontData fontData= findSuitableFont();
 
         if (fontData != null) {
@@ -66,9 +69,12 @@ public class PreferenceInitializer extends AbstractPreferenceInitializer {
         store.setDefault(PreferenceConstants.P_SPACES_FOR_TABS, false);
         store.setDefault(PreferenceConstants.P_DUMP_TOKENS, false);
         store.setDefault(PreferenceConstants.EDITOR_MATCHING_BRACKETS, true);
-
+        
+        store.setDefault(PreferenceConstants.EDITOR_CORRECTION_INDICATION, true);
+        
         store.setDefault(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_TAB_WIDTH, 4);
         store.setDefault(AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS, false);
+        
 
         String colorKey= RuntimePlugin.IMP_RUNTIME + "." + PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR;
         ColorRegistry registry= null;

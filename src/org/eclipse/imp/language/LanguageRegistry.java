@@ -12,6 +12,7 @@
 package org.eclipse.imp.language;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -21,8 +22,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.internal.registry.ExtensionRegistry;
+import org.eclipse.core.runtime.ContributorFactoryOSGi;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IContributor;
 import org.eclipse.core.runtime.IExtensionPoint;
+import org.eclipse.core.runtime.IExtensionRegistry;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.InvalidRegistryObjectException;
 import org.eclipse.core.runtime.Platform;
@@ -31,6 +36,7 @@ import org.eclipse.imp.editor.EditorInputUtils;
 import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.imp.services.IQuickFixAssistant;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.swt.SWT;
@@ -40,10 +46,19 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorMapping;
+import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.eclipse.ui.internal.ide.IDEInternalPreferences;
+import org.eclipse.ui.internal.ide.IDEWorkbenchPlugin;
+import org.eclipse.ui.internal.ide.registry.MarkerHelpRegistry;
+import org.eclipse.ui.internal.ide.registry.MarkerQuery;
+import org.eclipse.ui.internal.ide.registry.MarkerQueryResult;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
+import org.eclipse.ui.internal.views.markers.ProblemsView;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 
@@ -254,6 +269,7 @@ public class LanguageRegistry {
 				return;
 			}
 			preInitEditorRegistry();
+			
 
 			if (PreferenceCache.emitMessages) {
 				RuntimePlugin.getInstance().writeInfoMsg(
@@ -267,9 +283,9 @@ public class LanguageRegistry {
 			for(Language lang : getRegister().values()) {
 	            addUniversalEditorMappings(lang.getName(), lang.getIconPath(), lang.getFilenameExtensions(), lang.getBundleID(), newMap);
             }
-			updateEditorRegistry(newMap);
-
+			
 			setFullyInitialized();
+			updateMarkerResolutionRegistry();
 		}
 	}
 
@@ -465,6 +481,59 @@ public class LanguageRegistry {
 				getEditorRegistry().setFileEditorMappings(newMap.toArray(new FileEditorMapping[newMap.size()]));
 				// TODO Do we really want to save the associations persistently?
 				getEditorRegistry().saveAssociations();
+			}
+		});
+	}
+	
+	private static void updateMarkerResolutionRegistry() {
+		IExtensionRegistry reg = Platform.getExtensionRegistry();
+		MarkerHelpRegistry markerHelpRegistry = (MarkerHelpRegistry) IDE
+				.getMarkerHelpRegistry();
+		for (Language lang : getLanguages()) {
+			IQuickFixAssistant qfa = ServiceFactory.getInstance()
+					.getQuickFixAssistant(lang);
+			for (String type : qfa.getSupportedMarkerTypes()) {
+				String extension = ""
+						+ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+						+ "<?eclipse version=\"3.0\"?>"
+						+ "<plugin>"
+						+ "<extension"
+						+ "	point=\"org.eclipse.ui.ide.markerResolution\">"
+						+ " <markerResolutionGenerator"
+						+ "   class=\"org.eclipse.imp.editor.internal.quickfix.MarkerResolutionGenerator\""
+						+ "   markerType=\"" + type + "\">"
+						+ " </markerResolutionGenerator>" + "</extension>"
+						+ "</plugin>";
+
+				InputStream is = new ByteArrayInputStream(extension.getBytes());
+				Object ut = ((ExtensionRegistry) reg).getTemporaryUserToken();
+				IContributor contributor = ContributorFactoryOSGi
+						.createContributor(RuntimePlugin.getInstance()
+								.getBundle());
+				reg.addContribution(is, contributor, false, null, null, ut);
+			}
+		}
+
+		for (IConfigurationElement element : reg
+				.getConfigurationElementsFor("org.eclipse.ui.ide.markerResolution")) {
+			if (element
+					.getAttribute("class")
+					.equals(
+							"org.eclipse.imp.editor.internal.quickfix.MarkerResolutionGenerator")) {
+				// add query to the registry
+				MarkerQuery query = new MarkerQuery(element
+						.getAttribute("markerType"), new String[0]);
+				MarkerQueryResult result = new MarkerQueryResult(new String[0]);
+				markerHelpRegistry.addResolutionQuery(query, result, element);
+			}
+		}
+
+		// force the problems view to refresh it's images
+		Display.getDefault().asyncExec(new Runnable() {
+			public void run() {
+				int limit = IDEWorkbenchPlugin.getDefault().getPreferenceStore().getInt(IDEInternalPreferences.MARKER_LIMITS_VALUE);
+				IDEWorkbenchPlugin.getDefault().getPreferenceStore().setValue(IDEInternalPreferences.MARKER_LIMITS_VALUE, limit + 1);
+				IDEWorkbenchPlugin.getDefault().getPreferenceStore().setValue(IDEInternalPreferences.MARKER_LIMITS_VALUE, limit);
 			}
 		});
 	}

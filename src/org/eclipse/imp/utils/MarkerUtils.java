@@ -12,10 +12,16 @@
 
 package org.eclipse.imp.utils;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.imp.editor.EditorUtility;
+import org.eclipse.imp.language.Language;
+import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.part.FileEditorInput;
 
 public class MarkerUtils {
     private MarkerUtils() { }
@@ -54,4 +60,31 @@ public class MarkerUtils {
         }
         return hasWarnings ? IMarker.SEVERITY_WARNING : 0;
     }
+    
+	
+
+	public static Language getLanguage(IMarker marker) {
+		try {
+			IEditorInput input = getInput(marker);
+			if (input != null) {
+				return LanguageRegistry.findLanguage(((FileEditorInput) input)
+						.getFile().getFullPath(), EditorUtility.getDocument(input));
+
+			}
+		} catch (Exception e) {
+			// fall through
+		}
+
+		return null;
+	}
+
+	public static FileEditorInput getInput(IMarker marker) {
+		IResource res = marker.getResource();
+		if (res instanceof IFile && res.isAccessible()) {
+			IFile file = (IFile) res;
+			return new FileEditorInput(file);
+		}
+
+		return null;
+	}
 }

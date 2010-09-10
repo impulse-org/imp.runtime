@@ -44,6 +44,7 @@ import org.eclipse.imp.editor.internal.AnnotationCreator;
 import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
 import org.eclipse.imp.editor.internal.FoldingController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
+import org.eclipse.imp.editor.internal.QuickFixController;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
 import org.eclipse.imp.help.IMPHelp;
 import org.eclipse.imp.language.ILanguageService;
@@ -73,6 +74,7 @@ import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IOccurrenceMarker;
+import org.eclipse.imp.services.IQuickFixAssistant;
 import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
@@ -128,6 +130,7 @@ import org.eclipse.jface.text.presentation.IPresentationDamager;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
+import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
 import org.eclipse.jface.text.source.IAnnotationHover;
@@ -1954,6 +1957,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                 settings= RuntimePlugin.getInstance().getDialogSettings().addNewSection(sectionName);
             return settings;
         }
+        
+        @Override
+		public IQuickAssistAssistant getQuickAssistAssistant(
+				ISourceViewer sourceViewer) {	
+			return new QuickFixController(UniversalEditor.this);
+		}
     }
 
     private class PresentationDamager implements IPresentationDamager {

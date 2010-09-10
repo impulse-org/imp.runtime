@@ -128,20 +128,28 @@ public class CompilationUnitRef implements ICompilationUnit {
                     fPath);
         return fProject.getRawProject().getFile(fPath);
     }
-
-    public Object getAST(IMessageHandler msgHandler, IProgressMonitor monitor) {
-        IFile file= getFile();
+    
+    private IDocument getDocument()
+    {
+    	IFile file= getFile();
         TextFileDocumentProvider tfdp= new TextFileDocumentProvider();
-        IDocument doc= (file != null) ? tfdp.getDocument(file) : null;
-
-        // if (file == null)
-        // return null;
-
-        if (fParseCtrlr == null) {
-            Language lang= LanguageRegistry.findLanguage(fPath, doc);
-
+        return (file != null) ? tfdp.getDocument(file) : null;
+    }
+    
+    public IParseController getParseController()
+    {
+    	if (fParseCtrlr == null) {
+            Language lang= LanguageRegistry.findLanguage(fPath, getDocument());
             fParseCtrlr= ServiceFactory.getInstance().getParseController(lang);
         }
+    	return fParseCtrlr;
+    }
+
+    public Object getAST(IMessageHandler msgHandler, IProgressMonitor monitor) {
+        // if (file == null)
+        // return null;
+    	getParseController();
+
         IPath projRelPath= fPath.isAbsolute() ? fPath.removeFirstSegments(1)
                 : fPath;
         fParseCtrlr.initialize(projRelPath, fProject, msgHandler);

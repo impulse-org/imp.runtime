@@ -353,6 +353,10 @@ public class StructuredSourceViewer extends ProjectionViewer {
                 		fAutoEditStrategy = new DefaultAutoIndentStrategy();
                 }
             }
+            
+            fQuickAssistAssistant = sSVConfiguration.getQuickAssistAssistant(this);
+            if (fQuickAssistAssistant != null)
+            	fQuickAssistAssistant.install(this);
         }
         //	if (fPreferenceStore != null) {
         //	    fPreferenceStore.addPropertyChangeListener(this);

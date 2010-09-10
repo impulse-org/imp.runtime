@@ -38,6 +38,7 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.text.TextSelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -57,6 +58,8 @@ import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.part.FileEditorInput;
+import org.eclipse.ui.texteditor.DocumentProviderRegistry;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionDefinitionIds;
 import org.eclipse.ui.texteditor.TextEditorAction;
@@ -480,4 +483,21 @@ public class EditorUtility {
         }
         return result.toArray(new IEditorPart[result.size()]);
     }
+    
+	public static IDocument getDocument(Object input) {
+		IEditorInput ei = getEditorInput(input);
+
+		try {
+			if (ei != null) {
+				IDocumentProvider docProvider = DocumentProviderRegistry
+						.getDefault().getDocumentProvider(ei);
+				docProvider.connect(ei);
+				return docProvider.getDocument(ei);
+			}
+		} catch (CoreException e) {
+			// fall through
+		}
+
+		return null;
+	}
 }

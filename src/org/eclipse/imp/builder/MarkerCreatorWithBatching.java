@@ -85,7 +85,7 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
      * @param problemType      The type of problem marker (i.e., the problem marker id)
      */
     public MarkerCreatorWithBatching(IFile file, IParseController parseController, String problemType) {
-        super(file, parseController, problemType);
+        super(file, problemType);
         BUILDER_ID = null;
         PROBLEM_MARKER_ID = problemType;
     }
@@ -103,7 +103,7 @@ public class MarkerCreatorWithBatching extends MarkerCreator {
      *                          that will be used here
      */
     public MarkerCreatorWithBatching(IFile file, IParseController parseController, BuilderBase builder) {
-        super(file, parseController, builder.getErrorMarkerID());
+        super(file, builder.getErrorMarkerID());
 
         this.builder = builder;
 

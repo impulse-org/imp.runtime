@@ -42,15 +42,23 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 	public QuickFixController(IMarker marker) {
 		this(MarkerUtils.getLanguage(marker), null);
 		FileEditorInput input = MarkerUtils.getInput(marker);
-		cu = ModelFactory.open(input.getFile(),
-				EditorUtility.getSourceProject(input));
+		
+		if(input != null)
+		{
+			cu = ModelFactory.open(input.getFile(),
+					EditorUtility.getSourceProject(input));
+		}
 	}
 
 	public QuickFixController(UniversalEditor editor) {
 		this(editor.fLanguage, null);
-		FileEditorInput input = (FileEditorInput) editor.getEditorInput();
-		cu = ModelFactory.open(input.getFile(),
-				EditorUtility.getSourceProject(input));
+		
+		if(editor.getEditorInput() instanceof FileEditorInput)
+		{
+			FileEditorInput input = (FileEditorInput) editor.getEditorInput();
+			cu = ModelFactory.open(input.getFile(),
+					EditorUtility.getSourceProject(input));
+		}
 	}
 	
 	public QuickFixController(Language lang, ICompilationUnit cu) {

@@ -13,6 +13,7 @@ package org.eclipse.imp.editor.hover;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.imp.editor.quickfix.IAnnotation;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 public class ProblemLocation {
@@ -41,7 +42,7 @@ public class ProblemLocation {
 	}
 
 	public ProblemLocation(IMarker marker) throws CoreException {
-		fId = marker.getAttribute("ERROR_CODE", 0);
+		fId = marker.getAttribute(IMessageHandler.ERROR_CODE_KEY, 0);
 		// fArguments= annotation.getArguments();
 		fOffset = marker.getAttribute(IMarker.CHAR_START, 0);
 		fLength = marker.getAttribute(IMarker.CHAR_END, 0) - fOffset;

@@ -284,6 +284,7 @@ public class LanguageRegistry {
 	            addUniversalEditorMappings(lang.getName(), lang.getIconPath(), lang.getFilenameExtensions(), lang.getBundleID(), newMap);
             }
 			
+			updateEditorRegistry(newMap);
 			setFullyInitialized();
 			updateMarkerResolutionRegistry();
 		}

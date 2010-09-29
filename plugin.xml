@@ -441,7 +441,7 @@
 -->
          <action
                definitionId="org.eclipse.imp.runtime.editor.indentSelection"
-               label="Indent Selection"
+               label="Correct Indentation"
                retarget="true"
                menubarPath="org.eclipse.imp.source.menu/editGroup"
                id="org.eclipse.imp.runtime.actions.Indent">

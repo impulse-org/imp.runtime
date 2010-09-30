@@ -20,7 +20,7 @@ import org.eclipse.imp.editor.EditorUtility;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.runtime.RuntimePlugin;
-import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
 
 public class MarkerUtils {
@@ -60,15 +60,12 @@ public class MarkerUtils {
         }
         return hasWarnings ? IMarker.SEVERITY_WARNING : 0;
     }
-    
-	
 
 	public static Language getLanguage(IMarker marker) {
 		try {
-			IEditorInput input = getInput(marker);
+			IFileEditorInput input = getInput(marker);
 			if (input != null) {
-				return LanguageRegistry.findLanguage(((FileEditorInput) input)
-						.getFile().getFullPath(), EditorUtility.getDocument(input));
+				return LanguageRegistry.findLanguage(input.getFile().getFullPath(), EditorUtility.getDocument(input));
 
 			}
 		} catch (Exception e) {
@@ -78,7 +75,7 @@ public class MarkerUtils {
 		return null;
 	}
 
-	public static FileEditorInput getInput(IMarker marker) {
+	public static IFileEditorInput getInput(IMarker marker) {
 		IResource res = marker.getResource();
 		if (res instanceof IFile && res.isAccessible()) {
 			IFile file = (IFile) res;

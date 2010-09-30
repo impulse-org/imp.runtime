@@ -64,9 +64,9 @@ public class StructuredSourceViewer extends ProjectionViewer {
     public static final int MARK_OCCURRENCES= 55;
 
     /**
-     * Text operation code for indenting the currently selected text.
+     * Text operation code for correcting the indentation of the currently selected text.
      */
-    public static final int INDENT_SELECTION= 60;
+    public static final int CORRECT_INDENTATION= 60;
 
     private IInformationPresenter fOutlinePresenter;
 
@@ -95,7 +95,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
             return fHierarchyPresenter != null;
         case TOGGLE_COMMENT:
             return true;
-        case INDENT_SELECTION:
+        case CORRECT_INDENTATION:
             return fAutoEditStrategy != null;
         }
         return super.canDoOperation(operation);
@@ -123,9 +123,8 @@ public class StructuredSourceViewer extends ProjectionViewer {
         case TOGGLE_COMMENT:
             doToggleComment();
             return;
-            // mmk 4/8/08
-        case INDENT_SELECTION:
-            doIndentLines();
+        case CORRECT_INDENTATION:
+            doCorrectIndentation();
             return;
         }
         super.doOperation(operation);
@@ -245,7 +244,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
 		return true;
 	}
 
-	private void doIndentLines() {
+	private void doCorrectIndentation() {
         IDocument doc= this.getDocument();
         DocumentRewriteSession rewriteSession= null;
         Point p= this.getSelectedRange();
@@ -262,8 +261,12 @@ public class StructuredSourceViewer extends ProjectionViewer {
             final int startLine= doc.getLineOfOffset(selStart);
             int endLine= doc.getLineOfOffset(selEnd);
 
-            if (selLen > 0 && lookingAtLineEnd(doc, selEnd))
+        	// If the selection extends just to the beginning of the next line, don't indent that one too
+            if (selLen > 0 && lookingAtLineEnd(doc, selEnd)) {
                 endLine--;
+            }
+
+            // Indent each line using the AutoEditStrategy
             for(int line= startLine; line <= endLine; line++) {
                 int lineStartOffset= doc.getLineOffset(line);
 
@@ -275,11 +278,13 @@ public class StructuredSourceViewer extends ProjectionViewer {
                 cmd.text= Character.toString('\t');
                 cmd.doit= true;
                 cmd.shiftsCaret= false;
+//              boolean saveMode= fAutoEditStrategy.setFixMode(true);
                 fAutoEditStrategy.customizeDocumentCommand(doc, cmd);
+//              fAutoEditStrategy.setFixMode(saveMode);
                 doc.replace(cmd.offset, cmd.length, cmd.text);
             }
         } catch (BadLocationException e) {
-            RuntimePlugin.getInstance().logException("Indent Selection command failed", e);
+            RuntimePlugin.getInstance().logException("Correct Indentation command failed", e);
         } finally {
             if (doc instanceof IDocumentExtension4) {
                 IDocumentExtension4 extension= (IDocumentExtension4) doc;

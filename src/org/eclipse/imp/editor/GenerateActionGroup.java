@@ -426,7 +426,7 @@ public class GenerateActionGroup extends ActionGroup {
 		added+= addEditorAction(source, "RemoveBlockComment"); //$NON-NLS-1$
 //		added+= addAction(source, fAddJavaDocStub);
 		source.add(new Separator(GROUP_EDIT));
-		added+= addEditorAction(source, UniversalEditor.INDENT_SELECTION_COMMAND); //$NON-NLS-1$
+		added+= addEditorAction(source, UniversalEditor.CORRECT_INDENTATION_COMMAND); //$NON-NLS-1$
 		added+= addEditorAction(source, "Format"); //$NON-NLS-1$
 		source.add(new Separator(GROUP_IMPORT));
 //		added+= addAction(source, fAddImport);

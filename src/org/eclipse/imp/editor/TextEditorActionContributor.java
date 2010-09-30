@@ -33,7 +33,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
     private RetargetTextEditorAction fToggleComment;
 
-    private RetargetTextEditorAction fIndentSelection;
+    private RetargetTextEditorAction fCorrectIndentation;
 
     private GotoNextTargetAction fNextTarget;
 
@@ -49,8 +49,8 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         fShowOutline.setActionDefinitionId(UniversalEditor.SHOW_OUTLINE_COMMAND);
         fToggleComment= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "ToggleComment."); //$NON-NLS-1$
         fToggleComment.setActionDefinitionId(UniversalEditor.TOGGLE_COMMENT_COMMAND);
-        fIndentSelection= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "IndentSelection."); //$NON-NLS-1$
-        fIndentSelection.setActionDefinitionId(UniversalEditor.INDENT_SELECTION_COMMAND);
+        fCorrectIndentation= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "IndentSelection."); //$NON-NLS-1$
+        fCorrectIndentation.setActionDefinitionId(UniversalEditor.CORRECT_INDENTATION_COMMAND);
         fNextTarget= new GotoNextTargetAction();
         fPreviousTarget= new GotoPreviousTargetAction();
         fSelectEnclosing= new SelectEnclosingAction();
@@ -64,7 +64,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         bars.setGlobalActionHandler(ActionFactory.PREVIOUS.getId(), fPreviousAnnotation);
         bars.setGlobalActionHandler(UniversalEditor.SHOW_OUTLINE_COMMAND, fShowOutline);
         bars.setGlobalActionHandler(UniversalEditor.TOGGLE_COMMENT_COMMAND, fToggleComment);
-        bars.setGlobalActionHandler(UniversalEditor.INDENT_SELECTION_COMMAND, fIndentSelection);
+        bars.setGlobalActionHandler(UniversalEditor.CORRECT_INDENTATION_COMMAND, fCorrectIndentation);
         bars.setGlobalActionHandler(UniversalEditor.GOTO_NEXT_TARGET_COMMAND, fNextTarget);
         bars.setGlobalActionHandler(UniversalEditor.GOTO_PREVIOUS_TARGET_COMMAND, fPreviousTarget);
         bars.setGlobalActionHandler(UniversalEditor.SELECT_ENCLOSING_COMMAND, fSelectEnclosing);
@@ -75,7 +75,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         // TODO The following refer to action IDs, not action *definition* IDs, so why does this work?
         // TODO Probably none of these actions need to be retargetable in the first place... right?
         bars.setGlobalActionHandler(IEditorActionDefinitionIds.TOGGLE_COMMENT, fToggleComment);
-        bars.setGlobalActionHandler(IEditorActionDefinitionIds.INDENT, fIndentSelection);
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.INDENT, fCorrectIndentation);
     }
 
     /*
@@ -96,7 +96,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
         if (editMenu != null) {
             editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fToggleComment);
-            editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fIndentSelection);
+            editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fCorrectIndentation);
             editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fSelectEnclosing);
         }
     }
@@ -116,7 +116,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         fSelectEnclosing.setEditor(textEditor);
         fShowOutline.setAction(getAction(textEditor, UniversalEditor.SHOW_OUTLINE_COMMAND));
         fToggleComment.setAction(getAction(textEditor, UniversalEditor.TOGGLE_COMMENT_COMMAND));
-        fIndentSelection.setAction(getAction(textEditor, UniversalEditor.INDENT_SELECTION_COMMAND));
+        fCorrectIndentation.setAction(getAction(textEditor, UniversalEditor.CORRECT_INDENTATION_COMMAND));
 
         IActionBars bars= getActionBars();
         bars.setGlobalActionHandler(IEditorActionDefinitionIds.FORMAT, getAction(textEditor, "Format")); //$NON-NLS-1$

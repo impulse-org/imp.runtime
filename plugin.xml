@@ -132,7 +132,7 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
       <key
-            commandId="org.eclipse.imp.runtime.editor.indentSelection"
+            commandId="org.eclipse.imp.runtime.editor.correctIndentation"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+I"/>
@@ -239,7 +239,7 @@
       <command
             categoryId="org.eclipse.imp.runtime.source"
             description="Re-indent the selected text according to current formatting settings"
-            id="org.eclipse.imp.runtime.editor.indentSelection"
+            id="org.eclipse.imp.runtime.editor.correctIndentation"
             name="Correct Indentation">
       </command>
       <command
@@ -440,7 +440,7 @@
          </action>
 -->
          <action
-               definitionId="org.eclipse.imp.runtime.editor.indentSelection"
+               definitionId="org.eclipse.imp.runtime.editor.correctIndentation"
                label="Correct Indentation"
                retarget="true"
                menubarPath="org.eclipse.imp.source.menu/editGroup"

@@ -212,10 +212,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.showOutline";
 
     /**
-     * Action definition ID of the Edit -> Indent Selection action
+     * Action definition ID of the Edit -> Correct Indentation action
      * (value <code>"org.eclipse.imp.runtime.editor.indentSelection"</code>).
      */
-    public static final String INDENT_SELECTION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.indentSelection";
+    public static final String CORRECT_INDENTATION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.correctIndentation";
 
     /**
      * Action definition ID of the Edit -> Select Enclosing action
@@ -381,9 +381,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
 
-        action= new TextOperationAction(bundle, "IndentSelection.", this, StructuredSourceViewer.INDENT_SELECTION); //$NON-NLS-1$
-        action.setActionDefinitionId(INDENT_SELECTION_COMMAND);
-        setAction(INDENT_SELECTION_COMMAND, action); //$NON-NLS-1$
+        action= new TextOperationAction(bundle, "CorrectIndentation.", this, StructuredSourceViewer.CORRECT_INDENTATION); //$NON-NLS-1$
+        action.setActionDefinitionId(CORRECT_INDENTATION_COMMAND);
+        setAction(CORRECT_INDENTATION_COMMAND, action); //$NON-NLS-1$
 
         action= new GotoMatchingFenceAction(this);
         action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);

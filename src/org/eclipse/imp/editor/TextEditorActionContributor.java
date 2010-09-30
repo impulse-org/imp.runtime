@@ -9,16 +9,10 @@
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
 *******************************************************************************/
 
-package org.eclipse.imp.editor.internal;
+package org.eclipse.imp.editor;
 
 import java.util.ResourceBundle;
 
-import org.eclipse.imp.editor.GotoAnnotationAction;
-import org.eclipse.imp.editor.GotoNextTargetAction;
-import org.eclipse.imp.editor.GotoPreviousTargetAction;
-import org.eclipse.imp.editor.IEditorActionDefinitionIds;
-import org.eclipse.imp.editor.SelectEnclosingAction;
-import org.eclipse.imp.editor.UniversalEditor;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;

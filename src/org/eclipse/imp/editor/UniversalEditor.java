@@ -74,7 +74,6 @@ import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
 import org.eclipse.imp.services.IOccurrenceMarker;
-import org.eclipse.imp.services.IQuickFixAssistant;
 import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
@@ -193,59 +192,29 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
-//    /**
-//     * Action definition ID of the Edit -> Format Source action
-//     * (value <code>"org.eclipse.imp.runtime.editor.formatSource"</code>).
-//     */
-//    public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.formatSource";
-//
-//    /**
-//     * Action definition ID of the Edit -> Toggle Comment action
-//     * (value <code>"org.eclipse.imp.runtime.editor.toggleComment"</code>).
-//     */
-//    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.toggleComment";
-//
-//    /**
-//     * Action definition ID of the Edit -> Show Outline action
-//     * (value <code>"org.eclipse.imp.runtime.editor.showOutline"</code>).
-//     */
-//    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.showOutline";
-//
-//    /**
-//     * Action definition ID of the Edit -> Correct Indentation action
-//     * (value <code>"org.eclipse.imp.runtime.editor.indentSelection"</code>).
-//     */
-//    public static final String CORRECT_INDENTATION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.correctIndentation";
-//
-//    /**
-//     * Action definition ID of the Edit -> Select Enclosing action
-//     * (value <code>"org.eclipse.imp.runtime.editor.selectEnclosing"</code>).
-//     */
-//    public static final String SELECT_ENCLOSING_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.selectEnclosing";
-//
-//    /**
-//     * Action definition ID of the edit -> Go to Matching Fence action
-//     * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
-//     */
-//    public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoMatchingFence"; //$NON-NLS-1$
-//
-//    /**
-//     * Action definition ID of the edit -> Go to Previous Navigation Target action
-//     * (value <code>"org.eclipse.imp.runtime.editor.gotoPreviousTarget"</code>).
-//     */
-//    public static final String GOTO_PREVIOUS_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoPreviousTarget"; //$NON-NLS-1$
-//
-//    /**
-//     * Action definition ID of the edit -> Go to Next Navigation Target action
-//     * (value <code>"org.eclipse.imp.runtime.editor.gotoNextTarget"</code>).
-//     */
-//    public static final String GOTO_NEXT_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoNextTarget"; //$NON-NLS-1$
-
     public static final String MESSAGE_BUNDLE= "org.eclipse.imp.editor.messages";
 
     public static final String EDITOR_ID= RuntimePlugin.IMP_RUNTIME + ".impEditor";
 
     public static final String PARSE_ANNOTATION_TYPE= "org.eclipse.imp.editor.parseAnnotation";
+
+    /**
+     * Annotation ID for a parser annotation w/ severity = error. Must match the ID of the
+     * corresponding annotationTypes extension in the plugin.xml.
+     */
+    public static final String PARSE_ANNOTATION_TYPE_ERROR= "org.eclipse.imp.editor.parseAnnotation.error";
+
+    /**
+     * Annotation ID for a parser annotation w/ severity = warning. Must match the ID of the
+     * corresponding annotationTypes extension in the plugin.xml.
+     */
+    public static final String PARSE_ANNOTATION_TYPE_WARNING= "org.eclipse.imp.editor.parseAnnotation.warning";
+
+    /**
+     * Annotation ID for a parser annotation w/ severity = info. Must match the ID of the
+     * corresponding annotationTypes extension in the plugin.xml.
+     */
+    public static final String PARSE_ANNOTATION_TYPE_INFO= "org.eclipse.imp.editor.parseAnnotation.info";
 
     /** Preference key for matching brackets */
     protected final static String MATCHING_BRACKETS= PreferenceConstants.EDITOR_MATCHING_BRACKETS;
@@ -253,9 +222,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     /** Preference key for matching brackets color */
     protected final static String MATCHING_BRACKETS_COLOR= PreferenceConstants.EDITOR_MATCHING_BRACKETS_COLOR;
 
-    public Language fLanguage;
+    private Language fLanguage;
 
-    public ParserScheduler fParserScheduler;
+    private ParserScheduler fParserScheduler;
 
     protected LanguageServiceManager fLanguageServiceManager;
 
@@ -323,6 +292,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setInsertMode(SMART_INSERT);
         fProblemMarkerManager= new ProblemMarkerManager();
 	}
+
+    public Language getLanguage() {
+        return fLanguage;
+    }
 
     @SuppressWarnings("unchecked")
     public Object getAdapter(Class required) {
@@ -636,13 +609,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         for(Iterator<Annotation> e= model.getAnnotationIterator(); e.hasNext(); ) {
             Annotation a= (Annotation) e.next();
-            // if ((a instanceof IJavaAnnotation) && ((IJavaAnnotation) a).hasOverlay() || !isNavigationTarget(a))
-            // continue;
-            // TODO RMF 4/19/2006 - Need more accurate logic here for filtering annotations, particularly when we add support for other annotation types
-            if (!(a instanceof MarkerAnnotation) && !a.getType().equals(PARSE_ANNOTATION_TYPE))
+
+            if (!(a instanceof MarkerAnnotation) && !isParseAnnotation(a))
                 continue;
 
             Position p= model.getPosition(a);
+
             if (p == null)
                 continue;
 
@@ -1566,12 +1538,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * 
      * SMS 25 Apr 2007
      */
-    protected class InputAnnotationModelListener implements IAnnotationModelListener
-    {
-    	public void modelChanged(IAnnotationModel model)
-    	{
+    protected class InputAnnotationModelListener implements IAnnotationModelListener {
+    	public void modelChanged(IAnnotationModel model) {
     		List<Annotation> currentParseAnnotations = new ArrayList<Annotation>();
     		List<IMarker> currentMarkers = new ArrayList<IMarker>();
+
     		markerParseAnnotations = new HashMap<IMarker,Annotation>();
     		markerMarkerAnnotations = new HashMap<IMarker,MarkerAnnotation>();
     		
@@ -1580,17 +1551,21 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     		// there doesn't seem to be a way to get from a marker to the
     		// annotations that may represent it)
     		Iterator annotations = model.getAnnotationIterator();
+
     		while (annotations.hasNext()) {
     			Object ann = annotations.next();
+
     			if (ann instanceof MarkerAnnotation) {
     				IMarker marker = ((MarkerAnnotation)ann).getMarker();
+
     				if (marker.exists()) {
     				    currentMarkers.add(marker);
     				}
     				markerMarkerAnnotations.put(marker, (MarkerAnnotation) ann);
     			} else if (ann instanceof Annotation) {
     				Annotation annotation = (Annotation) ann;
-    				if (annotation.getType().equals(PARSE_ANNOTATION_TYPE)) {
+
+    				if (isParseAnnotation(annotation)) {
     					currentParseAnnotations.add(annotation);
     				}
     			}
@@ -1600,17 +1575,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     		for (int i = 0; i < currentMarkers.size(); i++) {
     			IMarker marker = currentMarkers.get(i);
 				Annotation annotation = findParseAnnotationForMarker(model, marker, currentParseAnnotations);
+
 				if (annotation != null) {
 					markerParseAnnotations.put(marker, annotation);
 				}
     		}
     	}
-    	
-    	
+
     	public Annotation findParseAnnotationForMarker(IAnnotationModel model, IMarker marker, List parseAnnotations) {
     		Integer markerStartAttr = null;
     		Integer markerEndAttr = null;
-			try {
+
+    		try {
 				// SMS 22 May 2007:  With markers created through the editor the CHAR_START
 				// and CHAR_END attributes are null, giving rise to NPEs here.  Not sure
 				// why this happens, but it seems to help down the line to trap the NPE.
@@ -1636,9 +1612,11 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 			for (int j = 0; j < parseAnnotations.size(); j++) {
 				Annotation parseAnnotation = (Annotation) parseAnnotations.get(j);
 				Position pos = model.getPosition(parseAnnotation);
+
 				if (pos == null)
 					// And this would be why?
 					continue;
+
 				int annotationStart = pos.offset;
 				int annotationLength = pos.length;
 				//System.out.println("\tfindParseAnnotationForMarker: Checking annotation offset and length = " + annotationStart + ", " + annotationLength);
@@ -1654,6 +1632,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 			//System.out.println("  findParseAnnotationForMarker: No corresponding annotation found; returning null");
 			return null;
     	}   	
+    }
+
+    public static boolean isParseAnnotation(Annotation a) {
+        String type= a.getType();
+
+        return type.equals(PARSE_ANNOTATION_TYPE) || type.equals(PARSE_ANNOTATION_TYPE_ERROR) ||
+               type.equals(PARSE_ANNOTATION_TYPE_WARNING) || type.equals(PARSE_ANNOTATION_TYPE_INFO);
     }
 
     protected void doSetInput(IEditorInput input) throws CoreException {
@@ -1916,7 +1901,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
                     int shellStyle= SWT.RESIZE;
                     int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
 
-                    return new OutlineInformationControl(parent, shellStyle, treeStyle, commandId, UniversalEditor.this.fLanguage);
+                    return new OutlineInformationControl(parent, shellStyle, treeStyle, commandId, UniversalEditor.this.getLanguage());
                 }
             };
         }
@@ -2029,7 +2014,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         public void setDocument(IDocument document) { }
     }
 
-    private IMessageHandler fAnnotationCreator= new AnnotationCreator(this, PARSE_ANNOTATION_TYPE);
+    private IMessageHandler fAnnotationCreator= new AnnotationCreator(this);
 
     private final IRegionSelectionService fRegionSelector= new IRegionSelectionService() {
         public void selectAndReveal(int startOffset, int length) {

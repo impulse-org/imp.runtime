@@ -24,6 +24,7 @@ import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
@@ -330,8 +331,8 @@ public class EditorUtility {
                 try {
                     IFileSystem fileSystem= EFS.getFileSystem("file");
                     IFileStore fileStore= fileSystem.getStore((IPath) input);
-    
-                    return new FileStoreEditorInput(fileStore);
+
+                    return getEditorInput(fileStore);
                 } catch (CoreException e) {
                     RuntimePlugin.getInstance().logException(e.getLocalizedMessage(), e);
                 }
@@ -342,6 +343,64 @@ public class EditorUtility {
         }
         return null;
     }
+
+	/**
+	 * Create the Editor Input appropriate for the given <code>IFileStore</code>.
+	 * The result is a normal file editor input if the file exists in the
+	 * workspace and, if not, we create a wrapper capable of managing an
+	 * 'external' file using its <code>IFileStore</code>.
+	 * 
+	 * @param fileStore
+	 *            The file store to provide the editor input for
+	 * @return The editor input associated with the given file store
+	 */
+	public static IEditorInput getEditorInput(IFileStore fileStore) {
+		IFile workspaceFile = getWorkspaceFile(fileStore);
+		if (workspaceFile != null)
+			return new FileEditorInput(workspaceFile);
+		return new FileStoreEditorInput(fileStore);
+	}
+
+	/**
+	 * Determine whether or not the <code>IFileStore</code> represents a file
+	 * currently in the workspace.
+	 * 
+	 * @param fileStore
+	 *            The <code>IFileStore</code> to test
+	 * @return The workspace's <code>IFile</code> if it exists or
+	 *         <code>null</code> if not
+	 */
+	public static IFile getWorkspaceFile(IFileStore fileStore) {
+		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+		IFile[] files = root.findFilesForLocationURI(fileStore.toURI());
+		files = filterNonExistentFiles(files);
+		if (files == null || files.length == 0)
+			return null;
+
+		// for now only return the first file
+		return files[0];
+	}
+
+	/**
+	 * Filter the incoming array of <code>IFile</code> elements by removing
+	 * any that do not currently exist in the workspace.
+	 * 
+	 * @param files
+	 *            The array of <code>IFile</code> elements
+	 * @return The filtered array
+	 */
+	private static IFile[] filterNonExistentFiles(IFile[] files) {
+		if (files == null)
+			return null;
+
+		int length = files.length;
+		ArrayList<IFile> existentFiles = new ArrayList<IFile>(length);
+		for (int i = 0; i < length; i++) {
+			if (files[i].exists())
+				existentFiles.add(files[i]);
+		}
+		return (IFile[]) existentFiles.toArray(new IFile[existentFiles.size()]);
+	}
 
     public static ISourceEntity getEditorInputModelElement(IEditorInput editorInput) {
         return (ISourceEntity) editorInput.getAdapter(ISourceEntity.class);

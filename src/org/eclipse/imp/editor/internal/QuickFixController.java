@@ -1,3 +1,13 @@
+/*******************************************************************************
+ * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
 package org.eclipse.imp.editor.internal;
 
 import java.util.ArrayList;
@@ -36,48 +46,44 @@ import org.eclipse.ui.texteditor.MarkerAnnotation;
 import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
 public class QuickFixController extends QuickAssistAssistant implements IQuickAssistProcessor {
-
-	IQuickFixAssistant assistant;
-	ICompilationUnit cu;
+	private IQuickFixAssistant fAssistant;
+	private ICompilationUnit fCU;
 
 	public QuickFixController(IMarker marker) {
 		this(MarkerUtils.getLanguage(marker), null);
+
 		IFileEditorInput input = MarkerUtils.getInput(marker);
-		
+
 		if (input != null) {
-			cu = ModelFactory.open(input.getFile(),
-					EditorUtility.getSourceProject(input));
+			fCU = ModelFactory.open(input.getFile(), EditorUtility.getSourceProject(input));
 		}
 	}
 
 	public QuickFixController(UniversalEditor editor) {
-		this(editor.fLanguage, null);
-		
-		if(editor.getEditorInput() instanceof FileEditorInput)
-		{
+		this(editor.getLanguage(), null);
+
+		if (editor.getEditorInput() instanceof FileEditorInput) {
 			FileEditorInput input = (FileEditorInput) editor.getEditorInput();
-			cu = ModelFactory.open(input.getFile(),
-					EditorUtility.getSourceProject(input));
+			fCU = ModelFactory.open(input.getFile(), EditorUtility.getSourceProject(input));
 		}
 	}
 	
 	public QuickFixController(Language lang, ICompilationUnit cu) {
 		super();
-		this.cu = cu;
+		this.fCU = cu;
 		setQuickAssistProcessor(this);
 
 		if (lang != null) {
-			assistant = ServiceFactory.getInstance().getQuickFixAssistant(lang);
+			fAssistant = ServiceFactory.getInstance().getQuickFixAssistant(lang);
 		}
 
-		if (assistant == null) {
-			assistant = new DefaultQuickFixAssistant();
+		if (fAssistant == null) {
+			fAssistant = new DefaultQuickFixAssistant();
 		}
 	}
 
-	public IQuickFixInvocationContext getContext(
-			IQuickAssistInvocationContext quickAssistContext) {
-		return new DefaultQuickFixInvocationContext(quickAssistContext, cu);
+	public IQuickFixInvocationContext getContext(IQuickAssistInvocationContext quickAssistContext) {
+		return new DefaultQuickFixInvocationContext(quickAssistContext, fCU);
 	}
 
 	public String getErrorMessage() {
@@ -86,19 +92,19 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 
 	@Override
 	public boolean canFix(Annotation annotation) {
-		return assistant.canFix(annotation);
+		return fAssistant.canFix(annotation);
 	}
 
 	@Override
 	public boolean canAssist(IQuickAssistInvocationContext quickAssistContext) {
-		return assistant.canAssist(getContext(quickAssistContext));
+		return fAssistant.canAssist(getContext(quickAssistContext));
 	}
 
 	public boolean canFix(IMarker marker) throws CoreException {
-		for (String type : assistant.getSupportedMarkerTypes()) {
+		for (String type : fAssistant.getSupportedMarkerTypes()) {
 			if (marker.getType().equals(type)) {
 				MarkerAnnotation ma = new MarkerAnnotation(marker);
-				return assistant.canFix(ma);
+				return fAssistant.canFix(ma);
 			}
 		}
 
@@ -127,8 +133,8 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 			}
 		}
 
-		ProblemLocation[] problemLocations = (ProblemLocation[]) problems
-				.toArray(new ProblemLocation[problems.size()]);
+		ProblemLocation[] problemLocations =
+		    (ProblemLocation[]) problems.toArray(new ProblemLocation[problems.size()]);
 		if (addQuickFixes) {
 			collectCorrections(context, problemLocations, proposals);
 		}
@@ -137,8 +143,7 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 		}
 	}
 
-	private static ProblemLocation getProblemLocation(IAnnotation annotation,
-			IAnnotationModel model) {
+	private static ProblemLocation getProblemLocation(IAnnotation annotation, IAnnotationModel model) {
 		int problemId = annotation.getId();
 		if (problemId != -1) {
 			Position pos = model.getPosition((Annotation) annotation);
@@ -152,17 +157,14 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 	}
 
 	public static void collectAssists(IQuickAssistInvocationContext context,
-			ProblemLocation[] locations,
-			Collection<ICompletionProposal> proposals) {
+			ProblemLocation[] locations, Collection<ICompletionProposal> proposals) {
 		return;
 	}
 
-	private static void collectMarkerProposals(
-			SimpleMarkerAnnotation annotation,
-			Collection<ICompletionProposal> proposals) {
+	private static void collectMarkerProposals(SimpleMarkerAnnotation annotation, Collection<ICompletionProposal> proposals) {
 		IMarker marker = annotation.getMarker();
-		IMarkerResolution[] res = IDE.getMarkerHelpRegistry().getResolutions(
-				marker);
+		IMarkerResolution[] res = IDE.getMarkerHelpRegistry().getResolutions(marker);
+
 		if (res.length > 0) {
 			for (int i = 0; i < res.length; i++) {
 				proposals.add(new MarkerResolutionProposal(res[i], marker));
@@ -170,8 +172,7 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 		}
 	}
 
-	public ICompletionProposal[] computeQuickAssistProposals(
-			IQuickAssistInvocationContext quickAssistContext) {
+	public ICompletionProposal[] computeQuickAssistProposals(IQuickAssistInvocationContext quickAssistContext) {
 		ArrayList<ICompletionProposal> proposals = new ArrayList<ICompletionProposal>();
 		ISourceViewer viewer = quickAssistContext.getSourceViewer();
 		collectProposals(getContext(quickAssistContext), AnnotationUtils
@@ -218,21 +219,18 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 	 * .IAssistContext,
 	 * org.eclipse.jdt.internal.ui.text.correction.IProblemLocation[])
 	 */
-	public void collectCorrections(
-			IQuickAssistInvocationContext quickAssistContext,
-			ProblemLocation[] locations,
-			Collection<ICompletionProposal> proposals) {
+	public void collectCorrections(IQuickAssistInvocationContext quickAssistContext,
+			ProblemLocation[] locations, Collection<ICompletionProposal> proposals) {
 		if (locations == null || locations.length == 0) {
 			return;
 		}
 
-		HashSet<Integer> handledProblems = new HashSet<Integer>(
-				locations.length);
+		HashSet<Integer> handledProblems = new HashSet<Integer>(locations.length);
 		for (int i = 0; i < locations.length; i++) {
 			ProblemLocation curr = locations[i];
 			Integer id = new Integer(curr.getProblemId());
 			if (handledProblems.add(id)) {
-				assistant.addProposals(getContext(quickAssistContext), curr,
+				fAssistant.addProposals(getContext(quickAssistContext), curr,
 						proposals);
 			}
 		}

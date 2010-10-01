@@ -26,8 +26,8 @@ public class SelectEnclosingAction extends Action {
         fNavTargetFinder= null;
         if (editor instanceof UniversalEditor) {
             fEditor= (UniversalEditor) editor;
-            if (fEditor.fLanguage != null) {
-                fNavTargetFinder= ServiceFactory.getInstance().getNavigationTargetFinder(fEditor.fLanguage);
+            if (fEditor.getLanguage() != null) {
+                fNavTargetFinder= ServiceFactory.getInstance().getNavigationTargetFinder(fEditor.getLanguage());
             }
         } else {
             fEditor= null;

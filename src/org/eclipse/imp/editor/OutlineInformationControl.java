@@ -237,7 +237,7 @@ public class OutlineInformationControl extends AbstractInformationControl {
         fForegroundColor= parent.getDisplay().getSystemColor(SWT.COLOR_DARK_GRAY);
 
         // RMF 7/7/2006 - oops, fLanguage is still null at this point, b/c createTreeViewer() gets called from super ctor and field inits haven't happened yet...
-        fLanguage= ((UniversalEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()).fLanguage;
+        fLanguage= ((UniversalEditor) PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor()).getLanguage();
         fOutlineContentProvider= new ModelTreeContentProvider(null);
 
         fOutlineContentProvider.setInfoControl(this);

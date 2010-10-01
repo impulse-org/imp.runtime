@@ -31,7 +31,7 @@ public class DefaultLanguageActionsContributor implements ILanguageActionsContri
      * @param menuManager
      */
 	public void contributeToEditorMenu(final UniversalEditor editor, IMenuManager menuManager) {
-		IMenuManager subMenu = new MenuManager(editor.fLanguage.getName());
+		IMenuManager subMenu = new MenuManager(editor.getLanguage().getName());
 		
 		try {
 			IAction[] actions = getEditorActions(editor);

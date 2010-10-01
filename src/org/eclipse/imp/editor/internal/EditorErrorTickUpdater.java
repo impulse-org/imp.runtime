@@ -34,7 +34,7 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
     public EditorErrorTickUpdater(UniversalEditor editor) {
         Assert.isNotNull(editor);
         fEditor= editor;
-        fLabelProvider= ServiceFactory.getInstance().getLabelProvider(editor.fLanguage);
+        fLabelProvider= ServiceFactory.getInstance().getLabelProvider(editor.getLanguage());
 //        fLabelProvider.addLabelDecorator(new ProblemsLabelDecorator(null));
         fEditor.getProblemMarkerManager().addListener(this);
     }

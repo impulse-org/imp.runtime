@@ -13,7 +13,6 @@ package org.eclipse.imp.editor;
 
 import java.util.List;
 
-import org.eclipse.imp.editor.UniversalEditor.StructuredSourceViewerConfiguration;
 import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IAutoEditStrategy;

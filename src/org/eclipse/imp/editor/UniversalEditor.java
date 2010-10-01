@@ -44,7 +44,6 @@ import org.eclipse.imp.editor.internal.AnnotationCreator;
 import org.eclipse.imp.editor.internal.EditorErrorTickUpdater;
 import org.eclipse.imp.editor.internal.FoldingController;
 import org.eclipse.imp.editor.internal.ProblemMarkerManager;
-import org.eclipse.imp.editor.internal.QuickFixController;
 import org.eclipse.imp.editor.internal.ToggleBreakpointsAdapter;
 import org.eclipse.imp.help.IMPHelp;
 import org.eclipse.imp.language.ILanguageService;
@@ -57,7 +56,6 @@ import org.eclipse.imp.model.ModelFactory.ModelException;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.imp.parser.IModelListener;
 import org.eclipse.imp.parser.IParseController;
-import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.preferences.IPreferencesService;
 import org.eclipse.imp.preferences.PreferenceCache;
 import org.eclipse.imp.preferences.PreferenceConstants;
@@ -69,7 +67,6 @@ import org.eclipse.imp.preferences.IPreferencesService.StringPreferenceListener;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
-import org.eclipse.imp.services.IDocumentationProvider;
 import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -77,10 +74,7 @@ import org.eclipse.imp.services.IOccurrenceMarker;
 import org.eclipse.imp.services.IRefactoringContributor;
 import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
-import org.eclipse.imp.services.base.DefaultAnnotationHover;
-import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.ui.DefaultPartListener;
-import org.eclipse.imp.ui.textPresentation.HTMLTextPresenter;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.IMenuManager;
@@ -89,50 +83,27 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.commands.ActionHandler;
-import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
-import org.eclipse.jface.text.AbstractInformationControlManager;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.DefaultInformationControl;
 import org.eclipse.jface.text.DocumentEvent;
-import org.eclipse.jface.text.IAutoEditStrategy;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IDocumentListener;
-import org.eclipse.jface.text.IInformationControl;
-import org.eclipse.jface.text.IInformationControlCreator;
 import org.eclipse.jface.text.IRegion;
-import org.eclipse.jface.text.ITextDoubleClickStrategy;
-import org.eclipse.jface.text.ITextHover;
 import org.eclipse.jface.text.ITextSelection;
-import org.eclipse.jface.text.ITextViewer;
 import org.eclipse.jface.text.ITextViewerExtension;
 import org.eclipse.jface.text.ITextViewerExtension5;
 import org.eclipse.jface.text.ITypedRegion;
-import org.eclipse.jface.text.IUndoManager;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.Region;
 import org.eclipse.jface.text.TextPresentation;
 import org.eclipse.jface.text.TextUtilities;
-import org.eclipse.jface.text.contentassist.ContentAssistant;
-import org.eclipse.jface.text.contentassist.IContentAssistant;
 import org.eclipse.jface.text.formatter.ContentFormatter;
-import org.eclipse.jface.text.formatter.IContentFormatter;
-import org.eclipse.jface.text.hyperlink.IHyperlinkDetector;
-import org.eclipse.jface.text.hyperlink.IHyperlinkPresenter;
-import org.eclipse.jface.text.information.IInformationPresenter;
-import org.eclipse.jface.text.information.IInformationProvider;
-import org.eclipse.jface.text.information.IInformationProviderExtension;
-import org.eclipse.jface.text.information.InformationPresenter;
 import org.eclipse.jface.text.presentation.IPresentationDamager;
-import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.IPresentationRepairer;
-import org.eclipse.jface.text.presentation.PresentationReconciler;
-import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.DefaultCharacterPairMatcher;
-import org.eclipse.jface.text.source.IAnnotationHover;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModelListener;
 import org.eclipse.jface.text.source.ICharacterPairMatcher;
@@ -146,7 +117,6 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.custom.VerifyKeyListener;
 import org.eclipse.swt.events.VerifyEvent;
@@ -155,7 +125,6 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
@@ -168,7 +137,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.SubActionBars;
 import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.editors.text.TextEditor;
-import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 import org.eclipse.ui.handlers.IHandlerActivation;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
@@ -287,7 +255,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         // already defined for the parent text editor and populated with relevant
         // preferences
         // setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
-        setSourceViewerConfiguration(new StructuredSourceViewerConfiguration(getPreferenceStore()));
+        setSourceViewerConfiguration(new StructuredSourceViewerConfiguration(getPreferenceStore(), this));
         configureInsertMode(SMART_INSERT, true);
         setInsertMode(SMART_INSERT);
         fProblemMarkerManager= new ProblemMarkerManager();
@@ -295,6 +263,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
     public Language getLanguage() {
         return fLanguage;
+    }
+
+    public LanguageServiceManager getLanguageServiceManager() {
+        return fLanguageServiceManager;
+    }
+
+    public IPreferencesService getLanguageSpecificPreferences() {
+        return fLangSpecificPrefs;
     }
 
     @SuppressWarnings("unchecked")
@@ -1478,8 +1454,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
      * 
      * SMS 25 Apr 2007
      */
-    public void refreshMarkerAnnotations(String problemMarkerType)
-    {
+    public void refreshMarkerAnnotations(String problemMarkerType) {
     	// Get current marker annotations
 		IAnnotationModel model = getDocumentProvider().getAnnotationModel(getEditorInput());
 		Iterator annIter = model.getAnnotationIterator();
@@ -1678,290 +1653,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         fParserScheduler.removeModelListener(listener);
     }
 
-    class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
-        public StructuredSourceViewerConfiguration(IPreferenceStore prefStore) {
-            super(prefStore);
-        }
-        public int getTabWidth(ISourceViewer sourceViewer) {
-            boolean langSpecificSetting= fLangSpecificPrefs != null && fLangSpecificPrefs.isDefined(PreferenceConstants.P_TAB_WIDTH);
-
-            return langSpecificSetting ? fLangSpecificPrefs.getIntPreference(PreferenceConstants.P_TAB_WIDTH) : PreferenceCache.tabWidth;
-        }
-
-        public IPresentationReconciler getPresentationReconciler(ISourceViewer sourceViewer) {
-            if (fServiceControllerManager == null || fLanguageServiceManager.getTokenColorer() == null) {
-                return super.getPresentationReconciler(sourceViewer);
-            }
-            // BUG Perhaps we shouldn't use a PresentationReconciler; its JavaDoc says it runs in the UI thread!
-            PresentationReconciler reconciler= new PresentationReconciler();
-
-            reconciler.setRepairer(new PresentationRepairer(), IDocument.DEFAULT_CONTENT_TYPE);
-            reconciler.setDamager(new PresentationDamager(), IDocument.DEFAULT_CONTENT_TYPE);
-            return reconciler;
-        }
-
-        public IContentAssistant getContentAssistant(ISourceViewer sourceViewer) {
-            if (fServiceControllerManager == null) {
-                return super.getContentAssistant(sourceViewer);
-            }
-            ContentAssistant ca= new ContentAssistant();
-            ca.setContentAssistProcessor(fServiceControllerManager.getCompletionProcessor(), IDocument.DEFAULT_CONTENT_TYPE);
-            ca.setInformationControlCreator(getInformationControlCreator(sourceViewer));
-            return ca;
-        }
-
-        public IAnnotationHover getAnnotationHover(ISourceViewer sourceViewer) {
-            if (fLanguageServiceManager == null) {
-                return super.getAnnotationHover(sourceViewer);
-            }
-            IAnnotationHover hover= fLanguageServiceManager.getAnnotationHover();
-            if (hover == null)
-                hover= new DefaultAnnotationHover();
-            return hover;
-        }
-
-        public IAutoEditStrategy[] getAutoEditStrategies(ISourceViewer sourceViewer, String contentType) {
-            if (fLanguageServiceManager == null) {
-                return super.getAutoEditStrategies(sourceViewer, contentType);
-            }
-            Set<org.eclipse.imp.services.IAutoEditStrategy> autoEdits= fLanguageServiceManager.getAutoEditStrategies();
-
-            if (autoEdits == null || autoEdits.size() == 0) {
-                return super.getAutoEditStrategies(sourceViewer, contentType);
-            }
-
-            return autoEdits.toArray(new IAutoEditStrategy[autoEdits.size()]);
-        }
-
-        public IContentFormatter getContentFormatter(ISourceViewer sourceViewer) {
-            // Disable the content formatter if no language-specific implementation exists.
-            // N.B.: This will probably always be null, since this method gets called before
-            // the formatting controller has been instantiated (which happens in
-            // instantiateServiceControllers()).
-            if (fServiceControllerManager == null || fServiceControllerManager.getFormattingController() == null)
-                return null;
-
-            // For now, assumes only one content type (i.e. one kind of partition)
-            ContentFormatter formatter= new ContentFormatter();
-
-            formatter.setFormattingStrategy(fServiceControllerManager.getFormattingController(), IDocument.DEFAULT_CONTENT_TYPE);
-            return formatter;
-        }
-
-        public String[] getDefaultPrefixes(ISourceViewer sourceViewer, String contentType) {
-            return super.getDefaultPrefixes(sourceViewer, contentType);
-        }
-
-        public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
-            return super.getDoubleClickStrategy(sourceViewer, contentType);
-        }
-
-        public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {
-            if (fServiceControllerManager != null && fServiceControllerManager.getHyperLinkController() != null)
-                return new IHyperlinkDetector[] { fServiceControllerManager.getHyperLinkController() };
-            return super.getHyperlinkDetectors(sourceViewer);
-        }
-
-        public IHyperlinkPresenter getHyperlinkPresenter(ISourceViewer sourceViewer) {
-            return super.getHyperlinkPresenter(sourceViewer);
-        }
-
-        public String[] getIndentPrefixes(ISourceViewer sourceViewer, String contentType) {
-            return super.getIndentPrefixes(sourceViewer, contentType);
-        }
-
-        public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
-            return new IInformationControlCreator() {
-                public IInformationControl createInformationControl(Shell parent) {
-//                  int shellStyle= SWT.RESIZE | SWT.TOOL;
-//                  int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
-
-//                  if (BrowserInformationControl.isAvailable(parent))
-//                      return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE, EditorsUI.getTooltipAffordanceString());
-//                  else
-//                      return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
-                    return new DefaultInformationControl(parent, "Press 'F2' for focus", new HTMLTextPresenter(true));
-                }
-            };
-        }
-
-        private InformationPresenter fInfoPresenter;
-
-        public IInformationPresenter getInformationPresenter(ISourceViewer sourceViewer) {
-            if (fLanguageServiceManager == null) {
-                return super.getInformationPresenter(sourceViewer);
-            }
-            if (fInfoPresenter == null) {
-                fInfoPresenter= new InformationPresenter(getInformationControlCreator(sourceViewer));
-                fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-                fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-
-                IInformationProvider provider= new IInformationProvider() { // this should be language-specific
-                    public IRegion getSubject(ITextViewer textViewer, int offset) {
-                        IParseController pc= fLanguageServiceManager.getParseController();
-                        ISourcePositionLocator locator= pc.getSourcePositionLocator();
-                        if (locator == null) {
-                            return new Region(offset, 0);
-                        }
-                        Object selNode= locator.findNode(pc, offset);
-                        return new Region(locator.getStartOffset(selNode), locator.getLength(selNode));
-                    }
-                    public String getInformation(ITextViewer textViewer, IRegion subject) {
-                        IParseController pc= fLanguageServiceManager.getParseController();
-                        ISourcePositionLocator locator= pc.getSourcePositionLocator();
-                        if (locator == null) {
-                            return "";
-                        }
-                        IDocumentationProvider docProvider= fLanguageServiceManager.getDocProvider();
-                        Object selNode= locator.findNode(pc.getCurrentAst(), subject.getOffset());
-                        return (docProvider != null) ? docProvider.getDocumentation(selNode, pc) : "No documentation available on the selected entity.";
-                    }
-                };
-                fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-                fInfoPresenter.setSizeConstraints(60, 10, true, false);
-                fInfoPresenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
-            }
-            return fInfoPresenter;
-        }
-
-        public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType) {
-            if (fServiceControllerManager == null) {
-                return super.getTextHover(sourceViewer, contentType);
-            }
-            return fServiceControllerManager.getHoverHelpController();
-        }
-
-        public ITextHover getTextHover(ISourceViewer sourceViewer, String contentType, int stateMask) {
-            return super.getTextHover(sourceViewer, contentType, stateMask);
-        }
-
-        public IUndoManager getUndoManager(ISourceViewer sourceViewer) {
-            return super.getUndoManager(sourceViewer);
-        }
-
-        public IAnnotationHover getOverviewRulerAnnotationHover(ISourceViewer sourceViewer) {
-            return super.getOverviewRulerAnnotationHover(sourceViewer);
-        }
-
-        private class OutlineInformationProvider implements IInformationProvider, IInformationProviderExtension {
-            private TreeModelBuilderBase fBuilder;
-
-            public IRegion getSubject(ITextViewer textViewer, int offset) {
-                return new Region(offset, 0); // Could be anything, since it's ignored below in getInformation2()...
-            }
-
-            public String getInformation(ITextViewer textViewer, IRegion subject) {
-                return "never called?!?"; // shouldn't be called, given IInformationProviderExtension???
-            }
-
-            public Object getInformation2(ITextViewer textViewer, IRegion subject) {
-                if (fBuilder == null) {
-                    fBuilder= fLanguageServiceManager.getModelBuilder();
-                }
-                return fBuilder.buildTree(fLanguageServiceManager.getParseController().getCurrentAst());
-            }
-        }
-
-        private IInformationProvider fOutlineElementProvider= new OutlineInformationProvider();
-
-        public IInformationPresenter getOutlinePresenter(ISourceViewer sourceViewer) {
-            if (fLanguageServiceManager == null) {
-                return null;
-            }
-            if (fLanguageServiceManager.getModelBuilder() == null) {
-                return null;
-            }
-
-            InformationPresenter presenter;
-
-            presenter= new InformationPresenter(getOutlinePresenterControlCreator(sourceViewer, IEditorActionDefinitionIds.SHOW_OUTLINE));
-            presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-            presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-
-            IInformationProvider provider= fOutlineElementProvider;
-
-            presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-            // TODO Should associate all other partition types with this provider, too
-            presenter.setSizeConstraints(50, 20, true, false);
-            presenter.setRestoreInformationControlBounds(getSettings("outline_presenter_bounds"), true, true); //$NON-NLS-1$
-            return presenter;
-        }
-
-        /**
-         * Returns the outline presenter control creator. The creator is a factory creating outline presenter controls for the given source viewer. This
-         * implementation always returns a creator for <code>OutlineInformationControl</code> instances.
-         * 
-         * @param sourceViewer the source viewer to be configured by this configuration
-         * @param commandId the ID of the command that opens this control
-         * @return an information control creator
-         */
-        private IInformationControlCreator getOutlinePresenterControlCreator(ISourceViewer sourceViewer, final String commandId) {
-            return new IInformationControlCreator() {
-                public IInformationControl createInformationControl(Shell parent) {
-                    int shellStyle= SWT.RESIZE;
-                    int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
-
-                    return new OutlineInformationControl(parent, shellStyle, treeStyle, commandId, UniversalEditor.this.getLanguage());
-                }
-            };
-        }
-
-        /**
-         * Returns the hierarchy presenter which will determine and shown type hierarchy information requested for the current cursor position.
-         * 
-         * @param sourceViewer the source viewer to be configured by this configuration
-         * @param doCodeResolve a boolean which specifies whether code resolve should be used to compute the program element
-         * @return an information presenter
-         */
-        public IInformationPresenter getHierarchyPresenter(ISourceViewer sourceViewer, boolean doCodeResolve) {
-            InformationPresenter presenter= new InformationPresenter(getHierarchyPresenterControlCreator(sourceViewer));
-            presenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
-            presenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
-            IInformationProvider provider= null; // TODO RMF new HierarchyInformationProvider(this);
-            presenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);
-            // presenter.setInformationProvider(provider, IJavaPartitions.JAVA_DOC);
-            // presenter.setInformationProvider(provider, IJavaPartitions.JAVA_MULTI_LINE_COMMENT);
-            //	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_SINGLE_LINE_COMMENT);
-            //	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_STRING);
-            //	    presenter.setInformationProvider(provider, IJavaPartitions.JAVA_CHARACTER);
-            presenter.setSizeConstraints(50, 20, true, false);
-            presenter.setRestoreInformationControlBounds(getSettings("hierarchy_presenter_bounds"), true, true); //$NON-NLS-1$
-            return presenter;
-        }
-
-        private IInformationControlCreator getHierarchyPresenterControlCreator(ISourceViewer sourceViewer) {
-            return new IInformationControlCreator() {
-                public IInformationControl createInformationControl(Shell parent) {
-//                  int shellStyle= SWT.RESIZE;
-//                  int treeStyle= SWT.V_SCROLL | SWT.H_SCROLL;
-
-                    return new DefaultInformationControl(parent); // HierarchyInformationControl(parent, shellStyle, treeStyle);
-                }
-            };
-        }
-
-        /**
-         * Returns the settings for the given section.
-         *
-         * @param sectionName the section name
-         * @return the settings
-         * @since 3.0
-         */
-        private IDialogSettings getSettings(String sectionName) {
-            IDialogSettings settings= RuntimePlugin.getInstance().getDialogSettings().getSection(sectionName);
-            if (settings == null)
-                settings= RuntimePlugin.getInstance().getDialogSettings().addNewSection(sectionName);
-            return settings;
-        }
-        
-        @Override
-		public IQuickAssistAssistant getQuickAssistAssistant(
-				ISourceViewer sourceViewer) {	
-			return new QuickFixController(UniversalEditor.this);
-		}
-    }
-
-    private class PresentationDamager implements IPresentationDamager {
+    class PresentationDamager implements IPresentationDamager {
         public IRegion getDamageRegion(ITypedRegion partition, DocumentEvent event, boolean documentPartitioningChanged) {
             // Ask the language's token colorer how much of the document presentation needs to be recomputed.
             final ITokenColorer tokenColorer= fLanguageServiceManager.getTokenColorer();
@@ -1974,7 +1666,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         public void setDocument(IDocument document) {}
     }
 
-    private class PresentationRepairer implements IPresentationRepairer {
+    class PresentationRepairer implements IPresentationRepairer {
 	    // For checking whether the damage region has changed
 	    ITypedRegion previousDamage= null;
 

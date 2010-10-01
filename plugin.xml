@@ -70,7 +70,19 @@
             name="org.eclipse.imp.editor.parseAnnotation"
             super="org.eclipse.ui.workbench.texteditor.error"/>
       <type
+            markerSeverity="2"
+            name="org.eclipse.imp.editor.parseAnnotation.error"
+            super="org.eclipse.ui.workbench.texteditor.error"/>
+      <type
             markerSeverity="1"
+            name="org.eclipse.imp.editor.parseAnnotation.warning"
+            super="org.eclipse.ui.workbench.texteditor.error"/>
+      <type
+            markerSeverity="0"
+            name="org.eclipse.imp.editor.parseAnnotation.info"
+            super="org.eclipse.ui.workbench.texteditor.error"/>
+      <type
+            markerSeverity="0"
             name="org.eclipse.imp.runtime.occurrenceAnnotation"
             super="org.eclipse.ui.workbench.texteditor.error"/>
    </extension>
@@ -80,28 +92,40 @@
             annotationType="org.eclipse.imp.editor.parseAnnotation"
             annotationImageProvider="org.eclipse.imp.editor.internal.AnnotationImageProvider"/>
       <specification
+            annotationType="org.eclipse.imp.editor.parseAnnotation.error"
+            annotationImageProvider="org.eclipse.imp.editor.internal.AnnotationImageProvider"/>
+      <specification
+            annotationType="org.eclipse.imp.editor.parseAnnotation.warning"
+            annotationImageProvider="org.eclipse.imp.editor.internal.AnnotationImageProvider"/>
+      <specification
+            annotationType="org.eclipse.imp.editor.parseAnnotation.info"
+            annotationImageProvider="org.eclipse.imp.editor.internal.AnnotationImageProvider"/>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors.markerAnnotationSpecification">
+      <specification
             annotationType="org.eclipse.imp.runtime.occurrenceAnnotation"
-            colorPreferenceKey="parseAnnotationColor"
-            colorPreferenceValue="255,128,147"
+            colorPreferenceKey="occurrenceColorPreference"
+            colorPreferenceValue="0,255,128"
             contributesToHeader="false"
-            highlightPreferenceKey="parseAnnotationHighlightKey"
-            highlightPreferenceValue="false"
+            highlightPreferenceKey="occurrenceHighlightKey"
+            highlightPreferenceValue="true"
+            icon="icons/searchm_obj.gif"
             includeOnPreferencePage="true"
             isGoToNextNavigationTarget="true"
-            isGoToNextNavigationTargetKey="parseAnnotationIsGotoNextKey"
+            isGoToNextNavigationTargetKey="occurrenceAnnotationIsGotoNextKey"
             isGoToPreviousNavigationTarget="true"
-            isGoToPreviousNavigationTargetKey="parseAnnotationIsGotoPrevKey"
-            label="IMP Parser Annotation"
-            overviewRulerPreferenceKey="parseAnnotationOverviewKey"
+            isGoToPreviousNavigationTargetKey="occurrenceAnnotationIsGotoPrevKey"
+            label="Occurrences"
+            overviewRulerPreferenceKey="occurrenceOverviewRulerPreference"
             overviewRulerPreferenceValue="true"
-            presentationLayer="2"
+            presentationLayer="4"
             showInNextPrevDropdownToolbarAction="true"
-            symbolicIcon="error"
-            textPreferenceKey="parseAnnotationTextKey"
+            textPreferenceKey="occurrenceTextPreference"
             textPreferenceValue="true"
-            textStylePreferenceKey="parseAnnotationTextStyleKey"
-            textStylePreferenceValue="SQUIGGLES"
-            verticalRulerPreferenceKey="parseAnnotationVerticalKey"
+            textStylePreferenceKey="occurrenceAnnotationTextStyleKey"
+            textStylePreferenceValue="UNDERLINE"
+            verticalRulerPreferenceKey="occurrenceVerticalRulerPreference"
             verticalRulerPreferenceValue="true"/>
    </extension>
    <!--

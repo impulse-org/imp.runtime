@@ -211,17 +211,14 @@ public class ProblemHover extends AbstractAnnotationHover {
 					.toArray(new ICompletionProposal[proposals.size()]);
 		}
 
-		private ICompletionProposal[] getMarkerAnnotationFixes(
-				MarkerAnnotation markerAnnotation) {
-			if (markerAnnotation.isQuickFixableStateSet()
-					&& !markerAnnotation.isQuickFixable())
+		private ICompletionProposal[] getMarkerAnnotationFixes(MarkerAnnotation markerAnnotation) {
+			if (markerAnnotation.isQuickFixableStateSet() && !markerAnnotation.isQuickFixable())
 				return NO_PROPOSALS;
 
 			TextInvocationContext context = new TextInvocationContext(
 					((ISourceViewer) this.viewer), position.getOffset(),
 					position.getLength());
-			QuickFixController c = new QuickFixController(
-					markerAnnotation.getMarker());
+			QuickFixController c = new QuickFixController(markerAnnotation.getMarker());
 			return c.computeQuickAssistProposals(context);
 		}
 
@@ -230,8 +227,7 @@ public class ProblemHover extends AbstractAnnotationHover {
 		 * org.eclipse.jdt.internal.ui.text.java.hover.AbstractAnnotationHover
 		 * .AnnotationInfo#fillToolBar(org.eclipse.jface.action.ToolBarManager)
 		 */
-		public void fillToolBar(ToolBarManager manager,
-				IInformationControl infoControl) {
+		public void fillToolBar(ToolBarManager manager, IInformationControl infoControl) {
 			super.fillToolBar(manager, infoControl);
 			// if (!(annotation instanceof IJavaAnnotation))
 			// return;

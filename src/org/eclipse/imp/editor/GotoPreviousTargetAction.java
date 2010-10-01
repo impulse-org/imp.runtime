@@ -11,14 +11,13 @@
 
 package org.eclipse.imp.editor;
 
-
 public class GotoPreviousTargetAction extends TargetNavigationAction {
     public GotoPreviousTargetAction() {
         this(null);
     }
 
     public GotoPreviousTargetAction(UniversalEditor editor) {
-        super(editor, "Go to Previous Navigation Target", UniversalEditor.GOTO_PREVIOUS_TARGET_COMMAND);
+        super(editor, "Go to Previous Navigation Target", IEditorActionDefinitionIds.GOTO_PREVIOUS_TARGET);
     }
 
     @Override

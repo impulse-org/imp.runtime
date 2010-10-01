@@ -18,7 +18,7 @@ public class SelectEnclosingAction extends Action {
 
     public SelectEnclosingAction(UniversalEditor editor) {
         super("Select Enclosing");
-        setActionDefinitionId(UniversalEditor.SELECT_ENCLOSING_COMMAND);
+        setActionDefinitionId(IEditorActionDefinitionIds.SELECT_ENCLOSING);
         setEditor(editor);
     }
 

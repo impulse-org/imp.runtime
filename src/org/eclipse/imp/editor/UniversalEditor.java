@@ -193,53 +193,53 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  * @author Robert M. Fuhrer
  */
 public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget {
-    /**
-     * Action definition ID of the Edit -> Format Source action
-     * (value <code>"org.eclipse.imp.runtime.editor.formatSource"</code>).
-     */
-    public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.formatSource";
-
-    /**
-     * Action definition ID of the Edit -> Toggle Comment action
-     * (value <code>"org.eclipse.imp.runtime.editor.toggleComment"</code>).
-     */
-    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.toggleComment";
-
-    /**
-     * Action definition ID of the Edit -> Show Outline action
-     * (value <code>"org.eclipse.imp.runtime.editor.showOutline"</code>).
-     */
-    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.showOutline";
-
-    /**
-     * Action definition ID of the Edit -> Correct Indentation action
-     * (value <code>"org.eclipse.imp.runtime.editor.indentSelection"</code>).
-     */
-    public static final String CORRECT_INDENTATION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.correctIndentation";
-
-    /**
-     * Action definition ID of the Edit -> Select Enclosing action
-     * (value <code>"org.eclipse.imp.runtime.editor.selectEnclosing"</code>).
-     */
-    public static final String SELECT_ENCLOSING_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.selectEnclosing";
-
-    /**
-     * Action definition ID of the edit -> Go to Matching Fence action
-     * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
-     */
-    public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoMatchingFence"; //$NON-NLS-1$
-
-    /**
-     * Action definition ID of the edit -> Go to Previous Navigation Target action
-     * (value <code>"org.eclipse.imp.runtime.editor.gotoPreviousTarget"</code>).
-     */
-    public static final String GOTO_PREVIOUS_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoPreviousTarget"; //$NON-NLS-1$
-
-    /**
-     * Action definition ID of the edit -> Go to Next Navigation Target action
-     * (value <code>"org.eclipse.imp.runtime.editor.gotoNextTarget"</code>).
-     */
-    public static final String GOTO_NEXT_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoNextTarget"; //$NON-NLS-1$
+//    /**
+//     * Action definition ID of the Edit -> Format Source action
+//     * (value <code>"org.eclipse.imp.runtime.editor.formatSource"</code>).
+//     */
+//    public static final String FORMAT_SOURCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.formatSource";
+//
+//    /**
+//     * Action definition ID of the Edit -> Toggle Comment action
+//     * (value <code>"org.eclipse.imp.runtime.editor.toggleComment"</code>).
+//     */
+//    public static final String TOGGLE_COMMENT_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.toggleComment";
+//
+//    /**
+//     * Action definition ID of the Edit -> Show Outline action
+//     * (value <code>"org.eclipse.imp.runtime.editor.showOutline"</code>).
+//     */
+//    public static final String SHOW_OUTLINE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.showOutline";
+//
+//    /**
+//     * Action definition ID of the Edit -> Correct Indentation action
+//     * (value <code>"org.eclipse.imp.runtime.editor.indentSelection"</code>).
+//     */
+//    public static final String CORRECT_INDENTATION_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.correctIndentation";
+//
+//    /**
+//     * Action definition ID of the Edit -> Select Enclosing action
+//     * (value <code>"org.eclipse.imp.runtime.editor.selectEnclosing"</code>).
+//     */
+//    public static final String SELECT_ENCLOSING_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.selectEnclosing";
+//
+//    /**
+//     * Action definition ID of the edit -> Go to Matching Fence action
+//     * (value <code>"org.eclipse.imp.runtime.gotoMatchingFence"</code>).
+//     */
+//    public static final String GOTO_MATCHING_FENCE_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoMatchingFence"; //$NON-NLS-1$
+//
+//    /**
+//     * Action definition ID of the edit -> Go to Previous Navigation Target action
+//     * (value <code>"org.eclipse.imp.runtime.editor.gotoPreviousTarget"</code>).
+//     */
+//    public static final String GOTO_PREVIOUS_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoPreviousTarget"; //$NON-NLS-1$
+//
+//    /**
+//     * Action definition ID of the edit -> Go to Next Navigation Target action
+//     * (value <code>"org.eclipse.imp.runtime.editor.gotoNextTarget"</code>).
+//     */
+//    public static final String GOTO_NEXT_TARGET_COMMAND= RuntimePlugin.IMP_RUNTIME + ".editor.gotoNextTarget"; //$NON-NLS-1$
 
     public static final String MESSAGE_BUNDLE= "org.eclipse.imp.editor.messages";
 
@@ -294,16 +294,20 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     private IDocumentListener fDocumentListener;
 
     private FoldingActionGroup fFoldingActionGroup;
-    
+
 	private GenerateActionGroup fGenerateActionGroup;
-    
-    private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
+
+	private OpenEditorActionGroup fOpenEditorActionGroup;
+
+	private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= MESSAGE_BUNDLE;//$NON-NLS-1$
 
     private static final String IMP_EDITOR_CONTEXT= RuntimePlugin.IMP_RUNTIME + ".imp_editor_context";
 
     public static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);
     
     public static final String IMP_CODING_ACTION_SET = RuntimePlugin.IMP_RUNTIME + ".codingActionSet";
+
+    public static final String IMP_OPEN_ACTION_SET = RuntimePlugin.IMP_RUNTIME + ".openActionSet";
 
     public UniversalEditor() {
 //      RuntimePlugin.EDITOR_START_TIME= System.currentTimeMillis();
@@ -365,46 +369,47 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         setAction("ToggleBreakpoint", action);
 
         action= new TextOperationAction(bundle, "Format.", this, ISourceViewer.FORMAT); //$NON-NLS-1$
-        action.setActionDefinitionId(FORMAT_SOURCE_COMMAND);
+        action.setActionDefinitionId(IEditorActionDefinitionIds.FORMAT);
         setAction("Format", action); //$NON-NLS-1$
         markAsStateDependentAction("Format", true); //$NON-NLS-1$
         markAsSelectionDependentAction("Format", true); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.FORMAT_ACTION);
 
         action= new TextOperationAction(bundle, "ShowOutline.", this, StructuredSourceViewer.SHOW_OUTLINE, true /* runsOnReadOnly */); //$NON-NLS-1$
-        action.setActionDefinitionId(SHOW_OUTLINE_COMMAND);
-        setAction(SHOW_OUTLINE_COMMAND, action); //$NON-NLS-1$
+        action.setActionDefinitionId(IEditorActionDefinitionIds.SHOW_OUTLINE);
+        setAction(IEditorActionDefinitionIds.SHOW_OUTLINE, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.SHOW_OUTLINE_ACTION);
 
         action= new TextOperationAction(bundle, "ToggleComment.", this, StructuredSourceViewer.TOGGLE_COMMENT); //$NON-NLS-1$
-        action.setActionDefinitionId(TOGGLE_COMMENT_COMMAND);
-        setAction(TOGGLE_COMMENT_COMMAND, action); //$NON-NLS-1$
+        action.setActionDefinitionId(IEditorActionDefinitionIds.TOGGLE_COMMENT);
+        setAction(IEditorActionDefinitionIds.TOGGLE_COMMENT, action); //$NON-NLS-1$
 //      PlatformUI.getWorkbench().getHelpSystem().setHelp(action, IJavaHelpContextIds.TOGGLE_COMMENT_ACTION);
 
         action= new TextOperationAction(bundle, "CorrectIndentation.", this, StructuredSourceViewer.CORRECT_INDENTATION); //$NON-NLS-1$
-        action.setActionDefinitionId(CORRECT_INDENTATION_COMMAND);
-        setAction(CORRECT_INDENTATION_COMMAND, action); //$NON-NLS-1$
+        action.setActionDefinitionId(IEditorActionDefinitionIds.CORRECT_INDENTATION);
+        setAction(IEditorActionDefinitionIds.CORRECT_INDENTATION, action); //$NON-NLS-1$
 
         action= new GotoMatchingFenceAction(this);
-        action.setActionDefinitionId(GOTO_MATCHING_FENCE_COMMAND);
-        setAction(GOTO_MATCHING_FENCE_COMMAND, action);
+        action.setActionDefinitionId(IEditorActionDefinitionIds.GOTO_MATCHING_FENCE);
+        setAction(IEditorActionDefinitionIds.GOTO_MATCHING_FENCE, action);
 
         action= new GotoPreviousTargetAction(this);
-        action.setActionDefinitionId(GOTO_PREVIOUS_TARGET_COMMAND);
-        setAction(GOTO_PREVIOUS_TARGET_COMMAND, action);
+        action.setActionDefinitionId(IEditorActionDefinitionIds.GOTO_PREVIOUS_TARGET);
+        setAction(IEditorActionDefinitionIds.GOTO_PREVIOUS_TARGET, action);
 
         action= new GotoNextTargetAction(this);
-        action.setActionDefinitionId(GOTO_NEXT_TARGET_COMMAND);
-        setAction(GOTO_NEXT_TARGET_COMMAND, action);
+        action.setActionDefinitionId(IEditorActionDefinitionIds.GOTO_NEXT_TARGET);
+        setAction(IEditorActionDefinitionIds.GOTO_NEXT_TARGET, action);
 
         action= new SelectEnclosingAction(this);
-        action.setActionDefinitionId(SELECT_ENCLOSING_COMMAND);
-        setAction(SELECT_ENCLOSING_COMMAND, action);
+        action.setActionDefinitionId(IEditorActionDefinitionIds.SELECT_ENCLOSING);
+        setAction(IEditorActionDefinitionIds.SELECT_ENCLOSING, action);
 
         fFoldingActionGroup= new FoldingActionGroup(this, this.getSourceViewer());
         
         fGenerateActionGroup= new GenerateActionGroup(this, ITextEditorActionConstants.GROUP_EDIT);
-           
+
+        fOpenEditorActionGroup = new OpenEditorActionGroup(this);
 
         installQuickAccessAction();
     }
@@ -449,9 +454,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         contributeRefactoringActions(menu);
         contributeLanguageActions(menu);
-        
+
 		ActionContext context= new ActionContext(getSelectionProvider().getSelection());
-		
+
+		fOpenEditorActionGroup.setContext(context);
+		fOpenEditorActionGroup.fillContextMenu(menu);
+		fOpenEditorActionGroup.setContext(null);
+
 		fGenerateActionGroup.setContext(context);
 		fGenerateActionGroup.fillContextMenu(menu);
 		fGenerateActionGroup.setContext(null);
@@ -1206,8 +1215,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
 				if (part instanceof UniversalEditor) {
 					part.getSite().getPage().showActionSet(IMP_CODING_ACTION_SET);
+					part.getSite().getPage().showActionSet(IMP_OPEN_ACTION_SET);
 				} else {
 					part.getSite().getPage().hideActionSet(IMP_CODING_ACTION_SET);
+					part.getSite().getPage().hideActionSet(IMP_OPEN_ACTION_SET);
 				}
 			}
 
@@ -1221,7 +1232,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 		};
 		getSite().getPage().addPartListener(fRefreshContributions);
 	}
-	
+
 	private void unregisterEditorContributionsActivator() {
 	    if (fRefreshContributions != null) {
 	        getSite().getPage().removePartListener(fRefreshContributions);

@@ -18,7 +18,7 @@ public class GotoNextTargetAction extends TargetNavigationAction {
     }
 
     public GotoNextTargetAction(UniversalEditor editor) {
-        super(editor, "Go to Next Navigation Target", UniversalEditor.GOTO_NEXT_TARGET_COMMAND);
+        super(editor, "Go to Next Navigation Target", IEditorActionDefinitionIds.GOTO_NEXT_TARGET);
     }
 
     @Override

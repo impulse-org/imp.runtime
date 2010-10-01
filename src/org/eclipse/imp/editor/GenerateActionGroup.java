@@ -42,12 +42,9 @@ import org.eclipse.ui.texteditor.IUpdate;
  * This class may be instantiated; it is not intended to be subclassed.
  * </p>
  *
- * @since 2.0
- *
  * @noextend This class is not intended to be subclassed by clients.
  */
 public class GenerateActionGroup extends ActionGroup {
-
 	/**
 	 * Pop-up menu: id of the source sub menu (value <code>org.eclipse.imp.source.menu</code>).
 	 *
@@ -421,13 +418,13 @@ public class GenerateActionGroup extends ActionGroup {
 	private int fillEditorSubMenu(IMenuManager source) {
 		int added= 0;
 		source.add(new Separator(GROUP_COMMENT));
-		added+= addEditorAction(source, UniversalEditor.TOGGLE_COMMENT_COMMAND); //$NON-NLS-1$
+		added+= addEditorAction(source, IEditorActionDefinitionIds.TOGGLE_COMMENT); //$NON-NLS-1$
 		added+= addEditorAction(source, "AddBlockComment"); //$NON-NLS-1$
 		added+= addEditorAction(source, "RemoveBlockComment"); //$NON-NLS-1$
 //		added+= addAction(source, fAddJavaDocStub);
 		source.add(new Separator(GROUP_EDIT));
-		added+= addEditorAction(source, UniversalEditor.CORRECT_INDENTATION_COMMAND); //$NON-NLS-1$
-		added+= addEditorAction(source, "Format"); //$NON-NLS-1$
+		added+= addEditorAction(source, IEditorActionDefinitionIds.CORRECT_INDENTATION); //$NON-NLS-1$
+		added+= addEditorAction(source, IEditorActionDefinitionIds.FORMAT /*"Format"*/); //$NON-NLS-1$
 		source.add(new Separator(GROUP_IMPORT));
 //		added+= addAction(source, fAddImport);
 //		added+= addAction(source, fOrganizeImports);

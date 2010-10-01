@@ -21,7 +21,6 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.core.IMPMessages;
 import org.eclipse.imp.editor.EditorUtility;
 import org.eclipse.imp.editor.UniversalEditor;
-import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.ServiceFactory;
 import org.eclipse.imp.model.ICompilationUnit;
 import org.eclipse.imp.model.ISourceEntity;
@@ -29,7 +28,6 @@ import org.eclipse.imp.parser.IParseController;
 import org.eclipse.imp.parser.ISourcePositionLocator;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IReferenceResolver;
-import org.eclipse.imp.actions.ActionMessages;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.util.OpenStrategy;
@@ -39,18 +37,17 @@ import org.eclipse.ui.IWorkbenchSite;
 import org.eclipse.ui.PartInitException;
 
 /**
- * This action opens a Java editor on a Java element or file.
+ * This action opens an IMP editor on an IMP element or source file.
  * <p>
  * The action is applicable to selections containing elements of type <code>ICompilationUnit</code>, <code>IMember</code> or <code>IFile</code>.
  * 
  * <p>
  * This class may be instantiated; it is not intended to be subclassed.
  * </p>
- * 
- * @since 2.0
  */
 public class OpenAction extends SelectionDispatchAction {
     private UniversalEditor fEditor;
+	private IReferenceResolver fResolver= null;
 
     /**
      * Creates a new <code>OpenAction</code>. The action requires that the selection provided by the site's selection provider is of type <code>
@@ -84,6 +81,36 @@ public class OpenAction extends SelectionDispatchAction {
      * (non-Javadoc) Method declared on SelectionDispatchAction.
      */
     public void selectionChanged(ITextSelection selection) {
+       	Object target = getSelectionTarget(selection);
+
+       	setEnabled(target != null);
+    }
+
+    private Object getSelectionTarget(ITextSelection textSel) {
+		IParseController pc= fEditor.getParseController();
+	    ISourcePositionLocator nodeLocator = pc.getSourcePositionLocator();
+	
+		if (fResolver == null) {
+	        fResolver = ServiceFactory.getInstance().getReferenceResolver(pc.getLanguage());
+	    }
+	
+		if (fResolver == null) {
+			return null;
+		}
+	
+	    Object ast= pc.getCurrentAst();
+	
+	    if (ast == null) {
+	    	return null;
+	    }
+	
+	    Object sourceNode= nodeLocator.findNode(ast, textSel.getOffset());
+	
+	    if (sourceNode == null) {
+	    	return null;
+	    }
+	
+	   	return fResolver.getLinkTarget(sourceNode, pc);
     }
 
     /*
@@ -93,10 +120,11 @@ public class OpenAction extends SelectionDispatchAction {
         setEnabled(checkEnabled(selection));
     }
 
-    private boolean checkEnabled(IStructuredSelection selection) {
+    @SuppressWarnings("unchecked")
+	private boolean checkEnabled(IStructuredSelection selection) {
         if (selection.isEmpty())
             return false;
-        for(Iterator iter= selection.iterator(); iter.hasNext();) {
+        for(Iterator iter= selection.iterator(); iter.hasNext(); ) {
             Object element= iter.next();
             if (element instanceof ISourceEntity)
                 continue;
@@ -113,38 +141,27 @@ public class OpenAction extends SelectionDispatchAction {
      * (non-Javadoc) Method declared on SelectionDispatchAction.
      */
     public void run(ITextSelection selection) {
-        if (!isProcessable())
-            return;
+    	Object target= getSelectionTarget(selection);
 
-        IParseController parseCtlr= fEditor.getParseController();
-        ISourcePositionLocator locator= parseCtlr.getSourcePositionLocator();
-        int offset= selection.getOffset();
-        int endOffset= selection.getOffset() + selection.getLength() - 1;
-        Object node= locator.findNode(parseCtlr.getCurrentAst(), offset, endOffset);
+    	if (target != null) {
+    	    ISourcePositionLocator locator= fEditor.getParseController().getSourcePositionLocator();
+    		IPath path= locator.getPath(target);
+    		int targetOffset= locator.getStartOffset(target);
 
-        if (node != null) {
-            Language lang= parseCtlr.getLanguage();
-            IReferenceResolver resolver= ServiceFactory.getInstance().getReferenceResolver(lang);
-
-            if (resolver != null) {
-                Object target= resolver.getLinkTarget(node, parseCtlr);
-                if (target != null && target != node) {
-                    IPath path= locator.getPath(target);
-                    int targetOffset= locator.getStartOffset(target);
-                    int targetLength= locator.getLength(target);
-
-                    try {
-                        IEditorPart editor= EditorUtility.openInEditor(path);
-                        EditorUtility.revealInEditor(editor, targetOffset, targetLength);
-                    } catch (PartInitException e) {
-                        RuntimePlugin.getInstance().logException("Unable to open declaration", e);
-                    }
-                }
-            }
+    		try {
+    			IEditorPart editor= EditorUtility.isOpenInEditor(path);
+    			if (editor == null) {
+    				editor= EditorUtility.openInEditor(path);
+    			}
+    			EditorUtility.revealInEditor(editor, targetOffset, 0);
+    		} catch (PartInitException e) {
+    			RuntimePlugin.getInstance().logException("Unable to open declaration", e);
+    		}
         }
     }
 
-    private boolean isProcessable() {
+    @SuppressWarnings("unused")
+	private boolean isProcessable() {
     	ISourceEntity se= EditorUtility.getEditorInputModelElement(fEditor, false);
     	if (fEditor != null) {
     	    if (se instanceof ICompilationUnit /*&& !JavaModelUtil.isPrimary((ICompilationUnit) se)*/)

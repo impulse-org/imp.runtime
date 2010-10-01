@@ -178,6 +178,11 @@
             contextId="org.eclipse.ui.textEditorScope"
             commandId="org.eclipse.imp.runtime.editor.selectEnclosing"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="F3"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.imp.runtime.editor.openDeclaration"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>
    <extension
          point="org.eclipse.ui.commands">
@@ -220,6 +225,8 @@
             description="Format the source code"
             id="org.eclipse.imp.runtime.editor.formatSource"
             name="Format"/>
+
+      <!-- navigate -->
       <command
             name="Go to Matching Fence"
             description="Moves the cursor to the matching fence character, if any"
@@ -236,6 +243,14 @@
             description="Go to Next Navigation Target"
             categoryId="org.eclipse.imp.runtime.source"
             id="org.eclipse.imp.runtime.editor.gotoNextTarget"/>
+      <command
+            name="Open Declaration"
+            description="Open an editor on the selected element"
+            categoryId="org.eclipse.ui.category.navigate"
+            id="org.eclipse.imp.runtime.editor.openDeclaration">
+      </command>
+
+      <!-- -->
       <command
             categoryId="org.eclipse.imp.runtime.source"
             description="Re-indent the selected text according to current formatting settings"
@@ -274,6 +289,37 @@
                style="toggle"
                toolbarPath="analysisGroup"
                tooltip="Toggles marking occurrences of the given entity"/>
+      </actionSet>
+      <actionSet
+            label="IMP Open Actions"
+            description="Action set containing open actions for IMP"
+            visible="false"
+            id="org.eclipse.imp.runtime.openActionSet">
+<!--
+         <action
+               definitionId="org.eclipse.jdt.ui.edit.text.java.open.call.hierarchy"
+               label="%OpenCallHierarchyAction.label"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               id="org.eclipse.jdt.ui.actions.OpenCallHierarchy">
+         </action>
+         <action
+               definitionId="org.eclipse.imp.runtime.editor.openTypeHierarchy"
+               label="%OpenTypeHierarchyAction.label"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               id="org.eclipse.imp.runtime.actions.OpenTypeHierarchy">
+         </action>
+-->
+         <action
+               definitionId="org.eclipse.imp.runtime.editor.openDeclaration"
+               label="&amp;Open"
+               tooltip="Open an Editor on the Selected Element"
+               retarget="true"
+               menubarPath="navigate/open.ext"
+               allowLabelUpdate="true"
+               id="org.eclipse.imp.runtime.actions.Open">
+         </action>
       </actionSet>
 	  <actionSet
 	           label="IMP Coding"
@@ -444,21 +490,21 @@
                label="Correct Indentation"
                retarget="true"
                menubarPath="org.eclipse.imp.source.menu/editGroup"
-               id="org.eclipse.imp.runtime.actions.Indent">
+               id="org.eclipse.imp.runtime.actions.correctIndentation">
          </action>
          <action
                definitionId="org.eclipse.ui.edit.text.shiftLeft"
                label="Shift Left"
                retarget="true"
                menubarPath="org.eclipse.imp.source.menu/editGroup"
-               id="org.eclipse.imp.runtime.actions.ShiftLeft">
+               id="org.eclipse.imp.runtime.actions.shiftLeft">
          </action>
          <action
                definitionId="org.eclipse.ui.edit.text.shiftRight"
                label="Shift Right"
                retarget="true"
                menubarPath="org.eclipse.imp.source.menu/editGroup"
-               id="org.eclipse.imp.runtime.actions.ShiftRight">
+               id="org.eclipse.imp.runtime.actions.shiftRight">
          </action>
 <!-- Comment Group -->
 <!--
@@ -501,7 +547,7 @@
                label="Toggle Comment"
                retarget="true"
                menubarPath="org.eclipse.imp.source.menu/commentGroup"
-               id="org.eclipse.imp.runtime.actions.ToggleComment">
+               id="org.eclipse.imp.runtime.actions.toggleComment">
          </action>         
       </actionSet>
    </extension>

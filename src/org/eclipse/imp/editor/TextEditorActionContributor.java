@@ -31,10 +31,6 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
 
     private RetargetTextEditorAction fShowOutline;
 
-    private RetargetTextEditorAction fToggleComment;
-
-    private RetargetTextEditorAction fCorrectIndentation;
-
     private GotoNextTargetAction fNextTarget;
 
     private GotoPreviousTargetAction fPreviousTarget;
@@ -46,11 +42,7 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         fPreviousAnnotation= new GotoAnnotationAction("PreviousAnnotation.", false); //$NON-NLS-1$
         fNextAnnotation= new GotoAnnotationAction("NextAnnotation.", true); //$NON-NLS-1$
         fShowOutline= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "ShowOutline."); //$NON-NLS-1$
-        fShowOutline.setActionDefinitionId(UniversalEditor.SHOW_OUTLINE_COMMAND);
-        fToggleComment= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "ToggleComment."); //$NON-NLS-1$
-        fToggleComment.setActionDefinitionId(UniversalEditor.TOGGLE_COMMENT_COMMAND);
-        fCorrectIndentation= new RetargetTextEditorAction(ResourceBundle.getBundle(UniversalEditor.MESSAGE_BUNDLE), "IndentSelection."); //$NON-NLS-1$
-        fCorrectIndentation.setActionDefinitionId(UniversalEditor.CORRECT_INDENTATION_COMMAND);
+        fShowOutline.setActionDefinitionId(IEditorActionDefinitionIds.SHOW_OUTLINE);
         fNextTarget= new GotoNextTargetAction();
         fPreviousTarget= new GotoPreviousTargetAction();
         fSelectEnclosing= new SelectEnclosingAction();
@@ -62,20 +54,9 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         bars.setGlobalActionHandler(ITextEditorActionDefinitionIds.GOTO_PREVIOUS_ANNOTATION, fPreviousAnnotation);
         bars.setGlobalActionHandler(ActionFactory.NEXT.getId(), fNextAnnotation);
         bars.setGlobalActionHandler(ActionFactory.PREVIOUS.getId(), fPreviousAnnotation);
-        bars.setGlobalActionHandler(UniversalEditor.SHOW_OUTLINE_COMMAND, fShowOutline);
-        bars.setGlobalActionHandler(UniversalEditor.TOGGLE_COMMENT_COMMAND, fToggleComment);
-        bars.setGlobalActionHandler(UniversalEditor.CORRECT_INDENTATION_COMMAND, fCorrectIndentation);
-        bars.setGlobalActionHandler(UniversalEditor.GOTO_NEXT_TARGET_COMMAND, fNextTarget);
-        bars.setGlobalActionHandler(UniversalEditor.GOTO_PREVIOUS_TARGET_COMMAND, fPreviousTarget);
-        bars.setGlobalActionHandler(UniversalEditor.SELECT_ENCLOSING_COMMAND, fSelectEnclosing);
-
-        // RMF 13 Aug 2010 - why don't we also need to do the following in setActiveEditor()?
-        // And why don't we need to call setGlobalActionHandler() for Format, ShiftLeft and ShiftRight?
-        // They're all retargetable actions...
-        // TODO The following refer to action IDs, not action *definition* IDs, so why does this work?
-        // TODO Probably none of these actions need to be retargetable in the first place... right?
-        bars.setGlobalActionHandler(IEditorActionDefinitionIds.TOGGLE_COMMENT, fToggleComment);
-        bars.setGlobalActionHandler(IEditorActionDefinitionIds.INDENT, fCorrectIndentation);
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.GOTO_NEXT_TARGET, fNextTarget);
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.GOTO_PREVIOUS_TARGET, fPreviousTarget);
+        bars.setGlobalActionHandler(IEditorActionDefinitionIds.SELECT_ENCLOSING, fSelectEnclosing);
     }
 
     /*
@@ -95,8 +76,8 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         IMenuManager editMenu= menu.findMenuUsingPath(IWorkbenchActionConstants.M_EDIT);
 
         if (editMenu != null) {
-            editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fToggleComment);
-            editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fCorrectIndentation);
+//          editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fToggleComment);
+//          editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fCorrectIndentation);
             editMenu.appendToGroup(IWorkbenchActionConstants.EDIT_END, fSelectEnclosing);
         }
     }
@@ -114,13 +95,15 @@ public class TextEditorActionContributor extends BasicTextEditorActionContributo
         fNextTarget.setEditor(textEditor);
         fPreviousTarget.setEditor(textEditor);
         fSelectEnclosing.setEditor(textEditor);
-        fShowOutline.setAction(getAction(textEditor, UniversalEditor.SHOW_OUTLINE_COMMAND));
-        fToggleComment.setAction(getAction(textEditor, UniversalEditor.TOGGLE_COMMENT_COMMAND));
-        fCorrectIndentation.setAction(getAction(textEditor, UniversalEditor.CORRECT_INDENTATION_COMMAND));
+        fShowOutline.setAction(getAction(textEditor, IEditorActionDefinitionIds.SHOW_OUTLINE));
 
         IActionBars bars= getActionBars();
-        bars.setGlobalActionHandler(IEditorActionDefinitionIds.FORMAT, getAction(textEditor, "Format")); //$NON-NLS-1$
-        bars.setGlobalActionHandler(IEditorActionDefinitionIds.SHIFT_LEFT, getAction(textEditor, "ShiftLeft")); //$NON-NLS-1$
-        bars.setGlobalActionHandler(IEditorActionDefinitionIds.SHIFT_RIGHT, getAction(textEditor, "ShiftRight")); //$NON-NLS-1$
+
+        bars.setGlobalActionHandler(IMPActionConstants.FORMAT, getAction(textEditor, "Format")); //$NON-NLS-1$
+        bars.setGlobalActionHandler(IMPActionConstants.SHIFT_LEFT, getAction(textEditor, "ShiftLeft")); //$NON-NLS-1$
+        bars.setGlobalActionHandler(IMPActionConstants.SHIFT_RIGHT, getAction(textEditor, "ShiftRight")); //$NON-NLS-1$
+        bars.setGlobalActionHandler(IMPActionConstants.TOGGLE_COMMENT, getAction(textEditor, IEditorActionDefinitionIds.TOGGLE_COMMENT));
+        bars.setGlobalActionHandler(IMPActionConstants.CORRECT_INDENTATION, getAction(textEditor, IEditorActionDefinitionIds.CORRECT_INDENTATION));
+        bars.setGlobalActionHandler(IMPActionConstants.OPEN, getAction(textEditor, IEditorActionDefinitionIds.OPEN_EDITOR));
     }
 }

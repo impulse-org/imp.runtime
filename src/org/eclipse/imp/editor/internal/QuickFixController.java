@@ -28,6 +28,7 @@ import org.eclipse.jface.text.quickassist.QuickAssistAssistant;
 import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IMarkerResolution;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.part.FileEditorInput;
@@ -41,10 +42,9 @@ public class QuickFixController extends QuickAssistAssistant implements IQuickAs
 
 	public QuickFixController(IMarker marker) {
 		this(MarkerUtils.getLanguage(marker), null);
-		FileEditorInput input = MarkerUtils.getInput(marker);
+		IFileEditorInput input = MarkerUtils.getInput(marker);
 		
-		if(input != null)
-		{
+		if (input != null) {
 			cu = ModelFactory.open(input.getFile(),
 					EditorUtility.getSourceProject(input));
 		}

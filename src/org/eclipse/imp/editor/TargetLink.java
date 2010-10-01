@@ -12,11 +12,6 @@
 
 package org.eclipse.imp.editor;
 
-import org.eclipse.core.filesystem.EFS;
-import org.eclipse.core.filesystem.IFileStore;
-import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -30,8 +25,6 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.ide.IDE;
-import org.eclipse.ui.part.FileEditorInput;
 
 /**
  * Common class to represent a hyperlink to a given target location.
@@ -97,7 +90,6 @@ public final class TargetLink implements IHyperlink {
             final IPath targetPath= (IPath) fTarget;
             IEditorDescriptor ed= PlatformUI.getWorkbench().getEditorRegistry().getDefaultEditor(targetPath.lastSegment());
             IWorkbenchWindow activeWindow= PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            IWorkbenchPage activePage= activeWindow.getActivePage();
 
             if (ed == null) {
                 MessageDialog.openError(activeWindow.getShell(), "Error", "No editor defined for target file "
@@ -105,45 +97,27 @@ public final class TargetLink implements IHyperlink {
                 return;
             }
 
-            IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
-            IPath wsLoc= wsRoot.getLocation();
             IEditorPart editor;
 
-            // Abortive attempt to support links to class files embedded in jars (e.g., Java rt.jar).
-            // if (targetPath.toPortableString().endsWith(".class")) {
-            //     IFile jarFile= null; // Can't get an IFile for something not in the workspace... and rt.jar usually isn't...
-            //     // Anyway, we'll have to use something other than a plain IFileEditorInput.
-            //     // JDT has IClassFileEditorInput, but it's internal... Hmmm...
-            //     JavaCore.createClassFileFrom(jarFile);
-            // } else
-
             try {
-                boolean targetPathHasWSPrefix= wsLoc.isPrefixOf(targetPath);
+                IWorkbenchPage activePage= activeWindow.getActivePage();
+                IEditorInput editorInput= EditorUtility.getEditorInput(targetPath);
 
-                if (targetPathHasWSPrefix || wsRoot.getFile(targetPath).exists()) {
-                    IFile file= wsRoot.getFile(targetPathHasWSPrefix ? targetPath.removeFirstSegments(wsLoc.segmentCount()) : targetPath);
-                    IEditorInput editorInput= new FileEditorInput(file);
-
-                    editor= activePage.openEditor(editorInput, ed.getId());
-                } else {
-//              if (targetPath.isAbsolute() && !wsLoc.isPrefixOf(targetPath)) {
-                    // http://wiki.eclipse.org/index.php/FAQ_How_do_I_open_an_editor_on_a_file_outside_the_workspace%3F
-                    IFileStore fileStore = EFS.getLocalFileSystem().getStore(targetPath);
-
-                    editor= IDE.openEditorOnFileStore(activePage, fileStore);
-                }
+                editor= activePage.openEditor(editorInput, ed.getId());
             } catch (PartInitException e) {
                 RuntimePlugin.getInstance().logException(e.getLocalizedMessage(), e);
                 return;
             }
             // Don't assume the target editor is a text editor; the target might be
             // in a class file or another kind of binary file.
-            if (editor instanceof IRegionSelectionService)
+            if (editor instanceof IRegionSelectionService) {
                 fSelectionService= (IRegionSelectionService) editor;
-            else
+            } else {
                 fSelectionService= (IRegionSelectionService) editor.getAdapter(IRegionSelectionService.class);
+            }
         }
-        if (fSelectionService != null)
+        if (fSelectionService != null) {
             fSelectionService.selectAndReveal(fTargetStart, fTargetLength);
+        }
     }
 }

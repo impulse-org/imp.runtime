@@ -33,11 +33,8 @@ import org.eclipse.ui.texteditor.SimpleMarkerAnnotation;
 
 /**
  * Image provider for annotations based on problem markers.
- * 
- * @since 3.0
  */
 public class AnnotationImageProvider implements IAnnotationImageProvider {
-
 	private final static int NO_IMAGE = 0;
 	private final static int GRAY_IMAGE = 1;
 	// private final static int OVERLAY_IMAGE= 2;
@@ -53,8 +50,7 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 	private Image fCachedImage;
 
 	public AnnotationImageProvider() {
-		fShowQuickFixIcon = RuntimePlugin.getInstance().getPreferenceStore()
-				.getBoolean(PreferenceConstants.EDITOR_CORRECTION_INDICATION);
+		fShowQuickFixIcon = RuntimePlugin.getInstance().getPreferenceStore().getBoolean(PreferenceConstants.EDITOR_CORRECTION_INDICATION);
 	}
 
 	/*
@@ -96,15 +92,13 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 
 	private Image getQuickFixImage() {
 		if (fgQuickFixImage == null)
-			fgQuickFixImage = PluginImages
-					.get(PluginImages.IMG_OBJS_FIXABLE_PROBLEM);
+			fgQuickFixImage = PluginImages.get(PluginImages.IMG_OBJS_FIXABLE_PROBLEM);
 		return fgQuickFixImage;
 	}
 
 	private Image getQuickFixErrorImage() {
 		if (fgQuickFixErrorImage == null)
-			fgQuickFixErrorImage = PluginImages
-					.get(PluginImages.IMG_OBJS_FIXABLE_ERROR);
+			fgQuickFixErrorImage = PluginImages.get(PluginImages.IMG_OBJS_FIXABLE_ERROR);
 		return fgQuickFixErrorImage;
 	}
 
@@ -121,8 +115,7 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 		// else
 		if (!annotation.isMarkedDeleted()) {
 			if (showQuickFix(annotation)) {
-				imageType = IStatus.ERROR == ((IAnnotation) annotation)
-						.getSeverity() ? QUICKFIX_ERROR_IMAGE : QUICKFIX_IMAGE;
+				imageType = IStatus.ERROR == ((IAnnotation) annotation).getSeverity() ? QUICKFIX_ERROR_IMAGE : QUICKFIX_IMAGE;
 			}
 		} else {
 			imageType = GRAY_IMAGE;
@@ -131,11 +124,11 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 	}
 
 	private Image getImage(Annotation annotation, int imageType, Display display) {
-		if ((imageType == QUICKFIX_IMAGE || imageType == QUICKFIX_ERROR_IMAGE)
-				&& fCachedImageType == imageType)
+		if ((imageType == QUICKFIX_IMAGE || imageType == QUICKFIX_ERROR_IMAGE) && fCachedImageType == imageType)
 			return fCachedImage;
 
 		Image image = null;
+
 		switch (imageType) {
 		// case OVERLAY_IMAGE:
 		// IAnnotation overlay= annotation.getOverlay();
@@ -153,20 +146,23 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 			fCachedImage = image;
 			break;
 		case GRAY_IMAGE: {
-			ISharedImages sharedImages = PlatformUI.getWorkbench()
-					.getSharedImages();
+			ISharedImages sharedImages = PlatformUI.getWorkbench().getSharedImages();
 			String annotationType = annotation.getType();
-			if ("error".equals(annotationType)) {
+
+			if (UniversalEditor.PARSE_ANNOTATION_TYPE_ERROR.equals(annotationType)) {
 				image = sharedImages.getImage(ISharedImages.IMG_OBJS_ERROR_TSK);
-			} else if ("warning".equals(annotationType)) {
+			} else if (UniversalEditor.PARSE_ANNOTATION_TYPE_WARNING.equals(annotationType)) {
 				image = sharedImages.getImage(ISharedImages.IMG_OBJS_WARN_TSK);
-			} else if ("info".equals(annotationType)) {
+			} else if (UniversalEditor.PARSE_ANNOTATION_TYPE_INFO.equals(annotationType)) {
 				image = sharedImages.getImage(ISharedImages.IMG_OBJS_INFO_TSK);
+			} else if (UniversalEditor.PARSE_ANNOTATION_TYPE.equals(annotationType)) {
+			    image = sharedImages.getImage(ISharedImages.IMG_OBJS_ERROR_TSK);
 			}
 			if (image != null) {
 				ImageRegistry registry = getImageRegistry(display);
 				String key = Integer.toString(image.hashCode());
 				Image grayImage = registry.get(key);
+
 				if (grayImage == null) {
 					grayImage = new Image(display, image, SWT.IMAGE_GRAY);
 					registry.put(key, grayImage);
@@ -185,20 +181,19 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 		if (annotation instanceof IAnnotation) {
 			IAnnotation iAnnotation = (IAnnotation) annotation;
 			int problemId = iAnnotation.getId();
+
 			if (problemId != -1) {
-				IEditorPart editor = PlatformUI.getWorkbench()
-						.getActiveWorkbenchWindow().getActivePage()
-						.getActiveEditor();
+				IEditorPart editor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+
 				if (editor instanceof UniversalEditor) {
-					QuickFixController qfc = new QuickFixController(
-							(UniversalEditor) editor);
+					QuickFixController qfc = new QuickFixController((UniversalEditor) editor);
+
 					return qfc.canFix(annotation);
 				}
 			}
 		}
 		if (annotation instanceof SimpleMarkerAnnotation) {
-			return hasCorrections(((SimpleMarkerAnnotation) annotation)
-					.getMarker());
+			return hasCorrections(((SimpleMarkerAnnotation) annotation).getMarker());
 		}
 		return false;
 	}
@@ -208,6 +203,7 @@ public class AnnotationImageProvider implements IAnnotationImageProvider {
 			return false;
 
 		IMarkerHelpRegistry registry = IDE.getMarkerHelpRegistry();
+
 		return registry != null && registry.hasResolutions(marker);
 	}
 }

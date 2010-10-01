@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.imp.editor.UniversalEditor;
+import org.eclipse.imp.editor.quickfix.IAnnotation;
 import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.jface.text.Position;
 import org.eclipse.jface.text.source.Annotation;
@@ -58,17 +59,11 @@ public class AnnotationCreator implements IMessageHandler {
     }
 
     private final ITextEditor fEditor;
-    private final String fAnnotationType;
     private final List<PositionedMessage> fMessages= new LinkedList<PositionedMessage>();
     private final List<Annotation> fAnnotations= new LinkedList<Annotation>();
 
-    public AnnotationCreator(ITextEditor textEditor, String annotationType) {
+    public AnnotationCreator(ITextEditor textEditor) {
         fEditor= textEditor;
-        if (annotationType == null) {
-        	fAnnotationType = UniversalEditor.PARSE_ANNOTATION_TYPE;
-        } else {
-        	fAnnotationType= annotationType;
-        }
     }
 
     public void clearMessages() {
@@ -108,6 +103,7 @@ public class AnnotationCreator implements IMessageHandler {
 
                 for(PositionedMessage pm: fMessages) {
                     Annotation anno= createAnnotation(pm);
+
                     newAnnotations.put(anno, pm.pos);
                     fAnnotations.add(anno);
                 }
@@ -116,7 +112,7 @@ public class AnnotationCreator implements IMessageHandler {
                 for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
                     Annotation a= (Annotation) i.next();
     
-                    if (a.getType().equals(fAnnotationType)) {
+                    if (UniversalEditor.isParseAnnotation(a)) {
                         model.removeAnnotation(a);
                     }
                 }
@@ -134,11 +130,26 @@ public class AnnotationCreator implements IMessageHandler {
 
     private Annotation createAnnotation(PositionedMessage pm) {
         if (pm.attributes == null || !(fEditor instanceof UniversalEditor)) {
-            return new Annotation(fAnnotationType, false, pm.message);
+            return new Annotation(UniversalEditor.PARSE_ANNOTATION_TYPE, false, pm.message);
         } else {
-            return new DefaultAnnotation(fAnnotationType, false, pm.message,
-                    (UniversalEditor) fEditor, pm.attributes);
+            return new DefaultAnnotation(getAnnotationType(pm), false, pm.message,
+                                         (UniversalEditor) fEditor, pm.attributes);
         }
+    }
+
+    private String getAnnotationType(PositionedMessage pm) {
+        if (pm.attributes.containsKey(SEVERITY_KEY)) {
+            int severity= (Integer) pm.attributes.get(SEVERITY_KEY);
+            switch(severity) {
+                case IAnnotation.ERROR:
+                    return UniversalEditor.PARSE_ANNOTATION_TYPE_ERROR;
+                case IAnnotation.WARNING:
+                    return UniversalEditor.PARSE_ANNOTATION_TYPE_ERROR;
+                case IAnnotation.INFO:
+                    return UniversalEditor.PARSE_ANNOTATION_TYPE_INFO;
+            }
+        }
+        return UniversalEditor.PARSE_ANNOTATION_TYPE;
     }
 
     private void removeAnnotations() {
@@ -162,7 +173,7 @@ public class AnnotationCreator implements IMessageHandler {
             for(Iterator i= model.getAnnotationIterator(); i.hasNext(); ) {
                 Annotation a= (Annotation) i.next();
 
-                if (a.getType().equals(fAnnotationType)) {
+                if (UniversalEditor.isParseAnnotation(a)) {
                     model.removeAnnotation(a);
                 }
             }

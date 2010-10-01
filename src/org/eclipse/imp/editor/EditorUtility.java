@@ -327,7 +327,12 @@ public class EditorUtility {
             return new FileEditorInput((IFile) input);
         if (input instanceof IPath) {
             IPath path= (IPath) input;
-            if (path.isAbsolute()) {
+            IWorkspace ws= ResourcesPlugin.getWorkspace();
+            IWorkspaceRoot wsRoot= ws.getRoot();
+
+            // Only create an IFileStore directly from the path if the path is outside the workspace,
+            // or points inside the workspace, but is still file-system-absolute.
+            if (path.isAbsolute() && (wsRoot.getLocation().isPrefixOf(path) || !wsRoot.exists(path))) {
                 try {
                     IFileSystem fileSystem= EFS.getFileSystem("file");
                     IFileStore fileStore= fileSystem.getStore((IPath) input);
@@ -337,8 +342,7 @@ public class EditorUtility {
                     RuntimePlugin.getInstance().logException(e.getLocalizedMessage(), e);
                 }
             } else {
-                IWorkspace ws= ResourcesPlugin.getWorkspace();
-                return new FileEditorInput(ws.getRoot().getFile(path));
+                return new FileEditorInput(wsRoot.getFile(path));
             }
         }
         return null;

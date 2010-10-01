@@ -12,6 +12,8 @@
 package org.eclipse.imp.services;
 
 import org.eclipse.imp.language.ILanguageService;
+import org.eclipse.imp.parser.IParseController;
+import org.eclipse.jface.text.IRegion;
 
 /**
  * Describes certain syntactic properties of the language used in support of certain editor features, such
@@ -69,4 +71,24 @@ public interface ILanguageSyntaxProperties extends ILanguageService {
      * May be null.
      */
     public int[] getIdentifierComponents(String ident);
+
+    /**
+     * @return true if the given character is valid at the beginning of an identifier
+     */
+    public boolean isIdentifierStart(char ch);
+
+    /**
+     * @return true if the given character is valid in the middle or end of an identifier
+     */
+    public boolean isIdentifierPart(char ch);
+
+    /**
+     * @return true if the given character is a "whitespace" character
+     */
+    public boolean isWhitespace(char ch);
+
+    /**
+     * Returns the region of source text to select when double-clicking, starting from the given offset.
+     */
+    public IRegion getDoubleClickRegion(int offset, IParseController pc);
 }

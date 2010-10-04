@@ -144,7 +144,7 @@ public class AnnotationCreator implements IMessageHandler {
                 case IAnnotation.ERROR:
                     return UniversalEditor.PARSE_ANNOTATION_TYPE_ERROR;
                 case IAnnotation.WARNING:
-                    return UniversalEditor.PARSE_ANNOTATION_TYPE_ERROR;
+                    return UniversalEditor.PARSE_ANNOTATION_TYPE_WARNING;
                 case IAnnotation.INFO:
                     return UniversalEditor.PARSE_ANNOTATION_TYPE_INFO;
             }

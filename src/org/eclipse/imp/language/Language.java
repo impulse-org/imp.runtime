@@ -117,7 +117,9 @@ public class Language {
 			fURL = element.getAttribute(URL_ATTR);
 			fFilenameExtensions = parseList(element.getAttribute(EXTENSIONS_ATTR));
 			fSynonyms = parseList(element.getAttribute(SYNONYMS_ATTR));
-			fValidator = (LanguageValidator) element.createExecutableExtension(VALIDATOR_ATTR);
+			if (element.getAttribute(VALIDATOR_ATTR) != null) {
+			    fValidator = (LanguageValidator) element.createExecutableExtension(VALIDATOR_ATTR);
+			}
 		} catch (CoreException e) {
 			fValidator = null;
 		}

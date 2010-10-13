@@ -11,6 +11,9 @@
 
 package org.eclipse.imp.editor;
 
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.imp.editor.internal.QuickFixController;
@@ -40,14 +43,16 @@ import org.eclipse.jface.text.information.InformationPresenter;
 import org.eclipse.jface.text.presentation.IPresentationReconciler;
 import org.eclipse.jface.text.presentation.PresentationReconciler;
 import org.eclipse.jface.text.quickassist.IQuickAssistAssistant;
+import org.eclipse.jface.text.source.Annotation;
 import org.eclipse.jface.text.source.IAnnotationHover;
+import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.editors.text.TextSourceViewerConfiguration;
 
 public class StructuredSourceViewerConfiguration extends TextSourceViewerConfiguration {
-    private final UniversalEditor fEditor;
+    protected final UniversalEditor fEditor;
     private ServiceControllerManager fServiceControllerManager;
     private LanguageServiceManager fLanguageServiceManager;
     private IPreferencesService fLangSpecificPrefs;
@@ -196,17 +201,42 @@ public class StructuredSourceViewerConfiguration extends TextSourceViewerConfigu
             fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 
             IInformationProvider provider= new IInformationProvider() { // this should be language-specific
-                public IRegion getSubject(ITextViewer textViewer, int offset) {
+            	private IAnnotationModel annModel= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+
+            	public IRegion getSubject(ITextViewer textViewer, int offset) {
+                	List<Annotation> parserAnnsAtOffset = getParserAnnotationsAtOffset(offset);
+                	if (parserAnnsAtOffset.size() > 0) {
+                		Annotation theAnn= parserAnnsAtOffset.get(0);
+                		Position pos= annModel.getPosition(theAnn);
+                		return new Region(pos.offset, pos.length);
+                	}
                     IParseController pc= getLanguageServiceManager().getParseController();
                     ISourcePositionLocator locator= pc.getSourcePositionLocator();
                     if (locator == null) {
                         return new Region(offset, 0);
                     }
-                    Object selNode= locator.findNode(pc, offset);
+                    Object selNode= locator.findNode(pc.getCurrentAst(), offset);
                     return new Region(locator.getStartOffset(selNode), locator.getLength(selNode));
                 }
 
+				private List<Annotation> getParserAnnotationsAtOffset(int offset) {
+					List<Annotation> result= new LinkedList<Annotation>();
+                	for(Iterator<Annotation> iter= annModel.getAnnotationIterator(); iter.hasNext(); ) {
+                		Annotation ann= iter.next();
+
+                		if (annModel.getPosition(ann).includes(offset) && UniversalEditor.isParseAnnotation(ann)) {
+                			result.add(ann);
+                		}
+                	}
+					return result;
+				}
+
                 public String getInformation(ITextViewer textViewer, IRegion subject) {
+                	List<Annotation> parserAnnsAtOffset = getParserAnnotationsAtOffset(subject.getOffset());
+                	if (parserAnnsAtOffset.size() > 0) {
+                		Annotation theAnn= parserAnnsAtOffset.get(0);
+                		return theAnn.getText();
+                	}
                     IParseController pc= getLanguageServiceManager().getParseController();
                     ISourcePositionLocator locator= pc.getSourcePositionLocator();
                     if (locator == null) {

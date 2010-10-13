@@ -173,17 +173,12 @@ public class StructuredSourceViewerConfiguration extends TextSourceViewerConfigu
         return super.getIndentPrefixes(sourceViewer, contentType);
     }
 
+    /**
+     * Used to present hover help (anything else?)
+     */
     public IInformationControlCreator getInformationControlCreator(ISourceViewer sourceViewer) {
         return new IInformationControlCreator() {
             public IInformationControl createInformationControl(Shell parent) {
-                // int shellStyle= SWT.RESIZE | SWT.TOOL;
-                // int style= SWT.NONE; // SWT.V_SCROLL | SWT.H_SCROLL;
-
-                // if (BrowserInformationControl.isAvailable(parent))
-                // return new BrowserInformationControl(parent, SWT.TOOL | SWT.NO_TRIM, SWT.NONE,
-                // EditorsUI.getTooltipAffordanceString());
-                // else
-                // return new OutlineInformationControl(parent, shellStyle, style, new HTMLTextPresenter(false));
                 return new DefaultInformationControl(parent, "Press 'F2' for focus", new HTMLTextPresenter(true));
             }
         };
@@ -200,18 +195,35 @@ public class StructuredSourceViewerConfiguration extends TextSourceViewerConfigu
             fInfoPresenter.setDocumentPartitioning(getConfiguredDocumentPartitioning(sourceViewer));
             fInfoPresenter.setAnchor(AbstractInformationControlManager.ANCHOR_GLOBAL);
 
-            IInformationProvider provider= new IInformationProvider() { // this should be language-specific
-            	private IAnnotationModel annModel= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+            IInformationProvider provider= new IInformationProvider() {
+            	private IAnnotationModel fAnnotationModel= fEditor.getDocumentProvider().getAnnotationModel(fEditor.getEditorInput());
+
+                private List<Annotation> getParserAnnotationsAtOffset(int offset) {
+                    List<Annotation> result= new LinkedList<Annotation>();
+                    if (fAnnotationModel != null) {
+                        for(Iterator<Annotation> iter= fAnnotationModel.getAnnotationIterator(); iter.hasNext(); ) {
+                            Annotation ann= iter.next();
+
+                            if (fAnnotationModel.getPosition(ann).includes(offset) && UniversalEditor.isParseAnnotation(ann)) {
+                                result.add(ann);
+                            }
+                        }
+                    }
+                    return result;
+                }
 
             	public IRegion getSubject(ITextViewer textViewer, int offset) {
                 	List<Annotation> parserAnnsAtOffset = getParserAnnotationsAtOffset(offset);
+
                 	if (parserAnnsAtOffset.size() > 0) {
                 		Annotation theAnn= parserAnnsAtOffset.get(0);
-                		Position pos= annModel.getPosition(theAnn);
+                		Position pos= fAnnotationModel.getPosition(theAnn);
                 		return new Region(pos.offset, pos.length);
                 	}
-                    IParseController pc= getLanguageServiceManager().getParseController();
+
+                	IParseController pc= getLanguageServiceManager().getParseController();
                     ISourcePositionLocator locator= pc.getSourcePositionLocator();
+
                     if (locator == null) {
                         return new Region(offset, 0);
                     }
@@ -219,32 +231,23 @@ public class StructuredSourceViewerConfiguration extends TextSourceViewerConfigu
                     return new Region(locator.getStartOffset(selNode), locator.getLength(selNode));
                 }
 
-				private List<Annotation> getParserAnnotationsAtOffset(int offset) {
-					List<Annotation> result= new LinkedList<Annotation>();
-                	for(Iterator<Annotation> iter= annModel.getAnnotationIterator(); iter.hasNext(); ) {
-                		Annotation ann= iter.next();
-
-                		if (annModel.getPosition(ann).includes(offset) && UniversalEditor.isParseAnnotation(ann)) {
-                			result.add(ann);
-                		}
-                	}
-					return result;
-				}
-
                 public String getInformation(ITextViewer textViewer, IRegion subject) {
                 	List<Annotation> parserAnnsAtOffset = getParserAnnotationsAtOffset(subject.getOffset());
+
                 	if (parserAnnsAtOffset.size() > 0) {
                 		Annotation theAnn= parserAnnsAtOffset.get(0);
                 		return theAnn.getText();
                 	}
-                    IParseController pc= getLanguageServiceManager().getParseController();
+
+                	IParseController pc= getLanguageServiceManager().getParseController();
                     ISourcePositionLocator locator= pc.getSourcePositionLocator();
+
                     if (locator == null) {
                         return "";
                     }
                     IDocumentationProvider docProvider= getLanguageServiceManager().getDocProvider();
                     Object selNode= locator.findNode(pc.getCurrentAst(), subject.getOffset());
-                    return (docProvider != null) ? docProvider.getDocumentation(selNode, pc) : "No documentation available on the selected entity.";
+                    return (docProvider != null) ? docProvider.getDocumentation(selNode, pc) : null;
                 }
             };
             fInfoPresenter.setInformationProvider(provider, IDocument.DEFAULT_CONTENT_TYPE);

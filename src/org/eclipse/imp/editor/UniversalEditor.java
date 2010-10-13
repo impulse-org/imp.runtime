@@ -255,11 +255,20 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         // already defined for the parent text editor and populated with relevant
         // preferences
         // setPreferenceStore(RuntimePlugin.getInstance().getPreferenceStore());
-        setSourceViewerConfiguration(new StructuredSourceViewerConfiguration(getPreferenceStore(), this));
+        setSourceViewerConfiguration(createSourceViewerConfiguration());
         configureInsertMode(SMART_INSERT, true);
         setInsertMode(SMART_INSERT);
         fProblemMarkerManager= new ProblemMarkerManager();
 	}
+
+    /**
+     * Sub-classes may override this method to extend the behavior provided by IMP's
+     * standard StructuredSourceViewerConfiguration.
+     * @return the StructuredSourceViewerConfiguration to use with this editor
+     */
+    protected StructuredSourceViewerConfiguration createSourceViewerConfiguration() {
+        return new StructuredSourceViewerConfiguration(getPreferenceStore(), this);
+    }
 
     public Language getLanguage() {
         return fLanguage;

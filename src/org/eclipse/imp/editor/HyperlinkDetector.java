@@ -99,7 +99,7 @@ public class HyperlinkDetector implements ISourceHyperlinkDetector, ILanguageSer
         }
         final String linkText = fResolver.getLinkText(source);
 
-        IPath srcPath= ((IFileEditorInput) editor.getEditorInput()).getFile().getLocation();
+        IPath srcPath= EditorInputUtils.getPath(editor.getEditorInput());
         // SMS 11 Jun 2007:  default implementation of getPath in NodeLocator template returns
         // an empty path, so test for that here and assume it means that the link target is in 
         // the same unit as the link source

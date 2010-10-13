@@ -58,6 +58,9 @@ public class IMPHelpContextProvider implements IContextProvider {
     }
 
     public static String buildHelpString(Object[] entities, IHelpService helpService, IParseController parseController) {
+        if (helpService == null) {
+            return "";
+        }
         StringBuilder sb= new StringBuilder();
         for(int i= 0; i < entities.length; i++) {
             sb.append(helpService.getHelp(entities[i], parseController));

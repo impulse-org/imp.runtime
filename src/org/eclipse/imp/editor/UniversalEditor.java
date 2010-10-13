@@ -837,11 +837,15 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (getSourceViewer() == null) {
             return;
         }
-        if (newValue) {
-            installTabsToSpacesConverter();
-        } else {
-            uninstallTabsToSpacesConverter();
-        }
+        // RMF 13 Oct 2010 - The base class tabs-to-spaces converter even translates tabs to
+        // spaces before the auto-edit strategy sees the document change commands, which makes
+        // handling auto-indent nearly impossible (it never actually sees a tab). Anyway, the
+        // auto-edit strategy provides the desired behavior itself, so this isn't even needed.
+//        if (newValue) {
+//            installTabsToSpacesConverter();
+//        } else {
+//            uninstallTabsToSpacesConverter();
+//        }
         // Apparently un/installing the tabs-to-spaces converter isn't enough - shift left/right needs
         // the "indent prefixes" to be computed properly, which relies on the preference store having
         // the right value for AbstractDecoratedTextEditorPreferenceConstants.EDITOR_SPACES_FOR_TABS.

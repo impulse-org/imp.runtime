@@ -33,6 +33,11 @@ class ZipDocumentProvider extends StorageDocumentProvider {
         if (editorInput instanceof IURIEditorInput) {
             IURIEditorInput uriEditorInput = (IURIEditorInput) editorInput;
             URI uri= uriEditorInput.getURI();
+
+            if (uri == null) {
+            	return false;
+            }
+
             String path= uri.getPath();
 
             return path.contains(".jar:") || path.contains(".zip:");

@@ -118,6 +118,10 @@ public class ModelFactory {
 //        return new WorkspaceModel(wsRoot);
 //    }
 
+    public static ISourceProject getProject(IProject project) {
+    	return getInstance().fProjectMap.get(project);
+    }
+
     public static ISourceProject open(IProject project) throws ModelException {
         return getInstance().doOpen(project);
     }

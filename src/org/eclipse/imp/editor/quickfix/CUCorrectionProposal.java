@@ -28,6 +28,7 @@ import org.eclipse.jface.text.IRegion;
 import org.eclipse.ltk.core.refactoring.Change;
 import org.eclipse.ltk.core.refactoring.DocumentChange;
 import org.eclipse.ltk.core.refactoring.TextChange;
+import org.eclipse.ltk.internal.core.refactoring.UndoDocumentChange;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.text.edits.CopyTargetEdit;
 import org.eclipse.text.edits.DeleteEdit;
@@ -38,6 +39,7 @@ import org.eclipse.text.edits.MultiTextEdit;
 import org.eclipse.text.edits.ReplaceEdit;
 import org.eclipse.text.edits.TextEdit;
 import org.eclipse.text.edits.TextEditVisitor;
+import org.eclipse.text.edits.UndoEdit;
 import org.eclipse.ui.IEditorPart;
 
 /**
@@ -394,7 +396,7 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
 			document.setInitialLineDelimiter(getLineDelimiterPreference(cu));
 			change = new DocumentChange(name, document);
 		} else {
-			change = new DocumentChange(name, EditorUtility.getDocument(cu.getResource()));
+			change = new LocalDocumentChange(name, EditorUtility.getDocument(cu.getResource()));
 		}
 
 		TextEdit rootEdit = new MultiTextEdit();
@@ -407,6 +409,35 @@ public class CUCorrectionProposal extends ChangeCorrectionProposal {
 		return change;
 	}
 	
+	private class LocalDocumentChange extends DocumentChange
+	{
+		private IDocument doc;
+		
+		public LocalDocumentChange(String name, IDocument document) {
+			super(name, document);
+			this.doc = document;
+		}
+
+		@Override
+		protected Change createUndoChange(UndoEdit edit) {
+			return new LocalUndoDocumentChange(getName(), doc, edit);
+		}
+	}
+	
+	private class LocalUndoDocumentChange extends UndoDocumentChange
+	{
+		public LocalUndoDocumentChange(String name, IDocument document, UndoEdit undo) {
+			super(name, document, undo);
+		}
+
+		@Override
+		public Object[] getAffectedObjects() {
+			return new Object[]{fCompilationUnit.getFile()};
+		}
+	}
+	
+	
+
 	public static String getLineDelimiterPreference(ICompilationUnit cu) {
 		IScopeContext[] scopeContext;
 		IProject project = cu.getResource().getProject();

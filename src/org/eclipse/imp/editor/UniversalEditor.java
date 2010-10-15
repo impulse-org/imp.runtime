@@ -407,7 +407,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
     
     protected void editorContextMenuAboutToShow(IMenuManager menu) {
-        menu.add(new OpenAction(this));
         super.editorContextMenuAboutToShow(menu);
 
         contributeRefactoringActions(menu);

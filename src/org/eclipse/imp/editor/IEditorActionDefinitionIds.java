@@ -88,5 +88,5 @@ public interface IEditorActionDefinitionIds {
      * Action definition ID of the Edit -> Toggle Comment action
      * (value <code>"org.eclipse.imp.runtime.editor.toggleComment"</code>).
      */
-    public static final String TOGGLE_COMMENT= RuntimePlugin.IMP_RUNTIME + ".editor.ToggleComment"; //$NON-NLS-1$
+    public static final String TOGGLE_COMMENT= RuntimePlugin.IMP_RUNTIME + ".editor.toggleComment"; //$NON-NLS-1$
 }

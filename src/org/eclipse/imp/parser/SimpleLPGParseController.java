@@ -14,6 +14,7 @@ package org.eclipse.imp.parser;
 
 import java.util.Iterator;
 
+import lpg.runtime.ILexStream;
 import lpg.runtime.IPrsStream;
 import lpg.runtime.IToken;
 import lpg.runtime.Monitor;
@@ -31,14 +32,28 @@ import org.eclipse.jface.text.IRegion;
  * @author Stan Sutton (suttons@us.ibm.com): rewrote token iterator
  */
 public abstract class SimpleLPGParseController extends ParseControllerBase {
-//  private char fKeywords[][];
-
     private boolean fIsKeyword[];
 
     protected IParser fParser;
 
     protected ILexer fLexer;
 
+    /**
+     * The ILexStream associated with this parse controller instance. From this you
+     * can get to the character stream, among other things.
+     */
+    protected ILexStream fLexStream;
+
+    /**
+     * The IPrsStream associated with the parse controller instance. From this you
+     * can get to the token stream, among other things.
+     */
+    protected IPrsStream fParseStream;
+
+    /**
+     * A cached ISourcePositionLocator instance, so that we don't create one for
+     * every query to getSourcePositionLocator().
+     */
     private ISourcePositionLocator fSourcePositionLocator;
 
     private final SimpleAnnotationTypeInfo fSimpleAnnotationTypeInfo= new SimpleAnnotationTypeInfo();
@@ -74,12 +89,42 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
         super(languageID);
     }
 
+    /**
+     * Returns the LPG-based parser associated with this IParseController.
+     * @deprecated Most likely, you want access to the character or token streams.
+     * In those cases, it's better to call getLexStream() or getParseStream() directly.
+     * This can allow the parse controller not to hold onto the IParser itself, thus
+     * reducing steady-state memory requirements.
+     */
     public IParser getParser() {
         return fParser;
     }
 
+    /**
+     * Returns the LPG-based lexer associated with this IParseController.
+     * @deprecated Most likely, you want access to the character or token streams.
+     * In those cases, it's better to call getLexStream() or getParseStream() directly.
+     * This can allow the parse controller not to hold onto the ILexer itself, thus
+     * reducing steady-state memory requirements.
+     */
     public ILexer getLexer() {
         return fLexer;
+    }
+
+    /**
+     * @return the ILexStream associated with this LPG-based parser; use this to gain
+     * access to the character stream
+     */
+    public ILexStream getLexStream() {
+    	return fLexStream;
+    }
+
+    /**
+     * @return the IPrsStream associated with this LPG-based parser; use this to gain
+     * access to the token stream
+     */
+    public IPrsStream getParseStream() {
+    	return fParseStream;
     }
 
     public ISourcePositionLocator getSourcePositionLocator() {
@@ -94,12 +139,14 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
         char[] contentsArray = contents.toCharArray();
 
         fLexer.reset(contentsArray, (fFilePath != null ? fFilePath.toPortableString() : null));
-        fParser.reset(fLexer.getILexStream());
-        fParser.getIPrsStream().setMessageHandler(new MessageHandlerAdapter(handler));
+        fLexStream= fLexer.getILexStream();
+        fParser.reset(fLexStream);
+        fParseStream= fParser.getIPrsStream();
+        fParseStream.setMessageHandler(new MessageHandlerAdapter(handler));
 
         // RMF 1 Mar 2010: Don't do any resource-related operations, like clearing markers: what we're parsing may not come from a resource.
         
-        fLexer.lexer(my_monitor, fParser.getIPrsStream()); // Lex the stream to produce the token stream
+        fLexer.lexer(my_monitor, fParseStream); // Lex the stream to produce the token stream
         if (my_monitor.isCancelled())
             return fCurrentAst; // TODO currentAst might (probably will) be inconsistent wrt the lex stream now
 
@@ -116,7 +163,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
         final int regionEnd= regionOffset + regionLength - 1;
 
         return new Iterator<IToken>() {
-            final IPrsStream stream= SimpleLPGParseController.this.getParser().getIPrsStream();
+            final IPrsStream stream= SimpleLPGParseController.this.getParseStream();
             final int firstTokIdx= getTokenIndexAtCharacter(regionOffset);
             final int lastTokIdx;
             {
@@ -292,13 +339,13 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
         if (fIsKeyword == null) {
             IParser parser= getParser();
             String tokenKindNames[]= parser.orderedTerminalSymbols();
+
             fIsKeyword= new boolean[tokenKindNames.length];
-//          fKeywords= new char[tokenKindNames.length][];
+
             int[] keywordKinds= getLexer().getKeywordKinds();
             for(int i= 1; i < keywordKinds.length; i++) {
                 int index= parser.getIPrsStream().mapKind(keywordKinds[i]);
                 fIsKeyword[index]= true;
-//              fKeywords[index]= parser.orderedTerminalSymbols()[index].toCharArray();
             }
         }
     }

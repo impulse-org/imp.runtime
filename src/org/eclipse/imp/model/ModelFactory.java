@@ -294,7 +294,7 @@ public class ModelFactory {
         // factory extender, and invoke it before returning the compilation unit.
         TextFileDocumentProvider tfdp= new TextFileDocumentProvider(); // TODO perhaps this should be in a field? or another type of doc provider?
         IDocument doc= tfdp.getDocument(file);
-        Language lang= LanguageRegistry.findLanguage(file.getLocation(), doc);
+        Language lang= LanguageRegistry.findLanguage(file.getFullPath(), doc);
         IFactoryExtender ext= fExtenderMap.get(lang);
 
         if (ext != null)

@@ -182,7 +182,7 @@ public class StructuredSourceViewer extends ProjectionViewer {
                 } else {
                 	// add the comment prefix to each line, after however many spaces leadingSpaceToAdd indicates
                 	int offset= lineStart + leadingSpaceToUse;
-                	doc.replace(offset, 0, lineCommentPrefix + " ");
+                	doc.replace(offset, 0, lineCommentPrefix);
                 }
             }
         } catch (BadLocationException e) {

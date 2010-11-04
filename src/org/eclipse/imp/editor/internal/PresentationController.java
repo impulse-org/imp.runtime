@@ -137,7 +137,7 @@ public class PresentationController implements IModelListener {
 //            System.out.println("Entered PresentationController.update()");
 //            e.printStackTrace(System.out);
 //        }
-        if (!monitor.isCanceled()) {
+        if (!monitor.isCanceled() && fSourceViewer != null) {
 //          if (fWorkItems.size() == 0) {
 //              ConsoleUtil.findConsoleStream(PresentationController.CONSOLE_NAME).println("PresentationController.update() called, but no damage in the work queue?");
 //          }

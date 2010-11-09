@@ -7,7 +7,6 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
 *******************************************************************************/
 
 package org.eclipse.imp.core;
@@ -17,17 +16,13 @@ import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.ui.PlatformUI;
 
-/*
- * Licensed Materials - Property of IBM,
- * (c) Copyright IBM Corp. 2005  All Rights Reserved
- */
 /**
  * Utility class for internal error messages
  * 
  * @author Claffra
  */
 public class ErrorHandler {
-    private static final boolean PRINT= true;
+    private static final boolean PRINT= false;
     private static final boolean DUMP= true;
     private static final boolean LOG= true;
 

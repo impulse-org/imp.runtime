@@ -20,7 +20,7 @@ public class SystemOutErrMessageHandler implements IMessageHandler {
     public void endMessageGroup() { }
 
     public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine) {
-        System.out.println("[" + startOffset + ":" + (endOffset - startOffset + 1) + "] " + msg);
+        System.out.println("[line " + startLine + ", col " + startCol + "]: " + msg);
     }
 
     public void handleSimpleMessage(String msg, int startOffset, int endOffset, int startCol, int endCol, int startLine, int endLine,

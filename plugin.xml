@@ -142,69 +142,78 @@
    </extension>
    -->
    <extension
+         point="org.eclipse.ui.contexts">
+         <context
+            name="IMP Source Editor"
+            description="Scope for all IMP source editors"
+            parentId="org.eclipse.ui.textEditorScope"
+            id="org.eclipse.imp.runtime.sourceEditorScope">
+         </context>
+   </extension>
+   <extension
          point="org.eclipse.ui.bindings">
       <!--  win32:  M1=CTRL,    M2=SHIFT, M3=ALT, M4=-
             carbon: M1=COMMAND, M2=SHIFT, M3=ALT, M4=CTRL -->
       <key
             commandId="org.eclipse.imp.runtime.editor.showOutline"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+O"/>
       <key
             commandId="org.eclipse.imp.runtime.editor.toggleComment"
-            contextId="org.eclipse.ui.contexts.window"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+/"/>
       <key
             commandId="org.eclipse.imp.runtime.editor.correctIndentation"
-            contextId="org.eclipse.ui.contexts.window"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+I"/>
       <key
             commandId="org.eclipse.imp.runtime.editor.formatSource"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+F"/>
       <key
             sequence="M1+M3+P"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.gotoMatchingFence"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             sequence="M1+M3+T"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.refactor.quickMenu"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             sequence="M2+M3+ARROW_UP"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.gotoPreviousTarget"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             platform="carbon"
             sequence="M3+M4+ARROW_UP"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.gotoPreviousTarget"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             sequence="M2+M3+ARROW_DOWN"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.gotoNextTarget"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             platform="carbon"
             sequence="M3+M4+ARROW_DOWN"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.gotoNextTarget"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             sequence="CTRL+SHIFT+ARROW_UP"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.selectEnclosing"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
             sequence="F3"
-            contextId="org.eclipse.ui.textEditorScope"
+            contextId="org.eclipse.imp.runtime.sourceEditorScope"
             commandId="org.eclipse.imp.runtime.editor.openDeclaration"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
    </extension>

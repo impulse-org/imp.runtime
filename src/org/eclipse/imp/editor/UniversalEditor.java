@@ -372,6 +372,10 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         installQuickAccessAction();
     }
 
+    protected void initializeKeyBindingScopes() {
+        setKeyBindingScopes(new String[] { RuntimePlugin.SOURCE_EDITOR_SCOPE });
+    }
+
     private QuickMenuAction fQuickAccessAction;
     private IHandlerActivation fQuickAccessHandlerActivation;
     private IHandlerService fHandlerService;

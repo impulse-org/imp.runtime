@@ -67,10 +67,6 @@ public class RuntimePlugin extends PluginBase implements IStartup {
      */
     public static String LANGUAGE_DESCRIPTOR= "languageDescription";
 
-    private FontRegistry fFontRegistry;
-
-    private PrintStream sConsoleStream;
-
     // The singleton instance.
     private static RuntimePlugin sPlugin;
 
@@ -79,6 +75,12 @@ public class RuntimePlugin extends PluginBase implements IStartup {
     public static long PRE_STARTUP_TIME;
 
     public static long EDITOR_START_TIME;
+
+    public static String SOURCE_EDITOR_SCOPE= IMP_RUNTIME + ".sourceEditorScope"; 
+
+    private FontRegistry fFontRegistry;
+
+    private PrintStream sConsoleStream;
 
     public RuntimePlugin() {
         sPlugin= this;

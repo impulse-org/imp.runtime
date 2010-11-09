@@ -156,7 +156,8 @@ public class StructuredSourceViewerConfiguration extends TextSourceViewerConfigu
     }
 
     public ITextDoubleClickStrategy getDoubleClickStrategy(ISourceViewer sourceViewer, String contentType) {
-        return new DoubleClickStrategy(getLanguageServiceManager().getParseController());
+        LanguageServiceManager lsm= getLanguageServiceManager();
+        return (lsm != null) ? new DoubleClickStrategy(lsm.getParseController()) : super.getDoubleClickStrategy(sourceViewer, contentType);
     }
 
     public IHyperlinkDetector[] getHyperlinkDetectors(ISourceViewer sourceViewer) {

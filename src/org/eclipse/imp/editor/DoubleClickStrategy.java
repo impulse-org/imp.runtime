@@ -300,7 +300,7 @@ public class DoubleClickStrategy extends DefaultTextDoubleClickStrategy {
         IRegion seed= new Region(offset, 1);
         IRegion extendedRegion= fSyntaxProps.getDoubleClickRegion(offset, fParseController);
 
-        if (!extendedRegion.equals(seed)) {
+        if (extendedRegion != null && !extendedRegion.equals(seed)) {
             return extendedRegion;
         }
 

@@ -438,26 +438,32 @@ public abstract class BuilderBase extends IncrementalProjectBuilder {
      */
     public IMarker createMarker(IResource errorResource, int startLine, int charStart, int charEnd, String message, int severity) {
         try {
-        	// TODO:  Address this situation properly after demo
-        	// Issue is resources that are templates and not in user's workspace
+        	// TODO Handle resources that are templates and not in user's workspace
         	if (!errorResource.exists())
         		return null;
         	
             IMarker m = errorResource.createMarker(getMarkerIDFor(severity));
 
-            String[] attributeNames = new String[] {IMarker.LINE_NUMBER, IMarker.MESSAGE, IMarker.PRIORITY, IMarker.SEVERITY};
-            Object[] values = new Object[] {startLine, message, IMarker.PRIORITY_HIGH, severity};        
-            m.setAttributes(attributeNames, values);
-            
-            if (charStart >= 0 && charEnd >= 0) {
-            	attributeNames = new String[] {IMarker.CHAR_START, IMarker.CHAR_END};
-            	values = new Object[] {charStart, charEnd};
-                m.setAttributes(attributeNames, values);
-            } else if (charStart >= 0) {
-            	m.setAttribute(IMarker.CHAR_START, charStart);
-            } else if (charEnd >= 0) {
-            	m.setAttribute(IMarker.CHAR_END, charEnd);
+            final int MIN_ATTR= 4;
+            final boolean hasStart= (charStart >= 0);
+            final boolean hasEnd= (charEnd >= 0);
+            final int numAttr= MIN_ATTR + (hasStart ? 1 : 0) + (hasEnd ? 1 : 0);
+            String[] attrNames = new String[numAttr];
+            Object[] attrValues = new Object[numAttr]; // N.B. Any "null" values will be treated as undefined
+            int idx= 0;
+            attrNames[idx]= IMarker.LINE_NUMBER; attrValues[idx++]= startLine;
+            attrNames[idx]= IMarker.MESSAGE;     attrValues[idx++]= message;
+            attrNames[idx]= IMarker.PRIORITY;    attrValues[idx++]= IMarker.PRIORITY_HIGH;
+            attrNames[idx]= IMarker.SEVERITY;    attrValues[idx++]= severity;
+
+            if (hasStart) {
+                attrNames[idx]= IMarker.CHAR_START; attrValues[idx++]= charStart;
             }
+            if (hasEnd) {
+                attrNames[idx]= IMarker.CHAR_END;   attrValues[idx++]= charEnd;
+            }
+
+            m.setAttributes(attrNames, attrValues);
             return m;
         } catch (CoreException e) {
             getPlugin().writeErrorMsg("Unable to create marker: " + e.getMessage());

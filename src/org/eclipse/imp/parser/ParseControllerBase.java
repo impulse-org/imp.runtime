@@ -41,6 +41,12 @@ public abstract class ParseControllerBase implements IParseController {
 	 */
 	protected Object fCurrentAst;
 
+	/**
+	 * Constructor that does not set up the fLanguage field.<br>
+	 * Only intended for use of parse controllers outside IMP.
+	 */
+	public ParseControllerBase() { }
+
 	public ParseControllerBase(String languageID) {
 		fLanguage= LanguageRegistry.findLanguage(languageID);
 	}

@@ -71,7 +71,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
         }
 
         public boolean isCancelled() {
-            if (!wasCancelled)
+            if (!wasCancelled && monitor != null)
                 wasCancelled= monitor.isCanceled();
             return wasCancelled;
         }
@@ -87,6 +87,13 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
      */
     public SimpleLPGParseController(String languageID) {
         super(languageID);
+    }
+
+    /**
+     * Base constructor only intended for use outside of IMP.
+     */
+    public SimpleLPGParseController() {
+        super();
     }
 
     /**
@@ -343,9 +350,11 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
             fIsKeyword= new boolean[tokenKindNames.length];
 
             int[] keywordKinds= getLexer().getKeywordKinds();
-            for(int i= 1; i < keywordKinds.length; i++) {
-                int index= parser.getIPrsStream().mapKind(keywordKinds[i]);
-                fIsKeyword[index]= true;
+            if (keywordKinds != null) {
+                for(int i= 1; i < keywordKinds.length; i++) {
+                    int index= parser.getIPrsStream().mapKind(keywordKinds[i]);
+                    fIsKeyword[index]= true;
+                }
             }
         }
     }

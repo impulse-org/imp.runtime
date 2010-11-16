@@ -611,7 +611,7 @@
             id="org.eclipse.imp.runtime.QuickFixRulerMenuAction">
          <action
                label="QuickFix"
-               class="org.eclipse.imp.editor.internal.SelectRulerAction"
+               class="org.eclipse.imp.actions.SelectRulerAction"
                menubarPath="additions"
                definitionId="org.eclipse.jdt.ui.edit.text.java.correction.assist.proposals"
                id="org.eclipse.imp.editor.internal.SelectRulerMenuAction">

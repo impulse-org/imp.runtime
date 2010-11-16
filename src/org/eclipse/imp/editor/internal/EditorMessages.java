@@ -18,7 +18,7 @@ import org.eclipse.osgi.util.NLS;
 /**
  * Helper class to get NLSed messages.
  */
-final class EditorMessages extends NLS {
+final public class EditorMessages extends NLS {
 
 	private static final String BUNDLE_FOR_CONSTRUCTED_KEYS= "org.eclipse.imp.editor.internal.ConstructedEditorMessages";//$NON-NLS-1$
 	private static ResourceBundle fgBundleForConstructedKeys= ResourceBundle.getBundle(BUNDLE_FOR_CONSTRUCTED_KEYS);

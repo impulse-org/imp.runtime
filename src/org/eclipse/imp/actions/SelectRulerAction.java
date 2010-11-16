@@ -8,8 +8,10 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package org.eclipse.imp.editor.internal;
+package org.eclipse.imp.actions;
 
+import org.eclipse.imp.editor.internal.EditorMessages;
+import org.eclipse.imp.editor.internal.SelectAnnotationRulerAction;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.text.source.IVerticalRulerInfo;
 import org.eclipse.ui.texteditor.AbstractRulerActionDelegate;

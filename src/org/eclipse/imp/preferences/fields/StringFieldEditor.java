@@ -744,14 +744,17 @@ public class StringFieldEditor extends FieldEditor
                      * @see org.eclipse.swt.events.KeyAdapter#keyReleased(org.eclipse.swt.events.KeyEvent)
                      */
                     public void keyReleased(KeyEvent e) {
-	                	// Should call setInherited(..) before calling valueChanged() because
-	                	// valueChanged() will mark the field as modified, but only if isInherited
-	                	// is false, which it now should be
+                        // Should call setInherited(..) before calling valueChanged() because
+                        // valueChanged() will mark the field as modified, but only if isInherited
+                        // is false, which it now should be
+                        if (e.keyCode == SWT.ARROW_DOWN || e.keyCode == SWT.ARROW_UP || e.keyCode == SWT.ARROW_LEFT || e.keyCode == SWT.ARROW_RIGHT) {
+                            // Don't treat navigating through the value as a value change
+                            return;
+                        }
                         refreshValidState();
-    					setInherited(false);
+                        setInherited(false);
                         boolean changed = valueChanged(true);
-    					fieldModified = changed;
-
+                        fieldModified = changed;
                     }
                 });
 

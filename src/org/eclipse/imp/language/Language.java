@@ -17,6 +17,7 @@ import java.util.StringTokenizer;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IConfigurationElement;
+import org.eclipse.core.runtime.IExtension;
 import org.eclipse.imp.core.ErrorHandler;
 
 /**
@@ -33,7 +34,7 @@ public class Language {
 	 */
 	public static final String LANGUAGE_ID_ATTR = "language";
 
-	private String fLanguage;
+	private final String fLanguage;
 
 	/**
 	 * Extension element attribute ID for the base language ID associated with a
@@ -41,7 +42,7 @@ public class Language {
 	 */
 	public static final String DERIVED_FROM_ATTR = "derivedFrom";
 
-	private String fDerivedFrom;
+	private final String fDerivedFrom;
 
 	/**
 	 * Extension element attribute ID for the list of file-name extensions
@@ -65,7 +66,7 @@ public class Language {
 	 */
 	public static final String DESCRIPTION_ATTR = "description";
 
-	private String fDescription;
+	private final String fDescription;
 
 	/**
 	 * Extension element attribute ID for the optional nature ID associated with
@@ -73,7 +74,7 @@ public class Language {
 	 */
 	public static final String NATURE_ID_ATTR = "natureID";
 
-	private String fNatureId;
+	private final String fNatureId;
 
 	/**
 	 * Extension element attribute ID for the optional list of synonyms
@@ -89,7 +90,7 @@ public class Language {
      */
     public static final String ICON_ATTR = "icon";
 
-    private String fIconPath;
+    private final String fIconPath;
 
 	/**
 	 * Extension element attribute ID for the optional URL associated with a
@@ -97,32 +98,39 @@ public class Language {
 	 */
 	public static final String URL_ATTR = "url";
 
-	private String fURL;
+	private final String fURL;
 
-	private String fBundleID;
+	private final String fBundleID;
+
+    /**
+     * Creates a language from an extension point contribution
+     * @param element the extension point contribution describing this language
+     */
+    Language(IConfigurationElement element) {
+        fLanguage = element.getAttribute(LANGUAGE_ID_ATTR);
+        fNatureId = element.getAttribute(NATURE_ID_ATTR);
+        fDescription = element.getAttribute(DESCRIPTION_ATTR);
+        fDerivedFrom = element.getAttribute(DERIVED_FROM_ATTR);
+        fIconPath = element.getAttribute(ICON_ATTR);
+        fBundleID = element.getNamespaceIdentifier();
+        fURL = element.getAttribute(URL_ATTR);
+        fFilenameExtensions = parseList(element.getAttribute(EXTENSIONS_ATTR));
+        fSynonyms = parseList(element.getAttribute(SYNONYMS_ATTR));
+        try {
+            if (element.getAttribute(VALIDATOR_ATTR) != null) {
+                fValidator = (LanguageValidator) element.createExecutableExtension(VALIDATOR_ATTR);
+            }
+        } catch (CoreException e) {
+            fValidator = null;
+        }
+    }
 
 	/**
-	 * Creates a language from an extension point contribution
-	 * 
-	 * @param element the extension point contribution this language belongs to
+	 * Creates a language from an extension point contribution 
+	 * @param extension the extension point contribution describing this language
 	 */
-	Language(IConfigurationElement element) {
-		try {
-			fLanguage = element.getAttribute(LANGUAGE_ID_ATTR);
-			fNatureId = element.getAttribute(NATURE_ID_ATTR);
-			fDescription = element.getAttribute(DESCRIPTION_ATTR);
-			fDerivedFrom = element.getAttribute(DERIVED_FROM_ATTR);
-            fIconPath = element.getAttribute(ICON_ATTR);
-            fBundleID = element.getNamespaceIdentifier();
-			fURL = element.getAttribute(URL_ATTR);
-			fFilenameExtensions = parseList(element.getAttribute(EXTENSIONS_ATTR));
-			fSynonyms = parseList(element.getAttribute(SYNONYMS_ATTR));
-			if (element.getAttribute(VALIDATOR_ATTR) != null) {
-			    fValidator = (LanguageValidator) element.createExecutableExtension(VALIDATOR_ATTR);
-			}
-		} catch (CoreException e) {
-			fValidator = null;
-		}
+	Language(IExtension extension) {
+	    this(extension.getConfigurationElements()[0]);
 	}
 
 	public Language(String language, String natureId, String description,

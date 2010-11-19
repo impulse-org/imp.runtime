@@ -176,6 +176,6 @@ public class RuntimePlugin extends PluginBase implements IStartup {
             final long curTime= System.currentTimeMillis();
             getConsoleStream().println("Entered RuntimePlugin.earlyStartup(); time is " + curTime);
         }
-        LanguageRegistry.initializeRegistryAsNeeded();
+        LanguageRegistry.startup();
     }
 }

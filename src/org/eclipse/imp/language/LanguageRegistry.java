@@ -15,6 +15,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,14 +24,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.internal.registry.ExtensionRegistry;
-import org.eclipse.core.runtime.ContributorFactoryOSGi;
-import org.eclipse.core.runtime.IConfigurationElement;
-import org.eclipse.core.runtime.IContributor;
-import org.eclipse.core.runtime.IExtensionPoint;
-import org.eclipse.core.runtime.IExtensionRegistry;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.InvalidRegistryObjectException;
-import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.*;
 import org.eclipse.imp.core.ErrorHandler;
 import org.eclipse.imp.editor.EditorInputUtils;
 import org.eclipse.imp.editor.UniversalEditor;
@@ -46,8 +40,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IFileEditorMapping;
-import org.eclipse.ui.IPageLayout;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.internal.ide.IDEInternalPreferences;
@@ -58,7 +50,6 @@ import org.eclipse.ui.internal.ide.registry.MarkerQueryResult;
 import org.eclipse.ui.internal.registry.EditorDescriptor;
 import org.eclipse.ui.internal.registry.EditorRegistry;
 import org.eclipse.ui.internal.registry.FileEditorMapping;
-import org.eclipse.ui.internal.views.markers.ProblemsView;
 import org.eclipse.ui.texteditor.IDocumentProvider;
 import org.osgi.framework.Bundle;
 
@@ -223,22 +214,41 @@ public class LanguageRegistry {
  	}
 	
 	
-	/**
-	 * Registers a language dynamically (as opposed to using an extension
-	 * point). This binds the file extensions associated with the language to
-	 * the IMP Universal editor.
-	 * 
+    /**
+     * Registers a language dynamically, either programmatically, or via a bundle
+     * being activated some time after startup. This binds the file extensions
+     * associated with the language to the IMP Universal editor.
+     * 
+     * @param language
+     */
+    public static void registerLanguage(Language language) {
+        PrintStream ps= RuntimePlugin.getInstance().getConsoleStream();
+        ps.println("Dynamically registering language " + language.getName());
+        if (!isFullyInitialized())
+            initializeRegistryAsNeeded();
+        register(language);
+        updateEditorMappings(language);
+    }
+
+    private static void updateEditorMappings(Language language) {
+        List<IFileEditorMapping> mappings = new ArrayList<IFileEditorMapping>();
+        Collections.addAll(mappings, getEditorRegistry().getFileEditorMappings());
+        addUniversalEditorMappings(language.getName(), language.getIconPath(), language.getFilenameExtensions(), language.getBundleID(), mappings);
+        updateEditorRegistry(mappings);
+    }
+
+    /**
+	 * Deregisters a language dynamically, either programmatically, or via a bundle
+	 * being deactivated some time after startup.
 	 * @param language
 	 */
-	public static void registerLanguage(Language language) {
+	public static void deregisterLanguage(Language language) {
+        PrintStream ps= RuntimePlugin.getInstance().getConsoleStream();
+        ps.println("Dynamically deregistering language " + language.getName());
 		if (!isFullyInitialized())
 			initializeRegistryAsNeeded();
-		register(language);
-
-		List<IFileEditorMapping> mappings = new ArrayList<IFileEditorMapping>();
-		Collections.addAll(mappings, getEditorRegistry().getFileEditorMappings());
-		addUniversalEditorMappings(language.getName(), language.getIconPath(), language.getFilenameExtensions(), language.getBundleID(), mappings);
-		updateEditorRegistry(mappings);
+		deregister(language);
+		updateEditorMappings(language);
 	}
 
 	private static EditorRegistry getEditorRegistry() {
@@ -263,7 +273,7 @@ public class LanguageRegistry {
 	 * will be initialized serially and only once.  Although isFullyInitialized
 	 * can be tested from anywhere, this is the only place that it should be set.
 	 */
-	public static void initializeRegistryAsNeeded() {	
+	private static void initializeRegistryAsNeeded() {	
 		synchronized(sStatusCheckMutex) {
 			if(isFullyInitialized()) {
 				return;
@@ -288,6 +298,31 @@ public class LanguageRegistry {
 			setFullyInitialized();
 			updateMarkerResolutionRegistry();
 		}
+	}
+
+	public static void startup() {
+	    initializeRegistryAsNeeded();
+
+	    IExtensionRegistry extRegistry= Platform.getExtensionRegistry();
+
+	    extRegistry.addListener(new IRegistryEventListener() {
+	        // TODO handle removal of a language description
+	        public void removed(IExtensionPoint[] extensionPoints) { }
+
+	        public void removed(IExtension[] extensions) {
+                for(IExtension ext: extensions) {
+                    deregisterLanguage(new Language(ext));
+                }
+	        }
+
+	        public void added(IExtensionPoint[] extensionPoints) { }
+
+	        public void added(IExtension[] extensions) {
+	            for(IExtension ext: extensions) {
+	                registerLanguage(new Language(ext));
+	            }
+	        }
+	    }, "org.eclipse.imp.runtime.languageDescription");
 	}
 
 	private static void addNonUniversalEditorMappings(List<IFileEditorMapping> newMap) {
@@ -365,6 +400,7 @@ public class LanguageRegistry {
             fImageDescriptor= new BundleImageDescriptor(iconPath, bundle, langName);
         }
 
+        @SuppressWarnings("unused")
         public void setTheDefaultEditor(IEditorDescriptor editor) {
             fEditor= editor;
         }
@@ -446,7 +482,8 @@ public class LanguageRegistry {
 	    }
 	}
 
-	private void addEditorIfNeeded(IMPFileEditorMapping fem, EditorDescriptor editor) {
+	@SuppressWarnings("unused")
+    private void addEditorIfNeeded(IMPFileEditorMapping fem, EditorDescriptor editor) {
         // SMS 19 Nov 2008
         // Revised else branch according to patch provided by Edward Willink
         // Bug #242967, attachment id=109002
@@ -539,7 +576,8 @@ public class LanguageRegistry {
 		});
 	}
 
-	private static List<String> collectAllLanguageFileNameExtensions() {
+	@SuppressWarnings("unused")
+    private static List<String> collectAllLanguageFileNameExtensions() {
 		List<String> allExtens = new ArrayList<String>(getRegister().size());
 
 		for (Language lang : getRegister().values()) {
@@ -577,23 +615,27 @@ public class LanguageRegistry {
 		}
 	}
 
-	private static void register(Language language) {
+    private static void deregister(Language language) {
+        getRegister().remove(language.getName().toLowerCase());
+        
+        if (PreferenceCache.emitMessages) {
+            RuntimePlugin.getInstance().writeInfoMsg("Deregistered language description: " + language.getName());
+        }
+    }
+
+    private static void register(Language language) {
 		getRegister().put(language.getName().toLowerCase(), language);
 		
 		if (PreferenceCache.emitMessages) {
-			RuntimePlugin.getInstance().writeInfoMsg(
-					"Registered language description: " + language.getName());
+			RuntimePlugin.getInstance().writeInfoMsg("Registered language description: " + language.getName());
 		}
 	}
-	
-	
+
 	private static void setFullyInitialized() {
-			sIsFullyInitialized = true;
+	    sIsFullyInitialized = true;
 	}
 	
 	private static boolean isFullyInitialized() {
-			return sIsFullyInitialized;
+	    return sIsFullyInitialized;
 	}
-
-	
 }

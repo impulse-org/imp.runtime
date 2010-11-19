@@ -429,6 +429,8 @@ public interface IPreferencesService {
         }
         @Override
         protected final void handleChange(Object oldValue, Object newValue) {
+            // There should always be an old value, but the following guards in case the
+            // prefs DB didn't get initialized properly.
             changed((String) oldValue, (String) newValue);
         }
         public abstract void changed(String oldValue, String newValue);
@@ -440,7 +442,10 @@ public interface IPreferencesService {
         }
         @Override
         protected final void handleChange(Object oldValue, Object newValue) {
-            changed(Boolean.parseBoolean((String) oldValue), Boolean.parseBoolean((String) newValue));
+            // There should always be an old value, but the following guards in case the
+            // prefs DB didn't get initialized properly.
+            boolean oldBool= (oldValue == null) ? false : Boolean.parseBoolean((String) oldValue);
+            changed(oldBool, Boolean.parseBoolean((String) newValue));
         }
         public abstract void changed(boolean oldValue, boolean newValue);
     }
@@ -450,7 +455,10 @@ public interface IPreferencesService {
             super(service, key);
         }
         protected final void handleChange(Object oldValue, Object newValue) {
-            changed(Integer.parseInt((String) oldValue), Integer.parseInt((String) newValue));
+            // There should always be an old value, but the following guards in case the
+            // prefs DB didn't get initialized properly.
+            int oldInt= (oldValue == null) ? 0 : Integer.parseInt((String) oldValue);
+            changed(oldInt, Integer.parseInt((String) newValue));
         }
         public abstract void changed(int oldValue, int newValue);
     }

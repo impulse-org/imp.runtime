@@ -49,7 +49,6 @@ import org.eclipse.imp.services.ISourceFormatter;
 import org.eclipse.imp.services.ISourceHyperlinkDetector;
 import org.eclipse.imp.services.IToggleBreakpointsHandler;
 import org.eclipse.imp.services.ITokenColorer;
-import org.eclipse.imp.services.base.DefaultQuickFixAssistant;
 import org.eclipse.imp.services.base.TreeModelBuilderBase;
 import org.eclipse.imp.utils.ExtensionException;
 import org.eclipse.imp.utils.ExtensionFactory;
@@ -204,23 +203,31 @@ public class ServiceFactory {
     public IAnnotationHover getAnnotationHover(Language lang) {
         try {
             return (IAnnotationHover) loadService(lang, ANNOTATION_HOVER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + ANNOTATION_HOVER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + ANNOTATION_HOVER_SERVICE + " does not implement IAnnotationHover",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IASTAdapter getASTAdapter(Language lang) {
         try {
             return (IASTAdapter) loadService(lang, AST_ADAPTER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + AST_ADAPTER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + AST_ADAPTER_SERVICE + " does not implement IASTAdapter",
                     e);
-            return null;
         }
+        return null;
     }
 
     public Set<IAutoEditStrategy> getAutoEditStrategies(Language lang) {
@@ -233,56 +240,76 @@ public class ServiceFactory {
             }
 
             return autoEditStrategies;
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + AUTO_EDIT_STRATEGY_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + AUTO_EDIT_STRATEGY_SERVICE + " does not implement IAutoEditStrategy",
                     e);
-            return null;
         }
+        return null;
     }
 
     public ICompareNodeIdentifier getCompareNodeIdentifier(Language lang) {
         try {
             return (ICompareNodeIdentifier) loadService(lang, COMPARE_NODE_IDENTIFIER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + COMPARE_NODE_IDENTIFIER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + COMPARE_NODE_IDENTIFIER_SERVICE + " does not implement ICompareNodeIdentifier",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IContentProposer getContentProposer(Language lang) {
         try {
             return (IContentProposer) loadService(lang, CONTENT_PROPOSER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + CONTENT_PROPOSER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + CONTENT_PROPOSER_SERVICE + " does not implement IContentProposer",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IHelpService getContextHelper(Language lang) {
         try {
             return (IHelpService) loadService(lang, CONTEXT_HELPER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + CONTEXT_HELPER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + CONTEXT_HELPER_SERVICE + " does not implement IHelpService",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IDocumentationProvider getDocumentationProvider(Language lang) {
         try {
             return (IDocumentationProvider) loadService(lang, DOCUMENTATION_PROVIDER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + DOCUMENTATION_PROVIDER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + DOCUMENTATION_PROVIDER_SERVICE + " does not implement IDocumentationProvider",
                     e);
-            return null;
         }
+        return null;
     }
 
     public Set<IModelListener> getEditorServices(Language lang) {
@@ -293,82 +320,124 @@ public class ServiceFactory {
         return result;
     }
 
+    public IEditorInputResolver getEditorInputResolver(Language lang) {
+        try {
+            return (IEditorInputResolver) loadService(lang, EDITOR_INPUT_RESOLVER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + EDITOR_INPUT_RESOLVER_SERVICE,
+                    e);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of " + EDITOR_INPUT_RESOLVER_SERVICE + " does not implement IEditorInputResolver", e);
+        }
+        return null;
+    }
+
     public IElementImageProvider getElementImageProvider(Language lang) {
         try {
             return (IElementImageProvider) loadService(lang, IMAGE_DECORATOR_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + IMAGE_DECORATOR_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + IMAGE_DECORATOR_SERVICE + " does not implement IElementImageProvider",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IEntityImageDecorator getEntityImageDecorator(Language lang) {
         try {
             return (IEntityImageDecorator) loadService(lang, ENTITY_IMAGE_DECORATOR_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + ENTITY_IMAGE_DECORATOR_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + ENTITY_IMAGE_DECORATOR_SERVICE + " does not implement IEntityImageDecorator",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IEntityNameLocator getEntityNameLocator(Language lang) {
         try {
             return (IEntityNameLocator) loadService(lang, ENTITY_NAME_LOCATOR_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + ENTITY_NAME_LOCATOR_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + ENTITY_NAME_LOCATOR_SERVICE + " does not implement IEntityNameLocator",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IFoldingUpdater getFoldingUpdater(Language lang) {
         try {
             return (IFoldingUpdater) loadService(lang, FOLDING_UPDATER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + FOLDING_UPDATER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + FOLDING_UPDATER_SERVICE + " does not implement IFoldingUpdater",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IHoverHelper getHoverHelper(Language lang) {
         try {
             return (IHoverHelper) loadService(lang, HOVER_HELPER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + HOVER_HELPER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + HOVER_HELPER_SERVICE + " does not implement IHoverHelper",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IndexContributorBase getIndexContributor(Language lang) {
         try {
             return (IndexContributorBase) loadService(lang,
                     INDEX_CONTRIBUTOR_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + INDEX_CONTRIBUTOR_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + INDEX_CONTRIBUTOR_SERVICE + " does not implement IndexContributorBase",
                     e);
-            return null;
         }
+        return null;
     }
 
     public ILabelProvider getLabelProvider(Language lang) {
         try {
             return (ILabelProvider) loadService(lang, LABEL_PROVIDER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + LABEL_PROVIDER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + LABEL_PROVIDER_SERVICE + " does not implement ILabelProvider",
                     e);
-            return null;
         }
+        return null;
     }
 
     public Set<ILanguageActionsContributor> getLanguageActionsContributors(
@@ -383,78 +452,121 @@ public class ServiceFactory {
             }
 
             return actionContributors;
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + EDITOR_ACTION_CONTRIBUTIONS_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + EDITOR_ACTION_CONTRIBUTIONS_SERVICE + " does not implement ILanguageActionConstributor",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IModelListener getModelListener(Language lang) {
         try {
             return (IModelListener) loadService(lang, MODEL_LISTENER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + MODEL_LISTENER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + MODEL_LISTENER_SERVICE + " does not implement IModelListener",
                     e);
-            return null;
         }
+        return null;
     }
 
     public INavigationTargetFinder getNavigationTargetFinder(Language lang) {
         try {
             return (INavigationTargetFinder) loadService(lang, NAVIGATION_TARGET_FINDER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + NAVIGATION_TARGET_FINDER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of NAVIGATION_TARGET_FINDER does not implement INavigationTargetFinder",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IOccurrenceMarker getOccurrenceMarker(Language lang) {
         try {
             return (IOccurrenceMarker) loadService(lang, MARK_OCCURRENCES_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + MARK_OCCURRENCES_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + MARK_OCCURRENCES_SERVICE + " does not implement IOccurrenceMarker",
                     e);
-            return null;
         }
+        return null;
     }
 
     public OutlineContentProviderBase getOutlineContentProvider(Language lang) {
         try {
             return (OutlineContentProviderBase) loadService(lang, OUTLINE_CONTENT_PROVIDER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + OUTLINE_CONTENT_PROVIDER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + OUTLINE_CONTENT_PROVIDER_SERVICE + " does not implement OutlineContentProviderBase",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IOutliner getOutliner(Language lang) {
         try {
             return (IOutliner) loadService(lang, OUTLINER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + OUTLINER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + OUTLINER_SERVICE + " does not implement IOutliner",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IParseController getParseController(Language lang) {
         try {
             return (IParseController) loadService(lang, PARSER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + PARSER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + PARSER_SERVICE + " does not implement IParseController",
                     e);
-            return null;
         }
+        return null;
+    }
+
+    public IQuickFixAssistant getQuickFixAssistant(Language lang) {
+        try {
+            return (IQuickFixAssistant) loadService(lang, QUICK_FIX_ASSISTANT_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + QUICK_FIX_ASSISTANT_SERVICE,
+                    e);
+        } catch (ClassCastException e) {
+            RuntimePlugin.getInstance().logException(
+                    "Alleged implementation of " + QUICK_FIX_ASSISTANT_SERVICE + " does not implement IQuickFixAssistant",
+                    e);
+        }
+        return null;
     }
 
     public Set<IRefactoringContributor> getRefactoringContributors(Language lang) {
@@ -467,114 +579,123 @@ public class ServiceFactory {
             }
 
             return refactoringContribs;
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + REFACTORING_CONTRIBUTIONS_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + REFACTORING_CONTRIBUTIONS_SERVICE + " does not implement IRefactoringContributor",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IReferenceResolver getReferenceResolver(Language lang) {
         try {
             return (IReferenceResolver) loadService(lang, REFERENCE_RESOLVER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + REFERENCE_RESOLVER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + REFERENCE_RESOLVER_SERVICE + " does not implement IReferenceResolver",
                     e);
-            return null;
         }
+        return null;
     }
 
     public ISourceFormatter getSourceFormatter(Language lang) {
         try {
             return (ISourceFormatter) loadService(lang, FORMATTER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + FORMATTER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + FORMATTER_SERVICE + " does not implement ISourceFormatter",
                     e);
-            return null;
         }
+        return null;
     }
 
     public ISourceHyperlinkDetector getSourceHyperlinkDetector(Language lang) {
         try {
             return (ISourceHyperlinkDetector) loadService(lang, HYPER_LINK_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + HYPER_LINK_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + HYPER_LINK_SERVICE + " does not implement ISourceHyperlinkDetector",
                     e);
-            return null;
         }
+        return null;
     }
 
     public ILanguageSyntaxProperties getSyntaxProperties(Language lang) {
         try {
             return (ILanguageSyntaxProperties) loadService(lang, SYNTAX_PROPS_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + SYNTAX_PROPS_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + SYNTAX_PROPS_SERVICE + " does not implement ILanguageSyntaxProperties",
                     e);
-            return null;
         }
+        return null;
     }
 
     public IToggleBreakpointsHandler getToggleBreakpointsHandler(Language lang) {
         try {
             return (IToggleBreakpointsHandler) loadService(lang, TOGGLE_BREAKPOINTS_HANDLER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + TOGGLE_BREAKPOINTS_HANDLER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + TOGGLE_BREAKPOINTS_HANDLER_SERVICE + " does not implement IToggleBreakpointsHandler",
                     e);
-            return null;
         }
+        return null;
     }
 
     public ITokenColorer getTokenColorer(Language lang) {
         try {
             return (ITokenColorer) loadService(lang, TOKEN_COLORER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + TOKEN_COLORER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + TOKEN_COLORER_SERVICE + " does not implement ITokenColorer",
                     e);
-            return null;
         }
+        return null;
     }
 
     public TreeModelBuilderBase getTreeModelBuilder(Language lang) {
         try {
             return (TreeModelBuilderBase) loadService(lang, MODEL_TREE_BUILDER_SERVICE);
+        } catch (LinkageError e) {
+            RuntimePlugin.getInstance().logException(
+                    "Linkage error attempting to load implementation of " + MODEL_TREE_BUILDER_SERVICE,
+                    e);
         } catch (ClassCastException e) {
             RuntimePlugin.getInstance().logException(
                     "Alleged implementation of " + MODEL_TREE_BUILDER_SERVICE + " does not implement TreeModelBuilderBase",
                     e);
-            return null;
         }
+        return null;
     }
     
-	public IEditorInputResolver getEditorInputResolver(Language lang) {
-		try {
-			return (IEditorInputResolver) loadService(lang, EDITOR_INPUT_RESOLVER_SERVICE);
-		} catch (ClassCastException e) {
-			RuntimePlugin.getInstance().logException(
-					"Alleged implementation of " + EDITOR_INPUT_RESOLVER_SERVICE + " does not implement IEditorInputResolver", e);
-			return null;
-		}
-	}
-
-    public IQuickFixAssistant getQuickFixAssistant(Language lang) {
-        try {
-            IQuickFixAssistant qfa= (IQuickFixAssistant) loadService(lang, QUICK_FIX_ASSISTANT_SERVICE);
-            if (qfa == null) { return new DefaultQuickFixAssistant(); }
-            return qfa;
-        } catch (ClassCastException e) {
-            RuntimePlugin.getInstance().logException(
-                           "Alleged implementation of " + QUICK_FIX_ASSISTANT_SERVICE
-                                   + " does not implement IQuickFixAssistant", e);
-            return null;
-        }
-    }
-
     private ILanguageService createExtension(Language lang, String id) {
         try {
             return ExtensionFactory.createServiceExtension(lang, id);

@@ -33,6 +33,7 @@
    <extension-point id="compareNodeIdentifier" name="Compare Node Identifier" schema="schema/compareNodeIdentifier.exsd"/>
    <extension-point id="editorInputResolver" name="editorInputResolver" schema="schema/editorInputResolver.exsd"/>
    <extension-point id="quickFixAssistant" name="Quick Fix Assistant" schema="schema/quickFixAssistant.exsd"/>
+   <extension-point id="languageRegistrar" name="Language Registrar" schema="schema/languageRegistrar.exsd"/>
 
    <extension
          point="org.eclipse.ui.editors">

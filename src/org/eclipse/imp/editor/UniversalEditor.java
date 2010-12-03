@@ -684,6 +684,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         // SMS 10 Oct 2008:  null check added per bug #242949
         if (fLanguage == null) {
+        	
 //            throw new IllegalArgumentException("No language support found for files of type '" +
 //            		EditorInputUtils.getPath(getEditorInput()).getFileExtension() + "'");
         }

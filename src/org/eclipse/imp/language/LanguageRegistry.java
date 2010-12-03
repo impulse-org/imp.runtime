@@ -296,7 +296,29 @@ public class LanguageRegistry {
 			
 			updateEditorRegistry(newMap);
 			setFullyInitialized();
+			runLanguageRegistrars();
 			updateMarkerResolutionRegistry();
+		}
+	}
+
+	private static void runLanguageRegistrars() {
+		try {
+			IExtensionRegistry extRegistry= Platform.getExtensionRegistry();
+			IExtensionPoint extensionPoint = extRegistry.getExtensionPoint(RuntimePlugin.IMP_RUNTIME, "languageRegistrar");
+			IConfigurationElement[] elements = extensionPoint.getConfigurationElements();
+			for (IConfigurationElement e : elements) {
+				ILanguageRegistrar r = (ILanguageRegistrar) e.createExecutableExtension("class");
+				r.registerLanguages();
+			}
+		}
+		catch (ClassCastException e) {
+			RuntimePlugin.getInstance().logException("starter extension does not implement ILanguageRegistrar", e);
+		}
+		catch (CoreException e) {
+			RuntimePlugin.getInstance().logException("could not run starter extension", e);
+		} 
+		catch (Throwable e) {
+			RuntimePlugin.getInstance().logException("exception while running starter extension", e);
 		}
 	}
 
@@ -530,8 +552,9 @@ public class LanguageRegistry {
 		for (Language lang : getLanguages()) {
 			IQuickFixAssistant qfa = ServiceFactory.getInstance()
 					.getQuickFixAssistant(lang);
-			for (String type : qfa.getSupportedMarkerTypes()) {
-				String extension = ""
+			if (qfa != null) {
+				for (String type : qfa.getSupportedMarkerTypes()) {
+					String extension = ""
 						+ "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 						+ "<?eclipse version=\"3.0\"?>"
 						+ "<plugin>"
@@ -543,12 +566,13 @@ public class LanguageRegistry {
 						+ " </markerResolutionGenerator>" + "</extension>"
 						+ "</plugin>";
 
-				InputStream is = new ByteArrayInputStream(extension.getBytes());
-				Object ut = ((ExtensionRegistry) reg).getTemporaryUserToken();
-				IContributor contributor = ContributorFactoryOSGi
-						.createContributor(RuntimePlugin.getInstance()
-								.getBundle());
-				reg.addContribution(is, contributor, false, null, null, ut);
+					InputStream is = new ByteArrayInputStream(extension.getBytes());
+					Object ut = ((ExtensionRegistry) reg).getTemporaryUserToken();
+					IContributor contributor = ContributorFactoryOSGi
+					.createContributor(RuntimePlugin.getInstance()
+							.getBundle());
+					reg.addContribution(is, contributor, false, null, null, ut);
+				}
 			}
 		}
 

@@ -54,7 +54,7 @@ public abstract class SimpleLPGParseController extends ParseControllerBase {
      * A cached ISourcePositionLocator instance, so that we don't create one for
      * every query to getSourcePositionLocator().
      */
-    private ISourcePositionLocator fSourcePositionLocator;
+    protected ISourcePositionLocator fSourcePositionLocator;
 
     private final SimpleAnnotationTypeInfo fSimpleAnnotationTypeInfo= new SimpleAnnotationTypeInfo();
 

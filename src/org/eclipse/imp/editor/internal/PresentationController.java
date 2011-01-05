@@ -137,12 +137,12 @@ public class PresentationController implements IModelListener {
 //            System.out.println("Entered PresentationController.update()");
 //            e.printStackTrace(System.out);
 //        }
-        if (!monitor.isCanceled() && fSourceViewer != null) {
+        if (!monitor.isCanceled() && fSourceViewer != null && fSourceViewer.getDocument() != null) {
 //          if (fWorkItems.size() == 0) {
 //              ConsoleUtil.findConsoleStream(PresentationController.CONSOLE_NAME).println("PresentationController.update() called, but no damage in the work queue?");
 //          }
             synchronized (fWorkItems) {
-                if (fWorkItems.size() == 0) {
+                if (fWorkItems.size() == 0 && fSourceViewer.getDocument() != null) {
                     // TODO Shouldn't need to re-color the entire source file here.
                     // This is intended to handle the case that the parser finishes *after*
                     // the PresentationRepairer asks for an update().

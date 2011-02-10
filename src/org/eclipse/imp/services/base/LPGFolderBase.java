@@ -1,6 +1,13 @@
 package org.eclipse.imp.services.base;
 
+import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.List;
+
+import org.eclipse.imp.parser.SimpleLPGParseController;
+import org.eclipse.imp.runtime.RuntimePlugin;
+import org.eclipse.jface.text.Position;
+import org.eclipse.jface.text.source.Annotation;
 
 import lpg.runtime.Adjunct;
 import lpg.runtime.IAst;
@@ -12,22 +19,47 @@ public abstract class LPGFolderBase extends FolderBase {
     protected IPrsStream prsStream;
 
     /**
+     * An implementation that exists solely to provide diagnostic information for debugging
+     */
+    @Override
+    protected void sendVisitorToAST(HashMap<Annotation, Position> newAnnotations, List<Annotation> annotations, Object ast) {
+        if (fDebugMode) {
+            PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
+            SimpleLPGParseController lpgPC= (SimpleLPGParseController) parseController;
+            ILexStream ls= lpgPC.getLexStream();
+
+            cons.println("Stream length = " + ls.getStreamLength() + ", # lines = " + ls.getLineCount());
+        }
+    }
+
+    @Override
+    public void makeAnnotation(int start, int len) {
+        if (fDebugMode) {
+            PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
+            ILexStream lexStream = prsStream.getILexStream();
+            int end = start + len - 1;
+//            if (end >= lexStream.getStreamLength()) {
+//                end= lexStream.getStreamLength() - 1;
+//            }
+            int first_line= lexStream.getLineNumberOfCharAt(start);
+            int first_col= lexStream.getColumnOfCharAt(start);
+            int last_line= lexStream.getLineNumberOfCharAt(end);
+            int last_col= lexStream.getColumnOfCharAt(end);
+
+            cons.println("Folding <line " + first_line + ", col " + first_col + " '" + lexStream.getCharValue(start) + "'> -> "
+                    + "<line " + last_line + ", col " + last_col + " '" + (end >= lexStream.getStreamLength() ? "<EOF>" : lexStream.getCharValue(end)) + "'>");
+        }
+
+        super.makeAnnotation(start, len);
+    }
+
+    /**
      * Folding helper method that takes a start and last offset, inclusive, unlike
      * the base class method makeAnnotation(int, int), which takes a start offset
      * and a length.
      */
     protected void makeFoldableByOffsets(int first_offset, int last_offset) {
-        if (fDebugMode) {
-            ILexStream lexStream = prsStream.getILexStream();
-            int first_line= lexStream.getLineNumberOfCharAt(first_offset);
-            int first_col= lexStream.getColumnOfCharAt(first_offset);
-            int last_line= lexStream.getLineNumberOfCharAt(last_offset);
-            int last_col= lexStream.getColumnOfCharAt(last_offset);
-
-            System.out.println("Folding <line " + first_line + ", col " + first_col + " '" + lexStream.getCharValue(first_offset) + "'> -> "
-                    + "<line " + last_line + ", col " + last_col + " '" + lexStream.getCharValue(last_offset) + "'>");
-        }
-        super.makeAnnotation(first_offset, last_offset - first_offset + 1);
+        makeAnnotation(first_offset, last_offset - first_offset + 1);
     }
     
     /**
@@ -47,21 +79,25 @@ public abstract class LPGFolderBase extends FolderBase {
                 return;
             }
 
-            while (start > 0 && isWhiteNotLineTerm(lexStream.getCharValue(start))) {
-                start--;
-            }
-            while (end < lexStream.getStreamLength() && isWhiteNotLineTerm(lexStream.getCharValue(end))) {
-                end++;
-            }
-            if (end < lexStream.getStreamLength()-1) {
-                char endChar= lexStream.getCharValue(end+1);
+            int startLine= lexStream.getLineNumberOfCharAt(start);
+            int endLine= lexStream.getLineNumberOfCharAt(end);
+            int startLineOffset= lexStream.getLineOffset(startLine);
+            int endLineOffset= lexStream.getLineOffset(endLine+1)+1;
+//            while (start > 0 && isWhiteNotLineTerm(lexStream.getCharValue(start))) {
+//                start--;
+//            }
+//            while (end < lexStream.getStreamLength() && isWhiteNotLineTerm(lexStream.getCharValue(end))) {
+//                end++;
+//            }
+//            if (end < lexStream.getStreamLength()-1) {
+//                char endChar= lexStream.getCharValue(end+1);
+//
+//                if (endChar == '\n' || endChar == '\r') {
+//                    end++;
+//                }
+//            }
 
-                if (endChar == '\n' || endChar == '\r') {
-                    end++;
-                }
-            }
-
-            makeFoldableByOffsets(start, end);
+            makeFoldableByOffsets(startLineOffset, endLineOffset);
         }
     }
 
@@ -78,7 +114,9 @@ public abstract class LPGFolderBase extends FolderBase {
      */
     protected void makeFoldable(IAst n) {
         if (fDebugMode) {
-            System.out.println("Folding node of type " + n.getClass());
+            PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
+
+            cons.println("Folding node of type " + n.getClass());
         }
         makeFoldable(n.getLeftIToken(), n.getRightIToken());
     }
@@ -92,6 +130,7 @@ public abstract class LPGFolderBase extends FolderBase {
         if (lexStream == null)
             return;
 
+        @SuppressWarnings("unchecked")
         List<IToken> adjuncts = prsStream.getAdjuncts();
 
         for (int i = 0; i < adjuncts.size(); ) {

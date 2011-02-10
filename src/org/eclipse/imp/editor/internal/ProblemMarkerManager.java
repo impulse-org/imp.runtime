@@ -1,18 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2007 IBM Corporation.
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
-*
-* Contributors:
-*    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
-
-*******************************************************************************/
+ * Copyright (c) 2007 IBM Corporation.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License v1.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+ *******************************************************************************/
 
 package org.eclipse.imp.editor.internal;
 
 import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IMarkerDelta;
@@ -44,16 +44,18 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
      * Visitors used to look if the element change delta contains a marker change.
      */
     private static class ProjectErrorVisitor implements IResourceDeltaVisitor {
-        private HashSet<IResource> fChangedElements;
+        private Set<IResource> fChangedElements;
 
-        public ProjectErrorVisitor(HashSet<IResource> changedElements) {
+        public ProjectErrorVisitor(Set<IResource> changedElements) {
             fChangedElements= changedElements;
         }
 
         public boolean visit(IResourceDelta delta) throws CoreException {
             IResource res= delta.getResource();
+
             if (res instanceof IProject && delta.getKind() == IResourceDelta.CHANGED) {
                 IProject project= (IProject) res;
+
                 if (!project.isAccessible()) {
                     // only track open Java projects
                     return false;
@@ -65,6 +67,7 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
 
         private void checkInvalidate(IResourceDelta delta, IResource resource) {
             int kind= delta.getKind();
+
             if (kind == IResourceDelta.REMOVED || kind == IResourceDelta.ADDED || (kind == IResourceDelta.CHANGED && isErrorDelta(delta))) {
                 // invalidate the resource and all parents
                 while (resource.getType() != IResource.ROOT && fChangedElements.add(resource)) {
@@ -76,13 +79,17 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
         private boolean isErrorDelta(IResourceDelta delta) {
             if ((delta.getFlags() & IResourceDelta.MARKERS) != 0) {
                 IMarkerDelta[] markerDeltas= delta.getMarkerDeltas();
+
                 for(int i= 0; i < markerDeltas.length; i++) {
                     if (markerDeltas[i].isSubtypeOf(IMarker.PROBLEM)) {
                         int kind= markerDeltas[i].getKind();
+
                         if (kind == IResourceDelta.ADDED || kind == IResourceDelta.REMOVED)
                             return true;
+
                         int severity= markerDeltas[i].getAttribute(IMarker.SEVERITY, -1);
                         int newSeverity= markerDeltas[i].getMarker().getAttribute(IMarker.SEVERITY, -1);
+
                         if (newSeverity != severity)
                             return true;
                     }
@@ -102,7 +109,7 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
      * @see IResourceChangeListener#resourceChanged
      */
     public void resourceChanged(IResourceChangeEvent event) {
-        HashSet<IResource> changedElements= new HashSet<IResource>();
+        Set<IResource> changedElements= new HashSet<IResource>();
 
         try {
             IResourceDelta delta= event.getDelta();
@@ -170,10 +177,9 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
 
     private void fireChanges(final IResource[] changes, final boolean isMarkerChange) {
         //Display display= SWTUtil.getStandardDisplay();
-	Display display = Display.getCurrent();
-	if (display == null)
-	    display= Display.getDefault();
-
+        Display display = Display.getCurrent();
+        if (display == null)
+            display= Display.getDefault();
 
         if (display != null && !display.isDisposed()) {
             display.asyncExec(new Runnable() {

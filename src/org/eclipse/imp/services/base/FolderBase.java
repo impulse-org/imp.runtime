@@ -65,7 +65,7 @@ public abstract class FolderBase implements IFoldingUpdater {
      * 
      * @param n an Object representing a program entity
      */
-    public void makeAnnotation(Object n) {	
+    public void makeAnnotation(Object n) {
 		ISourcePositionLocator nodeLocator = parseController.getSourcePositionLocator();
 		int startOffset = 0;
 		int endOffset = 0;
@@ -123,7 +123,7 @@ public abstract class FolderBase implements IFoldingUpdater {
 	{
         if (fDebugMode) {
             PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
-            cons.println("Collecting folding annotations");
+            cons.println("Collecting folding annotations for " + parseController.getPath());
         }
 		if (parseController != null)
 			this.parseController = parseController;
@@ -138,7 +138,11 @@ public abstract class FolderBase implements IFoldingUpdater {
 		
 			// But, since here we have the AST ...
 			sendVisitorToAST(newAnnotations, annotations, ast);
-	
+
+			if (fDebugMode) {
+			    dumpAnnotations(annotations, newAnnotations);
+			}
+
 			// Update the annotation model if there have been changes
 			// but not otherwise (since update leads to redrawing of the	
 			// source in the editor, which is likely to be unwelcome if
@@ -217,9 +221,7 @@ public abstract class FolderBase implements IFoldingUpdater {
 		}
 		return false;
 	}
-	
-	
-	
+
 	/**
 	 * Send a visitor to an AST representing a program in order to construct the
 	 * folding annotations.  Both the visitor type and the AST node type are language-
@@ -231,22 +233,19 @@ public abstract class FolderBase implements IFoldingUpdater {
 	 * @param ast				An Object that will be taken to represent an AST node
 	 */
 	protected abstract void sendVisitorToAST(HashMap<Annotation,Position> newAnnotations, List<Annotation> annotations, Object ast);
-	
 
-	
-    protected void dumpAnnotations(final List<Annotation> annotations, final HashMap<Annotation,Position> newAnnotations)
-	{
+    protected void dumpAnnotations(final List<Annotation> annotations, final HashMap<Annotation,Position> newAnnotations) {
+        PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
 		for(int i= 0; i < annotations.size(); i++) {
 		    Annotation a= (Annotation) annotations.get(i);
 		    Position p= (Position) newAnnotations.get(a);
 	
 		    if (p == null) {
-		    	System.out.println("Annotation position is null");
+		    	cons.println("Annotation position is null");
 		    	continue;
 		    }
-		    
-		    System.out.println("Annotation @ " + p.offset + ":" + p.length);
+
+		    cons.println("Annotation @ " + p.offset + ":" + p.length);
 		}
 	}
-    
 }

@@ -297,6 +297,10 @@ public class LanguageRegistry {
 			updateEditorRegistry(newMap);
 			setFullyInitialized();
 			runLanguageRegistrars();
+
+			// The following calls dynamically establish additional extensions for each
+			// qualifying language in the registry, so the user doesn't have to write
+			// extensions in their plugin's plugin.xml.
 			updateMarkerResolutionRegistry();
 		}
 	}
@@ -576,6 +580,8 @@ public class LanguageRegistry {
 			}
 		}
 
+		// The following makes the "light bulb" decorations appear on problem markers in the
+		// Problems View. Without this, the decorations only show up after the view is refreshed.
 		for (IConfigurationElement element : reg
 				.getConfigurationElementsFor("org.eclipse.ui.ide.markerResolution")) {
 			if (element

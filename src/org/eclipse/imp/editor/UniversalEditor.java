@@ -1118,7 +1118,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
             installExternalEditorServices();
             watchDocument(REPARSE_SCHEDULE_DELAY);
-            fParserScheduler.run(new NullProgressMonitor());
+            fParserScheduler.schedule();
         } catch (Exception e) {
             ErrorHandler.reportError("Error while creating service controllers", e);
         }

@@ -12,12 +12,15 @@
 package org.eclipse.imp.editor;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.utils.StreamUtils;
 import org.eclipse.jface.text.Document;
@@ -70,7 +73,7 @@ class ZipDocumentProvider extends StorageDocumentProvider {
         return true;
     }
 
-    private String getZipEntryContents(IURIEditorInput uriEditorInput) {
+    private String getZipEntryContents(IURIEditorInput uriEditorInput) throws CoreException {
         String contents= "";
         try {
             URI uri= uriEditorInput.getURI();
@@ -82,7 +85,10 @@ class ZipDocumentProvider extends StorageDocumentProvider {
             ZipFile zipFile= new ZipFile(new File(jarPath));
             ZipEntry entry= zipFile.getEntry(entryPath);
             InputStream is= zipFile.getInputStream(entry);
+
             contents= StreamUtils.readStreamContents(is);
+        } catch (IOException e) {
+            throw new CoreException(new Status(IStatus.ERROR, RuntimePlugin.IMP_RUNTIME, 0, "Error encountered while obtaining zip file contents", e));
         } catch (Exception e) {
             RuntimePlugin.getInstance().logException("Exception caught while obtaining contents of zip file entry", e);
         }

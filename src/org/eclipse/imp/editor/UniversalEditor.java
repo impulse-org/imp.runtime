@@ -11,6 +11,7 @@
 
 package org.eclipse.imp.editor;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -32,11 +33,12 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.debug.ui.actions.IToggleBreakpointsTarget;
 import org.eclipse.debug.ui.actions.ToggleBreakpointAction;
 import org.eclipse.help.IContextProvider;
-import org.eclipse.imp.actions.OpenAction;
 import org.eclipse.imp.actions.QuickMenuAction;
 import org.eclipse.imp.actions.RulerEnableDisableBreakpointAction;
 import org.eclipse.imp.core.ErrorHandler;
@@ -282,7 +284,8 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         return fLangSpecificPrefs;
     }
 
-    @SuppressWarnings("unchecked")
+
+    @SuppressWarnings("rawtypes")
     public Object getAdapter(Class required) {
         if (IContentOutlinePage.class.equals(required)) {
             return fServiceControllerManager == null ? null : fServiceControllerManager.getOutlineController();
@@ -301,6 +304,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
         if (IContextProvider.class.equals(required)) {
             return IMPHelp.getHelpContextProvider(this, fLanguageServiceManager, IMP_EDITOR_CONTEXT);
+        }
+        if (IAnnotationModel.class.equals(required)) {
+            return fAnnotationModel;
         }
         return super.getAdapter(required);
     }
@@ -1634,11 +1640,14 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     }
 
     protected void doSetInput(IEditorInput input) throws CoreException {
-    	// SMS 22 May 2007:  added try/catch around doSetInput(..)
+        // Catch CoreExceptions here, since it's possible that things like IOExceptions occur
+        // while retrieving the input's contents, e.g., if the given input doesn't exist.
     	try {
     		super.doSetInput(input);
-    	} catch (NullPointerException e) {
-    		return;
+    	} catch (CoreException e) {
+    	    if (e.getCause() instanceof IOException) {
+    	        throw new CoreException(new Status(IStatus.ERROR, RuntimePlugin.IMP_RUNTIME, 0, "Unable to read source text", e.getStatus().getException()));
+    	    }
     	}
     	setInsertMode(SMART_INSERT);
 	

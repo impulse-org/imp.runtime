@@ -120,7 +120,7 @@ public class ModelStructureCreator extends StructureCreator {
 
             pc.initialize(null, null, null);
 
-            Object astRoot= pc.parse(document.get(), monitor);
+            Object astRoot= pc.parse(document, monitor);
             DocumentRangeNode compareRoot;
 
             if (astRoot != null) {

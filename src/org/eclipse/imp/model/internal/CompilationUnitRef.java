@@ -148,7 +148,7 @@ public class CompilationUnitRef implements ICompilationUnit {
         IPath projRelPath= fPath.isAbsolute() ? fPath.removeFirstSegments(1)
                 : fPath;
         fParseCtrlr.initialize(projRelPath, fProject, msgHandler);
-        return fParseCtrlr.parse(getSource(), monitor);
+        return fParseCtrlr.parse(getDocument(), monitor);
     }
 
     public String getSource() {
@@ -156,38 +156,6 @@ public class CompilationUnitRef implements ICompilationUnit {
     	// If this isn't done, things like quick-fix support won't be computed relative to the editor
     	// buffer contents, which is wrong.
     	return getDocument().get();
-//        String absPath= (fPath.getDevice() != null) ? fPath.toOSString()
-//                : (fPath.isAbsolute() ? ResourcesPlugin.getWorkspace()
-//                        .getRoot().getLocation().append(fPath).toOSString()
-//                        : fProject.getRawProject().getLocation().append(fPath)
-//                                .toOSString());
-//        File inFile= new File(absPath);
-//
-//        if (!inFile.exists() || !inFile.canRead()) {
-//            throw new IllegalArgumentException(
-//                    "CompilationUnitRef.getSource(): file does not exist or cannot be read: "
-//                            + this);
-//        }
-//
-//        // Get a buffered reader for the input file
-//        FileReader fileReader= null;
-//        long fileLen= inFile.length();
-//        try {
-//            fileReader= new FileReader(inFile);
-//            char[] buffer= new char[(int) fileLen];
-//            fileReader.read(buffer);
-//            return new String(buffer);
-//        } catch (FileNotFoundException e) {
-//            ErrorHandler
-//                    .reportError("CompilationUnitRef.getSource(): file not found: "
-//                            + this);
-//            return null;
-//        } catch (IOException e) {
-//            ErrorHandler
-//                    .reportError("CompilationUnitRef.getSource(): cannot read file: "
-//                            + this);
-//            return null;
-//        }
     }
 
     public void commit(IProgressMonitor mon) {

@@ -20,6 +20,7 @@ import org.eclipse.imp.language.Language;
 import org.eclipse.imp.model.ISourceProject;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
+import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.IRegion;
 
 public interface IParseController extends ILanguageService {
@@ -55,12 +56,24 @@ public interface IParseController extends ILanguageService {
      * The AST should typically be cached, so that immediately after a
      * successful parse, getCurrentAst() returns the same AST as this method
      * produced.
-     * @param input the source text to parse
-     * @param scanOnly deprecated; ignore
+     * @param source the source text to parse
      * @param monitor
      * @return the AST, if any, resulting from the parse
      */
-    Object parse(String input, IProgressMonitor monitor);
+    Object parse(String source, IProgressMonitor monitor);
+
+    /**
+     * Parse the given source document and return the resulting AST. If possible,
+     * and if parsing takes long, should check the {@link IProgressMonitor}
+     * for cancellation requests (e.g., if the user started editing again).
+     * The AST should typically be cached, so that immediately after a
+     * successful parse, getCurrentAst() returns the same AST as this method
+     * produced.
+     * @param document the {@link IDocument} comprising the source text to parse
+     * @param monitor
+     * @return the AST, if any, resulting from the parse
+     */
+    Object parse(IDocument document, IProgressMonitor monitor);
 
     /**
      * @return the AST corresponding to the most recently-parsed source text,
@@ -69,6 +82,12 @@ public interface IParseController extends ILanguageService {
      * performed).
      */
     Object getCurrentAst();
+
+    /**
+     * @return the {@link IDocument} most recently parsed. May return null if
+     * the most recently parsed source was a raw String and not an IDocument.
+     */
+    IDocument getDocument();
 
     /**
      * @return an Iterator that iterates over the tokens contained within

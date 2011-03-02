@@ -89,7 +89,7 @@ public class ParserScheduler extends Job {
             if (sourceStillExists()) {
                 fMsgHandler.clearMessages();
                 // Don't bother to retrieve the AST; we don't need it; just make sure the document gets parsed.
-                fParseController.parse(document.get(), monitor);
+                fParseController.parse(document, monitor);
                 fMsgHandler.endMessages();
 //          } else {
 //              System.err.println("Scheduled parsing was bypassed due to project deletion.");

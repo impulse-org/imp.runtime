@@ -1,9 +1,11 @@
 package org.eclipse.imp.parser;
 
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.imp.language.Language;
 import org.eclipse.imp.language.LanguageRegistry;
 import org.eclipse.imp.model.ISourceProject;
+import org.eclipse.jface.text.IDocument;
 
 /**
  * Base class for implementations of IParseController that takes care of maintaining the
@@ -42,6 +44,12 @@ public abstract class ParseControllerBase implements IParseController {
 	protected Object fCurrentAst;
 
 	/**
+	 * The most-recently parsed source document. May be null if this parse controller
+	 * has never parsed an IDocument before.
+	 */
+	protected IDocument fDocument;
+
+	/**
 	 * Constructor that does not set up the fLanguage field.<br>
 	 * Only intended for use of parse controllers outside IMP.
 	 */
@@ -55,6 +63,12 @@ public abstract class ParseControllerBase implements IParseController {
 		this.fProject= project;
 		this.fFilePath= filePath;
 		this.handler= handler;
+	}
+
+	public Object parse(IDocument doc, IProgressMonitor monitor) {
+	    fDocument= doc;
+
+	    return parse(fDocument.get(), monitor);
 	}
 
 	public Language getLanguage() {
@@ -75,5 +89,9 @@ public abstract class ParseControllerBase implements IParseController {
 
 	public Object getCurrentAst() {
 		return fCurrentAst;
+	}
+
+	public IDocument getDocument() {
+	    return fDocument;
 	}
 }

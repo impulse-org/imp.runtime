@@ -305,9 +305,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (IContextProvider.class.equals(required)) {
             return IMPHelp.getHelpContextProvider(this, fLanguageServiceManager, IMP_EDITOR_CONTEXT);
         }
-        if (IAnnotationModel.class.equals(required)) {
-            return fAnnotationModel;
-        }
+        // This was intended to simplify a bit of test code. Unfortunately, it breaks the editor
+        // in the presence of search hits, since the search UI classes actually look for an editor
+        // that adapts to IAnnotationModel, and behave differently, and this interacts badly with
+        // the projection (i.e. folding) support. Go figure.
+//      if (IAnnotationModel.class.equals(required)) {
+//          return fAnnotationModel;
+//      }
         return super.getAdapter(required);
     }
 

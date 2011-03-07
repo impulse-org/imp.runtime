@@ -83,7 +83,7 @@ public class EditorInputUtils {
             URI uri= uriEditorInput.getURI();
             String path= uri.getPath();
             // Bug 526: uri.getHost() can be null for a local file URL
-            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && !path.startsWith(wsRoot.getLocation().toOSString())) {
+            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && path.startsWith(wsRoot.getLocation().toOSString())) {
                 file= wsRoot.getFile(new Path(path));
             }
         }

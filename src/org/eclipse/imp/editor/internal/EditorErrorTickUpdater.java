@@ -74,13 +74,13 @@ public class EditorErrorTickUpdater implements IProblemChangedListener {
             return;
         }
         
-    	// SMS 9 Aug 2006
-    	// fLabelProvider may be null, so check for that
-        if (fLabelProvider == null) {
+    	// If there's no label provider or the file doesn't exist, do nothing
+        if (fLabelProvider == null || !file.exists()) {
         	return;
         }
-        
+
         Image newImage= fLabelProvider.getImage(file);
+
         if (titleImage != newImage) {
             postImageChange(newImage);
         }

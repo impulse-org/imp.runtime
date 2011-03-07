@@ -69,6 +69,7 @@ import org.eclipse.imp.preferences.IPreferencesService.StringPreferenceListener;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
+import org.eclipse.imp.services.IEditorInputResolver;
 import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -747,16 +748,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         IEditorInput editorInput= getEditorInput();
         IFile file = null;
         IPath filePath = null;
-        
-		if (fLanguageServiceManager != null
-				&& fLanguageServiceManager.getEditorInputResolver() != null) {
-			file = fLanguageServiceManager.getEditorInputResolver().getFile(
-					editorInput);
-			filePath = fLanguageServiceManager.getEditorInputResolver().getPath(
-					editorInput);
-		}
 
-		else {
+		IEditorInputResolver editorInputResolver= fLanguageServiceManager.getEditorInputResolver();
+
+		if (fLanguageServiceManager != null && editorInputResolver != null) {
+			file = editorInputResolver.getFile(editorInput);
+			filePath = editorInputResolver.getPath(editorInput);
+		} else {
 			file = EditorInputUtils.getFile(editorInput);
 			filePath = EditorInputUtils.getPath(editorInput);
 		}
@@ -1140,10 +1138,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         // Only set the editor's title bar icon if the language has a label provider
         if (fLanguageServiceManager != null && fLanguageServiceManager.getLabelProvider() != null) {
             IEditorInput editorInput= getEditorInput();
-            IFile file= EditorInputUtils.getFile(editorInput);
+            IEditorInputResolver editorInputResolver= fLanguageServiceManager.getEditorInputResolver();
+            Object fileOrPath= (editorInputResolver != null) ? editorInputResolver.getFile(editorInput) :
+                EditorInputUtils.getFile(editorInput);
+
+            if (fileOrPath == null) {
+                fileOrPath = this.fLanguageServiceManager.getParseController().getPath();
+            }
 
             try {
-                setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(file));
+                setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(fileOrPath));
             } catch (Exception e) {
                 ErrorHandler.reportError("Error while setting source editor title icon from label provider", e);
             }

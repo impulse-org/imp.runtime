@@ -28,10 +28,17 @@ import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.source.AnnotationModel;
 import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IStorageEditorInput;
 import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.editors.text.StorageDocumentProvider;
+import org.eclipse.ui.texteditor.IDocumentProvider;
 
-class ZipDocumentProvider extends StorageDocumentProvider {
+/**
+ * An {@link IDocumentProvider} implementation that handles IURIEditorInputs that
+ * refer to entries in zip (and jar) files, as well as IStorageEditorInputs.
+ * @author rfuhrer
+ */
+class ZipStorageEditorDocumentProvider extends StorageDocumentProvider {
     public static boolean canHandle(IEditorInput editorInput) {
         if (editorInput instanceof IURIEditorInput) {
             IURIEditorInput uriEditorInput = (IURIEditorInput) editorInput;
@@ -44,6 +51,8 @@ class ZipDocumentProvider extends StorageDocumentProvider {
             String path= uri.getPath();
 
             return path.contains(".jar:") || path.contains(".zip:");
+        } else if (editorInput instanceof IStorageEditorInput) {
+            return true;
         }
         return false;
     }
@@ -57,20 +66,38 @@ class ZipDocumentProvider extends StorageDocumentProvider {
     @Override
     protected ElementInfo createElementInfo(Object element) throws CoreException {
         ElementInfo ei= super.createElementInfo(element);
-        ei.fDocument= new Document(getZipEntryContents((IURIEditorInput) element));
+        if (element instanceof IURIEditorInput) {
+            ei.fDocument= new Document(getZipEntryContents((IURIEditorInput) element));
+        } else if (element instanceof IStorageEditorInput) {
+            ei.fDocument= new Document(getStorageContents((IStorageEditorInput) element));
+        }
         return ei;
     }
 
     @Override
     protected boolean setDocumentContent(IDocument document, IEditorInput editorInput) throws CoreException {
-        if (!(editorInput instanceof IURIEditorInput)) {
-            throw new IllegalArgumentException("Inappropriate type of IEditorInput passed to ZipDocumentProvider: " + editorInput.getClass());
+        String contents= null;
+
+        if (editorInput instanceof IURIEditorInput) {
+            IURIEditorInput uriEditorInput = (IURIEditorInput) editorInput;
+
+            contents = getZipEntryContents(uriEditorInput);
+        } else if (editorInput instanceof IStorageEditorInput) {
+            IStorageEditorInput storageEditorInput= (IStorageEditorInput) editorInput;
+
+            contents = getStorageContents(storageEditorInput);
+        } else {
+            throw new IllegalArgumentException("Inappropriate type of IEditorInput passed to ZipStorageEditorDocumentProvider: " + editorInput.getClass());
         }
-        IURIEditorInput uriEditorInput = (IURIEditorInput) editorInput;
-        String contents = getZipEntryContents(uriEditorInput);
 
         document.set(contents);
         return true;
+    }
+
+    private String getStorageContents(IStorageEditorInput storageEditorInput) throws CoreException {
+        InputStream is= storageEditorInput.getStorage().getContents();
+
+        return StreamUtils.readStreamContents(is);
     }
 
     private String getZipEntryContents(IURIEditorInput uriEditorInput) throws CoreException {

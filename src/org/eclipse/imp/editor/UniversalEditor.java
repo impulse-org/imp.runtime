@@ -681,9 +681,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public IDocumentProvider getDocumentProvider() {
         IEditorInput editorInput= getEditorInput();
 
-        if (ZipDocumentProvider.canHandle(editorInput)) {
+        if (ZipStorageEditorDocumentProvider.canHandle(editorInput)) {
             if (fZipDocProvider == null) {
-                fZipDocProvider= new ZipDocumentProvider();
+                fZipDocProvider= new ZipStorageEditorDocumentProvider();
             }
             return fZipDocProvider;
         }

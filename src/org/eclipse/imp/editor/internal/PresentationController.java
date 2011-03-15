@@ -182,9 +182,7 @@ public class PresentationController implements IModelListener {
         aggregateTextPresentation(parseController, monitor, damage, presentation, locator);
         if (monitor.isCanceled()) {
             System.err.println("Ignored cancelled presentation update");
-        } else if (presentation.isEmpty()) {
-            System.err.println("Ignored empty presentation update");
-        } else {
+        } else if (!presentation.isEmpty()) {
             submitTextPresentation(presentation);
         }
     }

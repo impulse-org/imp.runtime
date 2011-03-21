@@ -41,7 +41,7 @@ import org.eclipse.swt.widgets.Display;
  */
 public class ProblemMarkerManager implements IResourceChangeListener, IAnnotationModelListener, IAnnotationModelListenerExtension {
     /**
-     * Visitors used to look if the element change delta contains a marker change.
+     * Visitor used to determine whether the resource delta contains a marker change.
      */
     private static class ProjectErrorVisitor implements IResourceDeltaVisitor {
         private Set<IResource> fChangedElements;
@@ -81,14 +81,19 @@ public class ProblemMarkerManager implements IResourceChangeListener, IAnnotatio
                 IMarkerDelta[] markerDeltas= delta.getMarkerDeltas();
 
                 for(int i= 0; i < markerDeltas.length; i++) {
-                    if (markerDeltas[i].isSubtypeOf(IMarker.PROBLEM)) {
-                        int kind= markerDeltas[i].getKind();
+                    IMarkerDelta markerDelta= markerDeltas[i];
+
+                    if (markerDelta.isSubtypeOf(IMarker.PROBLEM)) {
+                        int kind= markerDelta.getKind();
+
 
                         if (kind == IResourceDelta.ADDED || kind == IResourceDelta.REMOVED)
                             return true;
 
-                        int severity= markerDeltas[i].getAttribute(IMarker.SEVERITY, -1);
-                        int newSeverity= markerDeltas[i].getMarker().getAttribute(IMarker.SEVERITY, -1);
+
+                        int severity= markerDelta.getAttribute(IMarker.SEVERITY, -1);
+                        int newSeverity= markerDelta.getMarker().getAttribute(IMarker.SEVERITY, -1);
+
 
                         if (newSeverity != severity)
                             return true;

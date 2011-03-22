@@ -133,6 +133,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -739,8 +740,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         initializeEditorContributors();
 
-        // SMS 3 Oct 2008:  moved call to watchDocument(..) to initiateServiceControllers().
         watchForSourceMove();
+
+        if (isEditable() && getResourceDocumentMapListener() != null) {
+            IResourceDocumentMapListener rdml = getResourceDocumentMapListener();
+
+            rdml.registerDocument(getDocumentProvider().getDocument(getEditorInput()), EditorInputUtils.getFile(getEditorInput()), this);
+        }
     }
 
     private void initializeParseController() {
@@ -896,13 +902,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         doc.addDocumentListener(fDocumentListener= new IDocumentListener() {
             public void documentAboutToBeChanged(DocumentEvent event) {}
             public void documentChanged(DocumentEvent event) {
-//              System.out.println("Document change event @ offset " + event.fOffset + " & length " + event.fLength);
                 fParserScheduler.cancel();
                 fParserScheduler.schedule(reparse_schedule_delay);
             }
         });
     }
-    
+
     private class BracketInserter implements VerifyKeyListener {
         private final Map<String,String> fFencePairs= new HashMap<String, String>();
         private final String fOpenFences;
@@ -1001,12 +1006,54 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             ((ITextViewerExtension) sourceViewer).prependVerifyKeyListener(fBracketInserter);
     }
 
+    /**
+     * Sub-classes may override this method. It's intended to allow language-
+     * specific editor document-aware services like indexing to get notified
+     * when the resource/document association changes.
+     */
+    protected IResourceDocumentMapListener getResourceDocumentMapListener() {
+        return null; // base behavior - nothing to do
+    }
+
+    /**
+     * The following listener is intended to detect when the document associated
+     * with this editor changes its identity, which happens when, e.g., the
+     * underlying resource gets moved or renamed.
+     */
+    private IPropertyListener fEditorInputPropertyListener = new IPropertyListener() {
+        public void propertyChanged(Object source, int propId) {
+            if (source == UniversalEditor.this && propId == IEditorPart.PROP_INPUT) {
+                IDocument oldDoc= getParseController().getDocument();
+                IDocument curDoc= getDocumentProvider().getDocument(getEditorInput()); 
+
+                if (curDoc != oldDoc) {
+                    // Need to unwatch the old document and watch the new document
+                    oldDoc.removeDocumentListener(fDocumentListener);
+                    curDoc.addDocumentListener(fDocumentListener);
+
+                    // Now notify anyone else who needs to know that the document's
+                    // identity changed.
+                    IResourceDocumentMapListener rdml = getResourceDocumentMapListener();
+
+                    if (rdml != null) {
+                        if (oldDoc != null) {
+                            rdml.unregisterDocument(oldDoc);
+                        }
+                        rdml.updateResourceDocumentMap(curDoc, EditorInputUtils.getFile(getEditorInput()), UniversalEditor.this);
+                    }
+                }
+            }
+        }
+    };
+
     private void watchForSourceMove() {
         if (fLanguageServiceManager == null ||
             fLanguageServiceManager.getParseController() == null ||
             fLanguageServiceManager.getParseController().getProject() == null) {
             return;
         }
+        // We need to see when the editor input changes, so we can watch the new document
+        addPropertyListener(fEditorInputPropertyListener);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(fResourceListener= new IResourceChangeListener() {
             public void resourceChanged(IResourceChangeEvent event) {
                 if (event.getType() != IResourceChangeEvent.POST_CHANGE)
@@ -1020,6 +1067,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
                 if (rd != null) {
                     if ((rd.getFlags() & IResourceDelta.MOVED_TO) == IResourceDelta.MOVED_TO) {
+                        // The net effect of the following is to re-initialize() the IParseController with the new path
                         IPath newPath= rd.getMovedToPath();
                         IPath newProjRelPath= newPath.removeFirstSegments(1);
                         String newProjName= newPath.segment(0);
@@ -1281,6 +1329,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         
         if (fResourceListener != null) {
         	ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
+        }
+        if (isEditable() && getResourceDocumentMapListener() != null) {
+            getResourceDocumentMapListener().unregisterDocument(getDocumentProvider().getDocument(getEditorInput()));
         }
 
         if (fLanguageServiceManager != null) {

@@ -295,8 +295,8 @@ public class LanguageRegistry {
             }
 			
 			updateEditorRegistry(newMap);
-			runLanguageRegistrars();
 			setFullyInitialized();
+			runLanguageRegistrars();
 			
 
 			// The following calls dynamically establish additional extensions for each

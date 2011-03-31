@@ -89,6 +89,7 @@ import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -143,6 +144,7 @@ import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.handlers.IHandlerActivation;
 import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
@@ -1094,9 +1096,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             fontName= fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
         }
         if (fontName == null) {
-            IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
+            // Don't use the IMP SourceFont pref key on the IMP RuntimePlugin's preference
+            // store; use the JFaceResources TEXT_FONT pref key on the WorkbenchPlugin's
+            // preference store. This way, the workbench-wide setting in "General" ->
+            // "Appearance" => "Colors and Fonts" will have the desired effect, in the
+            // absence of a language-specific setting.
+//          IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
+//
+//          fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
 
-            fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
+            IPreferenceStore prefStore= WorkbenchPlugin.getDefault().getPreferenceStore();
+
+            fontName= prefStore.getString(JFaceResources.TEXT_FONT);
         }
         FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
 

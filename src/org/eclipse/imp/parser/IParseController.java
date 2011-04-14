@@ -90,6 +90,9 @@ public interface IParseController extends ILanguageService {
     IDocument getDocument();
 
     /**
+     * This method can only be called after a call to parse(...), and
+     * the iterator returned enumerates the tokens created by the most
+     * recent parse.
      * @return an Iterator that iterates over the tokens contained within
      * the given region, including any tokens that are only partially
      * contained

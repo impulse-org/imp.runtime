@@ -24,10 +24,7 @@ public class PreferenceValues {
   private final static char[] escapable;
   
   static { 
-    escapable = new char[] {
-      '+' , '-' , '(' , ')' , '\"' , '!' , '@' , '`' , '~' , '.' , '/' ,
-      '%' , '&' , '^' , ':' , ';' , '\'' , '\\' , ',' , '{' , ' ' , '}' ,
-      '[' , ']' , '?' , ',' , '<' , '>' , '=' , '#' , '*' , '_' , '$' };
+    escapable = new char[] { ':' , '{' , ' ' , '}' , '$', '\\' };
   
       // sorting is needed since we use Arrays.binarySearch later
       Arrays.sort(escapable);

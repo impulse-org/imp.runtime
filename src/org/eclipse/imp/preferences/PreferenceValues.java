@@ -79,7 +79,7 @@ public class PreferenceValues {
           elements.add(parseVariable());
         }
         else {
-          return new Error("expected \'{\', but got " + ch + " at offset " + cursor);
+          return new Error("expected \'{\', but got " + peek() + " at offset " + cursor);
         }
         break;
       case '\\':

@@ -8,7 +8,6 @@ Bundle-ActivationPolicy: lazy
 Eclipse-LazyStart: true
 Bundle-Vendor: rfuhrer@watson.ibm.com
 Require-Bundle: com.ibm.icu,
- lpg.runtime.java;bundle-version="2.0.18",
  org.eclipse.compare,
  org.eclipse.core.filesystem,
  org.eclipse.core.resources,

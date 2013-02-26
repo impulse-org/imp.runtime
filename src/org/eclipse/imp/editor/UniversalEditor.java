@@ -402,7 +402,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // It would be better to match the markers to the annotations, and decide which
             // annotations to remove.
             if (fParserScheduler != null) {
+              if (!isMarkerChange) {
                 fParserScheduler.schedule(50);
+              }
             }
         }
     }

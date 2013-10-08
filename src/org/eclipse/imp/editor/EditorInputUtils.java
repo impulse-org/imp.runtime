@@ -82,6 +82,7 @@ public class EditorInputUtils {
             IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
             URI uri= uriEditorInput.getURI();
             String path= uri.getPath();
+            // Bug 526: uri.getHost() can be null for a local file URL
             String workspaceRoot = fixWindowsPath(wsRoot.getLocation().toString());
             if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && path.startsWith(workspaceRoot)) {
                 file= wsRoot.getFile(new Path(path));

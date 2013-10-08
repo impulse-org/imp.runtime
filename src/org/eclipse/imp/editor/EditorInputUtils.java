@@ -82,13 +82,22 @@ public class EditorInputUtils {
             IWorkspaceRoot wsRoot= ResourcesPlugin.getWorkspace().getRoot();
             URI uri= uriEditorInput.getURI();
             String path= uri.getPath();
-            // Bug 526: uri.getHost() can be null for a local file URL
-            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && path.startsWith(wsRoot.getLocation().toOSString())) {
+            String workspaceRoot = fixWindowsPath(wsRoot.getLocation().toString());
+            if (uri.getScheme().equals("file") && (uri.getHost() == null || uri.getHost().equals("localhost")) && path.startsWith(workspaceRoot)) {
                 file= wsRoot.getFile(new Path(path));
             }
         }
         return file;
     }
+
+    /*
+     * Fixes an issue where a windows file URI only has two instead of three slashes.
+     * Offically if the authority is empty, you need to add a slash anyway.
+     * *nix paths start already with this slash, but windows does not use this convention and needs this.
+     */
+	private static String fixWindowsPath(String path) {
+		return path.startsWith("/") ? path : "/" + path;
+	}
 
     /**
      * @return the name extension (e.g., "java" or "cpp") corresponding to this

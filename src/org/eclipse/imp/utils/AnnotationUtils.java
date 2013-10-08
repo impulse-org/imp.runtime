@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.imp.editor.MarkOccurrencesAction;
+import org.eclipse.imp.editor.quickfix.IAnnotation;
+import org.eclipse.imp.parser.IMessageHandler;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.Position;
@@ -28,6 +30,7 @@ import org.eclipse.jface.text.source.IAnnotationModel;
 import org.eclipse.jface.text.source.ISourceViewer;
 import org.eclipse.jface.text.source.projection.AnnotationBag;
 import org.eclipse.jface.text.source.projection.ProjectionAnnotation;
+import org.eclipse.ui.texteditor.MarkerAnnotation;
 
 public class AnnotationUtils {
     // Following is just used for debugging to discover new annotation types to filter out
@@ -78,18 +81,36 @@ public class AnnotationUtils {
      * @return true, if the given Annotation and Position are redundant, given the annotation
      * information in the given Map
      */
-	public static boolean isDuplicateAnnotation(Map<Integer, List<String>> map, Annotation annotation, Position position) {
-		if (!map.containsKey(position.offset)) {
-			List<String> list = new ArrayList<String>();
-			list.add(annotation.getText());
-			map.put(position.offset, list);
-			return false;
+	public static boolean addAndCheckDuplicateAnnotation(Map<Integer, List<Object>> map, Annotation annotation, Position position) {
+	    List<Object> annotationsAtPosition;
+
+	    if (!map.containsKey(position.offset)) {
+			annotationsAtPosition = new ArrayList<Object>();
+			map.put(position.offset, annotationsAtPosition);
+		} else {
+		    annotationsAtPosition = map.get(position.offset);
 		}
 
-		List<String> list = map.get(position.offset);
-		if (!list.contains(annotation.getText())) {
-			list.add(annotation.getText());
-			return false;
+		// TODO this should call out to a language extension point first to see if the language can resolve duplicates
+		
+		// Check to see if an error code is present on the marker / annotation
+		Integer errorCode = -1;
+
+		if (annotation instanceof IAnnotation) {
+			errorCode = ((IAnnotation) annotation).getId();
+		} else if (annotation instanceof MarkerAnnotation) {
+			errorCode = ((MarkerAnnotation) annotation).getMarker().getAttribute(IMessageHandler.ERROR_CODE_KEY, -1);
+		}
+		
+		// Fall back to comparing the text associated with this annotation
+		if (errorCode == -1) {
+			if (!annotationsAtPosition.contains(annotation.getText())) {
+			    annotationsAtPosition.add(annotation.getText());
+				return false;
+			}			
+		} else if (!annotationsAtPosition.contains(errorCode)) {
+		    annotationsAtPosition.add(errorCode);
+			return false;	
 		}
 
 		return true;
@@ -164,7 +185,7 @@ public class AnnotationUtils {
 		List<Annotation> annotations = new ArrayList<Annotation>();
 		Iterator<?> iterator = model.getAnnotationIterator();
 
-		Map<Integer, List<String>> map = new HashMap<Integer, List<String>>();
+		Map<Integer, List<Object>> map = new HashMap<Integer, List<Object>>();
 
 		while (iterator.hasNext()) {
 			Annotation annotation = (Annotation) iterator.next();
@@ -181,13 +202,13 @@ public class AnnotationUtils {
 					position = model.getPosition(bagAnnotation);
 					if (position != null
 							&& includeAnnotation(bagAnnotation, position)
-							&& !isDuplicateAnnotation(map, bagAnnotation, position))
+							&& !addAndCheckDuplicateAnnotation(map, bagAnnotation, position))
 						annotations.add(bagAnnotation);
 
 				}
 			} else {
 				if (includeAnnotation(annotation, position)
-						&& !isDuplicateAnnotation(map, annotation, position)) {
+						&& !addAndCheckDuplicateAnnotation(map, annotation, position)) {
 					annotations.add(annotation);
 				}
 			}

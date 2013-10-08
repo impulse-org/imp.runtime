@@ -18,8 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import lpg.runtime.IAst;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ProjectScope;
@@ -33,14 +31,6 @@ import org.eclipse.core.runtime.preferences.DefaultScope;
 import org.eclipse.core.runtime.preferences.IEclipsePreferences;
 import org.eclipse.core.runtime.preferences.IScopeContext;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.imp.preferences.PreferenceValueParser.ASTNode;
-import org.eclipse.imp.preferences.PreferenceValueParser.AbstractVisitor;
-import org.eclipse.imp.preferences.PreferenceValueParser.escapedChar;
-import org.eclipse.imp.preferences.PreferenceValueParser.optParameter;
-import org.eclipse.imp.preferences.PreferenceValueParser.simpleStringPrefixed;
-import org.eclipse.imp.preferences.PreferenceValueParser.substPrefixed;
-import org.eclipse.imp.preferences.PreferenceValueParser.substitution;
-import org.eclipse.imp.preferences.PreferenceValueParser.substitutionList;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.osgi.framework.Bundle;
 import org.osgi.service.prefs.BackingStoreException;
@@ -527,7 +517,7 @@ public class PreferencesService implements IPreferencesService {
     /**
      * An evaluator for non-parameterized (constant) references.
      */
-    private interface ConstantEvaluator {
+    public interface ConstantEvaluator {
         String getValue();
     }
 
@@ -564,7 +554,7 @@ public class PreferencesService implements IPreferencesService {
     /**
      * An evaluator for parameterized value references.
      */
-    private interface ParamEvaluator {
+    public interface ParamEvaluator {
         String getValue(String param);
     }
 
@@ -736,15 +726,21 @@ public class PreferencesService implements IPreferencesService {
         for(int i= 0; i < testPairs.length; i++) {
             String input= testPairs[i][0];
             String expectedOutput= testPairs[i][1];
+            try {
             String result= svc.performSubstitutions(input);
 
             System.out.println("Input  = '" + input + "'");
             System.out.println("Result = '" + result + "'");
             if (!expectedOutput.equals(result)) {
-                System.err.println("Test failed: expected output '" + expectedOutput + "'!");
+                System.err.println("Test failed: got output " + result + ", but expected output '" + expectedOutput + "'!");
                 failedCount++;
             } else {
                 System.out.println("Test passed.");
+            }
+            }
+            catch (Throwable e) {
+              System.out.println("Test failed: got exception: " + e + ", but expected output '" + expectedOutput + "'!");
+              e.printStackTrace();
             }
             System.out.println();
         }
@@ -761,87 +757,11 @@ public class PreferencesService implements IPreferencesService {
         if (value == null || value.length() == 0) {
             return value;
         }
-        PreferenceValueParser parser= new PreferenceValueParser();
+        PreferenceValues parser= new PreferenceValues();
 
-        ASTNode ast= parser.parser(value);
+        PreferenceValues.Value ast= parser.parse(value);
 
-        if (ast == null) { return "Invalid preference: '" + value + "': " + parser.getErrorMessage(); }
-
-        final Map<IAst,String> valueMap= new HashMap<IAst, String>();
-
-        ast.accept(new AbstractVisitor() {
-            public void postVisit(IAst node) {
-//                  System.out.println("post-visiting node '" + node + "'");
-                if (node instanceof escapedChar) {
-                    escapedChar ch= (escapedChar) node;
-                    String nodeStr= nodeString(ch);
-
-                    if (nodeStr.charAt(1) == '$') {
-                        valueMap.put(node, nodeStr.substring(1));
-                    } else {
-                        valueMap.put(node, nodeStr);
-                    }
-                } else if (node instanceof simpleStringPrefixed) {
-                    simpleStringPrefixed strPref= (simpleStringPrefixed) node;
-                    String valString= nodeString((ASTNode) strPref.getvalStringNoSubst());
-
-                    valString= valString.replaceAll("\\\\\\$", "$").replace("\\\\}", "}");
-                    if (strPref.getsubstPrefixed() != null) {
-                        String result= valString + valueMap.get(strPref.getsubstPrefixed());
-                        valueMap.put(node, result);
-                    } else {
-                        valueMap.put(node, valString);
-                    }
-                } else if (node instanceof substPrefixed) {
-                    substPrefixed subPref= (substPrefixed) node;
-
-                    if (subPref.getsimpleStringPrefixed() != null) {
-                        String result= valueMap.get(subPref.getsubstitutionList()) + valueMap.get(subPref.getsimpleStringPrefixed());
-                        valueMap.put(node, result);
-                    } else {
-                        valueMap.put(node, valueMap.get(subPref.getsubstitutionList()));
-                    }
-                } else if (node instanceof substitutionList) {
-                    substitutionList subList= (substitutionList) node;
-                    StringBuilder sb= new StringBuilder();
-
-                    for(int i=0; i < subList.size(); i++) {
-                        sb.append(valueMap.get(subList.getsubstitutionAt(i)));
-                    }
-                    valueMap.put(node, sb.toString());
-                } else if (node instanceof substitution) {
-                    substitution sub= (substitution) node;
-                    String id= nodeString(sub.getident());
-                    optParameter parm= sub.getoptParameter();
-
-                    if (parm != null) {
-                        ParamEvaluator e= sParamMap.get(id);
-                        String parmStr= valueMap.get(parm.getvalue());
-                        String parmVal= (e != null) ? e.getValue(parmStr) : ("<no such preference: " + id + ">");
-
-                        valueMap.put(node, parmVal);
-                    } else {
-                        if (sConstantMap.containsKey(id)) {
-                            String constVal= sConstantMap.get(id).getValue();
-                            valueMap.put(node, constVal);
-                        } else {
-                            String refVal= (project != null) ? getStringPreference(project, id) : getStringPreference(id);
-                            valueMap.put(node, refVal);
-                        }
-                    }
-                }
-            }
-            public boolean preVisit(IAst element) {
-                return true;
-            }
-            private String nodeString(ASTNode node) {
-                return value.substring(node.leftIToken.getStartOffset(), node.rightIToken.getEndOffset()+1);
-            }
-            @Override
-            public void unimplementedVisitor(String s) { }
-        });
-        String result= valueMap.get(ast);
-        return result;
+        return ast.substitute(sParamMap, sConstantMap);
     }
 
 	/*	

@@ -95,7 +95,7 @@ public class ParserScheduler extends Job {
 //              System.err.println("Scheduled parsing was bypassed due to project deletion.");
             }
 //          System.out.println("Parsing complete.");
-            if (!monitor.isCanceled()) {
+            if (!monitor.isCanceled() && sourceStillExists()) {
                 notifyModelListeners(monitor);
             }
         } catch (Exception e) {

@@ -69,6 +69,7 @@ import org.eclipse.imp.preferences.IPreferencesService.StringPreferenceListener;
 import org.eclipse.imp.runtime.RuntimePlugin;
 import org.eclipse.imp.services.IASTFindReplaceTarget;
 import org.eclipse.imp.services.IAnnotationTypeInfo;
+import org.eclipse.imp.services.IEditorInputResolver;
 import org.eclipse.imp.services.IEditorService;
 import org.eclipse.imp.services.ILanguageActionsContributor;
 import org.eclipse.imp.services.ILanguageSyntaxProperties;
@@ -88,6 +89,7 @@ import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceConverter;
 import org.eclipse.jface.resource.FontRegistry;
+import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.DocumentEvent;
 import org.eclipse.jface.text.IDocument;
@@ -132,6 +134,7 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.IPageLayout;
+import org.eclipse.ui.IPropertyListener;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchPart;
@@ -141,6 +144,7 @@ import org.eclipse.ui.actions.ActionContext;
 import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.handlers.IHandlerActivation;
 import org.eclipse.ui.handlers.IHandlerService;
+import org.eclipse.ui.internal.WorkbenchPlugin;
 import org.eclipse.ui.texteditor.AbstractDecoratedTextEditorPreferenceConstants;
 import org.eclipse.ui.texteditor.AbstractTextEditor;
 import org.eclipse.ui.texteditor.ContentAssistAction;
@@ -398,7 +402,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             // It would be better to match the markers to the annotations, and decide which
             // annotations to remove.
             if (fParserScheduler != null) {
+              if (!isMarkerChange) {
                 fParserScheduler.schedule(50);
+              }
             }
         }
     }
@@ -680,9 +686,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
     public IDocumentProvider getDocumentProvider() {
         IEditorInput editorInput= getEditorInput();
 
-        if (ZipDocumentProvider.canHandle(editorInput)) {
+        if (ZipStorageEditorDocumentProvider.canHandle(editorInput)) {
             if (fZipDocProvider == null) {
-                fZipDocProvider= new ZipDocumentProvider();
+                fZipDocProvider= new ZipStorageEditorDocumentProvider();
             }
             return fZipDocProvider;
         }
@@ -738,8 +744,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
         initializeEditorContributors();
 
-        // SMS 3 Oct 2008:  moved call to watchDocument(..) to initiateServiceControllers().
         watchForSourceMove();
+
+        if (isEditable() && getResourceDocumentMapListener() != null) {
+            IResourceDocumentMapListener rdml = getResourceDocumentMapListener();
+
+            rdml.registerDocument(getDocumentProvider().getDocument(getEditorInput()), EditorInputUtils.getFile(getEditorInput()), this);
+        }
     }
 
     private void initializeParseController() {
@@ -747,16 +758,13 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         IEditorInput editorInput= getEditorInput();
         IFile file = null;
         IPath filePath = null;
-        
-		if (fLanguageServiceManager != null
-				&& fLanguageServiceManager.getEditorInputResolver() != null) {
-			file = fLanguageServiceManager.getEditorInputResolver().getFile(
-					editorInput);
-			filePath = fLanguageServiceManager.getEditorInputResolver().getPath(
-					editorInput);
-		}
 
-		else {
+		IEditorInputResolver editorInputResolver= fLanguageServiceManager.getEditorInputResolver();
+
+		if (fLanguageServiceManager != null && editorInputResolver != null) {
+			file = editorInputResolver.getFile(editorInput);
+			filePath = editorInputResolver.getPath(editorInput);
+		} else {
 			file = EditorInputUtils.getFile(editorInput);
 			filePath = EditorInputUtils.getPath(editorInput);
 		}
@@ -898,13 +906,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         doc.addDocumentListener(fDocumentListener= new IDocumentListener() {
             public void documentAboutToBeChanged(DocumentEvent event) {}
             public void documentChanged(DocumentEvent event) {
-//              System.out.println("Document change event @ offset " + event.fOffset + " & length " + event.fLength);
                 fParserScheduler.cancel();
                 fParserScheduler.schedule(reparse_schedule_delay);
             }
         });
     }
-    
+
     private class BracketInserter implements VerifyKeyListener {
         private final Map<String,String> fFencePairs= new HashMap<String, String>();
         private final String fOpenFences;
@@ -1003,12 +1010,54 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             ((ITextViewerExtension) sourceViewer).prependVerifyKeyListener(fBracketInserter);
     }
 
+    /**
+     * Sub-classes may override this method. It's intended to allow language-
+     * specific editor document-aware services like indexing to get notified
+     * when the resource/document association changes.
+     */
+    protected IResourceDocumentMapListener getResourceDocumentMapListener() {
+        return null; // base behavior - nothing to do
+    }
+
+    /**
+     * The following listener is intended to detect when the document associated
+     * with this editor changes its identity, which happens when, e.g., the
+     * underlying resource gets moved or renamed.
+     */
+    private IPropertyListener fEditorInputPropertyListener = new IPropertyListener() {
+        public void propertyChanged(Object source, int propId) {
+            if (source == UniversalEditor.this && propId == IEditorPart.PROP_INPUT) {
+                IDocument oldDoc= getParseController().getDocument();
+                IDocument curDoc= getDocumentProvider().getDocument(getEditorInput()); 
+
+                if (curDoc != oldDoc) {
+                    // Need to unwatch the old document and watch the new document
+                    oldDoc.removeDocumentListener(fDocumentListener);
+                    curDoc.addDocumentListener(fDocumentListener);
+
+                    // Now notify anyone else who needs to know that the document's
+                    // identity changed.
+                    IResourceDocumentMapListener rdml = getResourceDocumentMapListener();
+
+                    if (rdml != null) {
+                        if (oldDoc != null) {
+                            rdml.unregisterDocument(oldDoc);
+                        }
+                        rdml.updateResourceDocumentMap(curDoc, EditorInputUtils.getFile(getEditorInput()), UniversalEditor.this);
+                    }
+                }
+            }
+        }
+    };
+
     private void watchForSourceMove() {
         if (fLanguageServiceManager == null ||
             fLanguageServiceManager.getParseController() == null ||
             fLanguageServiceManager.getParseController().getProject() == null) {
             return;
         }
+        // We need to see when the editor input changes, so we can watch the new document
+        addPropertyListener(fEditorInputPropertyListener);
         ResourcesPlugin.getWorkspace().addResourceChangeListener(fResourceListener= new IResourceChangeListener() {
             public void resourceChanged(IResourceChangeEvent event) {
                 if (event.getType() != IResourceChangeEvent.POST_CHANGE)
@@ -1022,6 +1071,7 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
 
                 if (rd != null) {
                     if ((rd.getFlags() & IResourceDelta.MOVED_TO) == IResourceDelta.MOVED_TO) {
+                        // The net effect of the following is to re-initialize() the IParseController with the new path
                         IPath newPath= rd.getMovedToPath();
                         IPath newProjRelPath= newPath.removeFirstSegments(1);
                         String newProjName= newPath.segment(0);
@@ -1048,9 +1098,18 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
             fontName= fLangSpecificPrefs.getStringPreference(PreferenceConstants.P_SOURCE_FONT);
         }
         if (fontName == null) {
-            IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
+            // Don't use the IMP SourceFont pref key on the IMP RuntimePlugin's preference
+            // store; use the JFaceResources TEXT_FONT pref key on the WorkbenchPlugin's
+            // preference store. This way, the workbench-wide setting in "General" ->
+            // "Appearance" => "Colors and Fonts" will have the desired effect, in the
+            // absence of a language-specific setting.
+//          IPreferenceStore prefStore= RuntimePlugin.getInstance().getPreferenceStore();
+//
+//          fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
 
-            fontName= prefStore.getString(PreferenceConstants.P_SOURCE_FONT);
+            IPreferenceStore prefStore= WorkbenchPlugin.getDefault().getPreferenceStore();
+
+            fontName= prefStore.getString(JFaceResources.TEXT_FONT);
         }
         FontRegistry fontRegistry= RuntimePlugin.getInstance().getFontRegistry();
 
@@ -1140,10 +1199,16 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         // Only set the editor's title bar icon if the language has a label provider
         if (fLanguageServiceManager != null && fLanguageServiceManager.getLabelProvider() != null) {
             IEditorInput editorInput= getEditorInput();
-            IFile file= EditorInputUtils.getFile(editorInput);
+            IEditorInputResolver editorInputResolver= fLanguageServiceManager.getEditorInputResolver();
+            Object fileOrPath= (editorInputResolver != null) ? editorInputResolver.getFile(editorInput) :
+                EditorInputUtils.getFile(editorInput);
+
+            if (fileOrPath == null) {
+                fileOrPath = this.fLanguageServiceManager.getParseController().getPath();
+            }
 
             try {
-                setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(file));
+                setTitleImage(fLanguageServiceManager.getLabelProvider().getImage(fileOrPath));
             } catch (Exception e) {
                 ErrorHandler.reportError("Error while setting source editor title icon from label provider", e);
             }
@@ -1277,6 +1342,9 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         
         if (fResourceListener != null) {
         	ResourcesPlugin.getWorkspace().removeResourceChangeListener(fResourceListener);
+        }
+        if (isEditable() && getResourceDocumentMapListener() != null) {
+            getResourceDocumentMapListener().unregisterDocument(getDocumentProvider().getDocument(getEditorInput()));
         }
 
         if (fLanguageServiceManager != null) {

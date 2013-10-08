@@ -66,6 +66,18 @@ public abstract class FolderBase implements IFoldingUpdater {
      * @param n an Object representing a program entity
      */
     public void makeAnnotation(Object n) {
+    	makeAnnotation(n, false);
+    }
+    
+    /**
+     * Make a folding annotation that corresponds to the extent of text
+     * represented by a given program entity. Usually, this will be an
+     * AST node, but it can be anything for which the language's
+     * ISourcePositionLocator can produce an offset/end offset.
+     * 
+     * @param n an Object representing a program entity
+     */
+    public void makeAnnotation(Object n, boolean collapsed) {
 		ISourcePositionLocator nodeLocator = parseController.getSourcePositionLocator();
 		int startOffset = 0;
 		int endOffset = 0;
@@ -77,7 +89,7 @@ public abstract class FolderBase implements IFoldingUpdater {
 		    RuntimePlugin.getInstance().logException("Error while attempting to determine position of a foldable source entity", e);
 			return;
 		}
-		makeAnnotation(startOffset, endOffset-startOffset+1);
+		makeAnnotation(startOffset, endOffset-startOffset+1, collapsed);
     }
 
     /**
@@ -92,6 +104,22 @@ public abstract class FolderBase implements IFoldingUpdater {
             cons.println("Adding folding annotation for extent [" + start + ":" + len + "]");
         }
 		ProjectionAnnotation annotation= new ProjectionAnnotation();
+		newAnnotations.put(annotation, new Position(start, len));
+		annotations.add(annotation);
+    }
+    
+    /**
+     * Make a folding annotation that corresponds to the given range of text.
+     * 
+     * @param start		The starting offset of the text range
+     * @param len		The length of the text range
+     */
+    public void makeAnnotation(int start, int len, boolean collapsed) {
+        if (fDebugMode) {
+            PrintStream cons= RuntimePlugin.getInstance().getConsoleStream();
+            cons.println("Adding folding annotation for extent [" + start + ":" + len + "]");
+        }
+		ProjectionAnnotation annotation= new ProjectionAnnotation(collapsed);
 		newAnnotations.put(annotation, new Position(start, len));
 		annotations.add(annotation);
     }

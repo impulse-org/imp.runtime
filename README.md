@@ -32,7 +32,7 @@ The second most important extension point is "parserWrapper":
    </extension>
 ```
 
-This will force you to implement `IParseController`, a simple interface which allows you to call your own parser and
+This will force you to implement [IParseController](https://github.com/impulse-org/imp.runtime/blob/master/src/org/eclipse/imp/parser/IParseController.java), a simple interface which allows you to call your own parser and
 return any kind of parse tree, abstract syntax tree or list of tokens. The point of IParseController is to be agnostic in 
 what parsing technology you use or what kind of representation you have for the output of the parser. Hence the `parse` method
 in IParseController returns an object of type `java.lang.Object`. Downstream this same object will be passed to you again,

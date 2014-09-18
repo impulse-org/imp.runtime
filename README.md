@@ -11,6 +11,15 @@ create a basic IDE. You provide this information mainly by implementing a number
 
 IMP is described in a 2009 OOPSLA [paper](http://dl.acm.org/citation.cfm?id=1640104)
 
+# Update site
+
+You will find a temporary update site for IMP here. It is actually quite stable:
+
+   * <http://update.rascal-mpl.org/unstable>
+   * <http://update.rascal-mpl.org/stable> will have a version before the end of september 2014
+   
+IMP is used mostly as an internal component to a number of succesful language workbenches. If you are authoring one and wish to know about IMP stability and deployment, please contact us.
+   
 # Extension points 
 
 The first and only absolutely necessary extension point to bind is "languageDescription". It makes your language known to

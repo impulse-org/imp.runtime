@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2008 IBM Corporation.
+* Copyright (c) 2008 IBM Corporation, 2015 Centrum Wiskunde & Informatica
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Eclipse Public License v1.0
 * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
 *
 * Contributors:
 *    Robert Fuhrer (rfuhrer@watson.ibm.com) - initial API and implementation
+*    Jurgen Vinju (Jurgen.Vinju@cwi.nl) - maintenance
 *******************************************************************************/
 
 package org.eclipse.imp.editor;
@@ -14,7 +15,6 @@ package org.eclipse.imp.editor;
 import org.eclipse.imp.editor.internal.CompletionProcessor;
 import org.eclipse.imp.editor.internal.FormattingController;
 import org.eclipse.imp.editor.internal.HoverHelpController;
-import org.eclipse.imp.editor.internal.OutlineController;
 import org.eclipse.imp.editor.internal.PresentationController;
 import org.eclipse.imp.editor.internal.SourceHyperlinkController;
 import org.eclipse.imp.parser.IModelListener;
@@ -65,9 +65,8 @@ public class ServiceControllerManager {
         if (fLanguageServiceManager.getModelBuilder() != null) {
             fOutlineController= new IMPOutlinePage(fLanguageServiceManager.getParseController(), fLanguageServiceManager.getModelBuilder(), fLanguageServiceManager.getLabelProvider(),
                     fLanguageServiceManager.getImageProvider(), fLanguageServiceManager.getEntityNameLocator(), regionSelector);
-        } else {
-            fOutlineController= new OutlineController(fTextEditor, fLanguageServiceManager.getLanguage());
-        }
+        } 
+        
         fCompletionProcessor= new CompletionProcessor(fLanguageServiceManager.getLanguage());
     }
 

@@ -1362,7 +1362,6 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         }
         fParserScheduler= null;
         ((StructuredSourceViewer) getSourceViewer()).setParseController(null);
-
         super.dispose();
     }
 

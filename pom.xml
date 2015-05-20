@@ -10,7 +10,7 @@
 	</parent>
 
 	<artifactId>org.eclipse.imp.runtime</artifactId>
-	<version>0.2.1.qualifier</version>
+	<version>0.3.0.qualifier</version>
 	<packaging>eclipse-plugin</packaging>
 
 </project>

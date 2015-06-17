@@ -1350,8 +1350,12 @@ public class UniversalEditor extends TextEditor implements IASTFindReplaceTarget
         if (fLanguageServiceManager != null) {
             fLanguageServiceManager.dispose();
         }
-        fToggleBreakpointAction.dispose(); // this holds onto the IDocument
-        fFoldingActionGroup.dispose();
+        
+        if (fToggleBreakpointAction != null) {
+        	fToggleBreakpointAction.dispose(); // this holds onto the IDocument
+        	fFoldingActionGroup.dispose();
+        }
+        
         if (fServiceControllerManager != null) {
             fServiceControllerManager.getCompletionProcessor().dispose();
             fServiceControllerManager= null;

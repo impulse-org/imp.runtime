@@ -11,6 +11,8 @@ create a basic IDE. You provide this information mainly by implementing a number
 
 IMP is described in a 2009 OOPSLA [paper](http://dl.acm.org/citation.cfm?id=1640104)
 
+_There are currently no active maintainers of this project_. An active fork with semantic versioning, is maintained at <https://github.com/usethesource/impulse>.
+
 # Update site
 
 You will find a temporary update site for IMP here. It is actually quite stable:
